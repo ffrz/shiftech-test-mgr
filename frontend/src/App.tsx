@@ -34,9 +34,8 @@ function App() {
           <Route path="/test-plans/:id" element={<TestPlanDetailPage />} />
           <Route path="/test-cases" element={<TestCasesPage />} />
           <Route path="/test-cases/:id" element={<TestCaseDetailPage />} />
-          <Route path="/test-runs/:id" element={<TestRunResultDetailPage />} />
-          <Route path="/test-runs/:runId/results/:resultId" element={<TestRunResultDetailPage />} />
           <Route path="/test-runs/:id/issues" element={<TestRunIssuesPage />} />
+          <Route path="/test-runs/:id" element={<TestRunResultDetailPage />} />
           <Route path="/issues/:id" element={<IssueDetailPage />} />
 
           <Route element={<AdminRoute />}>

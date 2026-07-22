@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Panel } from 'primereact/panel';
 import { Tag } from 'primereact/tag';
@@ -73,8 +73,9 @@ const PRIORITY_FILTER_OPTIONS: { label: string; value: TestCasePriority }[] = (
 const MAX_PANEL_HEIGHT = 'calc(100vh - 14rem)';
 
 export function TestRunResultDetailPage() {
-  const { id: legacyRunId, runId: nestedRunId, resultId } = useParams<{ id?: string; runId?: string; resultId?: string }>();
-  const runId = nestedRunId ?? legacyRunId ?? null;
+  const { id: runId = null } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const resultId = searchParams.get('resultId');
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
   const { profile: currentProfile } = useAuthContext();
@@ -89,6 +90,17 @@ export function TestRunResultDetailPage() {
   const { canRunTests, canManageIssues } = useProjectRole(testPlan?.projectId);
 
   const activeResult = results.find((r) => r.id === resultId) ?? null;
+
+  // Selecting a test case updates the resultId query param instead of navigating to a
+  // different route — keeps this on the same route match as the bare /test-runs/:id URL,
+  // so React Router never unmounts/remounts the page (and its breadcrumb) between the two.
+  function selectResult(id: string) {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('resultId', id);
+      return next;
+    });
+  }
 
   const issueCountByResult = runIssues.reduce<Record<string, number>>((acc, issue) => {
     for (const link of issue.linkedTestResults) {
@@ -371,7 +383,7 @@ export function TestRunResultDetailPage() {
             {filteredResults.map((r, index) => (
               <div
                 key={r.id}
-                onClick={() => navigate(`/test-runs/${runId}/results/${r.id}`)}
+                onClick={() => selectResult(r.id)}
                 className="p-2 border-round cursor-pointer flex align-items-start gap-2"
                 style={{
                   backgroundColor: r.id === resultId ? 'var(--primary-color)' : undefined,
@@ -412,7 +424,7 @@ export function TestRunResultDetailPage() {
                 size="small"
                 outlined
                 disabled={!prevResult}
-                onClick={() => prevResult && navigate(`/test-runs/${runId}/results/${prevResult.id}`)}
+                onClick={() => prevResult && selectResult(prevResult.id)}
               />
               <span className="text-color-secondary text-sm">
                 {activeIndex + 1} / {filteredResults.length}
@@ -424,7 +436,7 @@ export function TestRunResultDetailPage() {
                 size="small"
                 outlined
                 disabled={!nextResult}
-                onClick={() => nextResult && navigate(`/test-runs/${runId}/results/${nextResult.id}`)}
+                onClick={() => nextResult && selectResult(nextResult.id)}
               />
             </div>
           )}
