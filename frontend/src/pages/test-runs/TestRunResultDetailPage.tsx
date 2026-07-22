@@ -48,6 +48,7 @@ import {
 } from '../../helpers/statusLabels';
 
 const RESULT_OPTIONS: { label: string; value: TestResultStatus }[] = [
+  { label: 'Belum Dites', value: 'not_run' },
   { label: 'Pass', value: 'pass' },
   { label: 'Fail', value: 'fail' },
   { label: 'Skip', value: 'skip' },
@@ -144,7 +145,7 @@ export function TestRunResultDetailPage() {
 
   useEffect(() => {
     if (!activeResult) return;
-    setResultStatus(activeResult.status === 'not_run' ? 'pass' : activeResult.status);
+    setResultStatus(activeResult.status);
     setResultTesterId(activeResult.testerId ?? currentProfile?.id ?? null);
     setResultNotes(activeResult.notes ?? '');
     setRightPanelScrolled(false);
