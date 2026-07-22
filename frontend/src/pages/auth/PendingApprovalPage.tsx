@@ -1,9 +1,16 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { useAuthContext } from '../../hooks/useAuth';
 
 export function PendingApprovalPage() {
-  const { profile, signOut } = useAuthContext();
+  const { profile, isApproved, signOut } = useAuthContext();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isApproved) navigate('/', { replace: true });
+  }, [isApproved, navigate]);
 
   return (
     <div className="flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
