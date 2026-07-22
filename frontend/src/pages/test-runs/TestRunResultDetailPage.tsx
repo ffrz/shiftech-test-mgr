@@ -27,6 +27,7 @@ import { testPlanService } from '../../services/testPlanService';
 import { projectService } from '../../services/projectService';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { formatDateTime } from '../../helpers/dateFormatter';
 import type {
   IssuePriority,
   IssueWithDetails,
@@ -456,7 +457,37 @@ export function TestRunResultDetailPage() {
                   <div className="flex align-items-center gap-2 mb-1">
                     <h2 className="m-0">{activeResult.testCaseCode} — {activeResult.testCaseTitle}</h2>
                     <Tag value={TEST_CASE_PRIORITY_LABEL[activeResult.testCasePriority]} severity={TEST_CASE_PRIORITY_SEVERITY[activeResult.testCasePriority]} />
+                    <Tag value={TEST_RESULT_STATUS_LABEL[activeResult.status]} severity={TEST_RESULT_STATUS_SEVERITY[activeResult.status]} />
                   </div>
+
+                  <div className="flex flex-wrap align-items-center gap-4 mt-2 mb-1 text-sm">
+                    <span className="text-color-secondary">
+                      Modul: <span className="text-color">{activeResult.testCase?.module?.name ?? '-'}</span>
+                    </span>
+                    {activeResult.testCase && activeResult.testCase.tags.length > 0 && (
+                      <span className="text-color-secondary flex align-items-center gap-2">
+                        Tag:
+                        <span className="flex flex-wrap gap-1">
+                          {activeResult.testCase.tags.map((tag) => (
+                            <Tag key={tag.id} value={tag.name} severity="info" />
+                          ))}
+                        </span>
+                      </span>
+                    )}
+                    <span className="text-color-secondary">
+                      Tester: <span className="text-color">{activeResult.tester?.fullName ?? activeResult.tester?.email ?? '-'}</span>
+                    </span>
+                    <span className="text-color-secondary">
+                      Dieksekusi: <span className="text-color">{activeResult.executedAt ? formatDateTime(activeResult.executedAt) : '-'}</span>
+                    </span>
+                  </div>
+
+                  {activeResult.notes && (
+                    <div className="mt-2">
+                      <label className="block text-color-secondary text-sm mb-1">Catatan Hasil</label>
+                      <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.notes}</p>
+                    </div>
+                  )}
 
                   {activeResult.testCase && activeResult.testCase.updatedAt > activeResult.updatedAt && (
                     <small className="text-color-secondary">
