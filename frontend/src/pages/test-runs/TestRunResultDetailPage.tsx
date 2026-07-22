@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Card } from 'primereact/card';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 import { Panel } from 'primereact/panel';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
@@ -653,31 +655,31 @@ export function TestRunResultDetailPage() {
       </div>
 
       {/* --- Browse Issues Dialog: pick existing to link, or open Create Issue --- */}
-      <Dialog header="Browse Issues" visible={browseDialogOpen} onHide={() => setBrowseDialogOpen(false)} style={{ width: '30rem' }}>
+      <Dialog header="Browse Issues" visible={browseDialogOpen} onHide={() => setBrowseDialogOpen(false)} style={{ width: '34rem' }}>
         <div className="flex flex-column gap-3">
           <div className="flex align-items-center gap-2">
             <IconField iconPosition="left" className="flex-grow-1">
               <InputIcon className="pi pi-search" />
               <InputText value={browseSearch} onChange={(e) => setBrowseSearch(e.target.value)} placeholder="Cari judul/kode..." className="w-full" />
             </IconField>
-            <Button label="Tambah Issue" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />
+            <Button label="Buat Issue" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />
           </div>
-          <div className="flex flex-column gap-2" style={{ maxHeight: '20rem', overflowY: 'auto' }}>
-            {filteredProjectIssues.length === 0 && <p className="text-color-secondary text-sm m-0">Tidak ada issue yang cocok.</p>}
-            {filteredProjectIssues.map((issue) => (
-              <label key={issue.id} className="flex align-items-center gap-2 p-2 border-round surface-hover cursor-pointer">
+          <DataTable value={filteredProjectIssues} paginator rows={5} size="small" emptyMessage="Tidak ada issue yang cocok." dataKey="id">
+            <Column
+              header=""
+              style={{ width: '2.5rem' }}
+              body={(issue: IssueWithDetails) => (
                 <input
                   type="checkbox"
                   checked={linkedIssueIds.has(issue.id)}
                   onChange={(e) => handleToggleLink(issue.id, e.target.checked)}
                 />
-                <span className="text-sm flex-grow-1">
-                  <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} className="mr-2" />
-                  <span className="font-medium">{issue.code}</span> — {issue.title}
-                </span>
-              </label>
-            ))}
-          </div>
+              )}
+            />
+            <Column field="code" header="Kode" style={{ width: '6rem' }} />
+            <Column header="Tipe" body={(issue: IssueWithDetails) => <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} />} style={{ width: '7rem' }} />
+            <Column field="title" header="Judul" />
+          </DataTable>
         </div>
       </Dialog>
 
