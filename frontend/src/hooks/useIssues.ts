@@ -1,45 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { issueService } from '../services/issueService';
-import type { IssueWithDetails } from '../types/domain';
+import { queryKeys } from './queryKeys';
 
 export function useIssuesByProject(projectId: string | null) {
-  const [issues, setIssues] = useState<IssueWithDetails[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.issuesByProject(projectId ?? ''),
+    queryFn: () => issueService.listByProject(projectId!),
+    enabled: !!projectId,
+  });
 
-  const reload = useCallback(async () => {
-    if (!projectId) return;
-    setLoading(true);
-    try {
-      setIssues(await issueService.listByProject(projectId));
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  return { issues, loading, reload };
+  return {
+    issues: data ?? [],
+    loading: isLoading,
+    reload: () =>
+      projectId ? queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(projectId) }) : Promise.resolve(),
+  };
 }
 
 export function useIssuesByTestRun(testRunId: string | null) {
-  const [issues, setIssues] = useState<IssueWithDetails[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.issuesByTestRun(testRunId ?? ''),
+    queryFn: () => issueService.listByTestRun(testRunId!),
+    enabled: !!testRunId,
+  });
 
-  const reload = useCallback(async () => {
-    if (!testRunId) return;
-    setLoading(true);
-    try {
-      setIssues(await issueService.listByTestRun(testRunId));
-    } finally {
-      setLoading(false);
-    }
-  }, [testRunId]);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  return { issues, loading, reload };
+  return {
+    issues: data ?? [],
+    loading: isLoading,
+    reload: () =>
+      testRunId ? queryClient.invalidateQueries({ queryKey: queryKeys.issuesByTestRun(testRunId) }) : Promise.resolve(),
+  };
 }

@@ -1,26 +1,21 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { testPlanService } from '../services/testPlanService';
-import type { TestPlanCaseWithDetails } from '../types/domain';
+import { queryKeys } from './queryKeys';
 
 // Just "which test cases are in scope for this plan" — no result/progress here.
 // Execution history lives under Test Runs (see useTestRuns / useTestRunDetail).
 export function useTestPlanDetail(testPlanId: string | null) {
-  const [cases, setCases] = useState<TestPlanCaseWithDetails[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.testPlanCases(testPlanId ?? ''),
+    queryFn: () => testPlanService.listCases(testPlanId!),
+    enabled: !!testPlanId,
+  });
 
-  const reload = useCallback(async () => {
-    if (!testPlanId) return;
-    setLoading(true);
-    try {
-      setCases(await testPlanService.listCases(testPlanId));
-    } finally {
-      setLoading(false);
-    }
-  }, [testPlanId]);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  return { cases, loading, reload };
+  return {
+    cases: data ?? [],
+    loading: isLoading,
+    reload: () =>
+      testPlanId ? queryClient.invalidateQueries({ queryKey: queryKeys.testPlanCases(testPlanId) }) : Promise.resolve(),
+  };
 }

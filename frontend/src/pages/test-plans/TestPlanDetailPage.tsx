@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
@@ -21,11 +22,12 @@ import { testCaseService } from '../../services/testCaseService';
 import { testRunService } from '../../services/testRunService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
-import type { Module, Tag as TagEntity, TestCase, TestCasePriority, TestPlan, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
+import type { TestCase, TestCasePriority, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { queryKeys } from '../../hooks/queryKeys';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import {
   TEST_PLAN_STATUS_LABEL,
@@ -58,11 +60,33 @@ export function TestPlanDetailPage() {
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
 
-  const [testPlan, setTestPlan] = useState<TestPlan | null>(null);
-  const [projectName, setProjectName] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: testPlan = null } = useQuery({
+    queryKey: queryKeys.testPlan(id ?? ''),
+    queryFn: () => testPlanService.getById(id!),
+    enabled: !!id,
+  });
   const { cases, loading: casesLoading, reload: reloadCases } = useTestPlanDetail(id ?? null);
   const { testRuns, loading: runsLoading, reload: reloadRuns } = useTestRuns(id ?? null);
   const { canEditContent, canDeleteContent, canRunTests } = useProjectRole(testPlan?.projectId);
+
+  const { data: project } = useQuery({
+    queryKey: queryKeys.project(testPlan?.projectId ?? ''),
+    queryFn: () => projectService.getById(testPlan!.projectId),
+    enabled: !!testPlan?.projectId,
+  });
+  const projectName = project?.name ?? null;
+
+  const { data: modules = [] } = useQuery({
+    queryKey: queryKeys.modules(testPlan?.projectId ?? ''),
+    queryFn: () => moduleService.listByProject(testPlan!.projectId),
+    enabled: !!testPlan?.projectId,
+  });
+  const { data: tags = [] } = useQuery({
+    queryKey: queryKeys.tags(testPlan?.projectId ?? ''),
+    queryFn: () => tagService.listByProject(testPlan!.projectId),
+    enabled: !!testPlan?.projectId,
+  });
 
   // --- Test Cases: search/filter ---
   const [caseSearch, setCaseSearch] = useState('');
@@ -70,8 +94,6 @@ export function TestPlanDetailPage() {
   const [caseModuleFilter, setCaseModuleFilter] = useState<string | null>(null);
   const [caseTagFilter, setCaseTagFilter] = useState<string | null>(null);
   const [selectedCases, setSelectedCases] = useState<TestPlanCaseWithDetails[]>([]);
-  const [modules, setModules] = useState<Module[]>([]);
-  const [tags, setTags] = useState<TagEntity[]>([]);
 
   const filteredCases = useMemo(() => {
     const q = caseSearch.trim().toLowerCase();
@@ -96,21 +118,6 @@ export function TestPlanDetailPage() {
       return true;
     });
   }, [testRuns, runSearch, runStatusFilter]);
-
-  useEffect(() => {
-    if (id) testPlanService.getById(id).then(setTestPlan);
-  }, [id]);
-
-  useEffect(() => {
-    if (testPlan) projectService.getById(testPlan.projectId).then((p) => setProjectName(p?.name ?? null));
-  }, [testPlan]);
-
-  useEffect(() => {
-    if (testPlan) {
-      moduleService.listByProject(testPlan.projectId).then(setModules);
-      tagService.listByProject(testPlan.projectId).then(setTags);
-    }
-  }, [testPlan]);
 
   // --- Add test case to plan ---
   const [addCaseDialogOpen, setAddCaseDialogOpen] = useState(false);
@@ -194,6 +201,7 @@ export function TestPlanDetailPage() {
       const run = await testRunService.start(id, runName);
       setRunDialogOpen(false);
       await reloadRuns();
+      if (testPlan) await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(testPlan.projectId) });
       navigate(`/test-runs/${run.id}`);
     } catch (err) {
       setRunError(err instanceof Error ? err.message : 'Gagal memulai test run');
@@ -203,7 +211,7 @@ export function TestPlanDetailPage() {
   async function handleChangeStatus(status: TestPlanStatus) {
     if (!testPlan || status === testPlan.status) return;
     const updated = await testPlanService.changeStatus(testPlan.id, status);
-    setTestPlan(updated);
+    queryClient.setQueryData(queryKeys.testPlan(testPlan.id), updated);
     toast.current?.show({ severity: 'success', summary: `Status diubah ke ${TEST_PLAN_STATUS_LABEL[status]}` });
   }
 
@@ -218,6 +226,7 @@ export function TestPlanDetailPage() {
       accept: async () => {
         await testRunService.remove(row.id);
         await reloadRuns();
+        if (testPlan) await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(testPlan.projectId) });
         toast.current?.show({ severity: 'success', summary: 'Test run dihapus' });
       },
     });

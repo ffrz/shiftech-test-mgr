@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { testRunService } from '../services/testRunService';
-import type { TestResultWithDetails, TestRun } from '../types/domain';
+import { queryKeys } from './queryKeys';
 
 interface Summary {
   total: number;
@@ -13,40 +13,45 @@ interface Summary {
   notRun: number;
 }
 
+const EMPTY_SUMMARY: Summary = {
+  total: 0,
+  executed: 0,
+  progressPercent: 0,
+  pass: 0,
+  fail: 0,
+  skip: 0,
+  blocked: 0,
+  notRun: 0,
+};
+
 export function useTestRunDetail(testRunId: string | null) {
-  const [testRun, setTestRun] = useState<TestRun | null>(null);
-  const [results, setResults] = useState<TestResultWithDetails[]>([]);
-  const [summary, setSummary] = useState<Summary>({
-    total: 0,
-    executed: 0,
-    progressPercent: 0,
-    pass: 0,
-    fail: 0,
-    skip: 0,
-    blocked: 0,
-    notRun: 0,
+  const queryClient = useQueryClient();
+
+  const testRunQuery = useQuery({
+    queryKey: queryKeys.testRun(testRunId ?? ''),
+    queryFn: () => testRunService.getById(testRunId!),
+    enabled: !!testRunId,
   });
-  const [loading, setLoading] = useState(false);
 
-  const reload = useCallback(async () => {
+  const resultsQuery = useQuery({
+    queryKey: queryKeys.testRunResults(testRunId ?? ''),
+    queryFn: () => testRunService.getWithResults(testRunId!),
+    enabled: !!testRunId,
+  });
+
+  async function reload() {
     if (!testRunId) return;
-    setLoading(true);
-    try {
-      const [run, withResults] = await Promise.all([
-        testRunService.getById(testRunId),
-        testRunService.getWithResults(testRunId),
-      ]);
-      setTestRun(run);
-      setResults(withResults.results);
-      setSummary(withResults.summary);
-    } finally {
-      setLoading(false);
-    }
-  }, [testRunId]);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.testRun(testRunId) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.testRunResults(testRunId) }),
+    ]);
+  }
 
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  return { testRun, results, summary, loading, reload };
+  return {
+    testRun: testRunQuery.data ?? null,
+    results: resultsQuery.data?.results ?? [],
+    summary: resultsQuery.data?.summary ?? EMPTY_SUMMARY,
+    loading: testRunQuery.isLoading || resultsQuery.isLoading,
+    reload,
+  };
 }

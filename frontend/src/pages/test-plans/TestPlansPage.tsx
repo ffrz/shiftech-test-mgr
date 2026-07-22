@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
@@ -9,7 +10,8 @@ import { useTestPlans } from '../../hooks/useTestPlans';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { projectService } from '../../services/projectService';
 import { testPlanService } from '../../services/testPlanService';
-import type { Project, TestPlan, TestPlanStatus } from '../../types/domain';
+import { queryKeys } from '../../hooks/queryKeys';
+import type { TestPlan, TestPlanStatus } from '../../types/domain';
 import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
@@ -20,14 +22,14 @@ const TEST_PLAN_STATUS_OPTIONS: TestPlanStatus[] = ['draft', 'active', 'complete
 export function TestPlansPage() {
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
   const { testPlans, loading, reload } = useTestPlans(projectId);
   const { canEditContent } = useProjectRole(projectId ?? undefined);
 
-  useEffect(() => {
-    projectService.list().then(setProjects);
-  }, []);
+  const { data: projects = [] } = useQuery({
+    queryKey: queryKeys.projects(),
+    queryFn: () => projectService.list(),
+  });
 
   async function handleChangeStatus(row: TestPlan, status: TestPlanStatus) {
     if (status === row.status) return;

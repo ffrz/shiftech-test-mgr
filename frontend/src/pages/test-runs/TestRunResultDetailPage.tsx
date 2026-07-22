@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
 import { Checkbox } from 'primereact/checkbox';
 import { DataTable } from 'primereact/datatable';
@@ -30,16 +31,13 @@ import { testPlanService } from '../../services/testPlanService';
 import { projectService } from '../../services/projectService';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { queryKeys } from '../../hooks/queryKeys';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import type {
   IssuePriority,
   IssueType,
   IssueWithDetails,
-  Module,
-  Profile,
-  Tag as TagEntity,
   TestCasePriority,
-  TestPlan,
   TestResultStatus,
 } from '../../types/domain';
 import {
@@ -88,14 +86,40 @@ export function TestRunResultDetailPage() {
   const toast = useRef<Toast>(null);
   const { profile: currentProfile } = useAuthContext();
 
+  const queryClient = useQueryClient();
   const { testRun, results, summary, loading, reload } = useTestRunDetail(runId);
   const { reload: reloadRunIssues } = useIssuesByTestRun(runId);
-  const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
-  const [testPlan, setTestPlan] = useState<TestPlan | null>(null);
-  const [projectName, setProjectName] = useState<string | null>(null);
-  const [modules, setModules] = useState<Module[]>([]);
-  const [projectTags, setProjectTags] = useState<TagEntity[]>([]);
+
+  const { data: approvedUsers = [] } = useQuery({
+    queryKey: queryKeys.profiles(),
+    queryFn: async () => (await profileService.listAll()).filter((p) => p.role === 'user' || p.role === 'admin'),
+  });
+
+  const { data: testPlan = null } = useQuery({
+    queryKey: queryKeys.testPlan(testRun?.testPlanId ?? ''),
+    queryFn: () => testPlanService.getById(testRun!.testPlanId),
+    enabled: !!testRun?.testPlanId,
+  });
+
   const { canRunTests, canManageIssues } = useProjectRole(testPlan?.projectId);
+
+  const { data: project } = useQuery({
+    queryKey: queryKeys.project(testPlan?.projectId ?? ''),
+    queryFn: () => projectService.getById(testPlan!.projectId),
+    enabled: !!testPlan?.projectId,
+  });
+  const projectName = project?.name ?? null;
+
+  const { data: modules = [] } = useQuery({
+    queryKey: queryKeys.modules(testPlan?.projectId ?? ''),
+    queryFn: () => moduleService.listByProject(testPlan!.projectId),
+    enabled: !!testPlan?.projectId,
+  });
+  const { data: projectTags = [] } = useQuery({
+    queryKey: queryKeys.tags(testPlan?.projectId ?? ''),
+    queryFn: () => tagService.listByProject(testPlan!.projectId),
+    enabled: !!testPlan?.projectId,
+  });
 
   const activeResult = results.find((r) => r.id === resultId) ?? null;
 
@@ -109,22 +133,6 @@ export function TestRunResultDetailPage() {
       return next;
     });
   }
-
-  useEffect(() => {
-    profileService.listAll().then((all) => setApprovedUsers(all.filter((p) => p.role === 'user' || p.role === 'admin')));
-  }, []);
-
-  useEffect(() => {
-    if (testRun) testPlanService.getById(testRun.testPlanId).then(setTestPlan);
-  }, [testRun]);
-
-  useEffect(() => {
-    if (testPlan) {
-      projectService.getById(testPlan.projectId).then((p) => setProjectName(p?.name ?? null));
-      moduleService.listByProject(testPlan.projectId).then(setModules);
-      tagService.listByProject(testPlan.projectId).then(setProjectTags);
-    }
-  }, [testPlan]);
 
   // --- Panel kiri: filter/search ---
   const [search, setSearch] = useState('');
@@ -180,6 +188,9 @@ export function TestRunResultDetailPage() {
     if (!activeResult || !resultTesterId) return;
     await testRunService.recordResult(activeResult.id, resultTesterId, resultStatus, resultNotes.trim() || null);
     await reload();
+    // Pass/fail counts shown in the run summary lists on ProjectDetailPage/TestPlanDetailPage
+    // come from this same recorded result — keep them in sync too.
+    await invalidateTestRunSummaries();
     toast.current?.show({ severity: 'success', summary: 'Hasil tersimpan' });
   }
 
@@ -312,11 +323,25 @@ export function TestRunResultDetailPage() {
     setCompleteDialogOpen(true);
   }
 
+  // Test run status also feeds the summary list shown on ProjectDetailPage's Test Runs tab
+  // and TestPlanDetailPage — those pages read different query keys (testRunsByProject /
+  // testRunsByPlan) than this page's own testRun/testRunResults, so completing or reopening
+  // a run here has to invalidate those too or they'd keep showing the old status until a
+  // manual refresh.
+  async function invalidateTestRunSummaries() {
+    if (!testPlan) return;
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(testPlan.projectId) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByPlan(testPlan.id) }),
+    ]);
+  }
+
   async function handleCompleteRun() {
     if (!runId) return;
     await testRunService.complete(runId, completeNotes.trim() || null);
     setCompleteDialogOpen(false);
     await reload();
+    await invalidateTestRunSummaries();
     toast.current?.show({ severity: 'success', summary: 'Test run diselesaikan' });
   }
 
@@ -324,6 +349,7 @@ export function TestRunResultDetailPage() {
     if (!runId) return;
     await testRunService.reopen(runId);
     await reload();
+    await invalidateTestRunSummaries();
   }
 
   const moduleOptions = modules.map((m) => ({ label: m.name, value: m.id }));

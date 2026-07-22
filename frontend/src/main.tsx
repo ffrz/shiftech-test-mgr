@@ -13,7 +13,17 @@ import App from './App.tsx'
 import { AuthProvider } from './hooks/useAuth.tsx'
 import { ThemeProvider } from './hooks/useTheme.tsx'
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // 30s stale time: cheap navigation between pages/tabs within that window doesn't
+      // refetch, but every mutation explicitly invalidates its query keys (see
+      // hooks/queryKeys.ts) so an edit is reflected everywhere immediately regardless of
+      // this window — this only governs the "nothing changed" case.
+      staleTime: 30_000,
+    },
+  },
+});
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

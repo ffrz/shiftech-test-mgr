@@ -1,23 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { profileService } from '../services/profileService';
-import type { Profile } from '../types/domain';
+import { queryKeys } from './queryKeys';
 
 export function useProfiles() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.profiles(),
+    queryFn: () => profileService.listAll(),
+  });
 
-  const reload = useCallback(async () => {
-    setLoading(true);
-    try {
-      setProfiles(await profileService.listAll());
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  return { profiles, loading, reload };
+  return {
+    profiles: data ?? [],
+    loading: isLoading,
+    reload: () => queryClient.invalidateQueries({ queryKey: queryKeys.profiles() }),
+  };
 }

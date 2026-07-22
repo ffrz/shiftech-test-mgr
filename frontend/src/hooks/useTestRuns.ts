@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { testRunService } from '../services/testRunService';
+import { queryKeys } from './queryKeys';
 import type { TestRun } from '../types/domain';
 
 export interface TestRunWithSummary extends TestRun {
@@ -10,25 +11,17 @@ export interface TestRunWithSummary extends TestRun {
 }
 
 export function useTestRuns(testPlanId: string | null) {
-  const [testRuns, setTestRuns] = useState<TestRunWithSummary[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.testRunsByPlan(testPlanId ?? ''),
+    queryFn: () => testRunService.listByPlanWithSummary(testPlanId!),
+    enabled: !!testPlanId,
+  });
 
-  const reload = useCallback(async () => {
-    if (!testPlanId) {
-      setTestRuns([]);
-      return;
-    }
-    setLoading(true);
-    try {
-      setTestRuns(await testRunService.listByPlanWithSummary(testPlanId));
-    } finally {
-      setLoading(false);
-    }
-  }, [testPlanId]);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  return { testRuns, loading, reload };
+  return {
+    testRuns: (data ?? []) as TestRunWithSummary[],
+    loading: isLoading,
+    reload: () =>
+      testPlanId ? queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByPlan(testPlanId) }) : Promise.resolve(),
+  };
 }

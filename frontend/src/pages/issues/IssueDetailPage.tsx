@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
@@ -18,9 +19,10 @@ import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import type { BreadcrumbItem } from '../../components/ui/Breadcrumb';
-import type { Attachment, GithubLink, IssuePriority, IssueStatus, IssueType, IssueWithDetails, Module, Profile, Tag as TagEntity } from '../../types/domain';
+import type { Attachment, GithubLink, IssuePriority, IssueStatus, IssueType } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import {
   ISSUE_PRIORITY_LABEL,
@@ -49,40 +51,45 @@ export function IssueDetailPage() {
   const testRunId = searchParams.get('testRunId');
   const toast = useRef<Toast>(null);
 
-  const [issue, setIssue] = useState<IssueWithDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
-  const [projectName, setProjectName] = useState<string | null>(null);
-  const [modules, setModules] = useState<Module[]>([]);
-  const [projectTags, setProjectTags] = useState<TagEntity[]>([]);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const queryClient = useQueryClient();
+  const { data: issue = null, isLoading: loading } = useQuery({
+    queryKey: queryKeys.issue(id ?? ''),
+    queryFn: () => issueService.getById(id!),
+    enabled: !!id,
+  });
+  const { data: approvedUsers = [] } = useQuery({
+    queryKey: queryKeys.profiles(),
+    queryFn: async () => (await profileService.listAll()).filter((p) => p.role === 'user' || p.role === 'admin'),
+  });
+  const { data: attachments = [] } = useQuery({
+    queryKey: queryKeys.attachmentsByIssue(id ?? ''),
+    queryFn: () => attachmentService.listByIssue(id!),
+    enabled: !!id,
+  });
   const { canManageIssues, canDeleteContent } = useProjectRole(issue?.projectId);
+
+  const { data: project } = useQuery({
+    queryKey: queryKeys.project(issue?.projectId ?? ''),
+    queryFn: () => projectService.getById(issue!.projectId),
+    enabled: !!issue?.projectId,
+  });
+  const projectName = project?.name ?? null;
+
+  const { data: modules = [] } = useQuery({
+    queryKey: queryKeys.modules(issue?.projectId ?? ''),
+    queryFn: () => moduleService.listByProject(issue!.projectId),
+    enabled: !!issue?.projectId,
+  });
+  const { data: projectTags = [] } = useQuery({
+    queryKey: queryKeys.tags(issue?.projectId ?? ''),
+    queryFn: () => tagService.listByProject(issue!.projectId),
+    enabled: !!issue?.projectId,
+  });
 
   async function reload() {
     if (!id) return;
-    const result = await issueService.getById(id);
-    setIssue(result);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.issue(id) });
   }
-
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    Promise.all([issueService.getById(id), profileService.listAll(), attachmentService.listByIssue(id)]).then(
-      ([issueResult, users, attachmentResult]) => {
-        setIssue(issueResult);
-        setApprovedUsers(users.filter((p) => p.role === 'user' || p.role === 'admin'));
-        setAttachments(attachmentResult);
-        setLoading(false);
-      },
-    );
-  }, [id]);
-
-  useEffect(() => {
-    if (!issue?.projectId) return;
-    projectService.getById(issue.projectId).then((p) => setProjectName(p?.name ?? null));
-    moduleService.listByProject(issue.projectId).then(setModules);
-    tagService.listByProject(issue.projectId).then(setProjectTags);
-  }, [issue?.projectId]);
 
   function handleBack() {
     if (testRunId) {
@@ -143,6 +150,7 @@ export function IssueDetailPage() {
       );
       setEditDialogOpen(false);
       await reload();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
       toast.current?.show({ severity: 'success', summary: 'Issue diperbarui' });
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Gagal menyimpan issue');
@@ -153,12 +161,14 @@ export function IssueDetailPage() {
     if (!issue) return;
     await issueService.changeStatus(issue.id, status);
     await reload();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
   }
 
   async function handleAssign(assignedTo: string | null | undefined) {
     if (!issue) return;
     await issueService.assign(issue.id, assignedTo ?? null);
     await reload();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
   }
 
   function handleDelete() {
@@ -172,6 +182,7 @@ export function IssueDetailPage() {
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await issueService.remove(issue.id);
+        await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
         toast.current?.show({ severity: 'success', summary: 'Issue dihapus' });
         handleBack();
       },
@@ -189,6 +200,7 @@ export function IssueDetailPage() {
       accept: async () => {
         await issueService.changeStatus(issue.id, 'closed');
         await reload();
+        await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
         toast.current?.show({ severity: 'success', summary: 'Issue diarsipkan' });
       },
     });
@@ -200,7 +212,7 @@ export function IssueDetailPage() {
       for (const file of event.files) {
         await attachmentService.upload(issue.id, file);
       }
-      setAttachments(await attachmentService.listByIssue(issue.id));
+      await queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) });
       toast.current?.show({ severity: 'success', summary: 'Attachment diunggah' });
     } catch (err) {
       toast.current?.show({ severity: 'error', summary: 'Gagal unggah', detail: err instanceof Error ? err.message : undefined });
@@ -216,8 +228,9 @@ export function IssueDetailPage() {
       rejectLabel: 'Batal',
       acceptClassName: 'p-button-danger',
       accept: async () => {
+        if (!issue) return;
         await attachmentService.remove(attachment.id, attachment.url);
-        setAttachments((prev) => prev.filter((a) => a.id !== attachment.id));
+        await queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) });
       },
     });
   }

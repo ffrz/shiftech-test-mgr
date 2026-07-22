@@ -1,34 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { testPlanService } from '../services/testPlanService';
-import type { TestPlan } from '../types/domain';
+import { queryKeys } from './queryKeys';
 
 // Hook (composable) layer: bridges React state/lifecycle with the service layer.
 // Components consume hooks; hooks call services; services call repositories.
 
 export function useTestPlans(projectId: string | null) {
-  const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data, isLoading, error } = useQuery({
+    queryKey: queryKeys.testPlans(projectId ?? ''),
+    queryFn: () => testPlanService.listByProject(projectId!),
+    enabled: !!projectId,
+  });
 
-  const reload = useCallback(async () => {
-    if (!projectId) {
-      setTestPlans([]);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      setTestPlans(await testPlanService.listByProject(projectId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal memuat test plan');
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  return { testPlans, loading, error, reload };
+  return {
+    testPlans: data ?? [],
+    loading: isLoading,
+    error: error ? (error instanceof Error ? error.message : 'Gagal memuat test plan') : null,
+    reload: () =>
+      projectId ? queryClient.invalidateQueries({ queryKey: queryKeys.testPlans(projectId) }) : Promise.resolve(),
+  };
 }

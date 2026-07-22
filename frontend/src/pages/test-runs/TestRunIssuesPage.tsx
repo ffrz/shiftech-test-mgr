@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
@@ -9,7 +10,7 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
 import { issueService } from '../../services/issueService';
 import { profileService } from '../../services/profileService';
-import type { IssueStatus, IssueWithDetails, Profile } from '../../types/domain';
+import type { IssueStatus, IssueWithDetails } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
@@ -17,7 +18,7 @@ import { testRunService } from '../../services/testRunService';
 import { testPlanService } from '../../services/testPlanService';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
-import type { TestPlan, TestRun } from '../../types/domain';
+import { queryKeys } from '../../hooks/queryKeys';
 import { ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL } from '../../helpers/statusLabels';
 
 const STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
@@ -34,36 +35,44 @@ export function TestRunIssuesPage() {
     () => (testResultId ? allIssues.filter((i) => i.linkedTestResults.some((r) => r.id === testResultId)) : allIssues),
     [allIssues, testResultId],
   );
-  const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
-  const [testRun, setTestRun] = useState<TestRun | null>(null);
-  const [testPlan, setTestPlan] = useState<TestPlan | null>(null);
-  const [projectName, setProjectName] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: approvedUsers = [] } = useQuery({
+    queryKey: queryKeys.profiles(),
+    queryFn: async () => (await profileService.listAll()).filter((p) => p.role === 'user' || p.role === 'admin'),
+  });
+  const { data: testRun = null } = useQuery({
+    queryKey: queryKeys.testRun(id ?? ''),
+    queryFn: () => testRunService.getById(id!),
+    enabled: !!id,
+  });
+  const { data: testPlan = null } = useQuery({
+    queryKey: queryKeys.testPlan(testRun?.testPlanId ?? ''),
+    queryFn: () => testPlanService.getById(testRun!.testPlanId),
+    enabled: !!testRun?.testPlanId,
+  });
+  const { data: project } = useQuery({
+    queryKey: queryKeys.project(testPlan?.projectId ?? ''),
+    queryFn: () => projectService.getById(testPlan!.projectId),
+    enabled: !!testPlan?.projectId,
+  });
+  const projectName = project?.name ?? null;
   const { canManageIssues, canDeleteContent } = useProjectRole(testPlan?.projectId);
 
-  useEffect(() => {
-    profileService.listAll().then((all) => setApprovedUsers(all.filter((p) => p.role === 'user' || p.role === 'admin')));
-  }, []);
-
-  useEffect(() => {
-    if (id) testRunService.getById(id).then(setTestRun);
-  }, [id]);
-
-  useEffect(() => {
-    if (testRun) testPlanService.getById(testRun.testPlanId).then(setTestPlan);
-  }, [testRun]);
-
-  useEffect(() => {
-    if (testPlan) projectService.getById(testPlan.projectId).then((p) => setProjectName(p?.name ?? null));
-  }, [testPlan]);
+  async function invalidateProjectIssues() {
+    if (testPlan) await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(testPlan.projectId) });
+  }
 
   async function handleChangeStatus(row: IssueWithDetails, status: IssueStatus) {
     await issueService.changeStatus(row.id, status);
     await reload();
+    await invalidateProjectIssues();
   }
 
   async function handleAssign(row: IssueWithDetails, assignedTo: string | null | undefined) {
     await issueService.assign(row.id, assignedTo ?? null);
     await reload();
+    await invalidateProjectIssues();
   }
 
   function handleDelete(row: IssueWithDetails) {
@@ -77,6 +86,7 @@ export function TestRunIssuesPage() {
       accept: async () => {
         await issueService.remove(row.id);
         await reload();
+        await invalidateProjectIssues();
       },
     });
   }
@@ -91,6 +101,7 @@ export function TestRunIssuesPage() {
       accept: async () => {
         await issueService.changeStatus(row.id, 'closed');
         await reload();
+        await invalidateProjectIssues();
       },
     });
   }

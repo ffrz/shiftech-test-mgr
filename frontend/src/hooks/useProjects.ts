@@ -1,25 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectService } from '../services/projectService';
 import type { ProjectQuery } from '../repositories/projectRepository';
-import type { Project } from '../types/domain';
+import { queryKeys } from './queryKeys';
 
 export function useProjects(query: ProjectQuery) {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const key = queryKeys.projects(query);
+  const { data, isLoading } = useQuery({
+    queryKey: key,
+    queryFn: () => projectService.list(query),
+  });
 
-  const reload = useCallback(async () => {
-    setLoading(true);
-    try {
-      setProjects(await projectService.list(query));
-    } finally {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query.search, query.status, query.sortField, query.sortDirection]);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  return { projects, loading, reload };
+  return {
+    projects: data ?? [],
+    loading: isLoading,
+    reload: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  };
 }

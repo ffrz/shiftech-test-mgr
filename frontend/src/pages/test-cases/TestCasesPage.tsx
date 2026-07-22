@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { Dropdown } from 'primereact/dropdown';
 import { testCaseService } from '../../services/testCaseService';
 import { projectService } from '../../services/projectService';
-import type { Project, TestCaseWithDetails } from '../../types/domain';
+import { queryKeys } from '../../hooks/queryKeys';
+import type { TestCaseWithDetails } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import {
   TEST_CASE_PRIORITY_LABEL,
@@ -15,23 +17,18 @@ import {
 } from '../../helpers/statusLabels';
 
 export function TestCasesPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [testCases, setTestCases] = useState<TestCaseWithDetails[]>([]);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    projectService.list().then(setProjects);
-  }, []);
+  const { data: projects = [] } = useQuery({
+    queryKey: queryKeys.projects(),
+    queryFn: () => projectService.list(),
+  });
 
-  useEffect(() => {
-    if (!projectId) {
-      setTestCases([]);
-      return;
-    }
-    setLoading(true);
-    testCaseService.listByProjectWithDetails(projectId).then(setTestCases).finally(() => setLoading(false));
-  }, [projectId]);
+  const { data: testCases = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.testCasesWithDetails(projectId ?? ''),
+    queryFn: () => testCaseService.listByProjectWithDetails(projectId!),
+    enabled: !!projectId,
+  });
 
   return (
     <div>

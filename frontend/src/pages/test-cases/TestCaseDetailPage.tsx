@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
@@ -16,7 +17,8 @@ import { testCaseService } from '../../services/testCaseService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { useProjectRole } from '../../hooks/useProjectRole';
-import type { Module, Tag as TagEntity, TestCasePriority, TestCaseWithDetails } from '../../types/domain';
+import { queryKeys } from '../../hooks/queryKeys';
+import type { TestCasePriority, TestCaseWithDetails } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import {
   TEST_CASE_PRIORITY_LABEL,
@@ -40,33 +42,29 @@ export function TestCaseDetailPage() {
   const projectId = searchParams.get('projectId');
   const toast = useRef<Toast>(null);
 
-  const [testCase, setTestCase] = useState<TestCaseDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [modules, setModules] = useState<Module[]>([]);
-  const [tags, setTags] = useState<TagEntity[]>([]);
+  const queryClient = useQueryClient();
+  const { data: testCase, isLoading: loading } = useQuery({
+    queryKey: queryKeys.testCase(id ?? ''),
+    queryFn: () => testCaseService.getByIdWithDetails(id!) as Promise<TestCaseDetail | null>,
+    enabled: !!id,
+  });
   const { canEditContent, canDeleteContent } = useProjectRole(testCase?.project.id);
+
+  const { data: modules = [] } = useQuery({
+    queryKey: queryKeys.modules(testCase?.project.id ?? ''),
+    queryFn: () => moduleService.listByProject(testCase!.project.id),
+    enabled: !!testCase?.project.id,
+  });
+  const { data: tags = [] } = useQuery({
+    queryKey: queryKeys.tags(testCase?.project.id ?? ''),
+    queryFn: () => tagService.listByProject(testCase!.project.id),
+    enabled: !!testCase?.project.id,
+  });
 
   async function reload() {
     if (!id) return;
-    const result = await testCaseService.getByIdWithDetails(id);
-    setTestCase(result as TestCaseDetail | null);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.testCase(id) });
   }
-
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    testCaseService.getByIdWithDetails(id).then((result) => {
-      setTestCase(result as TestCaseDetail | null);
-      setLoading(false);
-    });
-  }, [id]);
-
-  useEffect(() => {
-    if (testCase?.project.id) {
-      moduleService.listByProject(testCase.project.id).then(setModules);
-      tagService.listByProject(testCase.project.id).then(setTags);
-    }
-  }, [testCase?.project.id]);
 
   function handleBack() {
     if (projectId) {
@@ -95,7 +93,7 @@ export function TestCaseDetailPage() {
     setModuleError(null);
     try {
       const created = await moduleService.create({ projectId: testCase.project.id, name: moduleName, code: moduleCode });
-      setModules((prev) => [...prev, created]);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.modules(testCase.project.id) });
       setEditModuleId(created.id);
       setModuleDialogOpen(false);
       toast.current?.show({ severity: 'success', summary: 'Module dibuat' });
@@ -121,7 +119,7 @@ export function TestCaseDetailPage() {
     setTagError(null);
     try {
       const created = await tagService.create(testCase.project.id, newTagName);
-      setTags((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tags(testCase.project.id) });
       setEditTags((prev) => [...prev, created.name]);
       setTagDialogOpen(false);
       toast.current?.show({ severity: 'success', summary: 'Tag dibuat' });
@@ -182,6 +180,7 @@ export function TestCaseDetailPage() {
       );
       setEditDialogOpen(false);
       await reload();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
       toast.current?.show({ severity: 'success', summary: 'Test case diperbarui' });
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Gagal menyimpan test case');
@@ -199,6 +198,7 @@ export function TestCaseDetailPage() {
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testCaseService.remove(testCase.id);
+        await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
         toast.current?.show({ severity: 'success', summary: 'Test case dihapus' });
         handleBack();
       },

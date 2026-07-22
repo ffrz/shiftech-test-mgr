@@ -1,27 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { moduleService } from '../services/moduleService';
-import type { Module } from '../types/domain';
+import { queryKeys } from './queryKeys';
 
 export function useModules(projectId: string | null) {
-  const [modules, setModules] = useState<Module[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.modules(projectId ?? ''),
+    queryFn: () => moduleService.listByProject(projectId!),
+    enabled: !!projectId,
+  });
 
-  const reload = useCallback(async () => {
-    if (!projectId) {
-      setModules([]);
-      return;
-    }
-    setLoading(true);
-    try {
-      setModules(await moduleService.listByProject(projectId));
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  return { modules, loading, reload };
+  return {
+    modules: data ?? [],
+    loading: isLoading,
+    reload: () => (projectId ? queryClient.invalidateQueries({ queryKey: queryKeys.modules(projectId) }) : Promise.resolve()),
+  };
 }

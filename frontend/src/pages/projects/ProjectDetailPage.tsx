@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
@@ -29,8 +30,8 @@ import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
+import { queryKeys } from '../../hooks/queryKeys';
 import type {
-  Project,
   TestPlan,
   TestPlanStatus,
   TestCase,
@@ -44,8 +45,6 @@ import type {
   IssuePriority,
   IssueType,
   Profile,
-  Module,
-  Tag as TagEntity,
 } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import {
@@ -107,32 +106,14 @@ type TestRunWithSummary = TestRun & {
   testers: { id: string; fullName: string | null }[];
 };
 
-type ProjectTabData = {
-  testPlans: TestPlan[];
-  testCases: TestCaseWithDetails[];
-  modules: Module[];
-  tags: TagEntity[];
-  testRuns: TestRunWithSummary[];
-  issues: IssueWithDetails[];
-  approvedUsers: Profile[];
-};
-
-// Module-level cache so switching projects/tabs and coming back is instant
-// instead of re-fetching + showing a loading state every time.
-const projectCache = new Map<string, Project>();
-const tabDataCache = new Map<string, Partial<ProjectTabData>>();
-
-function getTabCache(projectId: string): Partial<ProjectTabData> {
-  let entry = tabDataCache.get(projectId);
-  if (!entry) {
-    entry = {};
-    tabDataCache.set(projectId, entry);
-  }
-  return entry;
-}
-
-// Index within TAB_LABELS -> which cache keys that tab needs loaded.
-const TAB_DEPENDENCIES: (keyof ProjectTabData)[][] = [
+// Index within the TabView -> which query keys that tab depends on, so loading state and
+// invalidation on mutation both know exactly what to touch without over-fetching other tabs.
+const TAB_QUERY_NAMES = ['testPlans', 'testCases', 'modules', 'tags', 'testRuns', 'issues', 'approvedUsers'] as const;
+// Stable empty-array reference — `data ?? []` alone allocates a new array every render
+// when the query has no data yet, which defeats useMemo below it (dependency "changes"
+// every render even though nothing meaningful did).
+const EMPTY_ARRAY: never[] = [];
+const TAB_DEPENDENCIES: (typeof TAB_QUERY_NAMES[number])[][] = [
   ['testPlans'],
   ['testCases', 'modules', 'tags'],
   ['testRuns'],
@@ -144,104 +125,106 @@ export function ProjectDetailPage() {
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
   const { canEditContent, canDeleteContent, canManageIssues } = useProjectRole(id);
-
-  const [project, setProject] = useState<Project | null>(id ? projectCache.get(id) ?? null : null);
-  const [projectLoading, setProjectLoading] = useState(!project);
-
-  const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
-  const [testCases, setTestCases] = useState<TestCaseWithDetails[]>([]);
-  const [modules, setModules] = useState<Module[]>([]);
-  const [tags, setTags] = useState<TagEntity[]>([]);
-  const [testRuns, setTestRuns] = useState<TestRunWithSummary[]>([]);
-  const [issues, setIssues] = useState<IssueWithDetails[]>([]);
-  const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
-  const [tabLoading, setTabLoading] = useState<Record<number, boolean>>({});
+  const queryClient = useQueryClient();
   const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(0);
 
-  function applyTabData(data: Partial<ProjectTabData>) {
-    if (data.testPlans) setTestPlans(data.testPlans);
-    if (data.testCases) setTestCases(data.testCases);
-    if (data.modules) setModules(data.modules);
-    if (data.tags) setTags(data.tags);
-    if (data.testRuns) setTestRuns(data.testRuns);
-    if (data.issues) setIssues(data.issues);
-    if (data.approvedUsers) setApprovedUsers(data.approvedUsers);
-  }
+  const projectQuery = useQuery({
+    queryKey: queryKeys.project(id ?? ''),
+    queryFn: () => projectService.getById(id!),
+    enabled: !!id,
+  });
+  const project = projectQuery.data ?? null;
+  const projectLoading = projectQuery.isLoading;
 
-  // Loads only what a given tab needs, using the per-project cache. Keys
-  // already present in cache are skipped, so re-visiting a tab is instant.
-  async function loadTab(projectId: string, tabIndex: number, force = false) {
-    const keys = TAB_DEPENDENCIES[tabIndex];
-    const cache = getTabCache(projectId);
-    const missing = force ? keys : keys.filter((k) => cache[k] === undefined);
+  const testPlansQuery = useQuery({
+    queryKey: queryKeys.testPlans(id ?? ''),
+    queryFn: () => testPlanService.listByProject(id!),
+    enabled: !!id,
+  });
+  const testCasesQuery = useQuery({
+    queryKey: queryKeys.testCasesWithDetails(id ?? ''),
+    queryFn: () => testCaseService.listByProjectWithDetails(id!),
+    enabled: !!id,
+  });
+  const modulesQuery = useQuery({
+    queryKey: queryKeys.modules(id ?? ''),
+    queryFn: () => moduleService.listByProject(id!),
+    enabled: !!id,
+  });
+  const tagsQuery = useQuery({
+    queryKey: queryKeys.tags(id ?? ''),
+    queryFn: () => tagService.listByProject(id!),
+    enabled: !!id,
+  });
+  const testRunsQuery = useQuery({
+    queryKey: queryKeys.testRunsByProject(id ?? ''),
+    queryFn: () => testRunService.listByProjectWithSummary(id!),
+    enabled: !!id,
+  });
+  const issuesQuery = useQuery({
+    queryKey: queryKeys.issuesByProject(id ?? ''),
+    queryFn: () => issueService.listByProject(id!),
+    enabled: !!id,
+  });
+  const approvedUsersQuery = useQuery({
+    queryKey: queryKeys.profiles(),
+    queryFn: async () => (await profileService.listAll()).filter((p: Profile) => p.role === 'user' || p.role === 'admin'),
+  });
 
-    if (missing.length === 0) {
-      applyTabData(cache);
-      return;
-    }
+  const testPlans = testPlansQuery.data ?? EMPTY_ARRAY;
+  const testCases = (testCasesQuery.data ?? EMPTY_ARRAY) as TestCaseWithDetails[];
+  const modules = modulesQuery.data ?? EMPTY_ARRAY;
+  const tags = tagsQuery.data ?? EMPTY_ARRAY;
+  const testRuns = (testRunsQuery.data ?? EMPTY_ARRAY) as TestRunWithSummary[];
+  const issues = issuesQuery.data ?? EMPTY_ARRAY;
+  const approvedUsers = approvedUsersQuery.data ?? EMPTY_ARRAY;
 
-    if (cache[missing[0]] === undefined) {
-      setTabLoading((prev) => ({ ...prev, [tabIndex]: true }));
-    }
+  const tabLoading: Record<number, boolean> = {
+    0: testPlansQuery.isLoading,
+    1: testCasesQuery.isLoading || modulesQuery.isLoading || tagsQuery.isLoading,
+    2: testRunsQuery.isLoading,
+    3: issuesQuery.isLoading || approvedUsersQuery.isLoading,
+  };
 
-    const fetchers: Partial<Record<keyof ProjectTabData, () => Promise<unknown>>> = {
-      testPlans: () => testPlanService.listByProject(projectId),
-      testCases: () => testCaseService.listByProjectWithDetails(projectId),
-      modules: () => moduleService.listByProject(projectId),
-      tags: () => tagService.listByProject(projectId),
-      testRuns: () => testRunService.listByProjectWithSummary(projectId),
-      issues: () => issueService.listByProject(projectId),
-      approvedUsers: async () => {
-        const all = await profileService.listAll();
-        return all.filter((p: Profile) => p.role === 'user' || p.role === 'admin');
-      },
-    };
+  const queryKeyByName: Record<(typeof TAB_QUERY_NAMES)[number], readonly unknown[]> = id
+    ? {
+        testPlans: queryKeys.testPlans(id),
+        testCases: queryKeys.testCasesWithDetails(id),
+        modules: queryKeys.modules(id),
+        tags: queryKeys.tags(id),
+        testRuns: queryKeys.testRunsByProject(id),
+        issues: queryKeys.issuesByProject(id),
+        approvedUsers: queryKeys.profiles(),
+      }
+    : ({} as Record<(typeof TAB_QUERY_NAMES)[number], readonly unknown[]>);
 
-    const results = await Promise.all(missing.map((k) => fetchers[k]!()));
-    missing.forEach((k, i) => {
-      (cache as Record<string, unknown>)[k] = results[i];
-    });
-
-    applyTabData(cache);
-    setTabLoading((prev) => ({ ...prev, [tabIndex]: false }));
-  }
-
-  // After any mutation: drop the whole project's cached tab data (modules/tags
-  // are shared across tabs, e.g. a new module from the Test Case dialog) and
-  // re-fetch just the tab currently in view.
+  // Re-fetches whatever the currently active tab depends on — used after any mutation on
+  // this page. Cross-page staleness (e.g. completing a Test Run from its own detail page)
+  // is handled by React Query itself: every page reads the same queryKeys.* cache entries,
+  // so returning here after such a mutation shows fresh data without needing this call at all.
   async function loadAll() {
     if (!id) return;
-    tabDataCache.delete(id);
-    await loadTab(id, activeTabIndex, true);
+    const keys = TAB_DEPENDENCIES[activeTabIndex] ?? [];
+    await Promise.all(keys.map((k) => queryClient.invalidateQueries({ queryKey: queryKeyByName[k] })));
+  }
+
+  // Optimistic patch for the Issues tab's inline dropdowns (status/assignee) — updates the
+  // cached list immediately instead of waiting on a refetch, same UX as before the migration.
+  function patchIssue(issueId: string, changes: Partial<IssueWithDetails>) {
+    if (!id) return;
+    queryClient.setQueryData<IssueWithDetails[]>(queryKeys.issuesByProject(id), (prev) =>
+      (prev ?? []).map((i) => (i.id === issueId ? { ...i, ...changes } : i)),
+    );
   }
 
   const prevIdRef = useRef<string | undefined>(id);
-
   useEffect(() => {
-    if (!id) return;
-    const cached = projectCache.get(id);
-    setProject(cached ?? null);
-    setProjectLoading(!cached);
     if (prevIdRef.current !== id) {
+      prevIdRef.current = id;
       setActiveTabIndex(0);
     }
-    prevIdRef.current = id;
-
-    projectService.getById(id).then((result) => {
-      if (result) projectCache.set(id, result);
-      setProject(result);
-      setProjectLoading(false);
-    });
-
-    loadTab(id, activeTabIndex);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
-
-  useEffect(() => {
-    if (!id) return;
-    loadTab(id, activeTabIndex);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, activeTabIndex]);
 
   // --- Test Plan dialog ---
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
@@ -1154,7 +1137,7 @@ export function ProjectDetailPage() {
                       options={ISSUE_STATUS_OPTIONS}
                       onChange={(e) => {
                         issueService.changeStatus(row.id, e.value);
-                        setIssues((prev) => prev.map((i) => (i.id === row.id ? { ...i, status: e.value } : i)));
+                        patchIssue(row.id, { status: e.value });
                       }}
                       disabled={!canManageIssues}
                       className="w-11rem"
@@ -1172,7 +1155,7 @@ export function ProjectDetailPage() {
                       options={approvedUsers.map((u) => ({ label: u.fullName ?? u.email, value: u.id }))}
                       onChange={(e) => {
                         issueService.assign(row.id, e.value);
-                        setIssues((prev) => prev.map((i) => (i.id === row.id ? { ...i, assignedTo: e.value } : i)));
+                        patchIssue(row.id, { assignedTo: e.value });
                       }}
                       placeholder="Belum ditugaskan"
                       showClear
@@ -1226,7 +1209,7 @@ export function ProjectDetailPage() {
                                   rejectLabel: 'Batal',
                                   accept: async () => {
                                     await issueService.changeStatus(row.id, 'closed');
-                                    setIssues((prev) => prev.map((i) => (i.id === row.id ? { ...i, status: 'closed' } : i)));
+                                    patchIssue(row.id, { status: 'closed' });
                                     toast.current?.show({ severity: 'success', summary: 'Issue diarsipkan' });
                                   },
                                 });
