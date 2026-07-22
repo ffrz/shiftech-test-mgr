@@ -1,0 +1,7 @@
+# Copy file ini ke deploy.conf.local (di folder yang sama) dan isi sesuai
+# server tujuan. deploy.conf.local TIDAK di-commit (lihat .gitignore: *.local)
+# supaya IP/host server tidak terpublikasi di repo.
+
+SERVER_HOST="203.0.113.10"
+SERVER_KEY="${HOME}/.ssh/shiftech_server1"
+APP_NAME="testify"

@@ -38,6 +38,9 @@
 #     home directory Linux native lalu `chmod 600`.
 #   - Struktur /var/www/testify/releases sudah di-provision Ansible
 #     (role app, type: spa) sebelum deploy pertama kali dijalankan.
+#   - File deploy/deploy.conf.local berisi SERVER_HOST (dan opsional
+#     SERVER_KEY/APP_NAME) -- copy dari deploy/deploy.conf.example. File
+#     .local ini di-gitignore supaya IP/host server tidak terpublikasi.
 
 set -euo pipefail
 
@@ -54,16 +57,24 @@ for arg in "$@"; do
     esac
 done
 
-SERVER_HOST="202.10.45.214"
-SERVER_KEY="${HOME}/.ssh/shiftech_server1"
-APP_NAME="testify"
-APP_DIR="/var/www/${APP_NAME}"
-RELEASE="$(date -u +%Y%m%d_%H%M%S)"
-KEEP_RELEASES=5
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 FRONTEND_DIR="${PROJECT_DIR}/frontend"
+
+CONFIG_FILE="${SCRIPT_DIR}/deploy.conf.local"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Config tidak ditemukan: $CONFIG_FILE -- copy dari deploy/deploy.conf.example dan isi SERVER_HOST." >&2
+    exit 1
+fi
+# shellcheck source=/dev/null
+source "$CONFIG_FILE"
+
+SERVER_HOST="${SERVER_HOST:?SERVER_HOST harus diisi di $CONFIG_FILE}"
+SERVER_KEY="${SERVER_KEY:-${HOME}/.ssh/shiftech_server1}"
+APP_NAME="${APP_NAME:-testify}"
+APP_DIR="/var/www/${APP_NAME}"
+RELEASE="$(date -u +%Y%m%d_%H%M%S)"
+KEEP_RELEASES=5
 
 if [ ! -f "$SERVER_KEY" ]; then
     echo "SSH key tidak ditemukan: $SERVER_KEY" >&2

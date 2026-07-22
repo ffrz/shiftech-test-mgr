@@ -1,6 +1,0 @@
-- generic [ref=e5]:
-  - generic [ref=e6]: TestManager
-  - generic [ref=e7]:
-    - paragraph [ref=e8]: Masuk untuk mengelola Test Plan & Test Case
-    - button "Sign in with Google" [ref=e9] [cursor=pointer]:
-      - generic: 
