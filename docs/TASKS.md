@@ -155,3 +155,84 @@ UI-nya belum sepenuhnya terhubung/terlihat.
 | E11-T03 | Repository `testRunRepository.findAllByProject` — join test_runs ke test_plans untuk listing lintas plan dalam satu project                                      | done   |
 | E11-T04 | Halaman `TestRunsPage` (`/test-runs`) — daftar Test Run lintas project, pola sama seperti `TestCasesPage`/`TestPlansPage`                                        | done   |
 | E11-T05 | Tambah item "Test Runs" ke `AppMenu` (sidebar) — sebelumnya tidak ada entri navigasi ke Test Run kecuali lewat Test Plan Detail                                  | done   |
+
+## E12 — Issue & Feature Tracking v2, Structured Test Case Steps, Attachment Adapter
+
+Reshape Issue jadi entity level-project dengan relasi N:M ke Test Result
+(bukan lagi anak wajib satu Test Result), tambah mode step detail per Test
+Case, dan siapkan storage adapter untuk attachment. Lihat `docs/PRD.md` §3
+(Issue, Test Case, Attachment) dan `docs/ARCHITECTURE.md` §4 tabel skema +
+§6.6 untuk rationale lengkap. Reporting (dashboard/PDF/HTML) **sengaja
+di-skip** di epic ini — lihat `docs/PRD.md` §7.
+
+### E12.1 — Schema
+
+| ID       | Task                                                                                                                                                                                                                                                             | Status |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| E12-T01  | `supabase/schema_issue_tracking_v2.sql` — tambah `issues.project_id` (FK, not null, backfill dari `test_result_id` lewat join `test_results→test_runs→test_plans` untuk row lama), `issues.module_id` (FK nullable), `issues.type` (check `bug\|feature\|improvement\|task`, default `bug`), `issues.github_links` (`jsonb` default `'[]'`)                | done   |
+| E12-T02  | Migrasi data: insert 1 baris `issue_test_results` per row `issues` lama (dari `test_result_id` sebelum dihapus) — jalan sebagai bagian script yang sama sebelum drop kolom                                                                                    | done   |
+| E12-T03  | Tabel baru `issue_test_results` (issue_id, test_result_id, unique pair) — junction N:M, `on delete cascade` kedua sisi                                                                                                                                          | done   |
+| E12-T04  | Tabel baru `issue_tags` (issue_id, tag_id, unique pair) — junction N:M reuse `tags`, `on delete cascade`                                                                                                                                                        | done   |
+| E12-T05  | Drop kolom `issues.test_result_id` (setelah T02 selesai) + drop index lama `idx_issues_test_result`, tambah index `idx_issues_project`, `idx_issues_module`, `idx_issues_type`                                                                                 | done   |
+| E12-T06  | RLS: policy `issue_test_results`/`issue_tags` — **disesuaikan**: codebase sudah migrasi RLS ke akses per-project (`has_project_access`/`can_manage_issues`/`can_delete_project_content`, lihat `schema_project_roles.sql`) sebelum E12 dikerjakan, bukan `is_approved()` polos seperti rencana awal | done   |
+| E12-T07  | `supabase/schema_test_case_steps.sql` — `test_cases.step_type` (check `simple\|detailed`, default `simple`); tabel `test_case_steps` (test_case_id, step_number, action, expected_result, unique `(test_case_id, step_number)`)                                | done   |
+| E12-T08  | Tabel `test_result_steps` (test_result_id, test_case_step_id, status check `pass\|fail\|not_run`, actual_result, unique pair) + RLS pola project-scoped (`can_run_tests`/`has_project_access`/`can_delete_project_content`)                                    | done   |
+| E12-T09  | `supabase/schema_attachments.sql` — tabel `attachments` (issue_id FK cascade, storage_provider text, url text, file_name, file_size, content_type, timestamps) + RLS pola project-scoped (`has_project_access`/`can_manage_issues`)                            | done   |
+| E12-T10  | Supabase Storage: bucket `attachments` dibuat **private** — akses baca lewat signed URL dari adapter, bukan public read; storage policy upload/read/delete untuk `is_approved()` (storage.objects tidak simpan project_id, jadi tetap level aplikasi bukan per-project) | done   |
+
+### E12.2 — Domain Types & Mapper
+
+| ID       | Task                                                                                                                                                                                          | Status |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| E12-T11  | `types/domain.ts`: reshape `Issue` (`projectId`, `moduleId?`, `type: IssueType`, `githubLinks: GithubLink[]`, hapus `testResultId`), tambah `IssueType`, `GithubLink { url, label? }`; `IssueWithDetails` ganti `testCase`/`testRun` tunggal jadi `linkedTestResults[]` (N:M) + `module`/`tags` langsung | done   |
+| E12-T12  | `types/domain.ts`: tambah `TestCaseStep`, `TestResultStep`, `TestResultStepWithDetails`, `Attachment`; update `TestCase` (+`stepType: 'simple' \| 'detailed'`), `TestResultWithDetails` (+`stepResults[]`)     | done   |
+| E12-T13  | `helpers/mappers.ts`: mapper untuk `Issue` (reshape), `TestCaseStep`, `TestResultStep`, `Attachment`, `GithubLink` (jsonb parse/serialize)                                                       | done   |
+
+### E12.3 — Repository & Service
+
+| ID       | Task                                                                                                                                                                                                              | Status |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| E12-T14  | `issueRepository`: reshape query dasar (`findAllByProject`, `findById` join module/tags/linked test results), hapus asumsi FK `test_result_id` lama                                                                | done   |
+| E12-T15  | `issueRepository`: `findAllByTestResult(testResultId)` & `findAllByProject(projectId)` — dua entry point baca via join `issue_test_results`                                                                      | done   |
+| E12-T16  | `issueRepository`/`issueService`: `linkToTestResult(issueId, testResultId)`, `unlinkFromTestResult(issueId, testResultId)` — upsert/delete `issue_test_results`                                                  | done   |
+| E12-T17  | `issueService`: validasi create/update (title wajib), `tagService.saveTagsForIssue` (pola sama seperti `saveTagsForTestCase` — full replace `issue_tags`)                                                          | done   |
+| E12-T18  | `testCaseStepRepository`/`testCaseStepService`: full-replace step per test case (dipanggil hanya saat `stepType === 'detailed'`, mengikuti pola full-replace tag junction, bukan CRUD granular per step)          | done   |
+| E12-T19  | `testResultRepository.seedForRun()`: update agar ikut men-seed `test_result_steps` (`not_run`) untuk tiap `test_case_steps` dari test case `detailed` dalam cakupan plan — mirror pola seeding `test_results`     | done   |
+| E12-T20  | `testRunService.recordStepResult(testResultStepId, status, actualResult)` — mirror `recordResult`                                                                                                                 | done   |
+| E12-T21  | `services/storage/StorageAdapter.ts` — interface `{ providerName, upload(file: File): Promise<UploadedFile>, remove(url): Promise<void> }`                                                                        | done   |
+| E12-T22  | `services/storage/SupabaseStorageAdapter.ts` — implementasi pakai `supabase.storage.from('attachments')` (bucket private, signed URL), di-export sebagai adapter default aktif lewat `services/storage/index.ts` | done   |
+| E12-T23  | `attachmentService.ts` (di atas `issueRepository` attachment methods): CRUD row `attachments`, `upload(issueId, file)` orkestrasi panggil adapter aktif lalu simpan row DB                                        | done   |
+
+### E12.4 — Hooks & UI
+
+| ID       | Task                                                                                                                                                                                                   | Status |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| E12-T24  | `hooks/useIssues.ts` (`useIssuesByProject`, `useIssuesByTestRun`) — signature dipertahankan, isi disesuaikan ke shape `IssueWithDetails` baru (module/tags/linkedTestResults)                            | done   |
+| E12-T25  | **Disesuaikan**: bukan halaman baru `pages/issues/IssuesPage.tsx` — tab "Issues" sudah ada duluan di `ProjectDetailPage` (sebelum E12 dimulai) beserta `IssueDetailPage` standalone; keduanya direshape untuk model N:M (filter by `moduleId`/`tags` langsung, tombol "Issue Baru" dialog create standalone dgn type/module/tag) | done   |
+| E12-T26  | Kolom "Ditautkan" di tab Issues `ProjectDetailPage` — jumlah Test Result tertaut; detail link per Test Result ada di `IssueDetailPage` (klik → `/test-runs/:id`)                                        | done   |
+| E12-T27  | `TestRunDetailPage`: tombol bendera "Link Issue" muncul di semua baris (bukan hanya FAIL) — dialog `TabView` dua mode: "Pilih Existing" (checkbox list issue project) / "Buat Baru" (form ringkas, auto-link setelah create)  | done   |
+| E12-T28  | `TestRunDetailPage`: badge jumlah issue tertaut per baris Test Result via `issueCountByResult` dari `issue.linkedTestResults`, dialog Link Issue prefill checkbox issue yang sudah tertaut               | done   |
+| E12-T29  | `TestRunIssuesPage` (`/test-runs/:id/issues`): filter `testResultId` disesuaikan ke `issue.linkedTestResults.some(...)` — sudah sebelumnya lewat `issueRepository.findAllByTestRun` (join `issue_test_results`), bukan FK langsung | done   |
+| E12-T30  | Form Test Case di `ProjectDetailPage`: `SelectButton` toggle "Simple / Detailed" (`stepType`) — simple = textarea Steps seperti sekarang, detailed = daftar step dinamis (tambah/hapus baris: action, expected result) menggantikan textarea, di-load via `testCaseService.listSteps` saat edit | done   |
+| E12-T31  | `TestRunDetailPage`: dialog "Catat Hasil Eksekusi" menampilkan checklist per step (`activeResult.stepResults`, dropdown pass/fail per baris via `testRunService.recordStepResult`) kalau test case `detailed`, kosong (`[]`) untuk `simple`                | done   |
+| E12-T32  | `IssueDetailPage`: card Attachment dengan `FileUpload` (PrimeReact, mode basic) → `attachmentService.upload` → list attachment (link + tombol hapus lewat `attachmentService.remove`)                    | done   |
+| E12-T33  | **Tidak diperlukan** — Issues tetap sebagai tab di `ProjectDetailPage` (bukan halaman lintas-project terpisah), jadi tidak perlu entri menu sidebar baru; konsisten dengan pola Modules/Tags yang sudah ada | done   |
+
+## E13 — Halaman Detail Test Case dalam Test Run + Sequence pada Test Plan
+
+Reshape dialog "Detail Test Case" di `TestRunDetailPage` jadi halaman tersendiri
+dengan panel navigasi + filter (menggantikan dialog yang saling menutup satu
+sama lain), dan tambah dukungan urutan eksekusi (sequence) di Test Plan tanpa
+entity Test Suite baru — lihat `docs/PRD.md` §4.4 dan `docs/ARCHITECTURE.md`
+§4.0 untuk rationale.
+
+| ID      | Task                                                                                                                                                                          | Status |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| E13-T01 | Halaman baru `pages/test-runs/TestRunResultDetailPage.tsx`, route `/test-runs/:runId/results/:resultId` — layout 2 kolom: panel kiri daftar test case + filter (status/prioritas/module/tag/search), panel kanan detail + record hasil + step checklist + link issue (semua inline, bukan dialog) | done   |
+| E13-T02 | `TestRunDetailPage` disederhanakan jadi halaman list murni: hapus semua dialog (detail/record/link issue), tambah toolbar filter yang sama, `onRowClick` → `navigate` ke halaman detail baru | done   |
+| E13-T03 | `testResultRepository.findAllByRun`: join `test_case.module`/`test_case.test_case_tags` supaya filter module/tag bisa jalan tanpa query tambahan; `TestResultWithDetails.testCase` tipenya jadi `TestCaseWithDetails \| null` | done   |
+| E13-T04 | `supabase/schema_test_run_order.sql` (migration `20260701000014`) — tambah `test_results.order` (snapshot `test_plan_cases.order` saat run dimulai), backfill row lama, index `(test_run_id, order)` | done   |
+| E13-T05 | `testResultRepository.seedForRun`: snapshot posisi `testCaseIds` (yang sudah terurut dari `findCasesForPlan`) ke kolom `order`; `findAllByRun` tambah `.order('order')` supaya urutan run selalu konsisten dengan urutan plan saat run dibuat | done   |
+| E13-T06 | `testCaseRepository.reorderCases(orderedTestPlanCaseIds)` + `testPlanService.reorderCases()` — bulk update `test_plan_cases.order` sesuai index array baru setelah drag        | done   |
+| E13-T07 | `TestPlanDetailPage` tab Test Cases: `DataTable reorderableRows` + `onRowReorder`, aktif hanya saat tidak ada filter/search aktif (`isCaseFilterActive`) — paginator dimatikan saat mode reorder supaya drag selalu terhadap daftar penuh, bukan subset hasil filter | done   |
+| E13-T08 | Sequence bersifat panduan, bukan pembatas — **tidak ada validasi urutan** ditambahkan di `recordResult`/`recordStepResult`, tester tetap bebas mencatat hasil test case manapun kapan saja (keputusan produk eksplisit, lihat PRD) | done   |

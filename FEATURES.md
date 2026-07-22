@@ -30,19 +30,30 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 ## Test Plans
 - [x] CRUD test plan per project (tab "Test Plans" di Project Detail)
 - [x] Tab Test Cases: kelola cakupan (tambah/keluarkan test case dari plan — TANPA hasil, hanya cakupan)
+- [x] Sequence: drag & drop urutan eksekusi test case (`test_plan_cases.order`) — panduan workflow, bukan pembatas eksekusi (E13)
 - [x] Tab Test Runs: mulai run baru, lihat riwayat semua run
 
 ## Test Runs & Test Results
 - [x] Halaman Test Runs lintas project (`/test-runs`, sidebar) — semua run dari semua plan dalam satu project
-- [x] Mulai Test Run baru (snapshot cakupan test case plan saat itu)
+- [x] Mulai Test Run baru (snapshot cakupan test case plan saat itu, termasuk urutannya)
+- [x] Halaman detail test case dalam run (`/test-runs/:runId/results/:resultId`, E13) — panel navigasi + filter (status/prioritas/module/tag/search), gantikan dialog lama
 - [x] Catat hasil per test case: status (pass/fail/skip/blocked), tester (dropdown user terdaftar), catatan
 - [x] Ringkasan progress otomatis (pass/fail/skip/blocked/belum dites, persentase)
 - [x] Selesaikan Run (manual) / Buka Kembali
 
-## Issues
-- [x] Buat issue dari Test Result FAIL (title, description, actual/expected result)
-- [x] List issue per Test Run, ubah status & assignee inline
-- [ ] Attachment/screenshot (skip untuk v1)
+## Issue & Feature Tracking v2 (E12)
+- [x] Reshape `issues`: level-project (`project_id` wajib, `module_id` nullable), relasi ke Test Result jadi N:M via `issue_test_results`
+- [x] Kolom `type` (bug/feature/improvement/task) — sekaligus jadi feature tracking sederhana
+- [x] Tag many-to-many ke Issue (`issue_tags`, reuse master Tag)
+- [x] Tab Issues di Project Detail + `IssueDetailPage` — direshape untuk model project-level (filter type/status/priority/module/tag, dialog create standalone)
+- [x] Dialog "Link Issue" di Test Run (`TestRunDetailPage`): pilih issue existing (checkbox multi) atau buat baru inline tanpa pindah halaman
+- [x] Badge jumlah issue tertaut per baris Test Result
+- [x] GitHub links (`{url, label?}[]`) — link klik saja, bukan integrasi API, dikelola di dialog Edit Issue
+- [x] Attachment via storage adapter — upload/hapus di `IssueDetailPage`
+
+## Test Case — Structured Steps (E12)
+- [x] `step_type`: `simple` (teks bebas, seperti sekarang) atau `detailed` (baris `test_case_steps` ternormalisasi, toggle `SelectButton` di form Test Case)
+- [x] Hasil per-step (`test_result_steps`) saat Test Run mengeksekusi Test Case `detailed` — checklist pass/fail per step di dialog Catat Hasil
 
 ## User Management & Auth (RBAC)
 - [x] Login via Google OAuth (Supabase Auth)
@@ -62,3 +73,9 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] PrimeReact + PrimeFlex setup, dark/light/system theme toggle
 - [x] Restrukturisasi monorepo (`frontend/` + `backend/` disiapkan untuk migrasi PHP+SQLite)
 - [ ] Test suite (Vitest)
+- [x] Storage adapter interface (`StorageAdapter`) — implementasi awal `SupabaseStorageAdapter` (bucket private, signed URL), slot disiapkan untuk backend upload internal (E12)
+
+## Reporting (belum diprioritaskan — desain di-skip untuk saat ini)
+- [ ] Dashboard interaktif (ringkasan lintas project)
+- [ ] Printable report HTML/PDF
+- [ ] Execution mode — tampilan sederhana untuk eksekusi test run di HP

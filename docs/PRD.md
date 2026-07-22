@@ -67,10 +67,21 @@ Steps, Expected Result, Priority, Status (`active`/`archived`), Notes, Tags.
 **Test Case bersifat tetap dan tidak pernah menyimpan hasil PASS/FAIL** — ia
 dipakai berulang kali lintas Test Plan dan lintas Test Run.
 
-Steps & Expected Result tetap berupa teks bebas (bukan entitas Test Step
-ternormalisasi seperti TestRail/Kiwi TCMS) — cukup untuk kebutuhan tim kecil
-saat ini, dan bisa dipecah jadi entitas sendiri nanti tanpa mengubah konsep
-inti.
+Test Case punya `step_type`, dua mode:
+
+- **`simple`** (default, seperti sekarang) — Steps & Expected Result tetap teks
+  bebas satu blok, tanpa entitas terpisah.
+- **`detailed`** — Steps dipecah jadi baris-baris **Test Case Step**
+  ternormalisasi (nomor urut, aksi, expected result per-step). Saat Test Run
+  dieksekusi, tiap Test Case Step mendapat baris **hasil per-step** sendiri
+  (pass/fail sederhana + actual result), terikat ke Test Result induk — supaya
+  detail step mana yang gagal tetap tercatat, bukan cuma status keseluruhan
+  Test Case.
+
+Mode ini dipilih per Test Case (bukan per project) — test case sederhana boleh
+tetap simple, hanya test case yang butuh presisi step-by-step yang perlu
+detailed. Tidak mengubah konsep inti: Test Case tetap template, hasil (baik
+level Test Result maupun level step) tetap hidup di riwayat eksekusi.
 
 ### Test Run
 
@@ -96,15 +107,46 @@ selalu bisa ditelusuri ke akun yang jelas), tanggal eksekusi, catatan.
 Run baru dimulai, setiap Test Case dalam cakupannya otomatis mendapat baris Test
 Result baru berstatus `not_run`.
 
-### Issue
+### Issue (Issue & Feature Tracking)
 
-Dibuat dari sebuah Test Result yang berstatus FAIL: title, description, actual
-result, expected result, priority, status
-(`open`/`in_progress`/`resolved`/`verified`/`closed`), assigned to (user
-terdaftar). **Satu Test Result boleh punya lebih dari satu Issue** (1:many) —
-satu kegagalan kadang melahirkan beberapa temuan terpisah yang perlu dilacak
-sendiri-sendiri. Attachment/screenshot sengaja belum dibuat di versi ini (lihat
-§Out of Scope).
+**Perubahan besar dari v1:** Issue sekarang adalah entity **level Project**,
+berdiri sendiri — tidak lagi wajib lahir dari satu Test Result tertentu.
+
+- **Relasi wajib**: `Project`. Setiap Issue harus terikat ke satu project.
+- **Relasi opsional**: `Module` (nullable — issue boleh general, tidak terikat
+  module tertentu), `Tag` (many-to-many, reuse master Tag yang sama dengan Test
+  Case — bukan tag terpisah).
+- **Relasi ke Test Result: N ke M** (bukan lagi 1:many searah). Satu Issue bisa
+  terkait ke banyak baris Test Result (mis. kegagalan yang sama muncul lagi di
+  run berikutnya, tim mau link ke keduanya biar riwayatnya nyambung), dan satu
+  Test Result boleh terkait ke banyak Issue (satu kegagalan bisa melahirkan
+  beberapa temuan terpisah). Ini **link**, bukan "membuat issue baru" — di
+  Test Run, aksi user adalah **menautkan** Test Result ke Issue yang sudah ada
+  atau membuat Issue baru lewat dialog tanpa pindah halaman (lihat §4.6).
+- **Type**: `bug` | `feature` | `improvement` | `task` — daftar tetap
+  (enum/check constraint), supaya modul ini sekaligus bisa jadi pelacak
+  feature request sederhana, bukan cuma bug dari hasil test.
+- **Field lain**: title, description, actual result, expected result, priority,
+  status (`open`/`in_progress`/`resolved`/`verified`/`closed`), assigned to
+  (user terdaftar).
+- **GitHub links**: array link eksternal (`{url, label?}`) — sekadar tautan
+  yang bisa diklik ke issue GitHub terkait, bukan integrasi API dua arah (lihat
+  §Out of Scope). Satu Issue bisa punya beberapa link.
+- Attachment/screenshot: lihat §Attachment di bawah — tidak lagi out of scope,
+  tapi lewat storage adapter, bukan langsung Supabase Storage hardcoded.
+
+### Attachment (Issue)
+
+Upload file → dapat URL → simpan URL di database. Disimpan lewat **storage
+adapter** (interface), bukan panggilan langsung ke satu provider — supaya bisa
+ganti provider kapan saja tanpa mengubah service/UI:
+
+- Adapter awal: **Supabase Storage** (gratis, sudah dipakai untuk DB & auth,
+  tanpa dependency baru).
+- Disiapkan juga slot untuk **backend upload internal** (server milik sendiri)
+  sebagai adapter alternatif di masa depan — bisa switch tanpa mengubah kode
+  pemanggil, cukup ganti adapter yang aktif.
+- Satu Issue bisa punya banyak attachment (0..N).
 
 ### Kode Entity (Module, Test Case, Test Plan, Test Run)
 
@@ -161,8 +203,18 @@ skema penomoran kaku.
 - Status: `draft | active | completed | archived`
 - Tambah/keluarkan test case ke/dari cakupan plan (many-to-many via
   `test_plan_cases` — HANYA daftar cakupan, tanpa kolom hasil)
-- Tab "Test Runs": mulai run baru (menyalin cakupan test case saat itu ke Test
-  Result baru berstatus `not_run`), lihat riwayat semua run sebelumnya
+- **Sequence (urutan eksekusi)**: `test_plan_cases.order` menentukan urutan
+  tampil test case di dalam plan — drag & drop di tabel Test Cases untuk
+  mengubah urutan (aktif hanya saat tidak ada filter/search, supaya reorder
+  selalu terhadap daftar penuh). **Sequence bersifat panduan workflow, bukan
+  pembatas eksekusi** — tester tetap boleh mencatat hasil test case tidak
+  sesuai urutan (kadang cuma mau tes satu modul, atau bug sudah diketahui
+  sehingga langkah sebelumnya tak perlu diulang). Sengaja tidak dibuat entity
+  "Test Suite" terpisah — urutan cukup jadi atribut baris `test_plan_cases`
+- Tab "Test Runs": mulai run baru (menyalin cakupan test case **beserta
+  urutannya saat itu** ke Test Result baru berstatus `not_run` — Test Run
+  mewarisi sequence plan pada saat run dibuat, tidak berubah retroaktif kalau
+  plan di-reorder setelah run berjalan), lihat riwayat semua run sebelumnya
 
 ### 4.5 Test Runs & Test Results
 
@@ -177,12 +229,23 @@ skema penomoran kaku.
   `test_runs.status`, tidak memengaruhi kemampuan mencatat hasil (run yang sudah
   selesai tetap bisa dibuka lagi)
 
-### 4.6 Issues
+### 4.6 Issues (Issue & Feature Tracking)
 
-- Dibuat dari Test Result yang FAIL (tombol bendera di baris hasil)
-- Halaman daftar Issue per Test Run (`/test-runs/:id/issues`): ubah status
-  inline (dropdown), assign ke user terdaftar (dropdown)
-- Satu Test Result boleh punya banyak Issue
+- **Halaman Issue per Project** (baru, standalone) — list semua issue milik
+  project (bukan cuma yang lahir dari test run), filter by type/status/
+  priority/module/tag, ubah status & assignee inline
+- CRUD issue langsung dari halaman ini: title, description, type
+  (bug/feature/improvement/task), priority, status, module (opsional), tag
+  (opsional, banyak), assigned to, github links (banyak)
+- **Dari Test Run**: di baris Test Result, aksi "Link Issue" membuka dialog
+  berisi (a) daftar issue project yang sudah ada untuk dipilih/ditautkan
+  (N ke M — satu result boleh tertaut banyak issue, satu issue boleh tertaut
+  banyak result), dan (b) opsi "Buat Issue Baru" di dalam dialog yang sama
+  (tanpa pindah halaman) — hasil create langsung ikut ditautkan ke Test Result
+  tsb
+- Halaman lama `/test-runs/:id/issues` tetap ada tapi jadi **view issue yang
+  ditautkan ke run tsb** (join lewat junction), bukan pemilik data
+- Attachment per issue — lihat §Attachment di §3
 
 ### 4.7 User Management & Akses (RBAC)
 
@@ -231,7 +294,6 @@ untuk konteks Google OAuth (tidak ada password di sistem ini):
 - Requirement Management & Requirement Traceability
 - Milestone, Environment Management, Build Integration
 - Test Metrics tingkat lanjut (mis. flakiness tracking, trend analysis)
-- Attachment/upload file untuk Issue (skip untuk v1 — lihat §Open Questions)
 - Permission granular per-aksi (mis. "user boleh create tapi tidak boleh
   delete") — dua level role (admin/user) dianggap cukup
 - Login email/password sebagai alternatif Google — sengaja dibatasi satu
@@ -239,6 +301,14 @@ untuk konteks Google OAuth (tidak ada password di sistem ini):
 - Notifikasi email/webhook (mis. notifikasi ke admin saat ada user baru
   mendaftar)
 - Multi-tenant / organization
+- **Integrasi GitHub Issues dua arah** (buat/sync issue via API GitHub) — yang
+  dibuat hanya link URL yang bisa diklik, tanpa panggilan API GitHub sama
+  sekali (lihat §3 Issue)
+- **Import/export Excel** — belum diprioritaskan, tetap dicatat sebagai ide di
+  §Roadmap
+- **Reporting** (Dashboard interaktif, printable HTML/PDF, execution mode
+  mobile) — desainnya cukup menyita waktu, sengaja **di-skip untuk iterasi
+  ini**, tapi arahnya sudah disepakati ada tiga bentuk tsb (lihat §Roadmap)
 
 Semua fitur di atas bisa ditambahkan di versi berikutnya tanpa mengubah
 arsitektur inti (Project → Module → Test Case → Test Plan → Test Run → Test
@@ -250,13 +320,19 @@ Result → Issue).
 - Apakah perlu status "rejected" terpisah dari "pending" untuk user yang sengaja
   ditolak (saat ini reject = tetap `pending`, admin bisa approve ulang kapan
   saja)?
-- Attachment Issue: kalau nanti dibutuhkan, link URL (teks, simpel) atau upload
-  file sungguhan (perlu Supabase Storage + policy tambahan)?
+- Reporting (dashboard/PDF/HTML): belum didesain detail — struktur data apa
+  yang perlu diagregasi, dan apakah PDF generation client-side (mis. print CSS
+  / jsPDF) cukup mengingat arsitektur SPA murni tanpa backend custom untuk
+  render server-side.
 
 ## 7. Roadmap Ideas (tidak prioritas)
 
-- Export test plan/test run ke PDF/Excel
-- Import test case dari CSV
-- Dashboard ringkasan lintas project
+- **Reporting** — tiga bentuk yang sudah disepakati arahnya, didesain detail
+  saat waktunya tiba:
+  1. Dashboard interaktif (ringkasan lintas project untuk QA manager/stakeholder)
+  2. Printable report HTML/PDF (dokumentasi, testing manual)
+  3. Execution mode — tampilan sederhana untuk eksekusi test run di HP
+- Import/export Excel untuk test case
 - Migrasi storage ke SQLite + backend PHP terpisah (lihat folder `backend/`,
-  saat ini kosong)
+  saat ini kosong) — juga kandidat tempat integrasi GitHub API dua arah kalau
+  nanti dibutuhkan (token tidak bisa aman di client SPA murni)

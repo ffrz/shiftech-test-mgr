@@ -147,6 +147,18 @@ Didefinisikan di lima file, **dijalankan berurutan** di Supabase SQL Editor
 5. [`supabase/schema_entity_codes.sql`](../supabase/schema_entity_codes.sql) —
    kolom `code` auto-generate (`MOD-####`/`TC-####`/`TP-####`/`TR-####`) di
    `modules`, `test_cases`, `test_plans`, `test_runs`
+6. `supabase/schema_issue_tracking_v2.sql` (rencana, E12) — reshape `issues`
+   jadi entity level-project (`project_id` wajib, `module_id` nullable,
+   `test_result_id` **dihapus**), tabel `issue_test_results` (junction N:M ke
+   `test_results`), `issue_tags` (junction ke `tags`), kolom `type` (enum) dan
+   `github_links` (`jsonb`)
+7. `supabase/schema_test_case_steps.sql` (rencana, E12) — kolom
+   `test_cases.step_type` (`simple`|`detailed`), tabel `test_case_steps`
+   (template step per test case), tabel `test_result_steps` (hasil per step per
+   Test Result)
+8. `supabase/schema_attachments.sql` (rencana, E12) — tabel `attachments`
+   (polymorphic ke `issues` untuk sekarang: `issue_id`, `storage_provider`,
+   `url`, `file_name`, `file_size`, `content_type`)
 
 | Tabel                   | Keterangan                                                                                                                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -154,12 +166,17 @@ Didefinisikan di lima file, **dijalankan berurutan** di Supabase SQL Editor
 | `modules`               | Master per project: id, project_id, `code` (auto, editable), name. Unique per `(project_id, code)` dan `(project_id, name)`                                                                                                  |
 | `tags`                  | Master per project: id, project_id, name. Unique per `(project_id, name)`. Dikelola dari tab "Tags" (rename/hapus) — pembuatan baru terjadi on-the-fly dari form Test Case                                                   |
 | `test_case_tags`        | Junction many-to-many `test_case_id` ↔ `tag_id`                                                                                                                                                                              |
-| `test_cases`            | Template pengujian: project_id, module_id (nullable), `code` (auto, editable), title, objective, preconditions, steps, expected_result, priority, `status` (`active`\|`archived`), notes. **Tidak pernah punya kolom hasil** |
+| `test_cases`            | Template pengujian: project_id, module_id (nullable), `code` (auto, editable), title, objective, preconditions, steps, expected_result, priority, `status` (`active`\|`archived`), notes, **`step_type`** (`simple`\|`detailed`, default `simple`, rencana E12). **Tidak pernah punya kolom hasil** |
+| `test_case_steps`       | (rencana, E12) Template step, hanya relevan jika `step_type = 'detailed'`: test_case_id, step_number, action, expected_result                                                                                                |
 | `test_plans`            | Rencana pengujian: `code` (auto, editable), name, description, status. Terikat ke `project_id`                                                                                                                               |
-| `test_plan_cases`       | Junction `test_plan_id` ↔ `test_case_id` + `order` — HANYA cakupan, tanpa kolom hasil (kolom `last_result`/`notes` versi lama sudah dihapus)                                                                                 |
+| `test_plan_cases`       | Junction `test_plan_id` ↔ `test_case_id` + **`order`** (sequence — urutan eksekusi, diubah via drag & drop di tab Test Cases) — HANYA cakupan, tanpa kolom hasil (kolom `last_result`/`notes` versi lama sudah dihapus)      |
 | `test_runs`             | Satu sesi eksekusi: test_plan_id, `code` (auto, editable), name, `status` (`in_progress`\|`completed`, manual), started_at, completed_at                                                                                     |
-| `test_results`          | Satu baris per (test_run_id × test_case_id) — unique constraint pada pasangan ini. Kolom: tester_id (FK `profiles`), `status` (`pass`\|`fail`\|`skip`\|`blocked`\|`not_run`), executed_at, notes. **Di sinilah hasil hidup** |
-| `issues`                | 0..N per test_result_id (1:many): title, description, actual_result, expected_result, priority, status, assigned_to (FK `profiles`)                                                                                          |
+| `test_results`          | Satu baris per (test_run_id × test_case_id) — unique constraint pada pasangan ini. Kolom: tester_id (FK `profiles`), `status` (`pass`\|`fail`\|`skip`\|`blocked`\|`not_run`), executed_at, notes, **`order`** (snapshot `test_plan_cases.order` saat run dimulai — lihat §4.0). **Di sinilah hasil hidup** |
+| `test_result_steps`     | (rencana, E12) Hasil per-step untuk Test Case `detailed`: test_result_id, test_case_step_id, status (`pass`\|`fail`), actual_result                                                                                          |
+| `issues`                | (reshape E12) Entity level-project: `project_id` (wajib), `module_id` (nullable), `type` (`bug`\|`feature`\|`improvement`\|`task`), title, description, actual_result, expected_result, priority, status, assigned_to (FK `profiles`), `github_links` (`jsonb`). Kolom `test_result_id` versi lama **dihapus**, diganti junction `issue_test_results` |
+| `issue_test_results`    | (rencana, E12) Junction N:M `issue_id` ↔ `test_result_id`                                                                                                                                                                    |
+| `issue_tags`            | (rencana, E12) Junction many-to-many `issue_id` ↔ `tag_id`, reuse tabel `tags`                                                                                                                                               |
+| `attachments`           | (rencana, E12) `issue_id`, `storage_provider`, `url`, `file_name`, `file_size`, `content_type`                                                                                                                               |
 | `entity_code_sequences` | Bookkeeping internal: satu row per `(project_id, prefix)`, menyimpan `last_value` counter. Dipakai fungsi `next_entity_code()`                                                                                               |
 | `profiles`              | 1:1 dengan `auth.users` (Supabase Auth). Kolom: `email`, `full_name`, `avatar_url`, `role` (`pending`\|`user`\|`admin`), `deleted_at` (soft-delete)                                                                          |
 
@@ -205,15 +222,32 @@ Keputusan desain inti (lihat `docs/PRD.md` §3 untuk rationale produk lengkap):
   men-snapshot cakupan test case plan **saat itu** ke `test_results` baru
   (`not_run`) — perubahan cakupan plan setelahnya tidak mengubah retroaktif apa
   yang tercakup dalam run yang sudah dimulai.
+- **Sequence (urutan eksekusi) hidup di `test_plan_cases.order`, bukan entity
+  Test Suite terpisah.** Drag & drop di tab Test Cases (`TestPlanDetailPage`)
+  memanggil `testPlanService.reorderCases()`, yang menulis ulang `order`
+  seluruh baris jadi index array baru — sengaja hanya aktif saat tidak ada
+  filter/search aktif (`isCaseFilterActive`), supaya reorder selalu terhadap
+  daftar penuh, bukan subset hasil filter yang bisa menghasilkan `order` yang
+  salah. `testResultRepository.seedForRun()` men-snapshot posisi ini ke
+  `test_results.order` di saat run dimulai (pola sama seperti snapshot konten
+  test case lain) — jadi run yang sudah berjalan tidak berubah urutannya kalau
+  plan di-reorder setelahnya. **Sequence ini panduan, bukan pembatas**:
+  `testRunService.recordResult()` tidak pernah memvalidasi urutan pencatatan
+  hasil — tester bebas mencatat hasil test case manapun kapan saja.
 - **Completion manual, progress otomatis.** `test_runs.status` HANYA berubah
   lewat `testRunService.complete()`/`reopen()` (aksi eksplisit user) — tidak
   pernah disimpulkan otomatis dari semua `test_results` terisi. Sebaliknya,
   ringkasan progress (jumlah pass/fail/skip/blocked, persentase) SELALU dihitung
   on-the-fly di `testRunService.getWithResults()`, tidak pernah disimpan sebagai
   kolom — supaya selalu akurat tanpa risiko cache basi.
-- **Issue 1:many terhadap Test Result** — keputusan produk eksplisit: satu
-  kegagalan boleh melahirkan beberapa temuan terpisah yang dilacak
-  masing-masing.
+- **Issue adalah entity level-project, relasi ke Test Result N:M (bukan lagi
+  1:many searah)** — reshape dari v1: sebelumnya `issues.test_result_id`
+  wajib (issue tidak bisa berdiri sendiri). Sekarang Issue punya
+  `project_id` sendiri, bisa dibuat standalone (feature request, temuan
+  general) atau ditautkan ke satu/banyak Test Result lewat junction
+  `issue_test_results`. Rationale: satu kegagalan yang sama kadang muncul lagi
+  di run berikutnya — tim ingin menautkan Test Result baru itu ke Issue yang
+  sudah ada, bukan membuat Issue duplikat.
 - **Tester wajib user terdaftar** (`test_results.tester_id references profiles`)
   — bukan teks bebas, supaya riwayat testing selalu bisa ditelusuri ke akun yang
   jelas.
@@ -355,6 +389,53 @@ TestRunIssuesPage → useIssuesByTestRun hook → issueService.listByTestRun →
   kolom tabel (ubah langsung tanpa dialog terpisah, beda dari pola dialog di
   halaman lain — dipilih karena aksinya cuma 1 field per kolom)
 
+> **Catatan (E12):** bagian di atas mendeskripsikan v1 (Issue anak Test
+> Result, 1:many). Lihat §6.6 untuk reshape jadi Issue level-project dengan
+> relasi N:M — halaman/flow di atas berubah signifikan.
+
+### 6.6 Issue & Feature Tracking v2 (rencana, E12)
+
+```
+IssuesPage (/projects/:id/issues) → useIssues hook → issueService.listByProject → issueRepository (+ join module, tags, assignee)
+TestRunDetailPage (baris Test Result) → dialog "Link Issue" → issueService.listByProject (untuk dipilih) atau issueService.create (inline, lalu link) → issueService.linkToTestResult(issueId, testResultId)
+```
+
+- **Reshape skema**: `issues.test_result_id` (FK wajib) dihapus, diganti
+  `issues.project_id` (wajib) + `issues.module_id` (nullable) + junction
+  `issue_test_results` (N:M) + junction `issue_tags` (N:M, reuse `tags`)
+- **Halaman Issue baru** (`pages/issues/IssuesPage.tsx`, route
+  `/projects/:id/issues` atau tab di `ProjectDetailPage` — pola sama seperti
+  Test Cases/Modules/Tags): list, filter (type/status/priority/module/tag),
+  CRUD penuh, kolom "Ditautkan ke N Test Result" (link ke detail run terkait)
+- **Dialog "Link Issue" di Test Run**: dipicu dari baris Test Result (bukan
+  cuma yang FAIL — sekarang bisa dari status apa pun, karena Issue tak lagi
+  terikat wajib ke FAIL). Dua tab/mode dalam satu dialog:
+  1. **Pilih existing** — daftar issue project (searchable), centang lalu
+     simpan → insert baris `issue_test_results`
+  2. **Buat baru** — form issue singkat (title, type, priority, description)
+     tanpa pindah halaman → `issueService.create()` lalu langsung
+     `issueService.linkToTestResult()` dalam satu aksi
+- `issueRepository.listByTestResult(testResultId)` / `listByProject(projectId)`
+  — dua entry point baca yang berbeda, keduanya join lewat `issue_test_results`
+  kalau perlu
+- `TestRunIssuesPage` (`/test-runs/:id/issues`) tetap ada sebagai **view**:
+  join `issue_test_results` → `test_results` untuk run tsb, bukan lagi listing
+  langsung dari kolom FK
+- **Attachment**: `attachmentService` di belakang `StorageAdapter` interface
+  (`upload(file): Promise<{url, ...}>`, `remove(url)`) — implementasi awal
+  `SupabaseStorageAdapter`, disiapkan slot untuk `InternalBackendAdapter` di
+  masa depan tanpa mengubah pemanggil (service/UI hanya bicara ke interface,
+  bukan provider konkret)
+- **Test Case Step (detailed mode)**: `test_case_steps` (template) ditampilkan
+  di form Test Case ketika `step_type = 'detailed'` (tabel baris step yang bisa
+  ditambah/dihapus/reorder). Saat Test Run mulai, `testRunService.start()`
+  ikut men-seed `test_result_steps` (`not_run`/kosong) untuk tiap step dari
+  test case `detailed` dalam cakupan — mirip pola seeding `test_results` yang
+  sudah ada
+- **GitHub links**: field `github_links` (`jsonb` array `{url, label?}`) di
+  form Issue — input dinamis (tambah/hapus baris), murni teks, tidak ada
+  validasi format GitHub API
+
 ### 6.4 Modul Module & Tag
 
 - **Module**: CRUD sederhana (`moduleRepository`/`moduleService`/`useModules`) —
@@ -413,3 +494,5 @@ seperti amanah-pos, karena diminta eksplisit).
 | Google OAuth redirect                                       | `redirectTo: window.location.origin` — pastikan URL ini terdaftar di Supabase Auth settings (Site URL & Redirect URLs) dan Google Cloud Console OAuth client, terutama saat deploy ke domain lain dari localhost                                                                                                                                                     |
 | Migrasi ke backend PHP + SQLite (rencana, belum dikerjakan) | Repository layer sengaja jadi satu-satunya titik yang tahu tentang Supabase supaya migrasi ini nanti tinggal ganti isi repository (mis. jadi `fetch()` ke endpoint PHP) tanpa menyentuh service/hook/component. RLS Supabase (aturan akses per role) perlu direplikasi manual jadi authorization check di sisi PHP saat migrasi terjadi — tidak otomatis ikut pindah |
 | Tag junction full-replace                                   | `tagService.saveTagsForTestCase` selalu delete+insert ulang seluruh `test_case_tags` untuk test case tsb saat disimpan — sederhana tapi berarti setiap save test case menyentuh baris junction meski tag tidak berubah. Cukup untuk skala saat ini (jumlah tag per test case kecil)                                                                                  |
+| Reshape `issues` (E12) butuh migrasi data                    | Kalau sudah ada row `issues` lama (FK `test_result_id` wajib) sebelum migrasi E12 dijalankan, perlu backfill `project_id`/`module_id` via join `test_results → test_runs → test_plans` dan pindahkan relasi lama ke `issue_test_results` sebelum kolom `test_result_id` didrop — tidak otomatis                                                                     |
+| Storage adapter (E12) pola baru di codebase                  | Interface + implementasi terpisah (`StorageAdapter`) belum ada contohnya di layer lain (Repository saat ini langsung bicara ke Supabase, bukan lewat interface) — jadi validasi pertama pola "swappable provider" di luar rencana migrasi backend PHP                                                                                                                |
