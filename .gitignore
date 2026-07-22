@@ -29,3 +29,5 @@ frontend/.vite/
 
 # Playwright MCP browser artifacts
 .playwright-mcp/
+supabase/.env.local
+backups/
