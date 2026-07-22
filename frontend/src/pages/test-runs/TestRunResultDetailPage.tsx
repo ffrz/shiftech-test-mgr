@@ -191,10 +191,16 @@ export function TestRunResultDetailPage() {
   const [browseSearch, setBrowseSearch] = useState('');
 
   useEffect(() => {
+    // activeResult resolves from `results`, which loads asynchronously — on a fresh page
+    // load resultId is already set from the URL before results has been fetched, so this
+    // effect must also re-run once activeResult itself resolves (not just resultId), or the
+    // linked-issues fetch below never fires and the card stays empty. Depend on
+    // activeResult?.id rather than the object itself, so a reload() that produces a new
+    // `results` array reference doesn't refetch this unnecessarily.
     if (!activeResult) return;
     issueService.listByTestResult(activeResult.id).then(setLinkedIssues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resultId]);
+  }, [resultId, activeResult?.id]);
 
   async function openBrowseDialog() {
     if (!activeResult || !testPlan) return;
