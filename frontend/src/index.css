@@ -29,6 +29,13 @@ body {
   color: var(--primary-color);
 }
 
+/* Dark theme: --primary-50 is a near-full-brightness tint meant for light
+   backgrounds, so it reads as a harsh highlight on dark surfaces — use a
+   low-opacity tint of the theme's dark-mode primary (96, 165, 250) instead. */
+html.dark .breadcrumb-link:hover {
+  background: rgba(96, 165, 250, 0.16);
+}
+
 /* ===== Compact / dense control sizing across PrimeReact components ===== */
 
 .p-inputtext,
@@ -76,6 +83,24 @@ body {
   font-size: 0.85rem;
 }
 
+/* Rounded table shell to match .p-card and other surfaces (dialogs, dropdowns)
+   which already use rounded corners — the theme's default table is square,
+   which stood out as inconsistent. Corners are clipped on the wrapper since
+   border-radius on table/thead/tbody elements doesn't clip cell backgrounds. */
+.p-datatable .p-datatable-wrapper {
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.p-datatable .p-datatable-thead>tr>th {
+  border-top: none;
+}
+
+.p-datatable .p-datatable-tbody>tr:last-child>td {
+  border-bottom: none;
+}
+
 .p-datatable .p-datatable-thead>tr>th,
 .p-datatable .p-datatable-tfoot>tr>td {
   color: var(--text-color-secondary);
@@ -105,7 +130,18 @@ body {
   background-color: rgba(255, 255, 255, 0.4);
 }
 
-h1, h2, h3, h4, h5, h6 {
+/* Dark theme: the light-theme overlay above reads as too bright against dark
+   surfaces — use a translucent dark tint instead so it stays subtle. */
+html.dark .p-datatable-loading-overlay.p-component-overlay {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: var(--text-color-secondary);
 }
 
@@ -263,6 +299,12 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--primary-50, var(--surface-100));
   color: var(--primary-color);
   font-weight: 600;
+}
+
+/* Dark theme: same reasoning as .breadcrumb-link:hover above — --primary-50
+   is far too bright against dark surfaces, so use a low-opacity tint. */
+html.dark .layout-menuitem-link.active-route {
+  background: rgba(96, 165, 250, 0.16);
 }
 
 .layout-menu-separator {
@@ -434,4 +476,9 @@ h1, h2, h3, h4, h5, h6 {
   height: 100vh;
   background: rgba(0, 0, 0, 0.4);
   z-index: 1050;
+}
+
+.test-run-detail-filter .p-panel-content {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
