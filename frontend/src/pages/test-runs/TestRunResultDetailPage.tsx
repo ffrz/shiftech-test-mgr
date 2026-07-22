@@ -614,7 +614,24 @@ export function TestRunResultDetailPage() {
                 </Card>
 
                 {canRunTests && (
-                  <Card title="Catat Hasil Eksekusi" className="mb-3">
+                  <Card
+                    title={
+                      <div className="flex align-items-center justify-content-between">
+                        <span>Catat Hasil Eksekusi</span>
+                        {activeResult.testCase && (
+                          <Button
+                            label="Lihat Test Case Asli"
+                            icon="pi pi-external-link"
+                            iconPos="right"
+                            size="small"
+                            text
+                            onClick={() => navigate(`/test-cases/${activeResult.testCase!.id}?projectId=${testPlan?.projectId ?? ''}`)}
+                          />
+                        )}
+                      </div>
+                    }
+                    className="mb-3"
+                  >
                     <div className="flex flex-column gap-3">
                       <div className="grid">
                         <div className="col-12 md:col-6 flex flex-column gap-1">
