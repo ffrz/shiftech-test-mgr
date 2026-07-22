@@ -7,9 +7,9 @@ import { Button } from 'primereact/button';
 import { ProgressBar } from 'primereact/progressbar';
 import { Dropdown } from 'primereact/dropdown';
 import { Dialog } from 'primereact/dialog';
-import { TabView, TabPanel } from 'primereact/tabview';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { MultiSelect } from 'primereact/multiselect';
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
 import { ConfirmDialog } from 'primereact/confirmdialog';
@@ -30,6 +30,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import type {
   IssuePriority,
+  IssueType,
   IssueWithDetails,
   Module,
   Profile,
@@ -40,6 +41,9 @@ import type {
 } from '../../types/domain';
 import {
   ISSUE_PRIORITY_LABEL,
+  ISSUE_PRIORITY_SEVERITY,
+  ISSUE_TYPE_LABEL,
+  ISSUE_TYPE_SEVERITY,
   TEST_CASE_PRIORITY_LABEL,
   TEST_CASE_PRIORITY_SEVERITY,
   TEST_RESULT_STATUS_LABEL,
@@ -82,7 +86,7 @@ export function TestRunResultDetailPage() {
   const { profile: currentProfile } = useAuthContext();
 
   const { testRun, results, summary, loading, reload } = useTestRunDetail(runId);
-  const { issues: runIssues, reload: reloadRunIssues } = useIssuesByTestRun(runId);
+  const { reload: reloadRunIssues } = useIssuesByTestRun(runId);
   const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
   const [testPlan, setTestPlan] = useState<TestPlan | null>(null);
   const [projectName, setProjectName] = useState<string | null>(null);
@@ -102,13 +106,6 @@ export function TestRunResultDetailPage() {
       return next;
     });
   }
-
-  const issueCountByResult = runIssues.reduce<Record<string, number>>((acc, issue) => {
-    for (const link of issue.linkedTestResults) {
-      acc[link.id] = (acc[link.id] ?? 0) + 1;
-    }
-    return acc;
-  }, {});
 
   useEffect(() => {
     profileService.listAll().then((all) => setApprovedUsers(all.filter((p) => p.role === 'user' || p.role === 'admin')));
@@ -183,35 +180,42 @@ export function TestRunResultDetailPage() {
     toast.current?.show({ severity: 'success', summary: 'Hasil tersimpan' });
   }
 
-  // --- Link Issue (inline) ---
-  const [linkTabIndex, setLinkTabIndex] = useState(0);
+  // --- Link Issue: browse dialog (pick existing) + nested create dialog (auto-links on save) ---
+  const [browseDialogOpen, setBrowseDialogOpen] = useState(false);
+  const [linkedIssues, setLinkedIssues] = useState<IssueWithDetails[]>([]);
   const [projectIssues, setProjectIssues] = useState<IssueWithDetails[]>([]);
   const [linkedIssueIds, setLinkedIssueIds] = useState<Set<string>>(new Set());
-  const [issueTitle, setIssueTitle] = useState('');
-  const [issueDescription, setIssueDescription] = useState('');
-  const [issueActual, setIssueActual] = useState('');
-  const [issueExpected, setIssueExpected] = useState('');
-  const [issuePriority, setIssuePriority] = useState<IssuePriority>('medium');
-  const [issueError, setIssueError] = useState<string | null>(null);
+  const [browseSearch, setBrowseSearch] = useState('');
 
   useEffect(() => {
-    if (!activeResult || !testPlan) return;
-    setIssueTitle(activeResult.status === 'fail' ? `${activeResult.testCaseTitle} gagal` : '');
-    setIssueDescription('');
-    setIssueActual('');
-    setIssueExpected(activeResult.testCaseExpectedResult);
-    setIssuePriority('medium');
-    setIssueError(null);
-    setLinkTabIndex(0);
-
-    Promise.all([issueService.listByProject(testPlan.projectId), issueService.listByTestResult(activeResult.id)]).then(
-      ([allIssues, linked]) => {
-        setProjectIssues(allIssues);
-        setLinkedIssueIds(new Set(linked.map((i) => i.id)));
-      },
-    );
+    if (!activeResult) return;
+    issueService.listByTestResult(activeResult.id).then(setLinkedIssues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resultId, testPlan?.projectId]);
+  }, [resultId]);
+
+  async function openBrowseDialog() {
+    if (!activeResult || !testPlan) return;
+    setBrowseSearch('');
+    setBrowseDialogOpen(true);
+    const [allIssues, linked] = await Promise.all([
+      issueService.listByProject(testPlan.projectId),
+      issueService.listByTestResult(activeResult.id),
+    ]);
+    setProjectIssues(allIssues);
+    setLinkedIssueIds(new Set(linked.map((i) => i.id)));
+  }
+
+  const filteredProjectIssues = useMemo(() => {
+    const q = browseSearch.trim().toLowerCase();
+    if (!q) return projectIssues;
+    return projectIssues.filter((i) => i.title.toLowerCase().includes(q) || i.code.toLowerCase().includes(q));
+  }, [projectIssues, browseSearch]);
+
+  async function refreshLinkedIssues() {
+    if (!activeResult) return;
+    setLinkedIssues(await issueService.listByTestResult(activeResult.id));
+    await reloadRunIssues();
+  }
 
   async function handleToggleLink(issueId: string, linked: boolean) {
     if (!activeResult) return;
@@ -226,7 +230,33 @@ export function TestRunResultDetailPage() {
       else next.delete(issueId);
       return next;
     });
-    await reloadRunIssues();
+    await refreshLinkedIssues();
+  }
+
+  // --- Create Issue dialog (nested inside Browse) — full form, auto-links to activeResult on save ---
+  const [createIssueDialogOpen, setCreateIssueDialogOpen] = useState(false);
+  const [issueTitle, setIssueTitle] = useState('');
+  const [issueType, setIssueType] = useState<IssueType>('bug');
+  const [issueModuleId, setIssueModuleId] = useState<string | null>(null);
+  const [issueTagNames, setIssueTagNames] = useState<string[]>([]);
+  const [issueDescription, setIssueDescription] = useState('');
+  const [issueActual, setIssueActual] = useState('');
+  const [issueExpected, setIssueExpected] = useState('');
+  const [issuePriority, setIssuePriority] = useState<IssuePriority>('medium');
+  const [issueError, setIssueError] = useState<string | null>(null);
+
+  function openCreateIssueDialog() {
+    if (!activeResult) return;
+    setIssueTitle(activeResult.status === 'fail' ? `${activeResult.testCaseTitle} gagal` : '');
+    setIssueType('bug');
+    setIssueModuleId(null);
+    setIssueTagNames([]);
+    setIssueDescription('');
+    setIssueActual('');
+    setIssueExpected(activeResult.testCaseExpectedResult);
+    setIssuePriority('medium');
+    setIssueError(null);
+    setCreateIssueDialogOpen(true);
   }
 
   async function handleCreateAndLinkIssue() {
@@ -236,13 +266,18 @@ export function TestRunResultDetailPage() {
       await issueService.create({
         projectId: testPlan.projectId,
         linkToTestResultId: activeResult.id,
+        moduleId: issueModuleId,
+        type: issueType,
+        tagNames: issueTagNames,
         title: issueTitle,
         description: issueDescription,
         actualResult: issueActual,
         expectedResult: issueExpected,
         priority: issuePriority,
       });
-      await reloadRunIssues();
+      setCreateIssueDialogOpen(false);
+      await refreshLinkedIssues();
+      if (testPlan) setProjectIssues(await issueService.listByProject(testPlan.projectId));
       toast.current?.show({ severity: 'success', summary: 'Issue dibuat dan ditautkan' });
     } catch (err) {
       setIssueError(err instanceof Error ? err.message : 'Gagal membuat issue');
@@ -592,63 +627,23 @@ export function TestRunResultDetailPage() {
                   <Card
                     title="Link Issue"
                     className="mb-3"
-                    subTitle={
-                      (issueCountByResult[activeResult.id] ?? 0) > 0
-                        ? `${issueCountByResult[activeResult.id]} issue tertaut`
-                        : undefined
-                    }
+                    subTitle={linkedIssues.length > 0 ? `${linkedIssues.length} issue tertaut` : undefined}
                   >
-                    <TabView activeIndex={linkTabIndex} onTabChange={(e) => setLinkTabIndex(e.index)}>
-                      <TabPanel header="Pilih Existing">
-                        <div className="flex flex-column gap-2" style={{ maxHeight: '16rem', overflowY: 'auto' }}>
-                          {projectIssues.length === 0 && <p className="text-color-secondary text-sm m-0">Belum ada issue di project ini.</p>}
-                          {projectIssues.map((issue) => (
-                            <label key={issue.id} className="flex align-items-center gap-2 p-2 border-round surface-hover cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={linkedIssueIds.has(issue.id)}
-                                onChange={(e) => handleToggleLink(issue.id, e.target.checked)}
-                              />
-                              <span className="text-sm">
-                                <span className="font-medium">{issue.code}</span> — {issue.title}
-                              </span>
-                            </label>
-                          ))}
+                    <div className="flex flex-column gap-2">
+                      {linkedIssues.length === 0 && (
+                        <p className="text-color-secondary text-sm m-0">Belum ada issue yang ditautkan ke test case ini.</p>
+                      )}
+                      {linkedIssues.map((issue) => (
+                        <div key={issue.id} className="flex align-items-center justify-content-between gap-2 p-2 border-round surface-100">
+                          <span className="text-sm">
+                            <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} className="mr-2" />
+                            <span className="font-medium">{issue.code}</span> — {issue.title}
+                          </span>
+                          <Tag value={ISSUE_PRIORITY_LABEL[issue.priority]} severity={ISSUE_PRIORITY_SEVERITY[issue.priority]} />
                         </div>
-                      </TabPanel>
-                      <TabPanel header="Buat Baru">
-                        <div className="flex flex-column gap-3">
-                          {issueError && <small className="p-error">{issueError}</small>}
-                          <div className="flex flex-column gap-1">
-                            <label htmlFor="issue-title">Judul</label>
-                            <InputText id="issue-title" value={issueTitle} onChange={(e) => setIssueTitle(e.target.value)} />
-                          </div>
-                          <div className="flex flex-column gap-1">
-                            <label htmlFor="issue-priority">Prioritas</label>
-                            <Dropdown
-                              id="issue-priority"
-                              value={issuePriority}
-                              options={(['low', 'medium', 'high', 'critical'] as const).map((v) => ({ label: ISSUE_PRIORITY_LABEL[v], value: v }))}
-                              onChange={(e) => setIssuePriority(e.value)}
-                              className="w-full"
-                            />
-                          </div>
-                          <div className="flex flex-column gap-1">
-                            <label htmlFor="issue-description">Deskripsi</label>
-                            <InputTextarea id="issue-description" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} rows={2} />
-                          </div>
-                          <div className="flex flex-column gap-1">
-                            <label htmlFor="issue-actual">Hasil Aktual</label>
-                            <InputTextarea id="issue-actual" value={issueActual} onChange={(e) => setIssueActual(e.target.value)} rows={2} />
-                          </div>
-                          <div className="flex flex-column gap-1">
-                            <label htmlFor="issue-expected">Hasil yang Diharapkan</label>
-                            <InputTextarea id="issue-expected" value={issueExpected} onChange={(e) => setIssueExpected(e.target.value)} rows={2} />
-                          </div>
-                          <Button label="Buat & Tautkan" size="small" onClick={handleCreateAndLinkIssue} />
-                        </div>
-                      </TabPanel>
-                    </TabView>
+                      ))}
+                      <Button label="Browse Issues" icon="pi pi-search" size="small" outlined onClick={openBrowseDialog} className="mt-2" />
+                    </div>
                   </Card>
                 )}
               </>
@@ -656,6 +651,106 @@ export function TestRunResultDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* --- Browse Issues Dialog: pick existing to link, or open Create Issue --- */}
+      <Dialog header="Browse Issues" visible={browseDialogOpen} onHide={() => setBrowseDialogOpen(false)} style={{ width: '30rem' }}>
+        <div className="flex flex-column gap-3">
+          <div className="flex align-items-center gap-2">
+            <IconField iconPosition="left" className="flex-grow-1">
+              <InputIcon className="pi pi-search" />
+              <InputText value={browseSearch} onChange={(e) => setBrowseSearch(e.target.value)} placeholder="Cari judul/kode..." className="w-full" />
+            </IconField>
+            <Button label="Tambah Issue" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />
+          </div>
+          <div className="flex flex-column gap-2" style={{ maxHeight: '20rem', overflowY: 'auto' }}>
+            {filteredProjectIssues.length === 0 && <p className="text-color-secondary text-sm m-0">Tidak ada issue yang cocok.</p>}
+            {filteredProjectIssues.map((issue) => (
+              <label key={issue.id} className="flex align-items-center gap-2 p-2 border-round surface-hover cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={linkedIssueIds.has(issue.id)}
+                  onChange={(e) => handleToggleLink(issue.id, e.target.checked)}
+                />
+                <span className="text-sm flex-grow-1">
+                  <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} className="mr-2" />
+                  <span className="font-medium">{issue.code}</span> — {issue.title}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      </Dialog>
+
+      {/* --- Create Issue Dialog (nested inside Browse): saving auto-links to activeResult --- */}
+      <Dialog header="Tambah Issue" visible={createIssueDialogOpen} onHide={() => setCreateIssueDialogOpen(false)} style={{ width: '32rem' }}>
+        <div className="flex flex-column gap-3">
+          {issueError && <small className="p-error">{issueError}</small>}
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-title">Judul</label>
+            <InputText id="issue-title" value={issueTitle} onChange={(e) => setIssueTitle(e.target.value)} autoFocus />
+          </div>
+          <div className="grid">
+            <div className="col-12 md:col-6 flex flex-column gap-1">
+              <label htmlFor="issue-type">Tipe</label>
+              <Dropdown
+                id="issue-type"
+                value={issueType}
+                options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
+                onChange={(e) => setIssueType(e.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="col-12 md:col-6 flex flex-column gap-1">
+              <label htmlFor="issue-priority">Prioritas</label>
+              <Dropdown
+                id="issue-priority"
+                value={issuePriority}
+                options={(['low', 'medium', 'high', 'critical'] as const).map((v) => ({ label: ISSUE_PRIORITY_LABEL[v], value: v }))}
+                onChange={(e) => setIssuePriority(e.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-module">Modul (opsional)</label>
+            <Dropdown
+              id="issue-module"
+              value={issueModuleId}
+              options={modules.map((m) => ({ label: m.name, value: m.id }))}
+              onChange={(e) => setIssueModuleId(e.value)}
+              showClear
+              placeholder="Tidak terikat module"
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-tags">Tag</label>
+            <MultiSelect
+              id="issue-tags"
+              value={issueTagNames}
+              options={projectTags.map((t) => ({ label: t.name, value: t.name }))}
+              onChange={(e) => setIssueTagNames(e.value ?? [])}
+              placeholder="Pilih tag"
+              display="chip"
+              filter
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-description">Deskripsi</label>
+            <InputTextarea id="issue-description" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} rows={2} />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-actual">Hasil Aktual</label>
+            <InputTextarea id="issue-actual" value={issueActual} onChange={(e) => setIssueActual(e.target.value)} rows={2} />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-expected">Hasil yang Diharapkan</label>
+            <InputTextarea id="issue-expected" value={issueExpected} onChange={(e) => setIssueExpected(e.target.value)} rows={2} />
+          </div>
+          <Button label="Buat & Tautkan" size="small" onClick={handleCreateAndLinkIssue} />
+        </div>
+      </Dialog>
 
       {/* --- Complete Run Dialog --- */}
       <Dialog header="Selesaikan Test Run" visible={completeDialogOpen} onHide={() => setCompleteDialogOpen(false)} style={{ width: '28rem' }}>
