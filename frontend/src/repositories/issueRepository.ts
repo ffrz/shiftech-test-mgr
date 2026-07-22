@@ -1,123 +1,91 @@
 import { supabase } from '../config/supabaseClient';
-import { mapIssueRow, mapModuleRow, mapProfileRow, mapTagRow } from '../helpers/mappers';
-import type { Issue, IssueStatus, IssueWithDetails } from '../types/domain';
+import { mapAttachmentRow, mapIssueRow, mapModuleRow, mapProfileRow, mapTagRow } from '../helpers/mappers';
+import type { Attachment, GithubLink, Issue, IssueStatus, IssueType, IssueWithDetails } from '../types/domain';
 
-function mapTestCaseSummary(testCase: any) {
-  if (!testCase) return null;
+const ISSUE_DETAIL_SELECT =
+  '*, assignee:profiles(*), module:modules(*), issue_tags(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
+
+function mapIssueWithDetailsRow(row: any): IssueWithDetails {
   return {
-    id: testCase.id,
-    code: testCase.code,
-    title: testCase.title,
-    priority: testCase.priority,
-    module: testCase.module ? mapModuleRow(testCase.module) : null,
-    tags: (testCase.test_case_tags ?? []).map((t: any) => mapTagRow(t.tag)),
+    ...mapIssueRow(row),
+    assignee: row.assignee ? mapProfileRow(row.assignee) : null,
+    module: row.module ? mapModuleRow(row.module) : null,
+    tags: (row.issue_tags ?? []).map((t: any) => mapTagRow(t.tag)),
+    linkedTestResults: (row.issue_test_results ?? [])
+      .filter((link: any) => link.test_result)
+      .map((link: any) => ({
+        id: link.test_result.id,
+        testRunId: link.test_result.test_run_id,
+        testCaseCode: link.test_result.test_case_code,
+        testCaseTitle: link.test_result.test_case_title,
+        testRun: link.test_result.test_run ?? null,
+      })),
   };
 }
 
 export const issueRepository = {
-  async findById(id: string): Promise<(IssueWithDetails & { projectId: string | null }) | null> {
-    const { data, error } = await supabase
-      .from('issues')
-      .select(
-        '*, assignee:profiles(*), test_result:test_results!inner(test_run_id, test_case:test_cases(id, code, title, priority, module:modules(*), test_case_tags(tag:tags(*))), test_run:test_runs(id, code, name, test_plan:test_plans(project_id)))',
-      )
-      .eq('id', id)
-      .maybeSingle();
-
+  async findById(id: string): Promise<IssueWithDetails | null> {
+    const { data, error } = await supabase.from('issues').select(ISSUE_DETAIL_SELECT).eq('id', id).maybeSingle();
     if (error) throw error;
-    if (!data) return null;
-
-    return {
-      ...mapIssueRow(data),
-      assignee: data.assignee ? mapProfileRow(data.assignee) : null,
-      testCase: mapTestCaseSummary(data.test_result?.test_case),
-      testRun: data.test_result?.test_run ?? null,
-      projectId: data.test_result?.test_run?.test_plan?.project_id ?? null,
-    };
+    return data ? mapIssueWithDetailsRow(data) : null;
   },
 
-  async update(
-    id: string,
-    changes: Partial<Pick<Issue, 'title' | 'description' | 'actualResult' | 'expectedResult' | 'priority'>>,
-  ): Promise<Issue> {
-    const payload: Record<string, unknown> = {};
-    if (changes.title !== undefined) payload.title = changes.title;
-    if (changes.description !== undefined) payload.description = changes.description;
-    if (changes.actualResult !== undefined) payload.actual_result = changes.actualResult;
-    if (changes.expectedResult !== undefined) payload.expected_result = changes.expectedResult;
-    if (changes.priority !== undefined) payload.priority = changes.priority;
-
-    const { data, error } = await supabase.from('issues').update(payload).eq('id', id).select('*').single();
-    if (error) throw error;
-    return mapIssueRow(data);
-  },
-
-  async findAllByTestResult(testResultId: string): Promise<IssueWithDetails[]> {
-    const { data, error } = await supabase
-      .from('issues')
-      .select('*, assignee:profiles(*)')
-      .eq('test_result_id', testResultId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return (data ?? []).map((row: any) => ({
-      ...mapIssueRow(row),
-      assignee: row.assignee ? mapProfileRow(row.assignee) : null,
-      testCase: null,
-      testRun: null,
-    }));
-  },
-
-  // Issues across an entire test run (joined through test_results) — for a run-level issue list.
   async findAllByProject(projectId: string): Promise<IssueWithDetails[]> {
-    const { data: runData, error: runError } = await supabase
-      .from('test_runs')
-      .select('id, test_plan:test_plans!inner(project_id)')
-      .eq('test_plan.project_id', projectId);
-    if (runError) throw runError;
-    const runIds = (runData ?? []).map((r: any) => r.id);
-    if (runIds.length === 0) return [];
-
     const { data, error } = await supabase
       .from('issues')
-      .select(
-        '*, assignee:profiles(*), test_result:test_results!inner(test_run_id, test_case:test_cases(id, code, title, priority, module:modules(*), test_case_tags(tag:tags(*))), test_run:test_runs(id, code, name))',
-      )
-      .in('test_result.test_run_id', runIds)
+      .select(ISSUE_DETAIL_SELECT)
+      .eq('project_id', projectId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map((row: any) => ({
-      ...mapIssueRow(row),
-      assignee: row.assignee ? mapProfileRow(row.assignee) : null,
-      testCase: mapTestCaseSummary(row.test_result?.test_case),
-      testRun: row.test_result?.test_run ?? null,
-    }));
+    return (data ?? []).map(mapIssueWithDetailsRow);
   },
 
+  // Issues linked to any test_result within a single test run — used by the run-level
+  // issue view (joins through issue_test_results, not a direct FK anymore).
   async findAllByTestRun(testRunId: string): Promise<IssueWithDetails[]> {
     const { data, error } = await supabase
       .from('issues')
-      .select(
-        '*, assignee:profiles(*), test_result:test_results!inner(test_run_id, test_case:test_cases(id, code, title), test_run:test_runs(id, code, name))',
-      )
-      .eq('test_result.test_run_id', testRunId)
+      .select(`${ISSUE_DETAIL_SELECT}, issue_test_results!inner(test_result:test_results!inner(test_run_id))`)
+      .eq('issue_test_results.test_result.test_run_id', testRunId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map((row: any) => ({
-      ...mapIssueRow(row),
-      assignee: row.assignee ? mapProfileRow(row.assignee) : null,
-      testCase: row.test_result?.test_case ?? null,
-      testRun: row.test_result?.test_run ?? null,
-    }));
+    return (data ?? []).map(mapIssueWithDetailsRow);
   },
 
-  async create(input: Omit<Issue, 'id' | 'code' | 'createdAt' | 'updatedAt'>): Promise<Issue> {
+  // Issues linked to one specific test_result — used to show "already linked" state when
+  // opening the Link Issue dialog for a row.
+  async findAllByTestResult(testResultId: string): Promise<IssueWithDetails[]> {
+    const { data, error } = await supabase
+      .from('issues')
+      .select(`${ISSUE_DETAIL_SELECT}, issue_test_results!inner(test_result_id)`)
+      .eq('issue_test_results.test_result_id', testResultId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map(mapIssueWithDetailsRow);
+  },
+
+  async create(input: {
+    projectId: string;
+    moduleId: string | null;
+    type: IssueType;
+    title: string;
+    description: string | null;
+    actualResult: string | null;
+    expectedResult: string | null;
+    priority: Issue['priority'];
+    status: IssueStatus;
+    assignedTo: string | null;
+    githubLinks: GithubLink[];
+  }): Promise<Issue> {
     const { data, error } = await supabase
       .from('issues')
       .insert({
-        test_result_id: input.testResultId,
+        project_id: input.projectId,
+        module_id: input.moduleId,
+        type: input.type,
         title: input.title,
         description: input.description,
         actual_result: input.actualResult,
@@ -125,10 +93,32 @@ export const issueRepository = {
         priority: input.priority,
         status: input.status,
         assigned_to: input.assignedTo,
+        github_links: input.githubLinks,
       })
       .select('*')
       .single();
 
+    if (error) throw error;
+    return mapIssueRow(data);
+  },
+
+  async update(
+    id: string,
+    changes: Partial<
+      Pick<Issue, 'title' | 'description' | 'actualResult' | 'expectedResult' | 'priority' | 'type' | 'moduleId' | 'githubLinks'>
+    >,
+  ): Promise<Issue> {
+    const payload: Record<string, unknown> = {};
+    if (changes.title !== undefined) payload.title = changes.title;
+    if (changes.description !== undefined) payload.description = changes.description;
+    if (changes.actualResult !== undefined) payload.actual_result = changes.actualResult;
+    if (changes.expectedResult !== undefined) payload.expected_result = changes.expectedResult;
+    if (changes.priority !== undefined) payload.priority = changes.priority;
+    if (changes.type !== undefined) payload.type = changes.type;
+    if (changes.moduleId !== undefined) payload.module_id = changes.moduleId;
+    if (changes.githubLinks !== undefined) payload.github_links = changes.githubLinks;
+
+    const { data, error } = await supabase.from('issues').update(payload).eq('id', id).select('*').single();
     if (error) throw error;
     return mapIssueRow(data);
   },
@@ -147,6 +137,68 @@ export const issueRepository = {
 
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from('issues').delete().eq('id', id);
+    if (error) throw error;
+  },
+
+  // --- issue_test_results junction (N:M) ---
+
+  async linkToTestResult(issueId: string, testResultId: string): Promise<void> {
+    const { error } = await supabase
+      .from('issue_test_results')
+      .upsert({ issue_id: issueId, test_result_id: testResultId }, { onConflict: 'issue_id,test_result_id', ignoreDuplicates: true });
+    if (error) throw error;
+  },
+
+  async unlinkFromTestResult(issueId: string, testResultId: string): Promise<void> {
+    const { error } = await supabase
+      .from('issue_test_results')
+      .delete()
+      .eq('issue_id', issueId)
+      .eq('test_result_id', testResultId);
+    if (error) throw error;
+  },
+
+  // --- issue_tags junction (N:M, full-replace on save — same pattern as test_case_tags) ---
+
+  async replaceTags(issueId: string, tagIds: string[]): Promise<void> {
+    const { error: deleteError } = await supabase.from('issue_tags').delete().eq('issue_id', issueId);
+    if (deleteError) throw deleteError;
+    if (tagIds.length === 0) return;
+    const { error: insertError } = await supabase.from('issue_tags').insert(tagIds.map((tagId) => ({ issue_id: issueId, tag_id: tagId })));
+    if (insertError) throw insertError;
+  },
+
+  // --- attachments ---
+
+  async findAttachments(issueId: string): Promise<Attachment[]> {
+    const { data, error } = await supabase
+      .from('attachments')
+      .select('*')
+      .eq('issue_id', issueId)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(mapAttachmentRow);
+  },
+
+  async addAttachment(input: Omit<Attachment, 'id' | 'createdAt'>): Promise<Attachment> {
+    const { data, error } = await supabase
+      .from('attachments')
+      .insert({
+        issue_id: input.issueId,
+        storage_provider: input.storageProvider,
+        url: input.url,
+        file_name: input.fileName,
+        file_size: input.fileSize,
+        content_type: input.contentType,
+      })
+      .select('*')
+      .single();
+    if (error) throw error;
+    return mapAttachmentRow(data);
+  },
+
+  async removeAttachment(id: string): Promise<void> {
+    const { error } = await supabase.from('attachments').delete().eq('id', id);
     if (error) throw error;
   },
 };

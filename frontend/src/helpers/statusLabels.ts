@@ -1,6 +1,7 @@
 import type {
   IssuePriority,
   IssueStatus,
+  IssueType,
   ProjectMemberRole,
   ProjectStatus,
   TestCasePriority,
@@ -117,6 +118,20 @@ export const ISSUE_STATUS_SEVERITY: Record<IssueStatus, TagSeverity> = {
   resolved: 'info',
   verified: 'success',
   closed: 'secondary',
+};
+
+export const ISSUE_TYPE_LABEL: Record<IssueType, string> = {
+  bug: 'Bug',
+  feature: 'Feature',
+  improvement: 'Improvement',
+  task: 'Task',
+};
+
+export const ISSUE_TYPE_SEVERITY: Record<IssueType, TagSeverity> = {
+  bug: 'danger',
+  feature: 'info',
+  improvement: 'success',
+  task: 'secondary',
 };
 
 export const USER_ROLE_LABEL: Record<UserRole, string> = {

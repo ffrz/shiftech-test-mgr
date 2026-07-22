@@ -72,6 +72,8 @@ export interface TestPlan {
 export type TestCasePriority = 'low' | 'medium' | 'high' | 'critical';
 export type TestCaseStatus = 'active' | 'archived';
 
+export type TestCaseStepType = 'simple' | 'detailed';
+
 export interface TestCase {
   id: string;
   projectId: string;
@@ -85,6 +87,7 @@ export interface TestCase {
   priority: TestCasePriority;
   status: TestCaseStatus;
   notes: string | null;
+  stepType: TestCaseStepType;
   createdAt: string;
   updatedAt: string;
 }
@@ -92,6 +95,17 @@ export interface TestCase {
 export interface TestCaseWithDetails extends TestCase {
   module: Module | null;
   tags: Tag[];
+}
+
+// Template step — only meaningful when the parent TestCase.stepType === 'detailed'.
+export interface TestCaseStep {
+  id: string;
+  testCaseId: string;
+  stepNumber: number;
+  action: string;
+  expectedResult: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Junction: which test cases are in scope for a plan. No result columns here —
@@ -124,6 +138,9 @@ export interface TestRun {
 
 export type TestResultStatus = 'pass' | 'fail' | 'skip' | 'blocked' | 'not_run';
 
+// Snapshot of the test case content as it was when the run started — this is what the
+// run screen displays, never a live join, so a completed run's history stays accurate
+// even if the source test case is edited or archived afterwards.
 export interface TestResult {
   id: string;
   testRunId: string;
@@ -132,22 +149,68 @@ export interface TestResult {
   status: TestResultStatus;
   executedAt: string | null;
   notes: string | null;
+  testCaseCode: string | null;
+  testCaseTitle: string;
+  testCaseObjective: string | null;
+  testCasePreconditions: string | null;
+  testCaseSteps: string;
+  testCaseExpectedResult: string;
+  testCasePriority: TestCasePriority;
+  // Snapshot of test_plan_cases.order at the moment the run started — so a run's item
+  // order always matches the plan's order at that time, even if the plan is reordered later.
+  order: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface TestResultWithDetails extends TestResult {
-  testCase: TestCase;
+  // The live test case template, for comparing against the snapshot and driving the
+  // "sync" action — includes module/tags so the run's result list can filter by them.
+  // Null if the source test case has since been deleted.
+  testCase: TestCaseWithDetails | null;
   tester: Profile | null;
+  // Populated only when the source test case is `detailed` — one row per TestCaseStep.
+  stepResults: TestResultStepWithDetails[];
+}
+
+// Per-step result — only exists for TestResults whose TestCase.stepType === 'detailed'.
+// A simpler pass/fail than the overall TestResult.status, one row per TestCaseStep.
+export type TestResultStepStatus = 'pass' | 'fail' | 'not_run';
+
+export interface TestResultStep {
+  id: string;
+  testResultId: string;
+  testCaseStepId: string;
+  status: TestResultStepStatus;
+  actualResult: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TestResultStepWithDetails extends TestResultStep {
+  step: TestCaseStep;
 }
 
 export type IssuePriority = 'low' | 'medium' | 'high' | 'critical';
 export type IssueStatus = 'open' | 'in_progress' | 'resolved' | 'verified' | 'closed';
+// bug/feature/improvement/task — lets this module double as lightweight feature tracking,
+// not just bugs surfaced from failed test results.
+export type IssueType = 'bug' | 'feature' | 'improvement' | 'task';
 
+export interface GithubLink {
+  url: string;
+  label?: string;
+}
+
+// Issue is project-level (not a child of exactly one TestResult) — it can stand alone
+// (a feature request, a general finding) or be linked to any number of TestResults via
+// the issue_test_results junction. See IssueWithDetails.linkedTestResults.
 export interface Issue {
   id: string;
   code: string;
-  testResultId: string;
+  projectId: string;
+  moduleId: string | null;
+  type: IssueType;
   title: string;
   description: string | null;
   actualResult: string | null;
@@ -155,21 +218,31 @@ export interface Issue {
   priority: IssuePriority;
   status: IssueStatus;
   assignedTo: string | null;
+  githubLinks: GithubLink[];
   createdAt: string;
   updatedAt: string;
 }
 
 export interface IssueWithDetails extends Issue {
   assignee: Profile | null;
-  testCase:
-    | {
-        id: string;
-        code: string;
-        title: string;
-        priority: TestCasePriority;
-        module: Module | null;
-        tags: Tag[];
-      }
-    | null;
-  testRun: { id: string; code: string; name: string } | null;
+  module: Module | null;
+  tags: Tag[];
+  linkedTestResults: {
+    id: string;
+    testRunId: string;
+    testCaseCode: string | null;
+    testCaseTitle: string;
+    testRun: { id: string; code: string; name: string } | null;
+  }[];
+}
+
+export interface Attachment {
+  id: string;
+  issueId: string;
+  storageProvider: string;
+  url: string;
+  fileName: string;
+  fileSize: number | null;
+  contentType: string | null;
+  createdAt: string;
 }

@@ -1,4 +1,5 @@
 import { tagRepository } from '../repositories/tagRepository';
+import { issueRepository } from '../repositories/issueRepository';
 
 export const tagService = {
   listByProject(projectId: string) {
@@ -29,6 +30,15 @@ export const tagService = {
     const uniqueNames = [...new Set(tagNames.map((name) => name.trim()).filter(Boolean))];
     const tags = await Promise.all(uniqueNames.map((name) => tagRepository.findOrCreate(projectId, name)));
     await tagRepository.setTagsForTestCase(testCaseId, tags.map((tag) => tag.id));
+    return tags;
+  },
+
+  // Same creatable-tag pattern as saveTagsForTestCase, but for Issues — issues reuse the
+  // same per-project `tags` master, just a different junction table (issue_tags).
+  async saveTagsForIssue(projectId: string, issueId: string, tagNames: string[]) {
+    const uniqueNames = [...new Set(tagNames.map((name) => name.trim()).filter(Boolean))];
+    const tags = await Promise.all(uniqueNames.map((name) => tagRepository.findOrCreate(projectId, name)));
+    await issueRepository.replaceTags(issueId, tags.map((tag) => tag.id));
     return tags;
   },
 };

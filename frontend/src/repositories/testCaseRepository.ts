@@ -71,6 +71,7 @@ export const testCaseRepository = {
         priority: input.priority,
         status: input.status,
         notes: input.notes,
+        step_type: input.stepType,
       })
       .select('*')
       .single();
@@ -91,6 +92,7 @@ export const testCaseRepository = {
     if (changes.priority !== undefined) payload.priority = changes.priority;
     if (changes.status !== undefined) payload.status = changes.status;
     if (changes.notes !== undefined) payload.notes = changes.notes;
+    if (changes.stepType !== undefined) payload.step_type = changes.stepType;
 
     const { data, error } = await supabase
       .from('test_cases')
@@ -137,6 +139,20 @@ export const testCaseRepository = {
 
     if (error) throw error;
     return mapTestPlanCaseRow(data);
+  },
+
+  // Bulk update after a drag-reorder — each testPlanCaseId gets its array index as its new
+  // `order`. Sequence is a guide for workflow-style test plans, not an execution constraint
+  // (testers can still record results out of order) — this only changes the order rows are
+  // listed/inherited into new Test Runs.
+  async reorderCases(orderedTestPlanCaseIds: string[]): Promise<void> {
+    await Promise.all(
+      orderedTestPlanCaseIds.map((testPlanCaseId, index) =>
+        supabase.from('test_plan_cases').update({ order: index }).eq('id', testPlanCaseId).then(({ error }) => {
+          if (error) throw error;
+        }),
+      ),
+    );
   },
 
   async detachFromPlan(testPlanCaseId: string): Promise<void> {

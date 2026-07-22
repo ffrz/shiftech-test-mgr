@@ -1,6 +1,7 @@
 import type {
   TestPlan,
   TestCase,
+  TestCaseStep,
   TestPlanCase,
   Project,
   Profile,
@@ -8,7 +9,10 @@ import type {
   Tag,
   TestRun,
   TestResult,
+  TestResultStep,
   Issue,
+  GithubLink,
+  Attachment,
   ProjectMember,
   ProjectMemberWithProfile,
 } from '../types/domain';
@@ -91,6 +95,19 @@ export function mapTestCaseRow(row: any): TestCase {
     priority: row.priority,
     status: row.status,
     notes: row.notes,
+    stepType: row.step_type,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapTestCaseStepRow(row: any): TestCaseStep {
+  return {
+    id: row.id,
+    testCaseId: row.test_case_id,
+    stepNumber: row.step_number,
+    action: row.action,
+    expectedResult: row.expected_result,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -129,16 +146,45 @@ export function mapTestResultRow(row: any): TestResult {
     status: row.status,
     executedAt: row.executed_at,
     notes: row.notes,
+    testCaseCode: row.test_case_code,
+    testCaseTitle: row.test_case_title,
+    testCaseObjective: row.test_case_objective,
+    testCasePreconditions: row.test_case_preconditions,
+    testCaseSteps: row.test_case_steps,
+    testCaseExpectedResult: row.test_case_expected_result,
+    testCasePriority: row.test_case_priority,
+    order: row.order,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+export function mapTestResultStepRow(row: any): TestResultStep {
+  return {
+    id: row.id,
+    testResultId: row.test_result_id,
+    testCaseStepId: row.test_case_step_id,
+    status: row.status,
+    actualResult: row.actual_result,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapGithubLinks(value: unknown): GithubLink[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((v): v is { url: string; label?: string } => typeof v === 'object' && v !== null && typeof (v as any).url === 'string')
+    .map((v) => ({ url: v.url, label: v.label }));
 }
 
 export function mapIssueRow(row: any): Issue {
   return {
     id: row.id,
     code: row.code,
-    testResultId: row.test_result_id,
+    projectId: row.project_id,
+    moduleId: row.module_id,
+    type: row.type,
     title: row.title,
     description: row.description,
     actualResult: row.actual_result,
@@ -146,8 +192,22 @@ export function mapIssueRow(row: any): Issue {
     priority: row.priority,
     status: row.status,
     assignedTo: row.assigned_to,
+    githubLinks: mapGithubLinks(row.github_links),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+export function mapAttachmentRow(row: any): Attachment {
+  return {
+    id: row.id,
+    issueId: row.issue_id,
+    storageProvider: row.storage_provider,
+    url: row.url,
+    fileName: row.file_name,
+    fileSize: row.file_size,
+    contentType: row.content_type,
+    createdAt: row.created_at,
   };
 }
 

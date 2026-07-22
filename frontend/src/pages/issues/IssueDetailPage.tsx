@@ -7,22 +7,27 @@ import { Dropdown } from 'primereact/dropdown';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { MultiSelect } from 'primereact/multiselect';
+import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { issueService } from '../../services/issueService';
+import { attachmentService } from '../../services/attachmentService';
 import { profileService } from '../../services/profileService';
 import { projectService } from '../../services/projectService';
+import { moduleService } from '../../services/moduleService';
+import { tagService } from '../../services/tagService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import type { BreadcrumbItem } from '../../components/ui/Breadcrumb';
-import type { IssuePriority, IssueStatus, IssueWithDetails, Profile } from '../../types/domain';
+import type { Attachment, GithubLink, IssuePriority, IssueStatus, IssueType, IssueWithDetails, Module, Profile, Tag as TagEntity } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
   ISSUE_STATUS_LABEL,
-  TEST_CASE_PRIORITY_LABEL,
-  TEST_CASE_PRIORITY_SEVERITY,
+  ISSUE_TYPE_LABEL,
+  ISSUE_TYPE_SEVERITY,
 } from '../../helpers/statusLabels';
 
 const STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
@@ -33,7 +38,9 @@ const PRIORITY_OPTIONS: { label: string; value: IssuePriority }[] = (
   ['low', 'medium', 'high', 'critical'] as const
 ).map((v) => ({ label: ISSUE_PRIORITY_LABEL[v], value: v }));
 
-type IssueDetail = IssueWithDetails & { projectId: string | null };
+const TYPE_OPTIONS: { label: string; value: IssueType }[] = (
+  ['bug', 'feature', 'improvement', 'task'] as const
+).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }));
 
 export function IssueDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -42,11 +49,14 @@ export function IssueDetailPage() {
   const testRunId = searchParams.get('testRunId');
   const toast = useRef<Toast>(null);
 
-  const [issue, setIssue] = useState<IssueDetail | null>(null);
+  const [issue, setIssue] = useState<IssueWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
   const [projectName, setProjectName] = useState<string | null>(null);
-  const { canManageIssues, canDeleteContent } = useProjectRole(issue?.projectId ?? undefined);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [projectTags, setProjectTags] = useState<TagEntity[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const { canManageIssues, canDeleteContent } = useProjectRole(issue?.projectId);
 
   async function reload() {
     if (!id) return;
@@ -57,15 +67,21 @@ export function IssueDetailPage() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    Promise.all([issueService.getById(id), profileService.listAll()]).then(([issueResult, users]) => {
-      setIssue(issueResult);
-      setApprovedUsers(users.filter((p) => p.role === 'user' || p.role === 'admin'));
-      setLoading(false);
-    });
+    Promise.all([issueService.getById(id), profileService.listAll(), attachmentService.listByIssue(id)]).then(
+      ([issueResult, users, attachmentResult]) => {
+        setIssue(issueResult);
+        setApprovedUsers(users.filter((p) => p.role === 'user' || p.role === 'admin'));
+        setAttachments(attachmentResult);
+        setLoading(false);
+      },
+    );
   }, [id]);
 
   useEffect(() => {
-    if (issue?.projectId) projectService.getById(issue.projectId).then((p) => setProjectName(p?.name ?? null));
+    if (!issue?.projectId) return;
+    projectService.getById(issue.projectId).then((p) => setProjectName(p?.name ?? null));
+    moduleService.listByProject(issue.projectId).then(setModules);
+    tagService.listByProject(issue.projectId).then(setProjectTags);
   }, [issue?.projectId]);
 
   function handleBack() {
@@ -81,19 +97,27 @@ export function IssueDetailPage() {
   // --- Edit dialog ---
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
+  const [editType, setEditType] = useState<IssueType>('bug');
+  const [editModuleId, setEditModuleId] = useState<string | null>(null);
   const [editDescription, setEditDescription] = useState('');
   const [editActual, setEditActual] = useState('');
   const [editExpected, setEditExpected] = useState('');
   const [editPriority, setEditPriority] = useState<IssuePriority>('medium');
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [editGithubLinks, setEditGithubLinks] = useState<GithubLink[]>([]);
   const [editError, setEditError] = useState<string | null>(null);
 
   function openEditDialog() {
     if (!issue) return;
     setEditTitle(issue.title);
+    setEditType(issue.type);
+    setEditModuleId(issue.moduleId);
     setEditDescription(issue.description ?? '');
     setEditActual(issue.actualResult ?? '');
     setEditExpected(issue.expectedResult ?? '');
     setEditPriority(issue.priority);
+    setEditTags(issue.tags.map((t) => t.name));
+    setEditGithubLinks(issue.githubLinks.length ? issue.githubLinks : []);
     setEditError(null);
     setEditDialogOpen(true);
   }
@@ -102,13 +126,21 @@ export function IssueDetailPage() {
     if (!issue) return;
     setEditError(null);
     try {
-      await issueService.update(issue.id, {
-        title: editTitle,
-        description: editDescription,
-        actualResult: editActual,
-        expectedResult: editExpected,
-        priority: editPriority,
-      });
+      await issueService.update(
+        issue.id,
+        issue.projectId,
+        {
+          title: editTitle,
+          description: editDescription,
+          actualResult: editActual,
+          expectedResult: editExpected,
+          priority: editPriority,
+          type: editType,
+          moduleId: editModuleId,
+          githubLinks: editGithubLinks.filter((l) => l.url.trim()),
+        },
+        editTags,
+      );
       setEditDialogOpen(false);
       await reload();
       toast.current?.show({ severity: 'success', summary: 'Issue diperbarui' });
@@ -162,6 +194,34 @@ export function IssueDetailPage() {
     });
   }
 
+  async function handleUpload(event: FileUploadHandlerEvent) {
+    if (!issue) return;
+    try {
+      for (const file of event.files) {
+        await attachmentService.upload(issue.id, file);
+      }
+      setAttachments(await attachmentService.listByIssue(issue.id));
+      toast.current?.show({ severity: 'success', summary: 'Attachment diunggah' });
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Gagal unggah', detail: err instanceof Error ? err.message : undefined });
+    }
+  }
+
+  function handleRemoveAttachment(attachment: Attachment) {
+    confirmDialog({
+      header: 'Hapus Attachment',
+      message: `Attachment "${attachment.fileName}" akan dihapus. Lanjutkan?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Hapus',
+      rejectLabel: 'Batal',
+      acceptClassName: 'p-button-danger',
+      accept: async () => {
+        await attachmentService.remove(attachment.id, attachment.url);
+        setAttachments((prev) => prev.filter((a) => a.id !== attachment.id));
+      },
+    });
+  }
+
   if (loading || !issue) {
     const breadcrumbItems: BreadcrumbItem[] = [
       { label: 'Projects', path: '/' },
@@ -178,7 +238,7 @@ export function IssueDetailPage() {
 
   const breadcrumbItems: BreadcrumbItem[] = [
     { label: 'Projects', path: '/' },
-    { label: projectName ?? '…', path: issue.projectId ? `/projects/${issue.projectId}` : undefined },
+    { label: projectName ?? '…', path: `/projects/${issue.projectId}` },
     { label: issue.code, path: `/issues/${issue.id}` },
   ];
 
@@ -209,62 +269,51 @@ export function IssueDetailPage() {
       <Card className="mb-3">
         <div className="flex align-items-center gap-2 mb-1">
           <h2 className="m-0">{issue.code} — {issue.title}</h2>
+          <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} />
           <Tag value={ISSUE_PRIORITY_LABEL[issue.priority]} severity={ISSUE_PRIORITY_SEVERITY[issue.priority]} />
         </div>
 
         <div className="flex flex-wrap gap-4 mt-3 text-sm">
           <span className="text-color-secondary">
-            Test Case:{' '}
-            {issue.testCase ? (
-              <a
-                className="entity-link"
-                onClick={() => navigate(`/test-cases/${issue.testCase!.id}`)}
-              >
-                {issue.testCase.code} - {issue.testCase.title}
-              </a>
-            ) : (
-              <span className="text-color">-</span>
-            )}
+            Modul: <span className="text-color">{issue.module?.name ?? '-'}</span>
           </span>
-          <span className="text-color-secondary">
-            Test Run:{' '}
-            {issue.testRun ? (
-              <a
-                className="entity-link"
-                onClick={() => navigate(`/test-runs/${issue.testRun!.id}`)}
-              >
-                {issue.testRun.code} - {issue.testRun.name}
-              </a>
-            ) : (
-              <span className="text-color">-</span>
-            )}
-          </span>
+          {issue.tags.length > 0 && (
+            <span className="text-color-secondary flex align-items-center gap-2">
+              Tag:
+              <span className="flex flex-wrap gap-1">
+                {issue.tags.map((tag) => (
+                  <Tag key={tag.id} value={tag.name} severity="info" />
+                ))}
+              </span>
+            </span>
+          )}
           <span className="text-color-secondary">Dibuat: <span className="text-color">{formatDateTime(issue.createdAt)}</span></span>
           <span className="text-color-secondary">Update Terakhir: <span className="text-color">{formatDateTime(issue.updatedAt)}</span></span>
         </div>
 
-        {issue.testCase && (
-          <div className="flex flex-wrap align-items-center gap-4 mt-2 text-sm">
-            <span className="text-color-secondary">
-              Modul: <span className="text-color">{issue.testCase.module?.name ?? '-'}</span>
+        {issue.linkedTestResults.length > 0 && (
+          <div className="mt-2 text-sm">
+            <span className="text-color-secondary">Ditautkan ke Test Result: </span>
+            <span className="flex flex-wrap gap-2 mt-1">
+              {issue.linkedTestResults.map((link) => (
+                <a key={link.id} className="entity-link" onClick={() => navigate(`/test-runs/${link.testRunId}`)}>
+                  {link.testCaseCode} - {link.testCaseTitle} ({link.testRun?.code})
+                </a>
+              ))}
             </span>
-            <span className="text-color-secondary flex align-items-center gap-2">
-              Prioritas Test Case:{' '}
-              <Tag
-                value={TEST_CASE_PRIORITY_LABEL[issue.testCase.priority]}
-                severity={TEST_CASE_PRIORITY_SEVERITY[issue.testCase.priority]}
-              />
+          </div>
+        )}
+
+        {issue.githubLinks.length > 0 && (
+          <div className="mt-2 text-sm">
+            <span className="text-color-secondary">GitHub: </span>
+            <span className="flex flex-wrap gap-2 mt-1">
+              {issue.githubLinks.map((link, i) => (
+                <a key={i} className="entity-link" href={link.url} target="_blank" rel="noreferrer">
+                  {link.label || link.url}
+                </a>
+              ))}
             </span>
-            {issue.testCase.tags.length > 0 && (
-              <span className="text-color-secondary flex align-items-center gap-2">
-                Tag:
-                <span className="flex flex-wrap gap-1">
-                  {issue.testCase.tags.map((tag) => (
-                    <Tag key={tag.id} value={tag.name} severity="info" />
-                  ))}
-                </span>
-              </span>
-            )}
           </div>
         )}
 
@@ -306,17 +355,68 @@ export function IssueDetailPage() {
         </Card>
       )}
 
+      <Card title="Attachment" className="mb-3">
+        <div className="flex flex-column gap-2">
+          {attachments.map((a) => (
+            <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
+              <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
+                <i className="pi pi-paperclip mr-2" />
+                {a.fileName}
+              </a>
+              {canManageIssues && (
+                <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
+              )}
+            </div>
+          ))}
+          {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">Belum ada attachment.</p>}
+          {canManageIssues && (
+            <FileUpload mode="basic" chooseLabel="Unggah File" customUpload uploadHandler={handleUpload} auto multiple />
+          )}
+        </div>
+      </Card>
+
       {/* --- Edit Dialog --- */}
-      <Dialog header="Edit Issue" visible={editDialogOpen} onHide={() => setEditDialogOpen(false)} style={{ width: '32rem' }}>
+      <Dialog header="Edit Issue" visible={editDialogOpen} onHide={() => setEditDialogOpen(false)} style={{ width: '34rem' }}>
         <div className="flex flex-column gap-3">
           {editError && <small className="p-error">{editError}</small>}
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-edit-title">Judul</label>
             <InputText id="issue-edit-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} autoFocus />
           </div>
+          <div className="grid">
+            <div className="col-12 md:col-6 flex flex-column gap-1">
+              <label htmlFor="issue-edit-type">Tipe</label>
+              <Dropdown id="issue-edit-type" value={editType} options={TYPE_OPTIONS} onChange={(e) => setEditType(e.value)} className="w-full" />
+            </div>
+            <div className="col-12 md:col-6 flex flex-column gap-1">
+              <label htmlFor="issue-edit-priority">Prioritas</label>
+              <Dropdown id="issue-edit-priority" value={editPriority} options={PRIORITY_OPTIONS} onChange={(e) => setEditPriority(e.value)} className="w-full" />
+            </div>
+          </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-priority">Prioritas</label>
-            <Dropdown id="issue-edit-priority" value={editPriority} options={PRIORITY_OPTIONS} onChange={(e) => setEditPriority(e.value)} className="w-full" />
+            <label htmlFor="issue-edit-module">Modul (opsional)</label>
+            <Dropdown
+              id="issue-edit-module"
+              value={editModuleId}
+              options={modules.map((m) => ({ label: m.name, value: m.id }))}
+              onChange={(e) => setEditModuleId(e.value)}
+              showClear
+              placeholder="Tidak terikat module"
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-edit-tags">Tag</label>
+            <MultiSelect
+              id="issue-edit-tags"
+              value={editTags}
+              options={projectTags.map((t) => ({ label: t.name, value: t.name }))}
+              onChange={(e) => setEditTags(e.value ?? [])}
+              placeholder="Pilih tag"
+              display="chip"
+              filter
+              className="w-full"
+            />
           </div>
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-edit-description">Deskripsi</label>
@@ -329,6 +429,33 @@ export function IssueDetailPage() {
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-edit-expected">Hasil yang Diharapkan</label>
             <InputTextarea id="issue-edit-expected" value={editExpected} onChange={(e) => setEditExpected(e.target.value)} rows={2} />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label>GitHub Links</label>
+            {editGithubLinks.map((link, i) => (
+              <div key={i} className="flex gap-2">
+                <InputText
+                  placeholder="URL"
+                  value={link.url}
+                  onChange={(e) => setEditGithubLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)))}
+                  className="w-full"
+                />
+                <InputText
+                  placeholder="Label (opsional)"
+                  value={link.label ?? ''}
+                  onChange={(e) => setEditGithubLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, label: e.target.value } : l)))}
+                  className="w-full"
+                />
+                <Button icon="pi pi-times" text size="small" onClick={() => setEditGithubLinks((prev) => prev.filter((_, idx) => idx !== i))} />
+              </div>
+            ))}
+            <Button
+              label="Tambah Link"
+              icon="pi pi-plus"
+              text
+              size="small"
+              onClick={() => setEditGithubLinks((prev) => [...prev, { url: '', label: '' }])}
+            />
           </div>
           <Button label="Simpan" size="small" onClick={handleSaveEdit} />
         </div>

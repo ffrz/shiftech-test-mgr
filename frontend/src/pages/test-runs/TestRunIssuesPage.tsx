@@ -31,7 +31,7 @@ export function TestRunIssuesPage() {
   const testResultId = searchParams.get('testResultId');
   const { issues: allIssues, loading, reload } = useIssuesByTestRun(id ?? null);
   const issues = useMemo(
-    () => (testResultId ? allIssues.filter((i) => i.testResultId === testResultId) : allIssues),
+    () => (testResultId ? allIssues.filter((i) => i.linkedTestResults.some((r) => r.id === testResultId)) : allIssues),
     [allIssues, testResultId],
   );
   const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
