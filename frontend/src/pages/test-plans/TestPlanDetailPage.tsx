@@ -166,6 +166,16 @@ export function TestPlanDetailPage() {
     });
   }
 
+  // Sequence is a workflow guide, not an execution constraint — testers can still record
+  // results out of order (see docs/PRD.md). Reordering only makes sense against the full,
+  // unfiltered list, so it's only enabled when no filter/search is active.
+  const isCaseFilterActive = Boolean(caseSearch.trim() || casePriorityFilter || caseModuleFilter || caseTagFilter);
+
+  async function handleReorderCases(newOrder: TestPlanCaseWithDetails[]) {
+    await testPlanService.reorderCases(newOrder.map((c) => c.id));
+    await reloadCases();
+  }
+
   // --- Test Run ---
   const [runDialogOpen, setRunDialogOpen] = useState(false);
   const [runName, setRunName] = useState('');
@@ -245,111 +255,6 @@ export function TestPlanDetailPage() {
       />
 
       <TabView>
-        <TabPanel header="Test Cases">
-          <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <div className="flex align-items-center gap-2 flex-wrap">
-              <IconField iconPosition="left">
-                <InputIcon className="pi pi-search" />
-                <InputText value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} placeholder="Cari judul/kode..." />
-              </IconField>
-              <Dropdown
-                value={casePriorityFilter}
-                options={PRIORITY_OPTIONS}
-                onChange={(e) => setCasePriorityFilter(e.value)}
-                placeholder="Semua Prioritas"
-                showClear
-                className="w-10rem"
-              />
-              <Dropdown
-                value={caseModuleFilter}
-                options={modules.map((m) => ({ label: m.name, value: m.id }))}
-                onChange={(e) => setCaseModuleFilter(e.value)}
-                placeholder="Semua Module"
-                showClear
-                className="w-10rem"
-              />
-              <Dropdown
-                value={caseTagFilter}
-                options={tags.map((t) => ({ label: t.name, value: t.id }))}
-                onChange={(e) => setCaseTagFilter(e.value)}
-                placeholder="Semua Tag"
-                showClear
-                className="w-10rem"
-              />
-            </div>
-            {canEditContent && (
-              <Button label="Tambah Test Case" icon="pi pi-plus" size="small" onClick={openAddCaseDialog} />
-            )}
-          </div>
-          {canEditContent && (
-            <BulkActionsBar
-              selectedCount={selectedCases.length}
-              onClear={() => setSelectedCases([])}
-              actions={<Button label="Keluarkan Terpilih" icon="pi pi-times" size="small" severity="danger" outlined onClick={handleBulkRemoveCases} />}
-            />
-          )}
-          <DataTable
-            value={filteredCases}
-            loading={casesLoading}
-            paginator
-            rows={10}
-            emptyMessage="Belum ada test case di plan ini"
-            size="small"
-            selection={selectedCases}
-            onSelectionChange={(e: { value: TestPlanCaseWithDetails[] }) => setSelectedCases(e.value)}
-            dataKey="id"
-            selectionMode={canEditContent ? 'checkbox' : null}
-          >
-            {canEditContent && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-            <Column
-              field="testCase.code"
-              header="Kode"
-              sortable
-              style={{ width: '7rem' }}
-              body={(row: TestPlanCaseWithDetails) => (
-                <a
-                  className="entity-link"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/test-cases/${row.testCase.id}?projectId=${testPlan?.projectId}`);
-                  }}
-                >
-                  {row.testCase.code}
-                </a>
-              )}
-            />
-            <Column field="testCase.title" header="Test Case" sortable />
-            <Column field="testCase.module.name" header="Modul" sortable body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />
-            <Column
-              header="Tag"
-              body={(row: TestPlanCaseWithDetails) => (
-                <div className="flex flex-wrap gap-1">
-                  {row.testCase.tags.map((t) => (
-                    <Tag key={t.id} value={t.name} severity="info" />
-                  ))}
-                </div>
-              )}
-            />
-            <Column
-              field="testCase.priority"
-              header="Prioritas"
-              sortable
-              body={(row: TestPlanCaseWithDetails) => (
-                <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
-              )}
-            />
-            {canEditContent && (
-              <Column
-                header=""
-                style={{ width: '4rem' }}
-                body={(row: TestPlanCaseWithDetails) => (
-                  <Button icon="pi pi-times" text rounded size="small" severity="danger" aria-label="Keluarkan" onClick={() => handleRemoveCase(row)} />
-                )}
-              />
-            )}
-          </DataTable>
-        </TabPanel>
-
         <TabPanel header="Test Runs">
           <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
             <div className="flex align-items-center gap-2 flex-wrap">
@@ -422,6 +327,125 @@ export function TestPlanDetailPage() {
                       handleDeleteRun(row);
                     }}
                   />
+                )}
+              />
+            )}
+          </DataTable>
+        </TabPanel>
+        <TabPanel header="Test Cases">
+          <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div className="flex align-items-center gap-2 flex-wrap">
+              <IconField iconPosition="left">
+                <InputIcon className="pi pi-search" />
+                <InputText value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} placeholder="Cari judul/kode..." />
+              </IconField>
+              <Dropdown
+                value={casePriorityFilter}
+                options={PRIORITY_OPTIONS}
+                onChange={(e) => setCasePriorityFilter(e.value)}
+                placeholder="Semua Prioritas"
+                showClear
+                className="w-10rem"
+              />
+              <Dropdown
+                value={caseModuleFilter}
+                options={modules.map((m) => ({ label: m.name, value: m.id }))}
+                onChange={(e) => setCaseModuleFilter(e.value)}
+                placeholder="Semua Module"
+                showClear
+                className="w-10rem"
+              />
+              <Dropdown
+                value={caseTagFilter}
+                options={tags.map((t) => ({ label: t.name, value: t.id }))}
+                onChange={(e) => setCaseTagFilter(e.value)}
+                placeholder="Semua Tag"
+                showClear
+                className="w-10rem"
+              />
+            </div>
+            {canEditContent && (
+              <Button label="Tambah Test Case" icon="pi pi-plus" size="small" onClick={openAddCaseDialog} />
+            )}
+          </div>
+          {canEditContent && (
+            <BulkActionsBar
+              selectedCount={selectedCases.length}
+              onClear={() => setSelectedCases([])}
+              actions={<Button label="Keluarkan Terpilih" icon="pi pi-times" size="small" severity="danger" outlined onClick={handleBulkRemoveCases} />}
+            />
+          )}
+          {canEditContent && !isCaseFilterActive && cases.length > 1 && (
+            <p className="text-color-secondary text-sm mb-2">
+              <i className="pi pi-info-circle mr-1" />
+              Drag baris (ikon ⠿) untuk mengubah urutan eksekusi — urutan ini diwarisi Test Run baru, tapi tester tetap boleh mengetes tidak sesuai urutan.
+            </p>
+          )}
+          {canEditContent && isCaseFilterActive && (
+            <p className="text-color-secondary text-sm mb-2">
+              <i className="pi pi-info-circle mr-1" />
+              Hapus filter/pencarian untuk mengubah urutan eksekusi (reorder hanya berlaku pada daftar penuh).
+            </p>
+          )}
+          <DataTable
+            value={filteredCases}
+            loading={casesLoading}
+            paginator={isCaseFilterActive}
+            rows={10}
+            emptyMessage="Belum ada test case di plan ini"
+            size="small"
+            selection={selectedCases}
+            onSelectionChange={(e: { value: TestPlanCaseWithDetails[] }) => setSelectedCases(e.value)}
+            dataKey="id"
+            selectionMode={canEditContent ? 'checkbox' : null}
+            reorderableRows={canEditContent && !isCaseFilterActive}
+            onRowReorder={(e) => handleReorderCases(e.value)}
+          >
+            {canEditContent && !isCaseFilterActive && <Column rowReorder style={{ width: '3rem' }} />}
+            {canEditContent && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
+            <Column
+              field="testCase.code"
+              header="Kode"
+              sortable
+              style={{ width: '7rem' }}
+              body={(row: TestPlanCaseWithDetails) => (
+                <a
+                  className="entity-link"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/test-cases/${row.testCase.id}?projectId=${testPlan?.projectId}`);
+                  }}
+                >
+                  {row.testCase.code}
+                </a>
+              )}
+            />
+            <Column field="testCase.title" header="Test Case" sortable />
+            <Column field="testCase.module.name" header="Modul" sortable body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />
+            <Column
+              header="Tag"
+              body={(row: TestPlanCaseWithDetails) => (
+                <div className="flex flex-wrap gap-1">
+                  {row.testCase.tags.map((t) => (
+                    <Tag key={t.id} value={t.name} severity="info" />
+                  ))}
+                </div>
+              )}
+            />
+            <Column
+              field="testCase.priority"
+              header="Prioritas"
+              sortable
+              body={(row: TestPlanCaseWithDetails) => (
+                <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
+              )}
+            />
+            {canEditContent && (
+              <Column
+                header=""
+                style={{ width: '4rem' }}
+                body={(row: TestPlanCaseWithDetails) => (
+                  <Button icon="pi pi-times" text rounded size="small" severity="danger" aria-label="Keluarkan" onClick={() => handleRemoveCase(row)} />
                 )}
               />
             )}

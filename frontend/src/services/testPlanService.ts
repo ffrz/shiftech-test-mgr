@@ -61,4 +61,8 @@ export const testPlanService = {
   removeCase(testPlanCaseId: string) {
     return testCaseRepository.detachFromPlan(testPlanCaseId);
   },
+
+  reorderCases(orderedTestPlanCaseIds: string[]) {
+    return testCaseRepository.reorderCases(orderedTestPlanCaseIds);
+  },
 };

@@ -11,6 +11,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
+import { SelectButton } from 'primereact/selectbutton';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { IconField } from 'primereact/iconfield';
@@ -27,6 +28,7 @@ import { profileService } from '../../services/profileService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useTabQueryParam } from '../../hooks/useTabQueryParam';
 import type {
   Project,
   TestPlan,
@@ -40,6 +42,7 @@ import type {
   IssueWithDetails,
   IssueStatus,
   IssuePriority,
+  IssueType,
   Profile,
   Module,
   Tag as TagEntity,
@@ -60,6 +63,8 @@ import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
   ISSUE_STATUS_LABEL,
+  ISSUE_TYPE_LABEL,
+  ISSUE_TYPE_SEVERITY,
 } from '../../helpers/statusLabels';
 
 const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
@@ -88,6 +93,10 @@ const ISSUE_STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
 const ISSUE_PRIORITY_OPTIONS: { label: string; value: IssuePriority }[] = (
   ['low', 'medium', 'high', 'critical'] as const
 ).map((v) => ({ label: ISSUE_PRIORITY_LABEL[v], value: v }));
+
+const ISSUE_TYPE_OPTIONS: { label: string; value: IssueType }[] = (
+  ['bug', 'feature', 'improvement', 'task'] as const
+).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }));
 
 type TestRunWithSummary = TestRun & {
   testPlanId: string;
@@ -147,7 +156,7 @@ export function ProjectDetailPage() {
   const [issues, setIssues] = useState<IssueWithDetails[]>([]);
   const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
   const [tabLoading, setTabLoading] = useState<Record<number, boolean>>({});
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
+  const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(0);
 
   function applyTabData(data: Partial<ProjectTabData>) {
     if (data.testPlans) setTestPlans(data.testPlans);
@@ -206,12 +215,17 @@ export function ProjectDetailPage() {
     await loadTab(id, activeTabIndex, true);
   }
 
+  const prevIdRef = useRef<string | undefined>(id);
+
   useEffect(() => {
     if (!id) return;
     const cached = projectCache.get(id);
     setProject(cached ?? null);
     setProjectLoading(!cached);
-    setActiveTabIndex(0);
+    if (prevIdRef.current !== id) {
+      setActiveTabIndex(0);
+    }
+    prevIdRef.current = id;
 
     projectService.getById(id).then((result) => {
       if (result) projectCache.set(id, result);
@@ -219,7 +233,7 @@ export function ProjectDetailPage() {
       setProjectLoading(false);
     });
 
-    loadTab(id, 0);
+    loadTab(id, activeTabIndex);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -389,6 +403,8 @@ export function ProjectDetailPage() {
   const [caseNotes, setCaseNotes] = useState('');
   const [caseTags, setCaseTags] = useState<string[]>([]);
   const [caseError, setCaseError] = useState<string | null>(null);
+  const [caseStepType, setCaseStepType] = useState<TestCase['stepType']>('simple');
+  const [caseDetailedSteps, setCaseDetailedSteps] = useState<{ action: string; expectedResult: string }[]>([]);
 
   // Test Cases: search/filter/sort/selection
   const [caseSearch, setCaseSearch] = useState('');
@@ -424,11 +440,13 @@ export function ProjectDetailPage() {
     setCasePriority('medium');
     setCaseNotes('');
     setCaseTags([]);
+    setCaseStepType('simple');
+    setCaseDetailedSteps([]);
     setCaseError(null);
     setCaseDialogOpen(true);
   }
 
-  function openEditCaseDialog(row: TestCaseWithDetails) {
+  async function openEditCaseDialog(row: TestCaseWithDetails) {
     setEditingCaseId(row.id);
     setCaseCode(row.code);
     setCaseModuleId(row.moduleId);
@@ -440,8 +458,15 @@ export function ProjectDetailPage() {
     setCasePriority(row.priority);
     setCaseNotes(row.notes ?? '');
     setCaseTags(row.tags.map((t) => t.name));
+    setCaseStepType(row.stepType);
     setCaseError(null);
     setCaseDialogOpen(true);
+    if (row.stepType === 'detailed') {
+      const steps = await testCaseService.listSteps(row.id);
+      setCaseDetailedSteps(steps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? '' })));
+    } else {
+      setCaseDetailedSteps([]);
+    }
   }
 
   async function handleSaveCase() {
@@ -462,8 +487,10 @@ export function ProjectDetailPage() {
             expectedResult: caseExpectedResult,
             priority: casePriority,
             notes: caseNotes.trim() || null,
+            stepType: caseStepType,
           },
           caseTags,
+          caseStepType === 'detailed' ? caseDetailedSteps : undefined,
         );
       } else {
         await testCaseService.create({
@@ -478,6 +505,8 @@ export function ProjectDetailPage() {
           priority: casePriority,
           notes: caseNotes,
           tagNames: caseTags,
+          stepType: caseStepType,
+          detailedSteps: caseStepType === 'detailed' ? caseDetailedSteps : undefined,
         });
       }
       setCaseDialogOpen(false);
@@ -606,12 +635,54 @@ export function ProjectDetailPage() {
     return issues.filter((i) => {
       if (issueStatusFilter && i.status !== issueStatusFilter) return false;
       if (issuePriorityFilter && i.priority !== issuePriorityFilter) return false;
-      if (issueModuleFilter && i.testCase?.module?.id !== issueModuleFilter) return false;
-      if (issueTagFilter && !i.testCase?.tags.some((t) => t.id === issueTagFilter)) return false;
+      if (issueModuleFilter && i.moduleId !== issueModuleFilter) return false;
+      if (issueTagFilter && !i.tags.some((t) => t.id === issueTagFilter)) return false;
       if (q && !i.title.toLowerCase().includes(q) && !i.code.toLowerCase().includes(q)) return false;
       return true;
     });
   }, [issues, issueSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter]);
+
+  // --- Issue create dialog (standalone, project-level) ---
+  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
+  const [issueTitle, setIssueTitle] = useState('');
+  const [issueType, setIssueType] = useState<IssueType>('bug');
+  const [issueModuleId, setIssueModuleId] = useState<string | null>(null);
+  const [issueDescription, setIssueDescription] = useState('');
+  const [issuePriorityValue, setIssuePriorityValue] = useState<IssuePriority>('medium');
+  const [issueTagNames, setIssueTagNames] = useState<string[]>([]);
+  const [issueFormError, setIssueFormError] = useState<string | null>(null);
+
+  function openCreateIssueDialog() {
+    setIssueTitle('');
+    setIssueType('bug');
+    setIssueModuleId(null);
+    setIssueDescription('');
+    setIssuePriorityValue('medium');
+    setIssueTagNames([]);
+    setIssueFormError(null);
+    setIssueDialogOpen(true);
+  }
+
+  async function handleSaveIssue() {
+    if (!id) return;
+    setIssueFormError(null);
+    try {
+      await issueService.create({
+        projectId: id,
+        moduleId: issueModuleId,
+        type: issueType,
+        title: issueTitle,
+        description: issueDescription,
+        priority: issuePriorityValue,
+        tagNames: issueTagNames,
+      });
+      setIssueDialogOpen(false);
+      await loadAll();
+      toast.current?.show({ severity: 'success', summary: 'Issue dibuat' });
+    } catch (err) {
+      setIssueFormError(err instanceof Error ? err.message : 'Gagal membuat issue');
+    }
+  }
 
   function handleBulkDeleteIssues() {
     confirmDialog({
@@ -1016,6 +1087,7 @@ export function ProjectDetailPage() {
                   className="w-10rem"
                 />
               </div>
+              {canManageIssues && <Button label="Issue Baru" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />}
             </div>
             {canDeleteContent && (
               <BulkActionsBar
@@ -1046,52 +1118,30 @@ export function ProjectDetailPage() {
               <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
               <Column field="title" header="Judul" sortable />
               <Column
-                header="Test Case"
-                body={(row: IssueWithDetails) =>
-                  row.testCase ? (
-                    <a
-                      className="entity-link"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/test-cases/${row.testCase!.id}?projectId=${id}`);
-                      }}
-                    >
-                      {row.testCase.code} - {row.testCase.title}
-                    </a>
-                  ) : (
-                    '-'
-                  )
-                }
-              />
-              <Column
-                header="Test Run"
-                body={(row: IssueWithDetails) =>
-                  row.testRun ? (
-                    <a
-                      className="entity-link"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/test-runs/${row.testRun!.id}`);
-                      }}
-                    >
-                      {row.testRun.code} - {row.testRun.name}
-                    </a>
-                  ) : (
-                    '-'
-                  )
-                }
+                header="Tipe"
+                body={(row: IssueWithDetails) => <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />}
               />
               <Column
                 header="Modul"
-                body={(row: IssueWithDetails) => row.testCase?.module?.name ?? '-'}
+                body={(row: IssueWithDetails) => row.module?.name ?? '-'}
               />
               <Column
                 header="Tag"
                 body={(row: IssueWithDetails) => (
                   <div className="flex flex-wrap gap-1">
-                    {row.testCase?.tags.map((t) => <Tag key={t.id} value={t.name} severity="info" />) ?? '-'}
+                    {row.tags.length > 0 ? row.tags.map((t) => <Tag key={t.id} value={t.name} severity="info" />) : '-'}
                   </div>
                 )}
+              />
+              <Column
+                header="Ditautkan"
+                body={(row: IssueWithDetails) =>
+                  row.linkedTestResults.length > 0 ? (
+                    <span className="text-sm">{row.linkedTestResults.length} Test Result</span>
+                  ) : (
+                    '-'
+                  )
+                }
               />
               <Column field="priority" header="Prioritas" sortable body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} />
               <Column
@@ -1345,14 +1395,63 @@ export function ProjectDetailPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-steps">Langkah Pengujian</label>
-            <InputTextarea id="case-steps" value={caseSteps} onChange={(e) => setCaseSteps(e.target.value)} rows={4} />
+            <label>Mode Langkah</label>
+            <SelectButton
+              value={caseStepType}
+              options={[
+                { label: 'Simple', value: 'simple' },
+                { label: 'Detailed', value: 'detailed' },
+              ]}
+              onChange={(e) => e.value && setCaseStepType(e.value)}
+            />
           </div>
 
-          <div className="flex flex-column gap-1">
-            <label htmlFor="case-expected">Hasil yang Diharapkan</label>
-            <InputTextarea id="case-expected" value={caseExpectedResult} onChange={(e) => setCaseExpectedResult(e.target.value)} rows={3} />
-          </div>
+          {caseStepType === 'simple' ? (
+            <>
+              <div className="flex flex-column gap-1">
+                <label htmlFor="case-steps">Langkah Pengujian</label>
+                <InputTextarea id="case-steps" value={caseSteps} onChange={(e) => setCaseSteps(e.target.value)} rows={4} />
+              </div>
+
+              <div className="flex flex-column gap-1">
+                <label htmlFor="case-expected">Hasil yang Diharapkan</label>
+                <InputTextarea id="case-expected" value={caseExpectedResult} onChange={(e) => setCaseExpectedResult(e.target.value)} rows={3} />
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-column gap-2">
+              <label>Langkah Pengujian (Detailed)</label>
+              {caseDetailedSteps.map((step, i) => (
+                <div key={i} className="flex gap-2 align-items-start p-2 border-round surface-100">
+                  <span className="text-color-secondary text-sm mt-2">{i + 1}.</span>
+                  <div className="flex flex-column gap-1 flex-grow-1">
+                    <InputText
+                      placeholder="Aksi"
+                      value={step.action}
+                      onChange={(e) =>
+                        setCaseDetailedSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, action: e.target.value } : s)))
+                      }
+                    />
+                    <InputText
+                      placeholder="Hasil yang diharapkan (opsional)"
+                      value={step.expectedResult}
+                      onChange={(e) =>
+                        setCaseDetailedSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, expectedResult: e.target.value } : s)))
+                      }
+                    />
+                  </div>
+                  <Button icon="pi pi-times" text size="small" onClick={() => setCaseDetailedSteps((prev) => prev.filter((_, idx) => idx !== i))} />
+                </div>
+              ))}
+              <Button
+                label="Tambah Langkah"
+                icon="pi pi-plus"
+                text
+                size="small"
+                onClick={() => setCaseDetailedSteps((prev) => [...prev, { action: '', expectedResult: '' }])}
+              />
+            </div>
+          )}
 
           <div className="flex flex-column gap-1">
             <label htmlFor="case-tags">Tag</label>
@@ -1377,6 +1476,57 @@ export function ProjectDetailPage() {
           </div>
 
           <Button label="Simpan" size="small" onClick={handleSaveCase} />
+        </div>
+      </Dialog>
+
+      {/* --- Issue Dialog (standalone, project-level) --- */}
+      <Dialog header="Issue Baru" visible={issueDialogOpen} onHide={() => setIssueDialogOpen(false)} style={{ width: '32rem' }}>
+        <div className="flex flex-column gap-3">
+          {issueFormError && <small className="p-error">{issueFormError}</small>}
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-new-title">Judul</label>
+            <InputText id="issue-new-title" value={issueTitle} onChange={(e) => setIssueTitle(e.target.value)} autoFocus />
+          </div>
+          <div className="grid">
+            <div className="col-12 md:col-6 flex flex-column gap-1">
+              <label htmlFor="issue-new-type">Tipe</label>
+              <Dropdown id="issue-new-type" value={issueType} options={ISSUE_TYPE_OPTIONS} onChange={(e) => setIssueType(e.value)} className="w-full" />
+            </div>
+            <div className="col-12 md:col-6 flex flex-column gap-1">
+              <label htmlFor="issue-new-priority">Prioritas</label>
+              <Dropdown id="issue-new-priority" value={issuePriorityValue} options={ISSUE_PRIORITY_OPTIONS} onChange={(e) => setIssuePriorityValue(e.value)} className="w-full" />
+            </div>
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-new-module">Modul (opsional)</label>
+            <Dropdown
+              id="issue-new-module"
+              value={issueModuleId}
+              options={moduleOptions}
+              onChange={(e) => setIssueModuleId(e.value)}
+              showClear
+              placeholder="Tidak terikat module"
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-new-tags">Tag</label>
+            <MultiSelect
+              id="issue-new-tags"
+              value={issueTagNames}
+              options={tags.map((t) => ({ label: t.name, value: t.name }))}
+              onChange={(e) => setIssueTagNames(e.value ?? [])}
+              placeholder="Pilih tag"
+              display="chip"
+              filter
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-new-description">Deskripsi (opsional)</label>
+            <InputTextarea id="issue-new-description" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} rows={3} />
+          </div>
+          <Button label="Simpan" size="small" onClick={handleSaveIssue} />
         </div>
       </Dialog>
 

@@ -97,4 +97,20 @@ export const testRunService = {
   recordResult(id: string, testerId: string, status: TestResultStatus, notes: string | null) {
     return testResultRepository.recordResult(id, { status, testerId, notes });
   },
+
+  // Mirrors recordResult but for a single step of a 'detailed' test case — a simpler
+  // pass/fail than the overall Test Result status.
+  recordStepResult(testResultStepId: string, status: 'pass' | 'fail', actualResult: string | null) {
+    return testResultRepository.recordStepResult(testResultStepId, { status, actualResult });
+  },
+
+  // Manual, per-case sync back to the current test case template — only while the run
+  // is still in progress, so a completed run's history can never be retroactively changed.
+  async syncResultWithTestCase(testRunId: string, resultId: string) {
+    const run = await testRunRepository.findById(testRunId);
+    if (run?.status === 'completed') {
+      throw new Error('Test run sudah selesai — buka kembali run ini untuk melakukan sync');
+    }
+    return testResultRepository.syncWithTestCase(resultId);
+  },
 };
