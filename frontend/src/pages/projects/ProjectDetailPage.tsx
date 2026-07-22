@@ -1172,6 +1172,28 @@ export function ProjectDetailPage() {
                   <RowActionsMenu
                     items={[
                       { label: 'Buka Detail', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}`) },
+                      ...(canManageIssues && row.status !== 'closed'
+                        ? [
+                          {
+                            label: 'Arsipkan',
+                            icon: 'pi pi-inbox',
+                            command: () => {
+                              confirmDialog({
+                                header: 'Arsipkan Issue',
+                                message: `Issue "${row.title}" akan diarsipkan (ditutup). Lanjutkan?`,
+                                icon: 'pi pi-info-circle',
+                                acceptLabel: 'Arsipkan',
+                                rejectLabel: 'Batal',
+                                accept: async () => {
+                                  await issueService.changeStatus(row.id, 'closed');
+                                  patchIssue(row.id, { status: 'closed' });
+                                  toast.current?.show({ severity: 'success', summary: 'Issue diarsipkan' });
+                                },
+                              });
+                            },
+                          },
+                        ]
+                        : []),
                       ...(canDeleteContent
                         ? [
                           {
@@ -1195,28 +1217,7 @@ export function ProjectDetailPage() {
                             },
                           },
                         ]
-                        : canManageIssues && row.status !== 'closed'
-                          ? [
-                            {
-                              label: 'Arsipkan',
-                              icon: 'pi pi-inbox',
-                              command: () => {
-                                confirmDialog({
-                                  header: 'Arsipkan Issue',
-                                  message: `Issue "${row.title}" akan diarsipkan (ditutup). Lanjutkan?`,
-                                  icon: 'pi pi-info-circle',
-                                  acceptLabel: 'Arsipkan',
-                                  rejectLabel: 'Batal',
-                                  accept: async () => {
-                                    await issueService.changeStatus(row.id, 'closed');
-                                    patchIssue(row.id, { status: 'closed' });
-                                    toast.current?.show({ severity: 'success', summary: 'Issue diarsipkan' });
-                                  },
-                                });
-                              },
-                            },
-                          ]
-                          : []),
+                        : []),
                     ]}
                   />
                 )}
