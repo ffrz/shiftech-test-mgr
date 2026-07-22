@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Deploy manual TestManager (frontend React/Vite SPA) ke server1
-# (testify.apps.shiftech.my.id). Backend adalah Supabase (BaaS) yang
+# Deploy manual TestManager (frontend React/Vite SPA) ke server.
+# Backend adalah Supabase (BaaS) yang
 # diakses langsung dari browser -- tidak ada proses server-side untuk
 # app ini, sehingga .env (VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY) di-bake
 # ke dalam hasil `npm run build` saat build lokal, BUKAN disimpan di server.
