@@ -16,6 +16,13 @@ storage, dan PrimeReact sebagai UI library. Rencana jangka menengah: storage
 dipindah ke SQLite + backend PHP terpisah — karena itu layer Repository sengaja
 dijaga sebagai satu-satunya titik yang bicara ke Supabase.
 
+**Kolaboratif secara real-time**: karena beberapa tester bisa mengerjakan Test
+Run yang sama secara bersamaan, perubahan data (hasil test, status run, issue
+baru, dst) langsung tersinkronisasi ke semua browser yang sedang membuka
+halaman terkait tanpa perlu refresh manual — lihat
+[`docs/ARCHITECTURE.md`](ARCHITECTURE.md) §2.6 untuk detail teknis (React
+Query + Supabase Realtime).
+
 ## 2. Target Pengguna
 
 - Tim internal (QA/dev) yang mencatat dan melacak eksekusi test case per
@@ -59,6 +66,17 @@ itu.
 Rencana pengujian (Smoke Test, Regression Test, Release 1.2) — menentukan
 **kumpulan Test Case** yang akan dijalankan pada suatu sesi pengujian. Test Plan
 sendiri tidak menyimpan hasil.
+
+**Sequence (urutan eksekusi)** — Test Case dalam sebuah Test Plan bisa
+diurutkan lewat drag & drop (kolom `order`), mendukung pengujian yang punya
+alur/workflow (mis. Login → Master Barang → Pembelian → Penjualan). Test Run
+baru **mewarisi** urutan plan pada saat run dimulai (snapshot, tidak berubah
+retroaktif kalau plan di-reorder setelahnya). **Sequence bersifat panduan
+workflow, bukan pembatas eksekusi** — tester tetap boleh mencatat hasil test
+case manapun tidak sesuai urutan (kadang cuma mau uji satu modul, atau bug
+sudah diketahui sehingga langkah sebelumnya tak perlu diulang). Sengaja tidak
+dibuat entity "Test Suite" terpisah — urutan cukup jadi atribut baris relasi
+Test Plan ↔ Test Case.
 
 ### Test Case
 
@@ -251,23 +269,34 @@ skema penomoran kaku.
 
 - **Login**: hanya via **Google OAuth** (Supabase Auth) — tidak ada login
   email/password
-- **Role**: `pending` (default saat baru daftar) → `user` (disetujui admin) →
-  `admin` (hak penuh)
+- **Role global** (`profiles.role`): `pending` (default saat baru daftar) →
+  `user` (disetujui admin) → `admin` (hak penuh, akses semua project)
 - **Alur onboarding**: user baru sign-in dengan akun Google mana pun → masuk
   sebagai `pending` → diarahkan ke halaman "Menunggu Persetujuan" → tidak bisa
   akses modul apa pun sampai seorang **admin** meng-approve lewat halaman **User
-  Management**
+  Management**. Perubahan role terdeteksi **live** (Supabase Realtime) — user
+  yang sedang login otomatis pindah dari halaman "Menunggu Persetujuan" begitu
+  admin approve, tanpa perlu logout/login ulang
 - **Admin pertama**: tidak ada UI untuk ini secara sengaja — di-set manual lewat
   Supabase Table Editor (ubah kolom `role` jadi `admin` untuk user yang login
   pertama kali). Ini cukup untuk aplikasi internal skala kecil.
-- **Hak akses**:
-  - `admin` — semua yang bisa dilakukan `user`, ditambah akses halaman **User
-    Management** (approve user pending, promote/demote antara `user`↔`admin`,
-    cabut akses, hapus user, lihat detail)
-  - `user` — full CRUD pada Project, Test Plan, Test Case (sama seperti
-    sekarang) — TIDAK dibatasi lebih jauh per aksi
-  - `pending` — tidak bisa mengakses modul apa pun, hanya melihat halaman
-    menunggu persetujuan
+
+**Role per-project** (`project_members.role`) — lapisan RBAC kedua, di atas
+role global, mengatur hak aksi *dalam* satu project tertentu:
+
+| Role         | Edit konten (test plan/case/dll) | Hapus permanen | Jalankan test | Kelola issue |
+| ------------ | :-------------------------------: | :------------: | :-----------: | :----------: |
+| `manager`    | ✅ | ✅ | ✅ | ✅ |
+| `supervisor` | ✅ | ❌ | ❌ | ❌ |
+| `tester`     | ❌ | ❌ | ✅ | ✅ |
+| `member`     | ❌ | ❌ | ❌ | ❌ (read-only) |
+
+- User dengan role global `admin` selalu punya hak penuh di semua project,
+  terlepas dari `project_members`-nya
+- User dibuatkan Project otomatis jadi `manager` project itu (creator)
+- Role per-project ini **independen** dari role global `user`/`admin` — dua
+  orang yang sama-sama role global `user` bisa punya hak berbeda di project
+  yang sama (satu `manager`, satu `member`)
 
 ### 4.8 User Management — Detail Aksi
 

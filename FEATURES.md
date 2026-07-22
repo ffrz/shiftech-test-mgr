@@ -36,8 +36,10 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 ## Test Runs & Test Results
 - [x] Halaman Test Runs lintas project (`/test-runs`, sidebar) — semua run dari semua plan dalam satu project
 - [x] Mulai Test Run baru (snapshot cakupan test case plan saat itu, termasuk urutannya)
-- [x] Halaman detail test case dalam run (`/test-runs/:runId/results/:resultId`, E13) — panel navigasi + filter (status/prioritas/module/tag/search), gantikan dialog lama
-- [x] Catat hasil per test case: status (pass/fail/skip/blocked), tester (dropdown user terdaftar), catatan
+- [x] Halaman detail test run + test case (`TestRunResultDetailPage`, satu komponen untuk `/test-runs/:id` dan item terpilih via `?resultId=`, E13/E14) — panel kiri daftar+filter (status/prioritas/module/tag/search, nomor urut) scroll independen dari panel kanan (detail + record hasil + step checklist + link issue), navigasi Prev/Next pinned, summary/progress selalu terlihat di atas
+- [x] Info modul/tag/tester/tanggal eksekusi/catatan hasil di card detail test case, tombol "Lihat Test Case Asli" (link ke live template)
+- [x] Catat hasil per test case: status (pass/fail/skip/blocked/**belum dites**), tester (dropdown user terdaftar), catatan
+- [x] Checklist hasil per-step untuk Test Case bertipe `detailed`
 - [x] Ringkasan progress otomatis (pass/fail/skip/blocked/belum dites, persentase)
 - [x] Selesaikan Run (manual) / Buka Kembali
 
@@ -45,9 +47,9 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] Reshape `issues`: level-project (`project_id` wajib, `module_id` nullable), relasi ke Test Result jadi N:M via `issue_test_results`
 - [x] Kolom `type` (bug/feature/improvement/task) — sekaligus jadi feature tracking sederhana
 - [x] Tag many-to-many ke Issue (`issue_tags`, reuse master Tag)
-- [x] Tab Issues di Project Detail + `IssueDetailPage` — direshape untuk model project-level (filter type/status/priority/module/tag, dialog create standalone)
-- [x] Dialog "Link Issue" di Test Run (`TestRunDetailPage`): pilih issue existing (checkbox multi) atau buat baru inline tanpa pindah halaman
-- [x] Badge jumlah issue tertaut per baris Test Result
+- [x] Tab Issues di Project Detail + `IssueDetailPage` — direshape untuk model project-level (filter type/status/priority/module/tag, dialog create standalone, menu row **Arsipkan** dan **Hapus** independen)
+- [x] Card "Link Issue" di detail Test Run: daftar issue yang sudah tertaut + tombol "Browse Issues" → dialog paginated (checkbox tautkan/lepas, update instan) → tombol "Buat Issue" di dalamnya buka dialog form lengkap yang auto-link ke test result saat disimpan
+- [x] Badge jumlah issue tertaut per test case
 - [x] GitHub links (`{url, label?}[]`) — link klik saja, bukan integrasi API, dikelola di dialog Edit Issue
 - [x] Attachment via storage adapter — upload/hapus di `IssueDetailPage`
 
@@ -58,8 +60,10 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 ## User Management & Auth (RBAC)
 - [x] Login via Google OAuth (Supabase Auth)
 - [x] Auto-provisioning profile (role default `pending`) saat signup
-- [x] RLS berbasis role (`pending`/`user`/`admin`) di semua tabel
-- [x] Halaman Login & Pending Approval
+- [x] RLS berbasis role global (`pending`/`user`/`admin`) di semua tabel
+- [x] RBAC per-project (E15): tabel `project_members`, role `manager`/`supervisor`/`tester`/`member` — hak edit/hapus/jalankan-test/kelola-issue berbeda per role, independen dari role global. Creator project otomatis jadi `manager`
+- [x] `useProjectRole` hook — dipakai semua halaman detail untuk tampilkan/sembunyikan aksi sesuai role per-project
+- [x] Halaman Login & Pending Approval — perubahan role approval terdeteksi **live** via Supabase Realtime (auto-redirect tanpa logout/login ulang)
 - [x] Route guard (`ProtectedRoute`, `AdminRoute`)
 - [x] Halaman User Management: approve, promote/demote admin↔user, cabut akses, hapus (soft-delete), lihat detail
 - [x] Halaman detail user (`/users/:id`)
@@ -68,8 +72,10 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] Set admin pertama — selesai
 
 ## Infrastruktur
-- [x] Supabase schema domain + RLS berbasis role (4 file migrasi berurutan)
-- [x] Clean architecture layers (Repository/Service/Hook/Component)
+- [x] Supabase schema domain + RLS berbasis role — 16 migrasi berurutan, dikelola via **Supabase CLI** (`supabase/migrations/`, `supabase db push`), bukan lagi copy-paste manual ke SQL Editor
+- [x] Clean architecture layers (Repository/Service/Hook/Component) — Repository/Service tidak berubah oleh React Query/Realtime, keduanya murni menggantikan cara Hook mengelola cache
+- [x] **React Query** (E14) — satu-satunya cache data server-side di seluruh app, query key registry terpusat (`hooks/queryKeys.ts`), mutasi invalidate key yang relevan (termasuk lintas halaman)
+- [x] **Supabase Realtime sync** (E14) — satu subscriber terpusat (`useRealtimeSync`, dipasang sekali di `AppLayout`) memetakan `postgres_changes` ke invalidation React Query, sehingga perubahan dari tab/user lain otomatis ter-refresh tanpa perlu refresh manual
 - [x] PrimeReact + PrimeFlex setup, dark/light/system theme toggle
 - [x] Restrukturisasi monorepo (`frontend/` + `backend/` disiapkan untuk migrasi PHP+SQLite)
 - [ ] Test suite (Vitest)

@@ -228,11 +228,70 @@ entity Test Suite baru — lihat `docs/PRD.md` §4.4 dan `docs/ARCHITECTURE.md`
 
 | ID      | Task                                                                                                                                                                          | Status |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| E13-T01 | Halaman baru `pages/test-runs/TestRunResultDetailPage.tsx`, route `/test-runs/:runId/results/:resultId` — layout 2 kolom: panel kiri daftar test case + filter (status/prioritas/module/tag/search), panel kanan detail + record hasil + step checklist + link issue (semua inline, bukan dialog) | done   |
-| E13-T02 | `TestRunDetailPage` disederhanakan jadi halaman list murni: hapus semua dialog (detail/record/link issue), tambah toolbar filter yang sama, `onRowClick` → `navigate` ke halaman detail baru | done   |
+| E13-T01 | Halaman baru `pages/test-runs/TestRunResultDetailPage.tsx`, awalnya route terpisah `/test-runs/:runId/results/:resultId` — layout 2 kolom: panel kiri daftar test case + filter (status/prioritas/module/tag/search), panel kanan detail + record hasil + step checklist + link issue (semua inline, bukan dialog). **Digabung dengan `TestRunDetailPage` di E14** setelah ditemukan bug breadcrumb — lihat E14-T01 | done (di-superseded sebagian, lihat E14) |
+| E13-T02 | `TestRunDetailPage` (list) sempat disederhanakan jadi halaman terpisah dari detail. **Dihapus total di E14** — digabung jadi satu komponen dengan `TestRunResultDetailPage` | superseded, lihat E14-T01 |
 | E13-T03 | `testResultRepository.findAllByRun`: join `test_case.module`/`test_case.test_case_tags` supaya filter module/tag bisa jalan tanpa query tambahan; `TestResultWithDetails.testCase` tipenya jadi `TestCaseWithDetails \| null` | done   |
 | E13-T04 | `supabase/schema_test_run_order.sql` (migration `20260701000014`) — tambah `test_results.order` (snapshot `test_plan_cases.order` saat run dimulai), backfill row lama, index `(test_run_id, order)` | done   |
 | E13-T05 | `testResultRepository.seedForRun`: snapshot posisi `testCaseIds` (yang sudah terurut dari `findCasesForPlan`) ke kolom `order`; `findAllByRun` tambah `.order('order')` supaya urutan run selalu konsisten dengan urutan plan saat run dibuat | done   |
 | E13-T06 | `testCaseRepository.reorderCases(orderedTestPlanCaseIds)` + `testPlanService.reorderCases()` — bulk update `test_plan_cases.order` sesuai index array baru setelah drag        | done   |
 | E13-T07 | `TestPlanDetailPage` tab Test Cases: `DataTable reorderableRows` + `onRowReorder`, aktif hanya saat tidak ada filter/search aktif (`isCaseFilterActive`) — paginator dimatikan saat mode reorder supaya drag selalu terhadap daftar penuh, bukan subset hasil filter | done   |
 | E13-T08 | Sequence bersifat panduan, bukan pembatas — **tidak ada validasi urutan** ditambahkan di `recordResult`/`recordStepResult`, tester tetap bebas mencatat hasil test case manapun kapan saja (keputusan produk eksplisit, lihat PRD) | done   |
+
+## E14 — React Query + Realtime Sync (perbaikan data staleness lintas halaman)
+
+Bug yang memicu epic ini: menyelesaikan sebuah Test Run dari halaman detailnya
+tidak memperbarui tampilan "Test Runs" di `ProjectDetailPage` — harus refresh
+manual. Akar masalah: `ProjectDetailPage` menyimpan hasil fetch tiap tab di
+`Map` module-level yang cuma di-invalidate oleh aksi di halaman itu sendiri.
+Solusinya dua lapis: (1) ganti seluruh pola fetching manual jadi React Query
+dengan query key registry terpusat, supaya mutasi di halaman manapun
+menyegarkan semua halaman lain yang baca key yang sama; (2) tambah Supabase
+Realtime supaya perubahan dari **user/tab lain** juga otomatis ter-refresh,
+bukan cuma dari halaman lain di sesi yang sama. Lihat `docs/ARCHITECTURE.md`
+§2.6 untuk rationale teknis lengkap.
+
+### E14.1 — Reshape halaman Test Run jadi satu komponen (prasyarat sebelum React Query)
+
+| ID      | Task                                                                                                                                                                                 | Status |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| E14-T01 | Hapus `TestRunDetailPage.tsx` (list terpisah dari E13), gabung jadi satu `TestRunResultDetailPage.tsx` untuk route `/test-runs/:id` — item terpilih via **query param** `?resultId=`, bukan segmen path `/results/:resultId`. Sebab: dua `<Route>` berbeda yang render komponen sama membuat React Router unmount/remount seluruh halaman saat pindah item, breadcrumb sempat kosong sesaat sebelum data ke-fetch ulang | done |
+| E14-T02 | Summary/progress bar test run dipindah ke atas grid (selalu terlihat, tidak ikut scroll panel manapun); Panel "Filter" jadi `Panel toggleable` (collapsed default) menyambung visual dengan list tanpa gap | done |
+| E14-T03 | Nomor urut di panel kiri list test case (mengikuti urutan hasil filter aktif); tombol navigasi Prev/Next pinned di atas card detail (tidak ikut scroll), shadow muncul hanya saat konten di bawahnya di-scroll | done |
+| E14-T04 | Card "Catat Hasil Eksekusi": dropdown status tambah opsi "Belum Dites" (`not_run`) yang sebelumnya hilang/dipaksa jadi "Pass"; tombol "Lihat Test Case Asli" di header card (link ke live template kalau masih ada) | done |
+| E14-T05 | Card "Link Issue" diganti total dari inline tab create-form jadi: daftar issue tertaut + tombol "Browse Issues" → dialog `DataTable` paginated (checkbox tautkan/lepas, optimistic update) → tombol "Buat Issue" di dalam dialog itu buka dialog kedua (form lengkap type/module/tag/priority) yang auto-link ke test result aktif saat disimpan | done |
+| E14-T06 | Fix bug `42803` "aggregate functions not allowed in FROM" — `issueRepository.findAllByTestRun`/`findAllByTestResult` mendefinisikan relasi `issue_test_results` dua kali dalam satu select string PostgREST (sekali polos, sekali `!inner`); diganti satu select string (`ISSUE_DETAIL_SELECT_INNER_LINK`) yang mendeklarasikan relasi itu sekali saja | done |
+| E14-T07 | Fix checkbox di dialog Browse Issues tidak re-render saat toggle — akar masalah: `DataTable` PrimeReact membungkus tiap cell dengan `React.memo` yang membandingkan `rowData`/`field` saja, tidak tahu soal closure `body` yang menangkap `linkedIssueIds` eksternal. Fix: bake status linked ke dalam row data itu sendiri (`issue._linked`) | done |
+| E14-T08 | Fix `linkedIssues` tidak termuat saat halaman pertama kali dibuka (baru muncul setelah pindah item) — `useEffect` bergantung `[resultId]` saja padahal `activeResult` resolve async dari `results`; effect di-guard `if (!activeResult) return` dan tidak pernah re-run setelah `results` akhirnya ter-fetch. Fix: tambah `activeResult?.id` ke dependency array | done |
+| E14-T09 | Info modul/tag/tester/tanggal eksekusi/catatan hasil ditambahkan ke card detail test case (sebelumnya cuma title/priority/steps/expected result) | done |
+| E14-T10 | Fix menu "Arsipkan"/"Hapus" di tab Issues `ProjectDetailPage` saling meniadakan (`canDeleteContent ? [Hapus] : [Arsipkan]`) — admin/manager yang punya hak hapus jadi tidak pernah bisa arsipkan. Diganti jadi dua item independen | done |
+
+### E14.2 — Migrasi seluruh app ke React Query
+
+| ID      | Task                                                                                                                                                                                     | Status |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| E14-T11 | `hooks/queryKeys.ts` (baru) — registry terpusat semua query key (`project`, `projects`, `modules`, `tags`, `testPlan(s)`, `testPlanCases`, `testCase(s)`, `testRun(s)`, `testRunResults`, `issue(s)`, `attachmentsByIssue`, `profiles`) — satu-satunya tempat bentuk key didefinisikan, dipakai semua hook & useRealtimeSync | done |
+| E14-T12 | Migrasi 8 hook (`useIssues`, `useModules`, `useProfiles`, `useProjects`, `useTestPlanDetail`, `useTestPlans`, `useTestRunDetail`, `useTestRuns`) dari `useState`+`useEffect`+`reload` manual ke `useQuery`/`useQueryClient` — signature return (`{ data, loading, reload }`) dipertahankan supaya pemanggil di halaman tidak perlu berubah | done |
+| E14-T13 | Reshape `ProjectDetailPage`: hapus total dua cache module-level (`projectCache`, `tabDataCache`), ganti 7 `useQuery` terpisah (satu per slot tab: testPlans/testCases/modules/tags/testRuns/issues/approvedUsers); `loadAll()` sekarang invalidate query key tab aktif, bukan hapus cache manual | done |
+| E14-T14 | Migrasi fetch page-local ke `useQuery` di `TestPlanDetailPage`, `TestRunResultDetailPage`, `TestRunIssuesPage`, `TestCasesPage`, `TestCaseDetailPage`, `IssueDetailPage` — semua mutasi update jadi invalidate `queryKeys.*` yang relevan (termasuk cross-page, mis. `recordResult`/`complete`/`reopen` test run juga invalidate `testRunsByProject`/`testRunsByPlan`, bukan cuma `testRun`/`testRunResults` miliknya sendiri) | done |
+| E14-T15 | `main.tsx`: `QueryClient` diberi `staleTime: 30_000` default (bandwidth wajar untuk navigasi cepat, invalidation manual tetap instan lepas dari window ini) | done |
+
+### E14.3 — Supabase Realtime sebagai trigger invalidation lintas klien
+
+| ID      | Task                                                                                                                                                                                 | Status |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| E14-T16 | `supabase/schema_realtime_sync.sql` (migration `20260701000016`) — enable Realtime replication (`alter publication supabase_realtime add table ...`, guarded idempotent per tabel) untuk `test_results`, `test_runs`, `issues`, `test_plan_cases`, `test_cases`, `modules`, `tags`, `projects` (`profiles` sudah lebih dulu di-enable) | done |
+| E14-T17 | `hooks/useRealtimeSync.ts` (baru) — satu channel `app-realtime-sync`, `.on('postgres_changes', ...)` per tabel, payload di-map ke `queryKeys.*` yang relevan. Tabel tanpa FK yang dibutuhkan di payload (`test_runs` tanpa `project_id`, `test_plan_cases` tanpa `project_id`) invalidate prefix lebih luas (mis. `['testRuns']`) alih-alih menambah query lookup di event handler — keputusan produk, bukan bug | done |
+| E14-T18 | Pasang `useRealtimeSync()` **sekali** di `AppLayout.tsx` (dalam `ProtectedRoute`) — bukan per halaman/per hook; cleanup via `supabase.removeChannel(channel)` di return `useEffect` | done |
+
+## E15 — RBAC Per-Project (project_members, role granular)
+
+Reshape RBAC dari dua level global (`user`/`admin`) jadi tambahan role
+per-project — lihat `docs/PRD.md` §4.7 dan `docs/ARCHITECTURE.md` §4.1 untuk
+rationale dan tabel hak akses lengkap.
+
+| ID      | Task                                                                                                                                                                     | Status |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| E15-T01 | `supabase/schema_project_members.sql` — tabel `project_members` (`project_id`, `user_id`, `role` awal 2 nilai), fungsi `has_project_access()`/`is_project_manager()`, trigger `handle_new_project()` auto-add creator sebagai manager | done |
+| E15-T02 | `supabase/schema_project_roles.sql` — expand role jadi 4 nilai (`manager`/`supervisor`/`tester`/`member`), fungsi `can_edit_project_content()`/`can_delete_project_content()`/`can_run_tests()`/`can_manage_issues()`, split semua policy `for all` jadi per-operasi (select/insert/update/delete) | done |
+| E15-T03 | `hooks/useProjectRole.ts` — hook client-side (`canEditContent`, `canDeleteContent`, `canManageSettings`, `canRunTests`, `canManageIssues`, `canArchiveProject`, `canDeleteProject`) dipakai seluruh halaman untuk menampilkan/menyembunyikan aksi sesuai role — RLS tetap jadi batas keamanan sebenarnya, ini cuma UX | done |
+| E15-T04 | Semua halaman detail (`ProjectDetailPage`, `TestPlanDetailPage`, `TestRunResultDetailPage`, `IssueDetailPage`) menyesuaikan tombol aksi berdasarkan `useProjectRole` alih-alih cuma `isAdmin` polos | done |
