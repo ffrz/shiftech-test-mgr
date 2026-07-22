@@ -5,6 +5,15 @@ import type { Attachment, GithubLink, Issue, IssueStatus, IssueType, IssueWithDe
 const ISSUE_DETAIL_SELECT =
   '*, assignee:profiles(*), module:modules(*), issue_tags(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
 
+// Same shape as ISSUE_DETAIL_SELECT but the issue_test_results relation is forced to an
+// inner join — required by findAllByTestRun/findAllByTestResult, which filter on columns
+// inside that nested relation. Defining issue_test_results twice in one select string (once
+// plain, once with !inner) confuses PostgREST's join planner and produces malformed SQL
+// (Postgres error 42803, aggregate functions not allowed in FROM) — so this is a full
+// separate select string, not ISSUE_DETAIL_SELECT with an extra relation appended.
+const ISSUE_DETAIL_SELECT_INNER_LINK =
+  '*, assignee:profiles(*), module:modules(*), issue_tags(tag:tags(*)), issue_test_results!inner(test_result:test_results!inner(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
+
 function mapIssueWithDetailsRow(row: any): IssueWithDetails {
   return {
     ...mapIssueRow(row),
@@ -46,7 +55,7 @@ export const issueRepository = {
   async findAllByTestRun(testRunId: string): Promise<IssueWithDetails[]> {
     const { data, error } = await supabase
       .from('issues')
-      .select(`${ISSUE_DETAIL_SELECT}, issue_test_results!inner(test_result:test_results!inner(test_run_id))`)
+      .select(ISSUE_DETAIL_SELECT_INNER_LINK)
       .eq('issue_test_results.test_result.test_run_id', testRunId)
       .order('created_at', { ascending: false });
 
@@ -59,7 +68,7 @@ export const issueRepository = {
   async findAllByTestResult(testResultId: string): Promise<IssueWithDetails[]> {
     const { data, error } = await supabase
       .from('issues')
-      .select(`${ISSUE_DETAIL_SELECT}, issue_test_results!inner(test_result_id)`)
+      .select(ISSUE_DETAIL_SELECT_INNER_LINK)
       .eq('issue_test_results.test_result_id', testResultId)
       .order('created_at', { ascending: false });
 
