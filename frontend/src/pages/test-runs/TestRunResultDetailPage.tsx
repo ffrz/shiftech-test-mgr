@@ -208,11 +208,15 @@ export function TestRunResultDetailPage() {
     setLinkedIssueIds(new Set(linked.map((i) => i.id)));
   }
 
+  // DataTable's BodyCell is React.memo'd comparing only rowData/field — it ignores changes
+  // to values only captured in the `body` render function's closure (like linkedIssueIds),
+  // so the checkbox column silently kept rendering its old cell. Bake the linked flag into
+  // the row data itself so rowData actually changes reference when a link is toggled.
   const filteredProjectIssues = useMemo(() => {
     const q = browseSearch.trim().toLowerCase();
-    if (!q) return projectIssues;
-    return projectIssues.filter((i) => i.title.toLowerCase().includes(q) || i.code.toLowerCase().includes(q));
-  }, [projectIssues, browseSearch]);
+    const base = !q ? projectIssues : projectIssues.filter((i) => i.title.toLowerCase().includes(q) || i.code.toLowerCase().includes(q));
+    return base.map((issue) => ({ ...issue, _linked: linkedIssueIds.has(issue.id) }));
+  }, [projectIssues, browseSearch, linkedIssueIds]);
 
   async function refreshLinkedIssues() {
     if (!activeResult) return;
@@ -671,9 +675,9 @@ export function TestRunResultDetailPage() {
             <Column
               header=""
               style={{ width: '2.5rem' }}
-              body={(issue: IssueWithDetails) => (
+              body={(issue: IssueWithDetails & { _linked: boolean }) => (
                 <Checkbox
-                  checked={linkedIssueIds.has(issue.id)}
+                  checked={issue._linked}
                   onChange={(e) => handleToggleLink(issue.id, e.checked ?? false)}
                 />
               )}
