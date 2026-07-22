@@ -379,7 +379,6 @@ export function TestRunResultDetailPage() {
               borderBottomRightRadius: 'var(--border-radius, 6px)',
             }}
           >
-            {loading && <p className="text-color-secondary text-sm px-2">Memuat...</p>}
             {!loading && filteredResults.length === 0 && <p className="text-color-secondary text-sm px-2">Tidak ada test case yang cocok.</p>}
             {filteredResults.map((r, index) => (
               <div
@@ -400,7 +399,11 @@ export function TestRunResultDetailPage() {
                 <div className="flex flex-column gap-1 flex-grow-1">
                   <div className="flex align-items-center justify-content-between gap-2">
                     <span className="text-sm font-medium">{r.testCaseCode}</span>
-                    <Tag value={TEST_RESULT_STATUS_LABEL[r.status]} severity={TEST_RESULT_STATUS_SEVERITY[r.status]} />
+                    {loading && r.id === resultId ? (
+                      <i className="pi pi-spin pi-spinner text-sm" />
+                    ) : (
+                      <Tag value={TEST_RESULT_STATUS_LABEL[r.status]} severity={TEST_RESULT_STATUS_SEVERITY[r.status]} />
+                    )}
                   </div>
                   <span className="text-sm">{r.testCaseTitle}</span>
                 </div>
