@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Card } from 'primereact/card';
+import { Checkbox } from 'primereact/checkbox';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Panel } from 'primereact/panel';
@@ -221,17 +222,19 @@ export function TestRunResultDetailPage() {
 
   async function handleToggleLink(issueId: string, linked: boolean) {
     if (!activeResult) return;
-    if (linked) {
-      await issueService.linkToTestResult(issueId, activeResult.id);
-    } else {
-      await issueService.unlinkFromTestResult(issueId, activeResult.id);
-    }
+    // Update the checkbox immediately (optimistic) instead of waiting for the round trip —
+    // otherwise the click feels unresponsive even though it did register.
     setLinkedIssueIds((prev) => {
       const next = new Set(prev);
       if (linked) next.add(issueId);
       else next.delete(issueId);
       return next;
     });
+    if (linked) {
+      await issueService.linkToTestResult(issueId, activeResult.id);
+    } else {
+      await issueService.unlinkFromTestResult(issueId, activeResult.id);
+    }
     await refreshLinkedIssues();
   }
 
@@ -669,10 +672,9 @@ export function TestRunResultDetailPage() {
               header=""
               style={{ width: '2.5rem' }}
               body={(issue: IssueWithDetails) => (
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={linkedIssueIds.has(issue.id)}
-                  onChange={(e) => handleToggleLink(issue.id, e.target.checked)}
+                  onChange={(e) => handleToggleLink(issue.id, e.checked ?? false)}
                 />
               )}
             />
