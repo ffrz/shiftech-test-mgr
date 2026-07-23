@@ -36,6 +36,7 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 ## Test Runs & Test Results
 - [x] Halaman Test Runs lintas project (`/test-runs`, sidebar) — semua run dari semua plan dalam satu project
 - [x] Mulai Test Run baru (snapshot cakupan test case plan saat itu, termasuk urutannya)
+- [x] Test Run Unplanned/Custom (E16) — tombol "Buat Test Run" di tab Test Runs (Project Detail) dengan dua mode: Dari Test Plan (alur lama) atau Unplanned/Custom (pilih Test Case langsung tanpa Test Plan, `test_runs.test_plan_id` nullable)
 - [x] Halaman detail test run + test case (`TestRunResultDetailPage`, satu komponen untuk `/test-runs/:id` dan item terpilih via `?resultId=`, E13/E14) — panel kiri daftar+filter (status/prioritas/module/tag/search, nomor urut) scroll independen dari panel kanan (detail + record hasil + step checklist + link issue), navigasi Prev/Next pinned, summary/progress selalu terlihat di atas
 - [x] Info modul/tag/tester/tanggal eksekusi/catatan hasil di card detail test case, tombol "Lihat Test Case Asli" (link ke live template)
 - [x] Catat hasil per test case: status (pass/fail/skip/blocked/**belum dites**), tester (dropdown user terdaftar), catatan

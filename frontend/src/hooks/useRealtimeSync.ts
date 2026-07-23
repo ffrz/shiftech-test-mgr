@@ -45,14 +45,18 @@ export function useRealtimeSync() {
         invalidate(queryClient, queryKeys.testRunResults(testRunId));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'test_runs' }, (payload) => {
-        const p = payload as unknown as ChangePayload<{ id: string; test_plan_id: string }>;
+        const p = payload as unknown as ChangePayload<{ id: string; project_id?: string; test_plan_id: string | null }>;
         const id = rowId(p);
         if (id) invalidate(queryClient, queryKeys.testRun(id));
-        // test_runs carries no project_id and this event alone doesn't tell us which
-        // project a given test_plan_id belongs to — invalidate the broad 'testRuns' prefix
-        // so every testRunsByPlan/testRunsByProject variant currently cached gets refetched,
-        // rather than adding a lookup query here per the agreed tradeoff.
-        invalidate(queryClient, ['testRuns']);
+        const projectId = p.new?.project_id ?? p.old?.project_id;
+        if (projectId) {
+          invalidate(queryClient, queryKeys.testRunsByProject(projectId));
+        } else {
+          invalidate(queryClient, ['testRuns']);
+        }
+        // testRunsByPlan doesn't have test_plan_id available for a delete's `old` row in
+        // every case, and it's a much cheaper cache to over-invalidate than a lookup query.
+        invalidate(queryClient, ['testRuns', 'byPlan']);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'issues' }, (payload) => {
         const p = payload as unknown as ChangePayload<{ id: string; project_id?: string }>;

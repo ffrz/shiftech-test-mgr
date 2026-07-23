@@ -125,7 +125,9 @@ export type TestRunStatus = 'in_progress' | 'completed';
 
 export interface TestRun {
   id: string;
-  testPlanId: string;
+  projectId: string;
+  // Null for a custom/unplanned run created directly from Test Cases, without a Test Plan.
+  testPlanId: string | null;
   code: string;
   name: string;
   status: TestRunStatus;

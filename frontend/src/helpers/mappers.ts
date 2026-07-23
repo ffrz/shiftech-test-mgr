@@ -125,6 +125,7 @@ export function mapTestPlanCaseRow(row: any): TestPlanCase {
 export function mapTestRunRow(row: any): TestRun {
   return {
     id: row.id,
+    projectId: row.project_id,
     testPlanId: row.test_plan_id,
     code: row.code,
     name: row.name,

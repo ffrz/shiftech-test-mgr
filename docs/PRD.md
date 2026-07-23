@@ -114,6 +114,15 @@ riwayat setiap rilis tetap tersimpan dan bisa dibandingkan.
 - **Ringkasan progress** (jumlah pass/fail/skip/blocked, persentase eksekusi)
   selalu **dihitung otomatis** dari Test Result yang ada — ini bukan kolom
   tersimpan, jadi selalu akurat dan real-time.
+- **Test Run tidak wajib berasal dari Test Plan (Unplanned/Custom Run).**
+  Kadang tester perlu menguji sesuatu dadakan (mis. verifikasi cepat hotfix)
+  tanpa mau membuat Test Plan formal dulu. Tombol "Buat Test Run" di tab Test
+  Runs (Project Detail) membuka dialog dengan dua mode: **"Dari Test Plan"**
+  (alur normal — pilih plan, cakupan Test Case ikut plan tsb) atau
+  **"Unplanned / Custom"** — tanpa Test Plan sama sekali, tester memilih Test
+  Case satu per satu langsung dari daftar Test Case project. Test Run jenis
+  ini tetap terikat ke Project (untuk kode entity, RLS, dan riwayat), hanya
+  saja tidak punya Test Plan induk.
 
 ### Test Result
 

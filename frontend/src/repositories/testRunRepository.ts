@@ -14,20 +14,19 @@ export const testRunRepository = {
     return (data ?? []).map(mapTestRunRow);
   },
 
-  // Cross-plan listing for a whole project — joins through test_plans since
-  // test_runs only has test_plan_id, not project_id directly.
-  async findAllByProject(projectId: string): Promise<(TestRun & { testPlanId: string; testPlanName: string })[]> {
+  // Cross-plan listing for a whole project — includes custom/unplanned runs
+  // (test_plan_id null), so the join to test_plans must be a left join.
+  async findAllByProject(projectId: string): Promise<(TestRun & { testPlanName: string | null })[]> {
     const { data, error } = await supabase
       .from('test_runs')
-      .select('*, test_plan:test_plans!inner(project_id, name)')
-      .eq('test_plan.project_id', projectId)
+      .select('*, test_plan:test_plans(name)')
+      .eq('project_id', projectId)
       .order('started_at', { ascending: false });
 
     if (error) throw error;
     return (data ?? []).map((row: any) => ({
       ...mapTestRunRow(row),
-      testPlanId: row.test_plan_id,
-      testPlanName: row.test_plan.name,
+      testPlanName: row.test_plan?.name ?? null,
     }));
   },
 
@@ -38,10 +37,17 @@ export const testRunRepository = {
   },
 
   // `code` optional — omit/empty lets the `set_test_run_code` DB trigger auto-generate TR-####.
-  async create(input: { testPlanId: string; name: string; code?: string | null }): Promise<TestRun> {
+  // `testPlanId` null means a custom/unplanned run — `projectId` is always required so the
+  // trigger/RLS chain can resolve the project without a plan.
+  async create(input: { projectId: string; testPlanId?: string | null; name: string; code?: string | null }): Promise<TestRun> {
     const { data, error } = await supabase
       .from('test_runs')
-      .insert({ test_plan_id: input.testPlanId, name: input.name, code: input.code || undefined })
+      .insert({
+        project_id: input.projectId,
+        test_plan_id: input.testPlanId ?? null,
+        name: input.name,
+        code: input.code || undefined,
+      })
       .select('*')
       .single();
 

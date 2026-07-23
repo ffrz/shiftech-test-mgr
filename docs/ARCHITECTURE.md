@@ -219,7 +219,7 @@ Client A tulis data → Supabase Postgres
 `supabase db push` — lihat §4.-2), bukan lagi copy-paste manual ke Supabase SQL
 Editor. File `supabase/schema_*.sql` di root folder tetap ada sebagai source
 asli tiap perubahan, tapi yang benar-benar dieksekusi adalah salinannya di
-`supabase/migrations/<timestamp>_<nama>.sql` — 16 file, berurutan berdasarkan
+`supabase/migrations/<timestamp>_<nama>.sql` — 17 file, berurutan berdasarkan
 timestamp:
 
 1. [`supabase/schema.sql`](../supabase/schema.sql) — domain tables awal
@@ -260,6 +260,13 @@ timestamp:
 16. **`schema_realtime_sync.sql`** (E14) — enable Realtime replication untuk
     8 tabel lain (`test_results`, `test_runs`, `issues`, `test_plan_cases`,
     `test_cases`, `modules`, `tags`, `projects`) — lihat §2.6
+17. **`schema_custom_test_runs.sql`** (E16) — kolom `test_runs.project_id`
+    (langsung, dibackfill dari `test_plans.project_id`), `test_plan_id` jadi
+    **nullable** sehingga sebuah Test Run bisa dibuat langsung dari Test Case
+    tanpa Test Plan ("unplanned/custom run"). Trigger `set_test_run_code()`
+    dan RLS pada `test_runs`/`test_results`/`test_result_steps` ditulis ulang
+    untuk resolve project via `project_id` langsung, bukan lagi join ke
+    `test_plans` — pola yang sama seperti `issues.project_id` di E12
 
 | Tabel                   | Keterangan                                                                                                                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -272,7 +279,7 @@ timestamp:
 | `test_case_steps`       | Template step, hanya relevan jika `step_type = 'detailed'`: test_case_id, step_number, action, expected_result                                                                                                                |
 | `test_plans`            | Rencana pengujian: `code` (auto, editable), name, description, status. Terikat ke `project_id`                                                                                                                               |
 | `test_plan_cases`       | Junction `test_plan_id` ↔ `test_case_id` + **`order`** (sequence — urutan eksekusi, diubah via drag & drop di tab Test Cases) — HANYA cakupan, tanpa kolom hasil                                                             |
-| `test_runs`             | Satu sesi eksekusi: test_plan_id, `code` (auto, editable), name, `status` (`in_progress`\|`completed`, manual), started_at, completed_at, notes                                                                              |
+| `test_runs`             | Satu sesi eksekusi: `project_id` (wajib, langsung — E16), `test_plan_id` (**nullable** — kosong berarti run "unplanned/custom", dibuat langsung dari Test Case tanpa Test Plan), `code` (auto, editable, unique per `project_id`), name, `status` (`in_progress`\|`completed`, manual), started_at, completed_at, notes |
 | `test_results`          | Satu baris per (test_run_id × test_case_id) — unique constraint pada pasangan ini. Kolom: tester_id (FK `profiles`), `status` (`pass`\|`fail`\|`skip`\|`blocked`\|`not_run`), executed_at, notes, snapshot konten test case (`test_case_title`, `test_case_steps`, dst), **`order`** (snapshot `test_plan_cases.order` saat run dimulai — lihat §4.0). **Di sinilah hasil hidup** |
 | `test_result_steps`     | Hasil per-step untuk Test Case `detailed`: test_result_id, test_case_step_id, status (`pass`\|`fail`\|`not_run`), actual_result                                                                                              |
 | `issues`                | Entity level-project (reshape E12): `project_id` (wajib), `module_id` (nullable), `type` (`bug`\|`feature`\|`improvement`\|`task`), title, description, actual_result, expected_result, priority, status, assigned_to (FK `profiles`), `github_links` (`jsonb`). Tidak lagi punya `test_result_id` — relasi ke Test Result lewat junction `issue_test_results` |
@@ -503,7 +510,7 @@ UserManagementPage → useProfiles hook → profileService → profileRepository
   `UserManagementPage.tsx` dengan `row.id === currentProfile?.id`, sejalan
   dengan `UserPolicy` amanah-pos yang melarang self-edit/self-delete
 
-### 6.3 Modul Test Run, Test Result, Issue v2 (E12/E13, current)
+### 6.3 Modul Test Run, Test Result, Issue v2 (E12/E13/E16, current)
 
 ```
 TestPlanDetailPage (tab "Test Runs") → useTestRuns hook → testRunService.listByPlan/start → testRunRepository
@@ -531,8 +538,20 @@ TestRunIssuesPage (/test-runs/:id/issues) → view issue yang tertaut ke run tsb
   `test_results.order` saat run dimulai (snapshot, tidak berubah retroaktif
   kalau plan di-reorder setelahnya). Sequence murni panduan — tidak ada
   validasi urutan di `recordResult`/`recordStepResult`
-- **Mulai run**: dialog di tab "Test Runs" pada `TestPlanDetailPage` →
-  `testRunService.start(testPlanId, name)` → redirect ke `/test-runs/:id`
+- **Mulai run — dua jalur**:
+  1. Dialog di tab "Test Runs" pada `TestPlanDetailPage` →
+     `testRunService.start(testPlanId, name)` — snapshot cakupan test case
+     yang sedang ada di plan tsb → redirect ke `/test-runs/:id`
+  2. **Custom/unplanned run (E16)**: dialog "Buat Test Run" di tab "Test
+     Runs" pada `ProjectDetailPage` — pilih mode "Dari Test Plan" (sama
+     seperti jalur 1) atau **"Unplanned / Custom"**: tanpa Test Plan sama
+     sekali, user pilih Test Case satu-per-satu lewat `MultiSelect` →
+     `testRunService.startCustom(projectId, name, testCaseIds)` →
+     `testResultRepository.seedForRun` (fungsi yang sama, sudah plan-agnostic
+     sejak awal). `test_runs.test_plan_id` bernilai `null` untuk run jenis
+     ini, `test_runs.project_id` (kolom langsung, E16) tetap wajib —
+     `TestRunResultDetailPage` bekerja identik untuk kedua jenis run karena
+     halaman itu tidak pernah referensi `testPlan` sama sekali
 - **Catat hasil**: card "Catat Hasil Eksekusi" — dropdown status (termasuk
   `not_run` = "Belum Dites", bukan cuma pass/fail/skip/blocked), dropdown
   tester, textarea catatan, tombol "Lihat Test Case Asli" (link ke live

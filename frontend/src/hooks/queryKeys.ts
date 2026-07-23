@@ -15,6 +15,7 @@ export const queryKeys = {
   testPlanCases: (testPlanId: string) => ['testPlanCases', testPlanId] as const,
 
   testCase: (id: string) => ['testCase', id] as const,
+  testCaseSteps: (testCaseId: string) => ['testCaseSteps', testCaseId] as const,
   testCases: (projectId: string) => ['testCases', projectId] as const,
   testCasesWithDetails: (projectId: string) => ['testCases', 'withDetails', projectId] as const,
 
@@ -30,4 +31,5 @@ export const queryKeys = {
   attachmentsByIssue: (issueId: string) => ['attachments', 'byIssue', issueId] as const,
 
   profiles: () => ['profiles'] as const,
+  projectMembers: (projectId: string) => ['projectMembers', projectId] as const,
 } as const;

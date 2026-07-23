@@ -1,6 +1,7 @@
 import { testRunRepository } from '../repositories/testRunRepository';
 import { testResultRepository } from '../repositories/testResultRepository';
 import { testCaseRepository } from '../repositories/testCaseRepository';
+import { testPlanRepository } from '../repositories/testPlanRepository';
 import type { TestResultStatus } from '../types/domain';
 
 export const testRunService = {
@@ -42,16 +43,39 @@ export const testRunService = {
   async start(testPlanId: string, name: string, code?: string) {
     if (!name.trim()) throw new Error('Nama test run tidak boleh kosong');
 
+    const plan = await testPlanRepository.findById(testPlanId);
+    if (!plan) throw new Error('Test plan tidak ditemukan');
+
     const planCases = await testCaseRepository.findCasesForPlan(testPlanId);
     if (planCases.length === 0) {
       throw new Error('Test plan ini belum punya test case — tambahkan test case dulu sebelum memulai run');
     }
 
-    const run = await testRunRepository.create({ testPlanId, name: name.trim(), code: code?.trim() || null });
+    const run = await testRunRepository.create({
+      projectId: plan.projectId,
+      testPlanId,
+      name: name.trim(),
+      code: code?.trim() || null,
+    });
     await testResultRepository.seedForRun(
       run.id,
       planCases.map((pc) => pc.testCaseId),
     );
+    return run;
+  },
+
+  // Custom/unplanned run — no Test Plan involved, test cases are picked directly.
+  async startCustom(projectId: string, name: string, testCaseIds: string[], code?: string) {
+    if (!name.trim()) throw new Error('Nama test run tidak boleh kosong');
+    if (testCaseIds.length === 0) throw new Error('Pilih minimal satu test case untuk test run ini');
+
+    const run = await testRunRepository.create({
+      projectId,
+      testPlanId: null,
+      name: name.trim(),
+      code: code?.trim() || null,
+    });
+    await testResultRepository.seedForRun(run.id, testCaseIds);
     return run;
   },
 

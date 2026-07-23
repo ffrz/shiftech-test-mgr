@@ -295,3 +295,21 @@ rationale dan tabel hak akses lengkap.
 | E15-T02 | `supabase/schema_project_roles.sql` — expand role jadi 4 nilai (`manager`/`supervisor`/`tester`/`member`), fungsi `can_edit_project_content()`/`can_delete_project_content()`/`can_run_tests()`/`can_manage_issues()`, split semua policy `for all` jadi per-operasi (select/insert/update/delete) | done |
 | E15-T03 | `hooks/useProjectRole.ts` — hook client-side (`canEditContent`, `canDeleteContent`, `canManageSettings`, `canRunTests`, `canManageIssues`, `canArchiveProject`, `canDeleteProject`) dipakai seluruh halaman untuk menampilkan/menyembunyikan aksi sesuai role — RLS tetap jadi batas keamanan sebenarnya, ini cuma UX | done |
 | E15-T04 | Semua halaman detail (`ProjectDetailPage`, `TestPlanDetailPage`, `TestRunResultDetailPage`, `IssueDetailPage`) menyesuaikan tombol aksi berdasarkan `useProjectRole` alih-alih cuma `isAdmin` polos | done |
+
+## Epic E16 — Custom/Unplanned Test Run
+
+Test Run tidak lagi wajib berasal dari Test Plan. Tombol "Buat Test Run" di
+tab Test Runs (`ProjectDetailPage`) membuka dialog dua mode: "Dari Test Plan"
+(alur lama) atau "Unplanned/Custom" (pilih Test Case langsung, tanpa plan).
+Pola schema mengikuti precedent `issues.project_id` di E12: kolom
+`test_runs.project_id` ditambah langsung (bukan resolve via join ke
+`test_plans`), `test_plan_id` jadi nullable.
+
+| ID      | Task                                                                                                                                                                     | Status |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| E16-T01 | `supabase/migrations/20260701000017_custom_test_runs.sql` — tambah `test_runs.project_id` (backfill dari `test_plans.project_id`, lalu `not null`), `test_plan_id` jadi nullable, trigger `check_test_run_project_matches_plan()` (jaga konsistensi kalau `test_plan_id` diisi), index unique `(project_id, code)` menggantikan `(test_plan_id, code)`, rewrite `set_test_run_code()` + RLS `test_runs`/`test_results`/`test_result_steps` supaya resolve project via `project_id` langsung | done |
+| E16-T02 | `types/domain.ts`: `TestRun.projectId` (baru), `TestRun.testPlanId: string \| null`; `mapTestRunRow` ikut disesuaikan | done |
+| E16-T03 | `testRunRepository.create()` — terima `projectId` (wajib) + `testPlanId` (opsional); `findAllByProject` — ganti inner join `test_plans!inner` jadi left join supaya run tanpa plan tetap muncul | done |
+| E16-T04 | `testRunService.startCustom(projectId, name, testCaseIds)` — sibling dari `start()`, tanpa lookup `test_plan_cases`, langsung `seedForRun` dengan `testCaseIds` yang dipilih user | done |
+| E16-T05 | Dialog "Buat Test Run" di `ProjectDetailPage` tab Test Runs — `SelectButton` dua mode, dropdown Test Plan (mode plan) atau `MultiSelect` Test Case (mode custom, pola sama seperti dialog "Tambah Test Case ke Plan" di `TestPlanDetailPage`) | done |
+| E16-T06 | `useRealtimeSync.ts` — event `test_runs` sekarang punya `project_id` di payload, invalidate `queryKeys.testRunsByProject(projectId)` secara presisi alih-alih fallback prefix luas `['testRuns']` | done |
