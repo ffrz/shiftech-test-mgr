@@ -223,6 +223,37 @@ skema penomoran kaku.
   baru, tapi riwayat hasil lama tetap ada)
 - Test case bersifat reusable — bisa dipakai di banyak test plan berbeda, dan
   **tidak pernah menyimpan hasil PASS/FAIL sendiri**
+- **Role Target (RBAC testing, E17)** — field teks bebas opsional (mis.
+  "Admin", "Manager", "Member") untuk menguji test case yang sama secara
+  konsep tapi perlu diverifikasi ulang per role aplikasi yang ditest. Bukan
+  sistem varian otomatis — kalau steps/expected result berbeda per role,
+  user membuat test case terpisah secara manual dan sekadar melabeli masing-
+  masing dengan Role Target yang sesuai
+- **Import dari Excel/CSV (E17)** — impor banyak test case sekaligus dari
+  file CSV (kolom: Module, Title, Objective, Preconditions, Steps, Expected
+  Result, Priority, Tags, Target Role — hanya Title wajib). Preview baris
+  valid vs invalid sebelum commit. Hanya mendukung test case `simple`
+  (bukan `detailed`) untuk versi awal ini
+
+### 4.3.1 Test Case Template Library (E17)
+
+Library test case global (bukan per-project), untuk inisialisasi cepat
+project baru tanpa mengetik ulang test case standar dari nol.
+
+- Dikelola **admin** (create/edit/delete template dan isinya), tapi bisa
+  **dilihat dan di-clone oleh semua user approved** — bukan fitur admin-only
+  sepenuhnya, karena tujuannya adalah dipakai lintas project oleh siapa saja
+- Satu Template berisi banyak Item (setara Test Case: Module, Title,
+  Objective, Steps, Expected Result, Priority, Tags, Role Target, mendukung
+  mode `simple`/`detailed` sama seperti Test Case biasa)
+- **Clone ke project**: saat membuat Project Baru, ada opsi "Mulai dari
+  Template" (opsional) yang otomatis clone semua item template itu jadi Test
+  Case nyata di project baru. Bisa juga dilakukan kapan saja setelah project
+  ada, lewat tombol "Import dari Template" di tab Test Cases — dan boleh
+  pilih sebagian item saja, tidak wajib semua
+- Module/Tag di template disimpan sebagai teks bebas (bukan terikat project
+  manapun) — saat di-clone, dicocokkan ke Module/Tag yang sudah ada di
+  project tujuan atau dibuat baru otomatis kalau belum ada
 
 ### 4.4 Test Plans
 

@@ -219,7 +219,7 @@ Client A tulis data → Supabase Postgres
 `supabase db push` — lihat §4.-2), bukan lagi copy-paste manual ke Supabase SQL
 Editor. File `supabase/schema_*.sql` di root folder tetap ada sebagai source
 asli tiap perubahan, tapi yang benar-benar dieksekusi adalah salinannya di
-`supabase/migrations/<timestamp>_<nama>.sql` — 17 file, berurutan berdasarkan
+`supabase/migrations/<timestamp>_<nama>.sql` — 19 file, berurutan berdasarkan
 timestamp:
 
 1. [`supabase/schema.sql`](../supabase/schema.sql) — domain tables awal
@@ -267,6 +267,18 @@ timestamp:
     dan RLS pada `test_runs`/`test_results`/`test_result_steps` ditulis ulang
     untuk resolve project via `project_id` langsung, bukan lagi join ke
     `test_plans` — pola yang sama seperti `issues.project_id` di E12
+18. `20260722000001_auto_approve_signup.sql` — `handle_new_user()` diubah:
+    user baru langsung berstatus `user` (bukan `pending`), skip approval
+    manual admin. Tidak ada lagi mirror di root `supabase/schema_*.sql`
+    mulai migrasi ini — `supabase/migrations/` jadi satu-satunya source of
+    truth skema
+19. **`20260723000001_test_case_templates.sql`** (E17) — tabel
+    `test_case_templates`/`test_case_template_items`/`test_case_template_item_steps`
+    (library global, TIDAK project-scoped — lihat §6.7), kolom
+    `test_cases.target_role` (teks bebas untuk RBAC testing). RLS di sini
+    bentuk BARU: `is_approved()` untuk select (siapa pun bisa browse/clone),
+    `is_admin()` untuk insert/update/delete — berbeda dari semua tabel
+    sebelumnya yang project-scoped atau "approved users, akses penuh"
 
 | Tabel                   | Keterangan                                                                                                                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -275,7 +287,7 @@ timestamp:
 | `modules`               | Master per project: id, project_id, `code` (auto, editable), name. Unique per `(project_id, code)` dan `(project_id, name)`                                                                                                  |
 | `tags`                  | Master per project: id, project_id, name. Unique per `(project_id, name)`. Dikelola dari tab "Tags" (rename/hapus) — pembuatan baru terjadi on-the-fly dari form Test Case                                                   |
 | `test_case_tags`        | Junction many-to-many `test_case_id` ↔ `tag_id`                                                                                                                                                                              |
-| `test_cases`            | Template pengujian: project_id, module_id (nullable), `code` (auto, editable), title, objective, preconditions, steps, expected_result, priority, `status` (`active`\|`archived`), notes, **`step_type`** (`simple`\|`detailed`, default `simple`). **Tidak pernah punya kolom hasil** |
+| `test_cases`            | Template pengujian: project_id, module_id (nullable), `code` (auto, editable), title, objective, preconditions, steps, expected_result, priority, `status` (`active`\|`archived`), notes, **`step_type`** (`simple`\|`detailed`, default `simple`), **`target_role`** (teks bebas, E17 — label RBAC testing, mis. "Admin"/"Manager", bukan enum/varian otomatis). **Tidak pernah punya kolom hasil** |
 | `test_case_steps`       | Template step, hanya relevan jika `step_type = 'detailed'`: test_case_id, step_number, action, expected_result                                                                                                                |
 | `test_plans`            | Rencana pengujian: `code` (auto, editable), name, description, status. Terikat ke `project_id`                                                                                                                               |
 | `test_plan_cases`       | Junction `test_plan_id` ↔ `test_case_id` + **`order`** (sequence — urutan eksekusi, diubah via drag & drop di tab Test Cases) — HANYA cakupan, tanpa kolom hasil                                                             |
@@ -287,6 +299,9 @@ timestamp:
 | `issue_tags`            | Junction many-to-many `issue_id` ↔ `tag_id`, reuse tabel `tags`                                                                                                                                                              |
 | `attachments`           | `issue_id`, `storage_provider`, `url`, `file_name`, `file_size`, `content_type` — lihat §6.6 untuk `StorageAdapter`                                                                                                          |
 | `entity_code_sequences` | Bookkeeping internal: satu row per `(project_id, prefix)`, menyimpan `last_value` counter. Dipakai fungsi `next_entity_code()`                                                                                               |
+| `test_case_templates`   | **Global (E17), TIDAK project-scoped** — library reusable, dikelola admin: name, description. Lihat §6.7                                                                                                                     |
+| `test_case_template_items` | Item di dalam template: template_id, `module_name`/`tag_names` (teks bebas, di-resolve find-or-create ke project nyata saat clone), title, objective, preconditions, steps, expected_result, priority, `step_type`, `target_role`, `order_index` |
+| `test_case_template_item_steps` | Step detail untuk item `step_type='detailed'`, sama seperti `test_case_steps` tapi untuk template item                                                                                                                  |
 | `profiles`              | 1:1 dengan `auth.users` (Supabase Auth). Kolom: `email`, `full_name`, `avatar_url`, `role` (`pending`\|`user`\|`admin`), `deleted_at` (soft-delete)                                                                          |
 
 Semua tabel punya trigger `updated_at` otomatis kecuali `test_plan_cases` dan
@@ -658,6 +673,48 @@ seperti amanah-pos, karena diminta eksplisit).
 - **Data fetching (E14)**: tiap tab adalah `useQuery` React Query terpisah
   (bukan lagi cache `Map` module-level) — lihat §2.6 untuk rationale
   lengkap kenapa ini diganti
+
+### 6.7 Test Case Template Library, Import CSV, RBAC Field (E17)
+
+```
+TestCaseTemplatesPage (/test-case-templates) → testCaseTemplateService.listTemplates → testCaseTemplateRepository
+TestCaseTemplateDetailPage (/test-case-templates/:id) → listItems/addItem/updateItem/removeItem (+ steps kalau detailed)
+ProjectsPage (dialog Project Baru) → testCaseTemplateService.cloneItemsToProject setelah projectService.create
+ProjectDetailPage (tab Test Cases) → tombol "Import dari Template" (cloneItemsToProject) & "Import dari Excel" (ExcelImportPanel → testCaseImportService.importRows)
+```
+
+- **Template library bersifat global, bukan project-scoped** — satu-satunya
+  tabel di codebase ini dengan bentuk RLS "semua approved user boleh SELECT,
+  hanya admin boleh INSERT/UPDATE/DELETE" (`is_approved()`/`is_admin()`
+  langsung, tanpa lewat `project_members`). Semua tabel lain sebelumnya
+  selalu project-scoped atau "approved users, akses penuh"
+- **`module_name`/`tag_names` di template item adalah teks bebas**, bukan FK
+  ke `modules`/`tags` — karena keduanya scoped per-project sementara template
+  tidak. Resolusi jadi row `Module`/`Tag` sungguhan (find-or-create, di-cache
+  per panggilan supaya batch item yang share nama module cuma create sekali)
+  terjadi di `testCaseTemplateService.cloneItemsToProject()`, dipanggil baik
+  dari alur "New Project from Template" maupun tombol "Import dari Template"
+- **Tidak pakai `next_entity_code()`** — fungsi itu murni per-`project_id`,
+  template item tidak dapat kode entity sama sekali (template bukan bagian
+  dari skema kode `TC-####` project)
+- **Import CSV (bukan Excel/`xlsx`)**: paket npm `xlsx` (SheetJS) punya
+  *high-severity* vulnerability (prototype pollution + ReDoS) yang belum ada
+  fix di registry npm — keputusan produk pakai CSV saja, tanpa dependency
+  eksternal (`helpers/csvImport.ts`, parser RFC 4180 minimal ditulis manual).
+  Excel/Google Sheets tetap bisa export/import CSV native, jadi "Import dari
+  Excel" di UI tetap berfungsi end-to-end, hanya user perlu save-as CSV dulu.
+  Scope awal **`step_type = 'simple'` saja** — kolom Module/Title/Objective/
+  Preconditions/Steps/Expected Result/Priority/Tags/Target Role, hanya Title
+  wajib. Dialog preview baris valid vs invalid (dengan alasan gagal) sebelum
+  commit, bukan insert langsung buta
+- **RBAC test case field (`test_cases.target_role`)**: teks bebas (bukan
+  enum) karena role aplikasi yang ditest bervariasi per project — TIDAK sama
+  dengan `project_members.role` (role internal TestManager). Test case yang
+  konsep-nya sama tapi perlu diuji ulang per role (mis. "Buka Settings" untuk
+  Admin vs Member) di-duplikasi **manual** oleh user sebagai row terpisah;
+  field ini murni label/filter, bukan sistem varian otomatis — keputusan
+  eksplisit user untuk menghindari kompleksitas sistem custom-fields generik
+  ala GitHub Projects
 
 ---
 

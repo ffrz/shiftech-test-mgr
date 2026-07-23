@@ -313,3 +313,24 @@ Pola schema mengikuti precedent `issues.project_id` di E12: kolom
 | E16-T04 | `testRunService.startCustom(projectId, name, testCaseIds)` — sibling dari `start()`, tanpa lookup `test_plan_cases`, langsung `seedForRun` dengan `testCaseIds` yang dipilih user | done |
 | E16-T05 | Dialog "Buat Test Run" di `ProjectDetailPage` tab Test Runs — `SelectButton` dua mode, dropdown Test Plan (mode plan) atau `MultiSelect` Test Case (mode custom, pola sama seperti dialog "Tambah Test Case ke Plan" di `TestPlanDetailPage`) | done |
 | E16-T06 | `useRealtimeSync.ts` — event `test_runs` sekarang punya `project_id` di payload, invalidate `queryKeys.testRunsByProject(projectId)` secara presisi alih-alih fallback prefix luas `['testRuns']` | done |
+
+## Epic E17 — Test Case Template Library, Import CSV, RBAC Field
+
+Tiga penambahan independen ke modul Test Case: (1) library template global
+dikelola admin untuk inisialisasi cepat project baru, (2) import test case
+massal dari file CSV (bukan Excel/`xlsx` — lihat rationale di E17-T09), dan
+(3) field `target_role` sederhana untuk kebutuhan RBAC testing (bukan sistem
+custom-fields generik — keputusan eksplisit user).
+
+| ID      | Task                                                                                                                                                                     | Status |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| E17-T01 | `supabase/migrations/20260723000001_test_case_templates.sql` — tabel `test_case_templates`/`test_case_template_items`/`test_case_template_item_steps` (global, TIDAK project-scoped), kolom `test_cases.target_role`. RLS bentuk baru: `is_approved()` select, `is_admin()` write | done |
+| E17-T02 | `types/domain.ts`: `TestCaseTemplate`, `TestCaseTemplateItem`, `TestCaseTemplateItemStep`, `TestCaseTemplateItemWithSteps`; `TestCase.targetRole`. `helpers/mappers.ts` mapper untuk masing-masing | done |
+| E17-T03 | `repositories/testCaseTemplateRepository.ts` (baru) — CRUD template/item/step, mirror pola `testCaseRepository`/`testCaseStepRepository` termasuk `replaceStepsForItem` full-replace | done |
+| E17-T04 | `services/testCaseTemplateService.ts` (baru) — validasi create/update item sama seperti `testCaseService`, plus **`cloneItemsToProject(projectId, itemIds)`**: resolve `module_name`/`tag_names` (teks bebas di template) jadi Module/Tag nyata per-project (find-or-create, di-cache per panggilan), lalu `testCaseService.create()` per item | done |
+| E17-T05 | `testCaseRepository`/`testCaseService`: teruskan `targetRole` di `create`/`update`, konsisten dengan field opsional lain (`notes`, `objective`) | done |
+| E17-T06 | Halaman `pages/test-case-templates/TestCaseTemplatesPage.tsx` (list) + `TestCaseTemplateDetailPage.tsx` (kelola item, reuse pola dialog Test Case termasuk editor detailed steps) — route `/test-case-templates`(`/:id`), TIDAK di dalam `<AdminRoute>` (semua approved user perlu akses baca untuk clone), tombol create/edit/delete digate `isAdmin` in-page | done |
+| E17-T07 | Sidebar `AppMenu.tsx` — entry "Test Case Templates" tampil untuk semua approved user (bukan `isAdmin`-only seperti "Users") | done |
+| E17-T08 | Clone dari template: dropdown "Mulai dari Template" (opsional) di dialog Project Baru (`ProjectsPage.tsx`) setelah `projectService.create()`; tombol "Import dari Template" di tab Test Cases `ProjectDetailPage.tsx` (pilih template → `MultiSelect` pilih sebagian/semua item → `cloneItemsToProject`) | done |
+| E17-T09 | Import CSV: paket `xlsx` (SheetJS) dari npm punya *high-severity* vulnerability tanpa fix (prototype pollution + ReDoS) — diganti CSV murni tanpa dependency eksternal. `helpers/csvImport.ts` (parser RFC 4180 minimal ditulis manual), `services/testCaseImportService.ts` (resolve Module/Tag find-or-create sama seperti clone template), `components/ui/ExcelImportPanel.tsx` (FileUpload custom + preview baris valid/invalid sebelum commit). Scope awal `step_type='simple'` saja | done |
+| E17-T10 | UI `target_role`: field `InputText` di dialog Test Case (`ProjectDetailPage.tsx`) dan dialog Item Template, ditampilkan sebagai `Tag` di tabel Test Cases, `TestCaseDetailPage.tsx`, dan card atas `TestRunResultDetailPage.tsx` | done |
