@@ -1,9 +1,10 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
+import { Menu } from 'primereact/menu';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useProfiles } from '../../hooks/useProfiles';
@@ -12,6 +13,7 @@ import type { Profile } from '../../types/domain';
 import { useAuthContext } from '../../hooks/useAuth';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { USER_ROLE_LABEL, USER_ROLE_SEVERITY } from '../../helpers/statusLabels';
 
 export function UserManagementPage() {
@@ -19,6 +21,8 @@ export function UserManagementPage() {
   const { profile: currentProfile } = useAuthContext();
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
+  const menuRef = useRef<Menu>(null);
+  const [menuRow, setMenuRow] = useState<Profile | null>(null);
 
   async function handleApprove(row: Profile) {
     await profileService.approve(row.id);
@@ -68,41 +72,74 @@ export function UserManagementPage() {
     });
   }
 
-  function actionsTemplate(row: Profile) {
-    const isSelf = row.id === currentProfile?.id;
-    return (
-      <div className="flex gap-2">
-        <Button icon="pi pi-eye" size="small" text rounded aria-label="Detail" onClick={() => navigate(`/users/${row.id}`)} />
-        {row.role === 'pending' && (
-          <Button label="Approve" icon="pi pi-check" size="small" onClick={() => handleApprove(row)} />
-        )}
-        {row.role === 'user' && (
-          <Button label="Jadikan Admin" icon="pi pi-shield" size="small" severity="secondary" outlined onClick={() => handlePromote(row)} />
-        )}
-        {row.role === 'admin' && !isSelf && (
-          <Button label="Turunkan ke User" icon="pi pi-user" size="small" severity="secondary" outlined onClick={() => handleDemote(row)} />
-        )}
-        {row.role !== 'pending' && !isSelf && (
-          <Button icon="pi pi-lock" size="small" severity="warning" outlined aria-label="Cabut Akses" onClick={() => handleRevokeAccess(row)} />
-        )}
-        {!isSelf && (
-          <Button icon="pi pi-trash" size="small" severity="danger" outlined aria-label="Hapus" onClick={() => handleDelete(row)} />
-        )}
-      </div>
-    );
+  function openRowMenu(row: Profile, event: React.MouseEvent) {
+    setMenuRow(row);
+    menuRef.current?.toggle(event);
   }
+
+  const isMenuRowSelf = menuRow?.id === currentProfile?.id;
+
+  const menuItems = menuRow
+    ? [
+      { label: 'Lihat Detail', icon: 'pi pi-eye', command: () => navigate(`/users/${menuRow.id}`) },
+      ...(menuRow.role === 'pending'
+        ? [{ separator: true }, { label: 'Approve', icon: 'pi pi-check', command: () => handleApprove(menuRow) }]
+        : []),
+      ...(menuRow.role === 'user'
+        ? [{ separator: true }, { label: 'Jadikan Admin', icon: 'pi pi-shield', command: () => handlePromote(menuRow) }]
+        : []),
+      ...(menuRow.role === 'admin' && !isMenuRowSelf
+        ? [{ separator: true }, { label: 'Turunkan ke User', icon: 'pi pi-user', command: () => handleDemote(menuRow) }]
+        : []),
+      ...(menuRow.role !== 'pending' && !isMenuRowSelf
+        ? [{ label: 'Cabut Akses', icon: 'pi pi-lock', command: () => handleRevokeAccess(menuRow) }]
+        : []),
+      ...(!isMenuRowSelf
+        ? [{ separator: true }, { label: 'Hapus', icon: 'pi pi-trash', command: () => handleDelete(menuRow) }]
+        : []),
+    ]
+    : [];
 
   return (
     <div>
       <Toast ref={toast} />
       <ConfirmDialog />
+      <Menu model={menuItems} popup ref={menuRef} />
+
+      <Breadcrumb items={[{ label: 'User Management' }]} />
+
       <PageHeader title="User Management" />
-      <DataTable value={profiles} loading={loading} paginator rows={10} emptyMessage="Belum ada user" size="small">
+      <DataTable
+        value={profiles}
+        loading={loading}
+        paginator
+        rows={10}
+        emptyMessage="Belum ada user"
+        size="small"
+        onRowClick={(e) => navigate(`/users/${(e.data as Profile).id}`)}
+        rowHover
+        className="cursor-pointer"
+      >
         <Column field="email" header="Email" sortable />
         <Column field="fullName" header="Nama" sortable />
         <Column field="role" header="Role" body={(row: Profile) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />} sortable />
         <Column field="createdAt" header="Terdaftar" body={(row: Profile) => formatDateTime(row.createdAt)} sortable />
-        <Column header="Aksi" body={actionsTemplate} />
+        <Column
+          header=""
+          style={{ width: '4rem' }}
+          body={(row: Profile) => (
+            <Button
+              icon="pi pi-ellipsis-v"
+              text
+              rounded
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                openRowMenu(row, e);
+              }}
+            />
+          )}
+        />
       </DataTable>
     </div>
   );
