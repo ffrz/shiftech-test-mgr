@@ -482,3 +482,33 @@ html.dark .layout-menuitem-link.active-route {
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
+
+.p-card .p-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: 1rem;
+}
+
+.p-panel.p-panel-toggleable .p-panel-header {
+  padding: 0.5rem 0.75rem;
+}
+
+.p-panel .p-panel-content {
+  padding: 0.75rem;
+}
+
+.p-card .p-card-body {
+  padding: 0.75rem;
+}
+
+.p-card .p-card-content {
+  padding: 0.5rem;
+}
+
+.p-dialog .p-dialog-header .p-dialog-title {
+  font-weight: 600;
+  font-size: 0.8rem;
+}

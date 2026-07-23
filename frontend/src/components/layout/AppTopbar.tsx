@@ -27,8 +27,8 @@ export function AppTopbar() {
       </Link>
       {items.length > 0 && (
         <>
-          <i className="pi pi-angle-right text-color-secondary hidden lg:inline" style={{ fontSize: '0.7rem' }} />
-          <BreadcrumbTrail items={items} className="hidden lg:flex align-items-center flex-wrap gap-2 text-sm" />
+          <i className="pi pi-angle-right text-color-secondary hidden md:inline" style={{ fontSize: '0.7rem' }} />
+          <BreadcrumbTrail items={items} className="hidden md:flex align-items-center flex-wrap gap-2 text-sm" />
         </>
       )}
       <div className="flex-1" />
