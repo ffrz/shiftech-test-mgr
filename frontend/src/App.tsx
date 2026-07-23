@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import { useDialogResizeFix } from './hooks/useDialogResizeFix';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AdminRoute } from './components/auth/AdminRoute';
@@ -19,6 +20,8 @@ import { UserManagementPage } from './pages/users/UserManagementPage';
 import { UserDetailPage } from './pages/users/UserDetailPage';
 
 function App() {
+  useDialogResizeFix();
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
