@@ -17,16 +17,18 @@ create trigger trg_profiles_updated_at before update on profiles
   for each row execute function set_updated_at();
 
 -- Auto-create a profile row whenever a new auth user signs up (via Google OAuth).
--- New users start as 'pending' until an admin approves them.
+-- New users are auto-approved as 'user' (see migrations/20260722000001_auto_approve_signup.sql
+-- for the rationale — testing convenience, project isolation unaffected).
 create or replace function handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, email, full_name, avatar_url)
+  insert into public.profiles (id, email, full_name, avatar_url, role)
   values (
     new.id,
     new.email,
     new.raw_user_meta_data->>'full_name',
-    new.raw_user_meta_data->>'avatar_url'
+    new.raw_user_meta_data->>'avatar_url',
+    'user'
   );
   return new;
 end;
