@@ -22,6 +22,7 @@ type Handlers struct {
 	Health     *handler.HealthHandler
 	Auth       *handler.AuthHandler
 	Project    *handler.ProjectHandler
+	TestCase   *handler.TestCaseHandler
 	TestPlan   *handler.TestPlanHandler
 	TestRun    *handler.TestRunHandler
 	Issue      *handler.IssueHandler
@@ -84,6 +85,14 @@ func NewRouter(logger *slog.Logger, cfg *config.Config, jwtSvc *jwt.Service, dep
 	projects.PUT("/:id", h.Project.Update, middleware.RequireProjectEdit(deps.ProjectMembers))
 	projects.PATCH("/:id/status", h.Project.ChangeStatus, middleware.RequireProjectEdit(deps.ProjectMembers))
 	projects.DELETE("/:id", h.Project.DeletePermanently, middleware.RequireProjectDelete(deps.ProjectMembers))
+
+	// --- Test Cases, nested under a project ---
+	testCases := projects.Group("/:projectId/test-cases")
+	testCases.GET("", h.TestCase.List, access)
+	testCases.POST("", h.TestCase.Create, manageTests)
+	testCases.GET("/:id", h.TestCase.GetByID, access)
+	testCases.PUT("/:id", h.TestCase.Update, manageTests)
+	testCases.DELETE("/:id", h.TestCase.Delete, manageTests)
 
 	// --- Test Plans, nested under a project ---
 	testPlans := projects.Group("/:projectId/test-plans")

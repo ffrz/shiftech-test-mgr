@@ -17,6 +17,7 @@ import (
 	authsvc "github.com/shiftech/testmgr-backend/internal/service/auth"
 	issuesvc "github.com/shiftech/testmgr-backend/internal/service/issue"
 	projectsvc "github.com/shiftech/testmgr-backend/internal/service/project"
+	testcasesvc "github.com/shiftech/testmgr-backend/internal/service/testcase"
 	testplansvc "github.com/shiftech/testmgr-backend/internal/service/testplan"
 	testrunsvc "github.com/shiftech/testmgr-backend/internal/service/testrun"
 	transporthttp "github.com/shiftech/testmgr-backend/internal/transport/http"
@@ -61,6 +62,11 @@ func main() {
 		log.Error("failed to build repositories", "error", err)
 		os.Exit(1)
 	}
+	testCaseRepo, err := newTestCaseRepository(cfg.DB.Driver, db)
+	if err != nil {
+		log.Error("failed to build repositories", "error", err)
+		os.Exit(1)
+	}
 	testPlanRepo, err := newTestPlanRepository(cfg.DB.Driver, db)
 	if err != nil {
 		log.Error("failed to build repositories", "error", err)
@@ -98,6 +104,7 @@ func main() {
 	)
 
 	projectService := projectsvc.NewService(projectRepo)
+	testCaseService := testcasesvc.NewService(testCaseRepo)
 	testPlanService := testplansvc.NewService(testPlanRepo)
 	testRunService := testrunsvc.NewService(testRunRepo, testCaseSnapshotRepo, testPlanCaseReader)
 	issueService := issuesvc.NewService(issueRepo)
@@ -106,6 +113,7 @@ func main() {
 	healthHandler := handler.NewHealthHandler(cfg.DB.Driver)
 	authHandler := handler.NewAuthHandler(authService, profileRepo)
 	projectHandler := handler.NewProjectHandler(projectService, events)
+	testCaseHandler := handler.NewTestCaseHandler(testCaseService, events)
 	testPlanHandler := handler.NewTestPlanHandler(testPlanService, events)
 	testRunHandler := handler.NewTestRunHandler(testRunService, events)
 	issueHandler := handler.NewIssueHandler(issueService, events)
@@ -117,6 +125,7 @@ func main() {
 			Health:     healthHandler,
 			Auth:       authHandler,
 			Project:    projectHandler,
+			TestCase:   testCaseHandler,
 			TestPlan:   testPlanHandler,
 			TestRun:    testRunHandler,
 			Issue:      issueHandler,
@@ -191,6 +200,17 @@ func newProjectRepository(driver config.Driver, db *gorm.DB) (projectsvc.Reposit
 		return mysql.NewProjectRepository(db), nil
 	case config.DriverPostgres:
 		return postgres.NewProjectRepository(db), nil
+	default:
+		return nil, fmt.Errorf("unsupported database driver: %s", driver)
+	}
+}
+
+func newTestCaseRepository(driver config.Driver, db *gorm.DB) (testcasesvc.Repository, error) {
+	switch driver {
+	case config.DriverMySQL:
+		return mysql.NewTestCaseRepository(db), nil
+	case config.DriverPostgres:
+		return postgres.NewTestCaseRepository(db), nil
 	default:
 		return nil, fmt.Errorf("unsupported database driver: %s", driver)
 	}
