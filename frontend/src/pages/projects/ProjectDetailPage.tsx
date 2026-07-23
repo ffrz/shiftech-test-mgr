@@ -20,6 +20,7 @@ import { InputIcon } from 'primereact/inputicon';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { ExcelImportPanel } from '../../components/ui/ExcelImportPanel';
 import { projectService } from '../../services/projectService';
 import { testPlanService } from '../../services/testPlanService';
 import { testCaseService } from '../../services/testCaseService';
@@ -28,6 +29,7 @@ import { issueService } from '../../services/issueService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
+import { testCaseTemplateService } from '../../services/testCaseTemplateService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
 import { queryKeys } from '../../hooks/queryKeys';
@@ -38,6 +40,7 @@ import type {
   TestCaseWithDetails,
   TestCasePriority,
   TestCaseStatus,
+  TestCaseTemplateItem,
   TestRun,
   TestRunStatus,
   IssueWithDetails,
@@ -382,6 +385,7 @@ export function ProjectDetailPage() {
   const [caseSteps, setCaseSteps] = useState('');
   const [caseExpectedResult, setCaseExpectedResult] = useState('');
   const [casePriority, setCasePriority] = useState<TestCasePriority>('medium');
+  const [caseTargetRole, setCaseTargetRole] = useState('');
   const [caseNotes, setCaseNotes] = useState('');
   const [caseTags, setCaseTags] = useState<string[]>([]);
   const [caseError, setCaseError] = useState<string | null>(null);
@@ -420,6 +424,7 @@ export function ProjectDetailPage() {
     setCaseSteps('');
     setCaseExpectedResult('');
     setCasePriority('medium');
+    setCaseTargetRole('');
     setCaseNotes('');
     setCaseTags([]);
     setCaseStepType('simple');
@@ -438,6 +443,7 @@ export function ProjectDetailPage() {
     setCaseSteps(row.steps);
     setCaseExpectedResult(row.expectedResult);
     setCasePriority(row.priority);
+    setCaseTargetRole(row.targetRole ?? '');
     setCaseNotes(row.notes ?? '');
     setCaseTags(row.tags.map((t) => t.name));
     setCaseStepType(row.stepType);
@@ -468,6 +474,7 @@ export function ProjectDetailPage() {
             steps: caseSteps,
             expectedResult: caseExpectedResult,
             priority: casePriority,
+            targetRole: caseTargetRole.trim() || null,
             notes: caseNotes.trim() || null,
             stepType: caseStepType,
           },
@@ -485,6 +492,7 @@ export function ProjectDetailPage() {
           steps: caseSteps,
           expectedResult: caseExpectedResult,
           priority: casePriority,
+          targetRole: caseTargetRole,
           notes: caseNotes,
           tagNames: caseTags,
           stepType: caseStepType,
@@ -497,6 +505,58 @@ export function ProjectDetailPage() {
     } catch (err) {
       setCaseError(err instanceof Error ? err.message : 'Gagal menyimpan test case');
     }
+  }
+
+  // --- Import Test Case dari Template ---
+  const [importTemplateDialogOpen, setImportTemplateDialogOpen] = useState(false);
+  const [importTemplateId, setImportTemplateId] = useState<string | null>(null);
+  const [importTemplateItems, setImportTemplateItems] = useState<TestCaseTemplateItem[]>([]);
+  const [importTemplateItemIds, setImportTemplateItemIds] = useState<string[]>([]);
+  const [importTemplateLoading, setImportTemplateLoading] = useState(false);
+
+  const { data: availableTemplates = [] } = useQuery({
+    queryKey: queryKeys.testCaseTemplates(),
+    queryFn: () => testCaseTemplateService.listTemplates(),
+    enabled: importTemplateDialogOpen,
+  });
+
+  function openImportTemplateDialog() {
+    setImportTemplateId(null);
+    setImportTemplateItems([]);
+    setImportTemplateItemIds([]);
+    setImportTemplateDialogOpen(true);
+  }
+
+  async function handleSelectImportTemplate(nextTemplateId: string | null) {
+    setImportTemplateId(nextTemplateId);
+    setImportTemplateItemIds([]);
+    if (!nextTemplateId) {
+      setImportTemplateItems([]);
+      return;
+    }
+    setImportTemplateItems(await testCaseTemplateService.listItems(nextTemplateId));
+  }
+
+  async function handleImportFromTemplate() {
+    if (!id || importTemplateItemIds.length === 0) return;
+    setImportTemplateLoading(true);
+    try {
+      await testCaseTemplateService.cloneItemsToProject(id, importTemplateItemIds);
+      setImportTemplateDialogOpen(false);
+      await loadAll();
+      toast.current?.show({ severity: 'success', summary: `${importTemplateItemIds.length} test case diimpor` });
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Gagal impor', detail: err instanceof Error ? err.message : undefined });
+    } finally {
+      setImportTemplateLoading(false);
+    }
+  }
+
+  // --- Import Test Case dari Excel (state/handlers wired in the Excel import feature) ---
+  const [importExcelDialogOpen, setImportExcelDialogOpen] = useState(false);
+
+  function openImportExcelDialog() {
+    setImportExcelDialogOpen(true);
   }
 
   function handleArchiveCase(row: TestCase) {
@@ -890,7 +950,13 @@ export function ProjectDetailPage() {
                   className="w-10rem"
                 />
               </div>
-              {canEditContent && <Button label="Test Case Baru" icon="pi pi-plus" size="small" onClick={openCreateCaseDialog} />}
+              {canEditContent && (
+                <div className="flex gap-2">
+                  <Button label="Import dari Template" icon="pi pi-copy" size="small" outlined onClick={openImportTemplateDialog} />
+                  <Button label="Import dari Excel" icon="pi pi-file-excel" size="small" outlined onClick={openImportExcelDialog} />
+                  <Button label="Test Case Baru" icon="pi pi-plus" size="small" onClick={openCreateCaseDialog} />
+                </div>
+              )}
             </div>
             {canDeleteContent && (
               <BulkActionsBar
@@ -934,6 +1000,12 @@ export function ProjectDetailPage() {
                 body={(row: TestCaseWithDetails) => (
                   <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />
                 )}
+              />
+              <Column
+                field="targetRole"
+                header="Role Target"
+                sortable
+                body={(row: TestCaseWithDetails) => (row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-')}
               />
               <Column
                 field="tags"
@@ -1450,6 +1522,15 @@ export function ProjectDetailPage() {
                 className="w-full"
               />
             </div>
+            <div className="col-12 md:col-6 flex flex-column gap-1">
+              <label htmlFor="case-target-role">Role Target (opsional)</label>
+              <InputText
+                id="case-target-role"
+                value={caseTargetRole}
+                onChange={(e) => setCaseTargetRole(e.target.value)}
+                placeholder="mis. Admin, Manager, Member"
+              />
+            </div>
           </div>
 
           <div className="flex flex-column gap-1">
@@ -1550,6 +1631,51 @@ export function ProjectDetailPage() {
 
           <Button label="Simpan" size="small" onClick={handleSaveCase} />
         </div>
+      </Dialog>
+
+      {/* --- Import Test Case dari Template Dialog --- */}
+      <Dialog header="Import dari Template" visible={importTemplateDialogOpen} onHide={() => setImportTemplateDialogOpen(false)} style={{ width: '34rem' }}>
+        <div className="flex flex-column gap-3">
+          <div className="flex flex-column gap-1">
+            <label htmlFor="import-template">Template</label>
+            <Dropdown
+              id="import-template"
+              value={importTemplateId}
+              options={availableTemplates.map((t) => ({ label: t.name, value: t.id }))}
+              onChange={(e) => handleSelectImportTemplate(e.value)}
+              placeholder="Pilih template"
+              className="w-full"
+              filter
+            />
+          </div>
+          {importTemplateId && (
+            <div className="flex flex-column gap-1">
+              <label htmlFor="import-template-items">Item</label>
+              <MultiSelect
+                id="import-template-items"
+                value={importTemplateItemIds}
+                options={importTemplateItems.map((i) => ({ label: i.title, value: i.id }))}
+                onChange={(e) => setImportTemplateItemIds(e.value ?? [])}
+                placeholder="Pilih item test case"
+                filter
+                display="chip"
+                className="w-full"
+              />
+            </div>
+          )}
+          <Button
+            label={`Import ${importTemplateItemIds.length > 0 ? importTemplateItemIds.length : ''} Test Case`}
+            size="small"
+            loading={importTemplateLoading}
+            disabled={importTemplateItemIds.length === 0}
+            onClick={handleImportFromTemplate}
+          />
+        </div>
+      </Dialog>
+
+      {/* --- Import Test Case dari Excel Dialog --- */}
+      <Dialog header="Import dari Excel" visible={importExcelDialogOpen} onHide={() => setImportExcelDialogOpen(false)} style={{ width: '40rem' }}>
+        <ExcelImportPanel projectId={id ?? ''} onImported={async () => { setImportExcelDialogOpen(false); await loadAll(); }} />
       </Dialog>
 
       {/* --- Issue Dialog (standalone, project-level) --- */}
