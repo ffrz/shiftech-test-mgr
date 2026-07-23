@@ -63,6 +63,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
   const mainItems: MenuItemModel[] = [
     { label: 'Home', icon: 'pi pi-home', url: '/home' },
     { label: 'Projects', icon: 'pi pi-folder', url: '/', end: true },
+    { label: 'Test Case Templates', icon: 'pi pi-copy', url: '/test-case-templates' },
     ...(isAdmin ? [{ label: 'Users', icon: 'pi pi-users', url: '/users' }] : []),
   ];
 

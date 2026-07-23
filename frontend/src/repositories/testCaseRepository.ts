@@ -72,6 +72,7 @@ export const testCaseRepository = {
         status: input.status,
         notes: input.notes,
         step_type: input.stepType,
+        target_role: input.targetRole,
       })
       .select('*')
       .single();
@@ -93,6 +94,7 @@ export const testCaseRepository = {
     if (changes.status !== undefined) payload.status = changes.status;
     if (changes.notes !== undefined) payload.notes = changes.notes;
     if (changes.stepType !== undefined) payload.step_type = changes.stepType;
+    if (changes.targetRole !== undefined) payload.target_role = changes.targetRole;
 
     const { data, error } = await supabase
       .from('test_cases')

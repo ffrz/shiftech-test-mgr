@@ -88,6 +88,10 @@ export interface TestCase {
   status: TestCaseStatus;
   notes: string | null;
   stepType: TestCaseStepType;
+  // Free-text label for RBAC testing (e.g. "Admin", "Manager") — the same logical test case
+  // often needs a separate row per app role, this is purely for labeling/filtering, not a
+  // variant system. Duplication across roles is manual.
+  targetRole: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -106,6 +110,47 @@ export interface TestCaseStep {
   expectedResult: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+// Global, admin-managed library of reusable test case sets — not project-scoped. A project
+// clones items from a template into its own test_cases via testCaseTemplateService.cloneItemsToProject.
+export interface TestCaseTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TestCaseTemplateItem {
+  id: string;
+  templateId: string;
+  // Text, not a FK — modules are project-scoped, resolved (find-or-create) at clone time.
+  moduleName: string | null;
+  title: string;
+  objective: string | null;
+  preconditions: string | null;
+  steps: string;
+  expectedResult: string;
+  priority: TestCasePriority;
+  stepType: TestCaseStepType;
+  targetRole: string | null;
+  tagNames: string[];
+  orderIndex: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TestCaseTemplateItemStep {
+  id: string;
+  templateItemId: string;
+  stepNumber: number;
+  action: string;
+  expectedResult: string | null;
+}
+
+export interface TestCaseTemplateItemWithSteps extends TestCaseTemplateItem {
+  detailedSteps: TestCaseTemplateItemStep[];
 }
 
 // Junction: which test cases are in scope for a plan. No result columns here —

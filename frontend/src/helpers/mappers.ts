@@ -2,6 +2,9 @@ import type {
   TestPlan,
   TestCase,
   TestCaseStep,
+  TestCaseTemplate,
+  TestCaseTemplateItem,
+  TestCaseTemplateItemStep,
   TestPlanCase,
   Project,
   Profile,
@@ -96,8 +99,49 @@ export function mapTestCaseRow(row: any): TestCase {
     status: row.status,
     notes: row.notes,
     stepType: row.step_type,
+    targetRole: row.target_role,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+export function mapTestCaseTemplateRow(row: any): TestCaseTemplate {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapTestCaseTemplateItemRow(row: any): TestCaseTemplateItem {
+  return {
+    id: row.id,
+    templateId: row.template_id,
+    moduleName: row.module_name,
+    title: row.title,
+    objective: row.objective,
+    preconditions: row.preconditions,
+    steps: row.steps,
+    expectedResult: row.expected_result,
+    priority: row.priority,
+    stepType: row.step_type,
+    targetRole: row.target_role,
+    tagNames: row.tag_names ?? [],
+    orderIndex: row.order_index,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapTestCaseTemplateItemStepRow(row: any): TestCaseTemplateItemStep {
+  return {
+    id: row.id,
+    templateItemId: row.template_item_id,
+    stepNumber: row.step_number,
+    action: row.action,
+    expectedResult: row.expected_result,
   };
 }
 

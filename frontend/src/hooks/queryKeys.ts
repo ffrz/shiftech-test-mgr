@@ -19,6 +19,10 @@ export const queryKeys = {
   testCases: (projectId: string) => ['testCases', projectId] as const,
   testCasesWithDetails: (projectId: string) => ['testCases', 'withDetails', projectId] as const,
 
+  testCaseTemplates: () => ['testCaseTemplates'] as const,
+  testCaseTemplate: (id: string) => ['testCaseTemplate', id] as const,
+  testCaseTemplateItems: (templateId: string) => ['testCaseTemplateItems', templateId] as const,
+
   testRun: (id: string) => ['testRun', id] as const,
   testRunResults: (id: string) => ['testRunResults', id] as const,
   testRunsByPlan: (testPlanId: string) => ['testRuns', 'byPlan', testPlanId] as const,

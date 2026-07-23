@@ -257,6 +257,7 @@ export function TestCaseDetailPage() {
             <h2 className="m-0">{testCase.code} — {testCase.title}</h2>
             <Tag value={TEST_CASE_PRIORITY_LABEL[testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[testCase.priority]} />
             <Tag value={TEST_CASE_STATUS_LABEL[testCase.status]} severity={TEST_CASE_STATUS_SEVERITY[testCase.status]} />
+            {testCase.targetRole && <Tag value={testCase.targetRole} severity="secondary" />}
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { DataTable, type DataTableSortEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -16,6 +17,8 @@ import { Toast } from 'primereact/toast';
 import { useProjects } from '../../hooks/useProjects';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
+import { testCaseTemplateService } from '../../services/testCaseTemplateService';
+import { queryKeys } from '../../hooks/queryKeys';
 import type { Project, ProjectSortField, ProjectStatus } from '../../types/domain';
 import type { ProjectQuery } from '../../repositories/projectRepository';
 import { formatDate } from '../../helpers/dateFormatter';
@@ -50,12 +53,20 @@ export function ProjectsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [templateId, setTemplateId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const { data: templates = [] } = useQuery({
+    queryKey: queryKeys.testCaseTemplates(),
+    queryFn: () => testCaseTemplateService.listTemplates(),
+    enabled: dialogOpen && !editingId,
+  });
 
   function openCreateDialog() {
     setEditingId(null);
     setName('');
     setDescription('');
+    setTemplateId(null);
     setError(null);
     setDialogOpen(true);
   }
@@ -74,7 +85,11 @@ export function ProjectsPage() {
       if (editingId) {
         await projectService.update(editingId, { name, description });
       } else {
-        await projectService.create({ name, description });
+        const created = await projectService.create({ name, description });
+        if (templateId) {
+          const items = await testCaseTemplateService.listItems(templateId);
+          await testCaseTemplateService.cloneItemsToProject(created.id, items.map((i) => i.id));
+        }
       }
       setDialogOpen(false);
       await reload();
@@ -219,6 +234,20 @@ export function ProjectsPage() {
             <label htmlFor="description">Deskripsi</label>
             <InputTextarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
           </div>
+          {!editingId && (
+            <div className="flex flex-column gap-1">
+              <label htmlFor="project-template">Mulai dari Template (opsional)</label>
+              <Dropdown
+                id="project-template"
+                value={templateId}
+                options={templates.map((t) => ({ label: t.name, value: t.id }))}
+                onChange={(e) => setTemplateId(e.value)}
+                placeholder="Tanpa template"
+                showClear
+                className="w-full"
+              />
+            </div>
+          )}
           <Button label="Simpan" size="small" onClick={handleSave} />
         </div>
       </Dialog>
