@@ -14,7 +14,7 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { issueService } from '../../services/issueService';
 import { attachmentService } from '../../services/attachmentService';
-import { profileService } from '../../services/profileService';
+import { projectMemberService } from '../../services/projectMemberService';
 import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
@@ -57,9 +57,10 @@ export function IssueDetailPage() {
     queryFn: () => issueService.getById(id!),
     enabled: !!id,
   });
-  const { data: approvedUsers = [] } = useQuery({
-    queryKey: queryKeys.profiles(),
-    queryFn: async () => (await profileService.listAll()).filter((p) => p.role === 'user' || p.role === 'admin'),
+  const { data: projectMembers = [] } = useQuery({
+    queryKey: queryKeys.projectMembers(issue?.projectId ?? ''),
+    queryFn: () => projectMemberService.listByProject(issue!.projectId),
+    enabled: !!issue?.projectId,
   });
   const { data: attachments = [] } = useQuery({
     queryKey: queryKeys.attachmentsByIssue(id ?? ''),
@@ -339,7 +340,7 @@ export function IssueDetailPage() {
             <label className="text-color-secondary text-sm">Ditugaskan Ke</label>
             <Dropdown
               value={issue.assignedTo}
-              options={approvedUsers.map((u) => ({ label: u.fullName ?? u.email, value: u.id }))}
+              options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
               onChange={(e) => handleAssign(e.value)}
               placeholder="Belum ditugaskan"
               showClear

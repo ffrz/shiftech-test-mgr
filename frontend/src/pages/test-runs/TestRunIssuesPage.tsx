@@ -9,7 +9,7 @@ import { Button } from 'primereact/button';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
 import { issueService } from '../../services/issueService';
-import { profileService } from '../../services/profileService';
+import { projectMemberService } from '../../services/projectMemberService';
 import type { IssueStatus, IssueWithDetails } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
@@ -37,30 +37,35 @@ export function TestRunIssuesPage() {
   );
   const queryClient = useQueryClient();
 
-  const { data: approvedUsers = [] } = useQuery({
-    queryKey: queryKeys.profiles(),
-    queryFn: async () => (await profileService.listAll()).filter((p) => p.role === 'user' || p.role === 'admin'),
-  });
   const { data: testRun = null } = useQuery({
     queryKey: queryKeys.testRun(id ?? ''),
     queryFn: () => testRunService.getById(id!),
     enabled: !!id,
   });
+  // Project comes straight off the run itself (test_runs.project_id, E16) — not through
+  // testPlan, since a custom/unplanned run has no test_plan_id and therefore no testPlan.
+  const projectId = testRun?.projectId;
   const { data: testPlan = null } = useQuery({
     queryKey: queryKeys.testPlan(testRun?.testPlanId ?? ''),
-    queryFn: () => testPlanService.getById(testRun!.testPlanId),
+    queryFn: () => testPlanService.getById(testRun!.testPlanId!),
     enabled: !!testRun?.testPlanId,
   });
   const { data: project } = useQuery({
-    queryKey: queryKeys.project(testPlan?.projectId ?? ''),
-    queryFn: () => projectService.getById(testPlan!.projectId),
-    enabled: !!testPlan?.projectId,
+    queryKey: queryKeys.project(projectId ?? ''),
+    queryFn: () => projectService.getById(projectId!),
+    enabled: !!projectId,
   });
   const projectName = project?.name ?? null;
-  const { canManageIssues, canDeleteContent } = useProjectRole(testPlan?.projectId);
+  const { canManageIssues, canDeleteContent } = useProjectRole(projectId);
+
+  const { data: projectMembers = [] } = useQuery({
+    queryKey: queryKeys.projectMembers(projectId ?? ''),
+    queryFn: () => projectMemberService.listByProject(projectId!),
+    enabled: !!projectId,
+  });
 
   async function invalidateProjectIssues() {
-    if (testPlan) await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(testPlan.projectId) });
+    if (projectId) await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(projectId) });
   }
 
   async function handleChangeStatus(row: IssueWithDetails, status: IssueStatus) {
@@ -168,7 +173,7 @@ export function TestRunIssuesPage() {
             <div onClick={(e) => e.stopPropagation()}>
               <Dropdown
                 value={row.assignedTo}
-                options={approvedUsers.map((u) => ({ label: u.fullName ?? u.email, value: u.id }))}
+                options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
                 onChange={(e) => handleAssign(row, e.value)}
                 placeholder="Belum ditugaskan"
                 showClear
