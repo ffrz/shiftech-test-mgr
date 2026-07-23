@@ -48,6 +48,12 @@ export function TestCaseDetailPage() {
     queryFn: () => testCaseService.getByIdWithDetails(id!) as Promise<TestCaseDetail | null>,
     enabled: !!id,
   });
+
+  const { data: detailedSteps = [] } = useQuery({
+    queryKey: queryKeys.testCaseSteps(id ?? ''),
+    queryFn: () => testCaseService.listSteps(id!),
+    enabled: !!id && testCase?.stepType === 'detailed',
+  });
   const { canEditContent, canDeleteContent } = useProjectRole(testCase?.project.id);
 
   const { data: modules = [] } = useQuery({
@@ -294,13 +300,32 @@ export function TestCaseDetailPage() {
         </Card>
       )}
 
-      <Card title="Langkah Pengujian" className="mb-3">
-        <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.steps}</p>
-      </Card>
+      {testCase.stepType === 'detailed' ? (
+        <Card title="Langkah Pengujian" className="mb-3">
+          <ol className="m-0 pl-3 flex flex-column gap-2">
+            {detailedSteps.map((step) => (
+              <li key={step.id}>
+                <div style={{ whiteSpace: 'pre-wrap' }}>{step.action}</div>
+                {step.expectedResult && (
+                  <div className="text-color-secondary text-sm mt-1" style={{ whiteSpace: 'pre-wrap' }}>
+                    Expected: {step.expectedResult}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
+        </Card>
+      ) : (
+        <>
+          <Card title="Langkah Pengujian" className="mb-3">
+            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.steps}</p>
+          </Card>
 
-      <Card title="Hasil yang Diharapkan" className="mb-3">
-        <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.expectedResult}</p>
-      </Card>
+          <Card title="Hasil yang Diharapkan" className="mb-3">
+            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.expectedResult}</p>
+          </Card>
+        </>
+      )}
 
       {testCase.notes && (
         <Card title="Catatan" className="mb-3">
