@@ -16,9 +16,12 @@ import (
 	attachmentsvc "github.com/shiftech/testmgr-backend/internal/service/attachment"
 	authsvc "github.com/shiftech/testmgr-backend/internal/service/auth"
 	issuesvc "github.com/shiftech/testmgr-backend/internal/service/issue"
+	modulesvc "github.com/shiftech/testmgr-backend/internal/service/module"
 	projectsvc "github.com/shiftech/testmgr-backend/internal/service/project"
+	tagsvc "github.com/shiftech/testmgr-backend/internal/service/tag"
 	testcasesvc "github.com/shiftech/testmgr-backend/internal/service/testcase"
 	testplansvc "github.com/shiftech/testmgr-backend/internal/service/testplan"
+	testrolesvc "github.com/shiftech/testmgr-backend/internal/service/testrole"
 	testrunsvc "github.com/shiftech/testmgr-backend/internal/service/testrun"
 	transporthttp "github.com/shiftech/testmgr-backend/internal/transport/http"
 	"github.com/shiftech/testmgr-backend/internal/transport/http/handler"
@@ -58,6 +61,21 @@ func main() {
 		os.Exit(1)
 	}
 	projectRepo, err := newProjectRepository(cfg.DB.Driver, db)
+	if err != nil {
+		log.Error("failed to build repositories", "error", err)
+		os.Exit(1)
+	}
+	moduleRepo, err := newModuleRepository(cfg.DB.Driver, db)
+	if err != nil {
+		log.Error("failed to build repositories", "error", err)
+		os.Exit(1)
+	}
+	tagRepo, err := newTagRepository(cfg.DB.Driver, db)
+	if err != nil {
+		log.Error("failed to build repositories", "error", err)
+		os.Exit(1)
+	}
+	testRoleRepo, err := newTestRoleRepository(cfg.DB.Driver, db)
 	if err != nil {
 		log.Error("failed to build repositories", "error", err)
 		os.Exit(1)
@@ -104,6 +122,9 @@ func main() {
 	)
 
 	projectService := projectsvc.NewService(projectRepo)
+	moduleService := modulesvc.NewService(moduleRepo)
+	tagService := tagsvc.NewService(tagRepo)
+	testRoleService := testrolesvc.NewService(testRoleRepo)
 	testCaseService := testcasesvc.NewService(testCaseRepo)
 	testPlanService := testplansvc.NewService(testPlanRepo)
 	testRunService := testrunsvc.NewService(testRunRepo, testCaseSnapshotRepo, testPlanCaseReader)
@@ -113,6 +134,9 @@ func main() {
 	healthHandler := handler.NewHealthHandler(cfg.DB.Driver)
 	authHandler := handler.NewAuthHandler(authService, profileRepo)
 	projectHandler := handler.NewProjectHandler(projectService, events)
+	moduleHandler := handler.NewModuleHandler(moduleService, events)
+	tagHandler := handler.NewTagHandler(tagService, events)
+	testRoleHandler := handler.NewTestRoleHandler(testRoleService, events)
 	testCaseHandler := handler.NewTestCaseHandler(testCaseService, events)
 	testPlanHandler := handler.NewTestPlanHandler(testPlanService, events)
 	testRunHandler := handler.NewTestRunHandler(testRunService, events)
@@ -125,6 +149,9 @@ func main() {
 			Health:     healthHandler,
 			Auth:       authHandler,
 			Project:    projectHandler,
+			Module:     moduleHandler,
+			Tag:        tagHandler,
+			TestRole:   testRoleHandler,
 			TestCase:   testCaseHandler,
 			TestPlan:   testPlanHandler,
 			TestRun:    testRunHandler,
@@ -200,6 +227,39 @@ func newProjectRepository(driver config.Driver, db *gorm.DB) (projectsvc.Reposit
 		return mysql.NewProjectRepository(db), nil
 	case config.DriverPostgres:
 		return postgres.NewProjectRepository(db), nil
+	default:
+		return nil, fmt.Errorf("unsupported database driver: %s", driver)
+	}
+}
+
+func newModuleRepository(driver config.Driver, db *gorm.DB) (modulesvc.Repository, error) {
+	switch driver {
+	case config.DriverMySQL:
+		return mysql.NewModuleRepository(db), nil
+	case config.DriverPostgres:
+		return postgres.NewModuleRepository(db), nil
+	default:
+		return nil, fmt.Errorf("unsupported database driver: %s", driver)
+	}
+}
+
+func newTagRepository(driver config.Driver, db *gorm.DB) (tagsvc.Repository, error) {
+	switch driver {
+	case config.DriverMySQL:
+		return mysql.NewTagRepository(db), nil
+	case config.DriverPostgres:
+		return postgres.NewTagRepository(db), nil
+	default:
+		return nil, fmt.Errorf("unsupported database driver: %s", driver)
+	}
+}
+
+func newTestRoleRepository(driver config.Driver, db *gorm.DB) (testrolesvc.Repository, error) {
+	switch driver {
+	case config.DriverMySQL:
+		return mysql.NewTestRoleRepository(db), nil
+	case config.DriverPostgres:
+		return postgres.NewTestRoleRepository(db), nil
 	default:
 		return nil, fmt.Errorf("unsupported database driver: %s", driver)
 	}

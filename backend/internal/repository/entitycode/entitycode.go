@@ -27,9 +27,16 @@ func (sequenceRow) TableName() string { return "entity_code_sequences" }
 // the code, so a failed insert does not burn a gap-free sequence value
 // unnecessarily -- callers should wrap both in db.Transaction.
 func Next(ctx context.Context, tx *gorm.DB, projectID, prefix string) (string, error) {
+	// last_value is a reserved keyword in both MySQL and Postgres (SQL:2016
+	// window-function-adjacent reserved word) -- must be quoted via GORM's
+	// dialect-aware Statement.Quote rather than hardcoded backticks (MySQL
+	// only) or double-quotes (Postgres only), since this helper is shared
+	// verbatim by both repository packages.
+	quotedLastValue := tx.Statement.Quote("last_value")
+
 	var row sequenceRow
 	err := tx.WithContext(ctx).
-		Raw(`SELECT project_id, prefix, last_value FROM entity_code_sequences WHERE project_id = ? AND prefix = ? FOR UPDATE`, projectID, prefix).
+		Raw(fmt.Sprintf(`SELECT project_id, prefix, %s FROM entity_code_sequences WHERE project_id = ? AND prefix = ? FOR UPDATE`, quotedLastValue), projectID, prefix).
 		Scan(&row).Error
 	if err != nil {
 		return "", err
@@ -39,7 +46,7 @@ func Next(ctx context.Context, tx *gorm.DB, projectID, prefix string) (string, e
 	if row.Prefix == "" {
 		// No row yet for this (project, prefix) pair -- insert starting at 1.
 		if err := tx.WithContext(ctx).Exec(
-			`INSERT INTO entity_code_sequences (project_id, prefix, last_value) VALUES (?, ?, ?)`,
+			fmt.Sprintf(`INSERT INTO entity_code_sequences (project_id, prefix, %s) VALUES (?, ?, ?)`, quotedLastValue),
 			projectID, prefix, 1,
 		).Error; err != nil {
 			return "", err
@@ -47,7 +54,7 @@ func Next(ctx context.Context, tx *gorm.DB, projectID, prefix string) (string, e
 		next = 1
 	} else {
 		if err := tx.WithContext(ctx).Exec(
-			`UPDATE entity_code_sequences SET last_value = ? WHERE project_id = ? AND prefix = ?`,
+			fmt.Sprintf(`UPDATE entity_code_sequences SET %s = ? WHERE project_id = ? AND prefix = ?`, quotedLastValue),
 			next, projectID, prefix,
 		).Error; err != nil {
 			return "", err

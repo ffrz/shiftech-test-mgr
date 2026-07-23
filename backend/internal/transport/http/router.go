@@ -22,6 +22,9 @@ type Handlers struct {
 	Health     *handler.HealthHandler
 	Auth       *handler.AuthHandler
 	Project    *handler.ProjectHandler
+	Module     *handler.ModuleHandler
+	Tag        *handler.TagHandler
+	TestRole   *handler.TestRoleHandler
 	TestCase   *handler.TestCaseHandler
 	TestPlan   *handler.TestPlanHandler
 	TestRun    *handler.TestRunHandler
@@ -85,6 +88,27 @@ func NewRouter(logger *slog.Logger, cfg *config.Config, jwtSvc *jwt.Service, dep
 	projects.PUT("/:id", h.Project.Update, middleware.RequireProjectEdit(deps.ProjectMembers))
 	projects.PATCH("/:id/status", h.Project.ChangeStatus, middleware.RequireProjectEdit(deps.ProjectMembers))
 	projects.DELETE("/:id", h.Project.DeletePermanently, middleware.RequireProjectDelete(deps.ProjectMembers))
+
+	// --- Modules, nested under a project ---
+	modules := projects.Group("/:projectId/modules")
+	modules.GET("", h.Module.List, access)
+	modules.POST("", h.Module.Create, middleware.RequireProjectEdit(deps.ProjectMembers))
+	modules.PUT("/:id", h.Module.Update, middleware.RequireProjectEdit(deps.ProjectMembers))
+	modules.DELETE("/:id", h.Module.Delete, middleware.RequireProjectEdit(deps.ProjectMembers))
+
+	// --- Tags, nested under a project ---
+	tags := projects.Group("/:projectId/tags")
+	tags.GET("", h.Tag.List, access)
+	tags.POST("", h.Tag.Create, middleware.RequireProjectEdit(deps.ProjectMembers))
+	tags.PUT("/:id", h.Tag.Rename, middleware.RequireProjectEdit(deps.ProjectMembers))
+	tags.DELETE("/:id", h.Tag.Delete, middleware.RequireProjectEdit(deps.ProjectMembers))
+
+	// --- Test Roles, nested under a project ---
+	testRoles := projects.Group("/:projectId/test-roles")
+	testRoles.GET("", h.TestRole.List, access)
+	testRoles.POST("", h.TestRole.Create, middleware.RequireProjectEdit(deps.ProjectMembers))
+	testRoles.PUT("/:id", h.TestRole.Update, middleware.RequireProjectEdit(deps.ProjectMembers))
+	testRoles.DELETE("/:id", h.TestRole.Delete, middleware.RequireProjectEdit(deps.ProjectMembers))
 
 	// --- Test Cases, nested under a project ---
 	testCases := projects.Group("/:projectId/test-cases")

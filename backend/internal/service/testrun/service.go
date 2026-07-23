@@ -19,6 +19,7 @@ package testrun
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/shiftech/testmgr-backend/internal/domain/apperror"
 	"github.com/shiftech/testmgr-backend/internal/domain/testrun"
@@ -74,6 +75,7 @@ func (s *Service) Start(ctx context.Context, projectID, testPlanID, name, code s
 		Name:       name,
 		Code:       strings.TrimSpace(code),
 		Status:     testrun.StatusInProgress,
+		StartedAt:  time.Now(),
 	}
 	return s.startWithScope(ctx, run, orderedTestCaseIDs)
 }
@@ -99,6 +101,7 @@ func (s *Service) StartCustom(ctx context.Context, projectID, name string, testC
 		Name:       name,
 		Code:       strings.TrimSpace(code),
 		Status:     testrun.StatusInProgress,
+		StartedAt:  time.Now(),
 	}
 	return s.startWithScope(ctx, run, testCaseIDs)
 }

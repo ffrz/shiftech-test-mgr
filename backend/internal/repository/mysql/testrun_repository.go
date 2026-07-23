@@ -270,13 +270,15 @@ func toDomainTestRun(m model.TestRun) *testrun.TestRun {
 
 func fromDomainTestRun(r *testrun.TestRun) model.TestRun {
 	return model.TestRun{
-		ID:         r.ID,
-		ProjectID:  r.ProjectID,
-		TestPlanID: r.TestPlanID,
-		Code:       r.Code,
-		Name:       r.Name,
-		Status:     string(r.Status),
-		Notes:      r.Notes,
+		ID:          r.ID,
+		ProjectID:   r.ProjectID,
+		TestPlanID:  r.TestPlanID,
+		Code:        r.Code,
+		Name:        r.Name,
+		Status:      string(r.Status),
+		StartedAt:   r.StartedAt,
+		CompletedAt: r.CompletedAt,
+		Notes:       r.Notes,
 	}
 }
 
