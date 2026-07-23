@@ -25,7 +25,7 @@ import { testPlanService } from '../../services/testPlanService';
 import { testCaseService } from '../../services/testCaseService';
 import { testRunService } from '../../services/testRunService';
 import { issueService } from '../../services/issueService';
-import { profileService } from '../../services/profileService';
+import { projectMemberService } from '../../services/projectMemberService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { useProjectRole } from '../../hooks/useProjectRole';
@@ -44,7 +44,6 @@ import type {
   IssueStatus,
   IssuePriority,
   IssueType,
-  Profile,
 } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import {
@@ -98,8 +97,7 @@ const ISSUE_TYPE_OPTIONS: { label: string; value: IssueType }[] = (
 ).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }));
 
 type TestRunWithSummary = TestRun & {
-  testPlanId: string;
-  testPlanName: string;
+  testPlanName: string | null;
   total: number;
   pass: number;
   fail: number;
@@ -108,7 +106,7 @@ type TestRunWithSummary = TestRun & {
 
 // Index within the TabView -> which query keys that tab depends on, so loading state and
 // invalidation on mutation both know exactly what to touch without over-fetching other tabs.
-const TAB_QUERY_NAMES = ['testPlans', 'testCases', 'modules', 'tags', 'testRuns', 'issues', 'approvedUsers'] as const;
+const TAB_QUERY_NAMES = ['testPlans', 'testCases', 'modules', 'tags', 'testRuns', 'issues', 'projectMembers'] as const;
 // Stable empty-array reference — `data ?? []` alone allocates a new array every render
 // when the query has no data yet, which defeats useMemo below it (dependency "changes"
 // every render even though nothing meaningful did).
@@ -117,14 +115,14 @@ const TAB_DEPENDENCIES: (typeof TAB_QUERY_NAMES[number])[][] = [
   ['testPlans'],
   ['testCases', 'modules', 'tags'],
   ['testRuns'],
-  ['issues', 'approvedUsers'],
+  ['issues', 'projectMembers'],
 ];
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
-  const { canEditContent, canDeleteContent, canManageIssues } = useProjectRole(id);
+  const { canEditContent, canDeleteContent, canManageIssues, canRunTests } = useProjectRole(id);
   const queryClient = useQueryClient();
   const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(0);
 
@@ -166,9 +164,10 @@ export function ProjectDetailPage() {
     queryFn: () => issueService.listByProject(id!),
     enabled: !!id,
   });
-  const approvedUsersQuery = useQuery({
-    queryKey: queryKeys.profiles(),
-    queryFn: async () => (await profileService.listAll()).filter((p: Profile) => p.role === 'user' || p.role === 'admin'),
+  const projectMembersQuery = useQuery({
+    queryKey: queryKeys.projectMembers(id ?? ''),
+    queryFn: () => projectMemberService.listByProject(id!),
+    enabled: !!id,
   });
 
   const testPlans = testPlansQuery.data ?? EMPTY_ARRAY;
@@ -177,25 +176,25 @@ export function ProjectDetailPage() {
   const tags = tagsQuery.data ?? EMPTY_ARRAY;
   const testRuns = (testRunsQuery.data ?? EMPTY_ARRAY) as TestRunWithSummary[];
   const issues = issuesQuery.data ?? EMPTY_ARRAY;
-  const approvedUsers = approvedUsersQuery.data ?? EMPTY_ARRAY;
+  const projectMembers = projectMembersQuery.data ?? EMPTY_ARRAY;
 
   const tabLoading: Record<number, boolean> = {
     0: testPlansQuery.isLoading,
     1: testCasesQuery.isLoading || modulesQuery.isLoading || tagsQuery.isLoading,
     2: testRunsQuery.isLoading,
-    3: issuesQuery.isLoading || approvedUsersQuery.isLoading,
+    3: issuesQuery.isLoading || projectMembersQuery.isLoading,
   };
 
   const queryKeyByName: Record<(typeof TAB_QUERY_NAMES)[number], readonly unknown[]> = id
     ? {
-        testPlans: queryKeys.testPlans(id),
-        testCases: queryKeys.testCasesWithDetails(id),
-        modules: queryKeys.modules(id),
-        tags: queryKeys.tags(id),
-        testRuns: queryKeys.testRunsByProject(id),
-        issues: queryKeys.issuesByProject(id),
-        approvedUsers: queryKeys.profiles(),
-      }
+      testPlans: queryKeys.testPlans(id),
+      testCases: queryKeys.testCasesWithDetails(id),
+      modules: queryKeys.modules(id),
+      tags: queryKeys.tags(id),
+      testRuns: queryKeys.testRunsByProject(id),
+      issues: queryKeys.issuesByProject(id),
+      projectMembers: queryKeys.projectMembers(id),
+    }
     : ({} as Record<(typeof TAB_QUERY_NAMES)[number], readonly unknown[]>);
 
   // Re-fetches whatever the currently active tab depends on — used after any mutation on
@@ -561,6 +560,43 @@ export function ProjectDetailPage() {
   const [runSortOrder, setRunSortOrder] = useState<1 | -1>(1);
   const [selectedRuns, setSelectedRuns] = useState<TestRunWithSummary[]>([]);
 
+  // --- Create Test Run dialog: "from plan" (existing flow) or "unplanned/custom" ---
+  const [runDialogOpen, setRunDialogOpen] = useState(false);
+  const [runMode, setRunMode] = useState<'plan' | 'custom'>('plan');
+  const [runFormName, setRunFormName] = useState('');
+  const [runFormPlanId, setRunFormPlanId] = useState<string | null>(null);
+  const [runFormCaseIds, setRunFormCaseIds] = useState<string[]>([]);
+  const [runFormError, setRunFormError] = useState<string | null>(null);
+
+  function openCreateRunDialog() {
+    setRunMode('plan');
+    setRunFormName(`Run ${new Date().toLocaleDateString('id-ID')}`);
+    setRunFormPlanId(null);
+    setRunFormCaseIds([]);
+    setRunFormError(null);
+    setRunDialogOpen(true);
+  }
+
+  async function handleCreateRun() {
+    if (!id) return;
+    setRunFormError(null);
+    try {
+      const run =
+        runMode === 'plan'
+          ? await (async () => {
+            if (!runFormPlanId) throw new Error('Pilih test plan terlebih dahulu');
+            return testRunService.start(runFormPlanId, runFormName);
+          })()
+          : await testRunService.startCustom(id, runFormName, runFormCaseIds);
+      setRunDialogOpen(false);
+      await loadAll();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(id) });
+      navigate(`/test-runs/${run.id}`);
+    } catch (err) {
+      setRunFormError(err instanceof Error ? err.message : 'Gagal membuat test run');
+    }
+  }
+
   const filteredRuns = useMemo(() => {
     const q = runSearch.trim().toLowerCase();
     return testRuns.filter((r) => {
@@ -730,7 +766,7 @@ export function ProjectDetailPage() {
             <p className="text-color-secondary text-sm m-0">{project.description || 'Tidak ada deskripsi'}</p>
           </div>
           <div className="flex gap-2">
-            <Button icon="pi pi-cog" outlined size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
+            <Button text icon="pi pi-cog" outlined size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
           </div>
         </div>
 
@@ -952,6 +988,7 @@ export function ProjectDetailPage() {
                   className="w-12rem"
                 />
               </div>
+              {canRunTests && <Button label="Buat Test Run" icon="pi pi-plus" size="small" onClick={openCreateRunDialog} />}
             </div>
             {canDeleteContent && (
               <BulkActionsBar
@@ -985,17 +1022,21 @@ export function ProjectDetailPage() {
                 header="Test Plan"
                 field="testPlanName"
                 sortable
-                body={(row: TestRunWithSummary) => (
-                  <a
-                    className="entity-link"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/test-plans/${row.testPlanId}`);
-                    }}
-                  >
-                    {row.testPlanName}
-                  </a>
-                )}
+                body={(row: TestRunWithSummary) =>
+                  row.testPlanId ? (
+                    <a
+                      className="entity-link"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/test-plans/${row.testPlanId}`);
+                      }}
+                    >
+                      {row.testPlanName}
+                    </a>
+                  ) : (
+                    <Tag value="Unplanned" severity="secondary" />
+                  )
+                }
               />
               <Column field="status" header="Status" sortable body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
               <Column
@@ -1152,7 +1193,7 @@ export function ProjectDetailPage() {
                   <div onClick={(e) => e.stopPropagation()}>
                     <Dropdown
                       value={row.assignedTo}
-                      options={approvedUsers.map((u) => ({ label: u.fullName ?? u.email, value: u.id }))}
+                      options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
                       onChange={(e) => {
                         issueService.assign(row.id, e.value);
                         patchIssue(row.id, { assignedTo: e.value });
@@ -1249,6 +1290,54 @@ export function ProjectDetailPage() {
             <InputTextarea id="plan-description" value={planDescription} onChange={(e) => setPlanDescription(e.target.value)} rows={3} />
           </div>
           <Button label="Simpan" size="small" onClick={handleSavePlan} />
+        </div>
+      </Dialog>
+
+      {/* --- Create Test Run Dialog --- */}
+      <Dialog header="Buat Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '32rem' }}>
+        <div className="flex flex-column gap-3">
+          {runFormError && <small className="p-error">{runFormError}</small>}
+          <SelectButton
+            value={runMode}
+            onChange={(e) => e.value && setRunMode(e.value)}
+            options={[
+              { label: 'Dari Test Plan', value: 'plan' },
+              { label: 'Unplanned / Custom', value: 'custom' },
+            ]}
+          />
+          <div className="flex flex-column gap-1">
+            <label htmlFor="run-name">Nama Run</label>
+            <InputText id="run-name" value={runFormName} onChange={(e) => setRunFormName(e.target.value)} autoFocus />
+          </div>
+          {runMode === 'plan' ? (
+            <div className="flex flex-column gap-1">
+              <label htmlFor="run-plan">Test Plan</label>
+              <Dropdown
+                id="run-plan"
+                value={runFormPlanId}
+                options={testPlans.map((p) => ({ label: `${p.code} — ${p.name}`, value: p.id }))}
+                onChange={(e) => setRunFormPlanId(e.value)}
+                placeholder="Pilih test plan"
+                className="w-full"
+                filter
+              />
+            </div>
+          ) : (
+            <div className="flex flex-column gap-1">
+              <label htmlFor="run-cases">Test Case</label>
+              <MultiSelect
+                id="run-cases"
+                value={runFormCaseIds}
+                options={testCases.filter((c) => c.status === 'active').map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
+                onChange={(e) => setRunFormCaseIds(e.value)}
+                placeholder="Pilih test case"
+                filter
+                display="chip"
+                className="w-full"
+              />
+            </div>
+          )}
+          <Button label="Buat" size="small" onClick={handleCreateRun} />
         </div>
       </Dialog>
 
