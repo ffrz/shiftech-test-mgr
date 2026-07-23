@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: mysql:8.4
+    # MySQL 8.4 defaults to caching_sha2_password, which requires either TLS
+    # or RSA key exchange that go-sql-driver's default connection setup
+    # doesn't negotiate automatically. Forcing mysql_native_password here
+    # matches what a typical existing VPS MySQL install already uses and
+    # avoids "Plugin 'caching_sha2_password' is not loaded"/handshake errors
+    # in local dev. If the target VPS MySQL uses caching_sha2_password,
+    # add `?tls=skip-verify` or configure TLS in the DSN instead of changing
+    # the server plugin.
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: testmgr
+      MYSQL_USER: testmgr
+      MYSQL_PASSWORD: testmgr
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - testmgr_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: testmgr
+      POSTGRES_USER: testmgr
+      POSTGRES_PASSWORD: testmgr
+    ports:
+      - "5432:5432"
+    volumes:
+      - testmgr_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testmgr"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  testmgr_mysql_data:
+  testmgr_postgres_data:
