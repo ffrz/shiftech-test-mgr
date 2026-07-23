@@ -7,8 +7,8 @@ export const issueService = {
     return issueRepository.findById(id);
   },
 
-  listByProject(projectId: string) {
-    return issueRepository.findAllByProject(projectId);
+  listByProject(projectId: string, options?: { search?: string; limit?: number }) {
+    return issueRepository.findAllByProject(projectId, options);
   },
 
   listByTestRun(testRunId: string) {

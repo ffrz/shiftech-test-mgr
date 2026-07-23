@@ -2,9 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
-import { Checkbox } from 'primereact/checkbox';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import { Panel } from 'primereact/panel';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
@@ -14,16 +11,17 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { MultiSelect } from 'primereact/multiselect';
+import { AutoComplete, type AutoCompleteCompleteEvent } from 'primereact/autocomplete';
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
-import { ConfirmDialog } from 'primereact/confirmdialog';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useTestRunDetail } from '../../hooks/useTestRunDetail';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { testRunService } from '../../services/testRunService';
-import { profileService } from '../../services/profileService';
+import { projectMemberService } from '../../services/projectMemberService';
 import { issueService } from '../../services/issueService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
@@ -32,7 +30,6 @@ import { projectService } from '../../services/projectService';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { queryKeys } from '../../hooks/queryKeys';
-import { formatDateTime } from '../../helpers/dateFormatter';
 import type {
   IssuePriority,
   IssueType,
@@ -90,35 +87,40 @@ export function TestRunResultDetailPage() {
   const { testRun, results, summary, loading, reload } = useTestRunDetail(runId);
   const { reload: reloadRunIssues } = useIssuesByTestRun(runId);
 
-  const { data: approvedUsers = [] } = useQuery({
-    queryKey: queryKeys.profiles(),
-    queryFn: async () => (await profileService.listAll()).filter((p) => p.role === 'user' || p.role === 'admin'),
-  });
-
   const { data: testPlan = null } = useQuery({
     queryKey: queryKeys.testPlan(testRun?.testPlanId ?? ''),
-    queryFn: () => testPlanService.getById(testRun!.testPlanId),
+    queryFn: () => testPlanService.getById(testRun!.testPlanId!),
     enabled: !!testRun?.testPlanId,
   });
 
-  const { canRunTests, canManageIssues } = useProjectRole(testPlan?.projectId);
+  // Project comes straight off the run itself (test_runs.project_id, E16) — not through
+  // testPlan, since a custom/unplanned run has no test_plan_id and therefore no testPlan.
+  const projectId = testRun?.projectId;
+
+  const { canRunTests, canManageIssues } = useProjectRole(projectId);
+
+  const { data: projectMembers = [] } = useQuery({
+    queryKey: queryKeys.projectMembers(projectId ?? ''),
+    queryFn: () => projectMemberService.listByProject(projectId!),
+    enabled: !!projectId,
+  });
 
   const { data: project } = useQuery({
-    queryKey: queryKeys.project(testPlan?.projectId ?? ''),
-    queryFn: () => projectService.getById(testPlan!.projectId),
-    enabled: !!testPlan?.projectId,
+    queryKey: queryKeys.project(projectId ?? ''),
+    queryFn: () => projectService.getById(projectId!),
+    enabled: !!projectId,
   });
   const projectName = project?.name ?? null;
 
   const { data: modules = [] } = useQuery({
-    queryKey: queryKeys.modules(testPlan?.projectId ?? ''),
-    queryFn: () => moduleService.listByProject(testPlan!.projectId),
-    enabled: !!testPlan?.projectId,
+    queryKey: queryKeys.modules(projectId ?? ''),
+    queryFn: () => moduleService.listByProject(projectId!),
+    enabled: !!projectId,
   });
   const { data: projectTags = [] } = useQuery({
-    queryKey: queryKeys.tags(testPlan?.projectId ?? ''),
-    queryFn: () => tagService.listByProject(testPlan!.projectId),
-    enabled: !!testPlan?.projectId,
+    queryKey: queryKeys.tags(projectId ?? ''),
+    queryFn: () => tagService.listByProject(projectId!),
+    enabled: !!projectId,
   });
 
   const activeResult = results.find((r) => r.id === resultId) ?? null;
@@ -126,13 +128,26 @@ export function TestRunResultDetailPage() {
   // Selecting a test case updates the resultId query param instead of navigating to a
   // different route — keeps this on the same route match as the bare /test-runs/:id URL,
   // so React Router never unmounts/remounts the page (and its breadcrumb) between the two.
-  function selectResult(id: string) {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('resultId', id);
-      return next;
-    });
+  function selectResult(id: string, options?: { replace?: boolean }) {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('resultId', id);
+        return next;
+      },
+      { replace: options?.replace },
+    );
   }
+
+  // Auto-select the first test case once results have loaded, so opening a run doesn't
+  // show a blank "pick a test case" placeholder when there's an obvious first choice.
+  // Only fires when the URL doesn't already name a result (fresh open, not a reload/nav).
+  // `replace: true` so this doesn't add a spurious back-button entry.
+  useEffect(() => {
+    if (resultId || results.length === 0) return;
+    selectResult(results[0].id, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resultId, results]);
 
   // --- Panel kiri: filter/search ---
   const [search, setSearch] = useState('');
@@ -170,6 +185,7 @@ export function TestRunResultDetailPage() {
     setResultTesterId(activeResult.testerId ?? currentProfile?.id ?? null);
     setResultNotes(activeResult.notes ?? '');
     setRightPanelScrolled(false);
+    rightPanelRef.current?.scrollTo({ top: 0 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultId]);
 
@@ -184,22 +200,51 @@ export function TestRunResultDetailPage() {
     }
   }
 
-  async function handleSaveResult() {
-    if (!activeResult || !resultTesterId) return;
-    await testRunService.recordResult(activeResult.id, resultTesterId, resultStatus, resultNotes.trim() || null);
+  // Autosave — status/tester/notes each persist as soon as they change, no explicit Save
+  // button. Every call re-sends all three current values since recordResult replaces the
+  // whole row; only the field that actually changed drives when this fires.
+  async function saveResult(next: { status?: TestResultStatus; testerId?: string | null; notes?: string }) {
+    if (!activeResult) return;
+    const status = next.status ?? resultStatus;
+    const testerId = next.testerId ?? resultTesterId;
+    const notes = next.notes ?? resultNotes;
+    if (!testerId) return;
+    await testRunService.recordResult(activeResult.id, testerId, status, notes.trim() || null);
     await reload();
     // Pass/fail counts shown in the run summary lists on ProjectDetailPage/TestPlanDetailPage
     // come from this same recorded result — keep them in sync too.
     await invalidateTestRunSummaries();
-    toast.current?.show({ severity: 'success', summary: 'Hasil tersimpan' });
   }
 
-  // --- Link Issue: browse dialog (pick existing) + nested create dialog (auto-links on save) ---
-  const [browseDialogOpen, setBrowseDialogOpen] = useState(false);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [notesDraft, setNotesDraft] = useState('');
+
+  function openNotesDialog() {
+    setNotesDraft(resultNotes);
+    setNotesDialogOpen(true);
+  }
+
+  async function handleSaveNotes() {
+    setResultNotes(notesDraft);
+    setNotesDialogOpen(false);
+    await saveResult({ notes: notesDraft });
+    toast.current?.show({ severity: 'success', summary: 'Catatan tersimpan' });
+  }
+
+  async function handleClearNotes() {
+    setResultNotes('');
+    setNotesDialogOpen(false);
+    await saveResult({ notes: '' });
+    toast.current?.show({ severity: 'success', summary: 'Catatan dihapus' });
+  }
+
+  // --- Link Issue: AutoComplete (no dialog, no MultiSelect) — type to search server-side,
+  // pick a suggestion to link it immediately. Suggestions exclude already-linked issues so
+  // there's no duplicate info between the input and the linked list below it.
   const [linkedIssues, setLinkedIssues] = useState<IssueWithDetails[]>([]);
-  const [projectIssues, setProjectIssues] = useState<IssueWithDetails[]>([]);
   const [linkedIssueIds, setLinkedIssueIds] = useState<Set<string>>(new Set());
-  const [browseSearch, setBrowseSearch] = useState('');
+  const [issueQuery, setIssueQuery] = useState('');
+  const [issueSuggestions, setIssueSuggestions] = useState<IssueWithDetails[]>([]);
 
   useEffect(() => {
     // activeResult resolves from `results`, which loads asynchronously — on a fresh page
@@ -209,57 +254,53 @@ export function TestRunResultDetailPage() {
     // activeResult?.id rather than the object itself, so a reload() that produces a new
     // `results` array reference doesn't refetch this unnecessarily.
     if (!activeResult) return;
-    issueService.listByTestResult(activeResult.id).then(setLinkedIssues);
+    issueService.listByTestResult(activeResult.id).then((linked) => {
+      setLinkedIssues(linked);
+      setLinkedIssueIds(new Set(linked.map((i) => i.id)));
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultId, activeResult?.id]);
 
-  async function openBrowseDialog() {
-    if (!activeResult || !testPlan) return;
-    setBrowseSearch('');
-    setBrowseDialogOpen(true);
-    const [allIssues, linked] = await Promise.all([
-      issueService.listByProject(testPlan.projectId),
-      issueService.listByTestResult(activeResult.id),
-    ]);
-    setProjectIssues(allIssues);
-    setLinkedIssueIds(new Set(linked.map((i) => i.id)));
-  }
-
-  // DataTable's BodyCell is React.memo'd comparing only rowData/field — it ignores changes
-  // to values only captured in the `body` render function's closure (like linkedIssueIds),
-  // so the checkbox column silently kept rendering its old cell. Bake the linked flag into
-  // the row data itself so rowData actually changes reference when a link is toggled.
-  const filteredProjectIssues = useMemo(() => {
-    const q = browseSearch.trim().toLowerCase();
-    const base = !q ? projectIssues : projectIssues.filter((i) => i.title.toLowerCase().includes(q) || i.code.toLowerCase().includes(q));
-    return base.map((issue) => ({ ...issue, _linked: linkedIssueIds.has(issue.id) }));
-  }, [projectIssues, browseSearch, linkedIssueIds]);
-
   async function refreshLinkedIssues() {
     if (!activeResult) return;
-    setLinkedIssues(await issueService.listByTestResult(activeResult.id));
+    const linked = await issueService.listByTestResult(activeResult.id);
+    setLinkedIssues(linked);
+    setLinkedIssueIds(new Set(linked.map((i) => i.id)));
     await reloadRunIssues();
   }
 
-  async function handleToggleLink(issueId: string, linked: boolean) {
+  // On focus (empty query) this fetches a plain first page; once the user types, each
+  // keystroke re-queries the server (title/code ilike) instead of filtering a client cache.
+  async function searchIssues(e: AutoCompleteCompleteEvent) {
+    if (!projectId) return;
+    const found = await issueService.listByProject(projectId, { search: e.query, limit: 20 });
+    setIssueSuggestions(found.filter((i) => !linkedIssueIds.has(i.id)));
+  }
+
+  async function handlePickIssue(issue: IssueWithDetails) {
     if (!activeResult) return;
-    // Update the checkbox immediately (optimistic) instead of waiting for the round trip —
-    // otherwise the click feels unresponsive even though it did register.
-    setLinkedIssueIds((prev) => {
-      const next = new Set(prev);
-      if (linked) next.add(issueId);
-      else next.delete(issueId);
-      return next;
-    });
-    if (linked) {
-      await issueService.linkToTestResult(issueId, activeResult.id);
-    } else {
-      await issueService.unlinkFromTestResult(issueId, activeResult.id);
-    }
+    setIssueQuery('');
+    await issueService.linkToTestResult(issue.id, activeResult.id);
     await refreshLinkedIssues();
   }
 
-  // --- Create Issue dialog (nested inside Browse) — full form, auto-links to activeResult on save ---
+  function handleUnlinkIssue(issue: IssueWithDetails) {
+    if (!activeResult) return;
+    confirmDialog({
+      header: 'Lepas Tautan Issue',
+      message: `Issue "${issue.code} — ${issue.title}" akan dilepas dari test case ini. Issue itu sendiri tidak dihapus. Lanjutkan?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Lepas',
+      rejectLabel: 'Batal',
+      acceptClassName: 'p-button-danger',
+      accept: async () => {
+        await issueService.unlinkFromTestResult(issue.id, activeResult!.id);
+        await refreshLinkedIssues();
+      },
+    });
+  }
+
+  // --- Create Issue dialog — full form, auto-links to activeResult on save ---
   const [createIssueDialogOpen, setCreateIssueDialogOpen] = useState(false);
   const [issueTitle, setIssueTitle] = useState('');
   const [issueType, setIssueType] = useState<IssueType>('bug');
@@ -286,11 +327,11 @@ export function TestRunResultDetailPage() {
   }
 
   async function handleCreateAndLinkIssue() {
-    if (!activeResult || !testPlan) return;
+    if (!activeResult || !projectId) return;
     setIssueError(null);
     try {
       await issueService.create({
-        projectId: testPlan.projectId,
+        projectId,
         linkToTestResultId: activeResult.id,
         moduleId: issueModuleId,
         type: issueType,
@@ -303,7 +344,6 @@ export function TestRunResultDetailPage() {
       });
       setCreateIssueDialogOpen(false);
       await refreshLinkedIssues();
-      if (testPlan) setProjectIssues(await issueService.listByProject(testPlan.projectId));
       toast.current?.show({ severity: 'success', summary: 'Issue dibuat dan ditautkan' });
     } catch (err) {
       setIssueError(err instanceof Error ? err.message : 'Gagal membuat issue');
@@ -314,6 +354,7 @@ export function TestRunResultDetailPage() {
   // Shadow di bawah toolbar Prev/Next hanya muncul saat konten di bawahnya sudah discroll —
   // penanda visual "ada lebih banyak konten di atas", bukan dekorasi permanen.
   const [rightPanelScrolled, setRightPanelScrolled] = useState(false);
+  const rightPanelRef = useRef<HTMLDivElement>(null);
 
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [completeNotes, setCompleteNotes] = useState('');
@@ -329,10 +370,10 @@ export function TestRunResultDetailPage() {
   // a run here has to invalidate those too or they'd keep showing the old status until a
   // manual refresh.
   async function invalidateTestRunSummaries() {
-    if (!testPlan) return;
+    if (!projectId) return;
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(testPlan.projectId) }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByPlan(testPlan.id) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(projectId) }),
+      ...(testPlan ? [queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByPlan(testPlan.id) })] : []),
     ]);
   }
 
@@ -363,8 +404,12 @@ export function TestRunResultDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/' },
-          { label: testPlan ? (projectName ?? '…') : '…', path: testPlan ? `/projects/${testPlan.projectId}` : undefined },
-          { label: testPlan ? testPlan.code : '…', path: testPlan ? `/test-plans/${testPlan.id}` : undefined },
+          { label: projectId ? (projectName ?? '…') : '…', path: projectId ? `/projects/${projectId}` : undefined },
+          // Custom/unplanned runs (E16) have no test_plan_id — skip this crumb entirely
+          // instead of showing a permanently-unresolved "…".
+          ...(testRun?.testPlanId
+            ? [{ label: testPlan ? testPlan.code : '…', path: testPlan ? `/test-plans/${testPlan.id}` : undefined }]
+            : []),
           { label: testRun ? testRun.code : '…', path: testRun ? `/test-runs/${testRun.id}` : undefined },
         ]}
       />
@@ -374,7 +419,7 @@ export function TestRunResultDetailPage() {
         actions={
           canRunTests ? (
             testRun?.status === 'completed' ? (
-              <Button label="Buka Kembali" icon="pi pi-replay" size="small" severity="secondary" outlined onClick={handleReopenRun} />
+              <Button label="Reopen" icon="pi pi-replay" size="small" severity="secondary" outlined onClick={handleReopenRun} />
             ) : (
               <Button label="Selesaikan Run" icon="pi pi-check" size="small" onClick={openCompleteDialog} />
             )
@@ -401,8 +446,8 @@ export function TestRunResultDetailPage() {
       )}
 
       {testRun?.notes && (
-        <div className="mb-3 p-3 surface-100 border-round">
-          <div className="text-sm font-medium mb-1">Catatan Test Run</div>
+        <div className="mb-3 p-0 surface-100 border-round">
+          <div className="text-sm font-medium mb-1">Catatan</div>
           <div className="text-sm white-space-pre-line">{testRun.notes}</div>
         </div>
       )}
@@ -421,16 +466,18 @@ export function TestRunResultDetailPage() {
         {/* --- Panel kiri: daftar test case + filter (scroll independen) --- */}
         <div className="col-12 md:col-4 test-run-detail-filter">
           <Panel
-            header="Filter"
+            header="Test Cases"
             toggleable
             collapsed
+            expandIcon="pi pi-filter"
+            collapseIcon="pi pi-filter"
             style={{
               borderBottom: 'none',
               borderBottomLeftRadius: 0,
               borderBottomRightRadius: 0,
             }}
           >
-            <div className="flex flex-column gap-2">
+            <div className="flex flex-column gap-1">
               <IconField iconPosition="left">
                 <InputIcon className="pi pi-search" />
                 <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari judul/kode..." className="w-full" />
@@ -443,7 +490,7 @@ export function TestRunResultDetailPage() {
           </Panel>
 
           <div
-            className="flex flex-column gap-1 p-2"
+            className="flex flex-column gap-1"
             style={{
               maxHeight: MAX_PANEL_HEIGHT,
               overflowY: 'auto',
@@ -482,6 +529,13 @@ export function TestRunResultDetailPage() {
                     )}
                   </div>
                   <span className="text-sm">{r.testCaseTitle}</span>
+                  {r.testCase && r.testCase.tags.length > 0 && (
+                    <span className="flex flex-wrap gap-1">
+                      {r.testCase.tags.map((tag) => (
+                        <Tag key={tag.id} value={tag.name} severity="info" />
+                      ))}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -499,7 +553,7 @@ export function TestRunResultDetailPage() {
               }}
             >
               <Button
-                label="Sebelumnya"
+                label="Previous"
                 icon="pi pi-chevron-left"
                 size="small"
                 outlined
@@ -510,7 +564,7 @@ export function TestRunResultDetailPage() {
                 {activeIndex + 1} / {filteredResults.length}
               </span>
               <Button
-                label="Selanjutnya"
+                label="Next"
                 icon="pi pi-chevron-right"
                 iconPos="right"
                 size="small"
@@ -522,6 +576,7 @@ export function TestRunResultDetailPage() {
           )}
 
           <div
+            ref={rightPanelRef}
             className="flex-grow-1"
             style={{ overflowY: 'auto' }}
             onScroll={(e) => setRightPanelScrolled(e.currentTarget.scrollTop > 0)}
@@ -533,40 +588,40 @@ export function TestRunResultDetailPage() {
             ) : (
               <>
                 <Card className="mb-3">
-                  <div className="flex align-items-center gap-2 mb-1">
-                    <h2 className="m-0">{activeResult.testCaseCode} — {activeResult.testCaseTitle}</h2>
-                    <Tag value={TEST_CASE_PRIORITY_LABEL[activeResult.testCasePriority]} severity={TEST_CASE_PRIORITY_SEVERITY[activeResult.testCasePriority]} />
-                    <Tag value={TEST_RESULT_STATUS_LABEL[activeResult.status]} severity={TEST_RESULT_STATUS_SEVERITY[activeResult.status]} />
+                  <div className="flex align-items-center justify-content-between gap-2 mb-1">
+                    <div className="flex align-items-center gap-2">
+                      <h2 className="m-0">{activeResult.testCaseCode} — {activeResult.testCaseTitle}</h2>
+                      <Tag value={TEST_CASE_PRIORITY_LABEL[activeResult.testCasePriority]} severity={TEST_CASE_PRIORITY_SEVERITY[activeResult.testCasePriority]} />
+                      <Tag value={TEST_RESULT_STATUS_LABEL[activeResult.status]} severity={TEST_RESULT_STATUS_SEVERITY[activeResult.status]} />
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap align-items-center gap-4 mt-2 mb-1 text-sm">
-                    <span className="text-color-secondary">
-                      Modul: <span className="text-color">{activeResult.testCase?.module?.name ?? '-'}</span>
-                    </span>
-                    {activeResult.testCase && activeResult.testCase.tags.length > 0 && (
-                      <span className="text-color-secondary flex align-items-center gap-2">
-                        Tag:
+                  <div className="flex flex-wrap align-items-center justify-content-between gap-2 mt-2 mb-1 text-sm">
+                    <div className="flex flex-wrap align-items-center gap-4">
+                      <span className="text-color-secondary">
+                        Modul: <span className="text-color">{activeResult.testCase?.module?.name ?? '-'}</span>
+                      </span>
+                      {activeResult.testCase && activeResult.testCase.tags.length > 0 && (
                         <span className="flex flex-wrap gap-1">
                           {activeResult.testCase.tags.map((tag) => (
                             <Tag key={tag.id} value={tag.name} severity="info" />
                           ))}
                         </span>
-                      </span>
-                    )}
-                    <span className="text-color-secondary">
-                      Tester: <span className="text-color">{activeResult.tester?.fullName ?? activeResult.tester?.email ?? '-'}</span>
-                    </span>
-                    <span className="text-color-secondary">
-                      Dieksekusi: <span className="text-color">{activeResult.executedAt ? formatDateTime(activeResult.executedAt) : '-'}</span>
-                    </span>
-                  </div>
-
-                  {activeResult.notes && (
-                    <div className="mt-2">
-                      <label className="block text-color-secondary text-sm mb-1">Catatan Hasil</label>
-                      <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.notes}</p>
+                      )}
                     </div>
-                  )}
+                    {canRunTests && testRun?.status !== 'completed' && activeResult.testCase && (
+                      <div className="flex gap-2">
+                        <Button label="Sync Original" icon="pi pi-sync" size="small" text onClick={handleSyncResult} />
+                        <Button
+                          label="View Original"
+                          icon="pi pi-external-link"
+                          size="small"
+                          text
+                          onClick={() => navigate(`/test-cases/${activeResult.testCase!.id}?projectId=${projectId ?? ''}`)}
+                        />
+                      </div>
+                    )}
+                  </div>
 
                   {activeResult.testCase && activeResult.testCase.updatedAt > activeResult.updatedAt && (
                     <small className="text-color-secondary">
@@ -589,78 +644,87 @@ export function TestRunResultDetailPage() {
                     </div>
                   )}
 
-                  <div className="mt-3">
-                    <label className="block text-color-secondary text-sm mb-1">Langkah Pengujian</label>
-                    <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseSteps}</p>
-                  </div>
-
-                  <div className="mt-3">
-                    <label className="block text-color-secondary text-sm mb-1">Hasil yang Diharapkan</label>
-                    <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseExpectedResult}</p>
-                  </div>
-
-                  {canRunTests && testRun?.status !== 'completed' && activeResult.testCase && (
-                    <div className="flex gap-2 pt-3">
-                      <Button
-                        label="Sync dengan Test Case Asli"
-                        icon="pi pi-sync"
-                        size="small"
-                        outlined
-                        severity="secondary"
-                        onClick={handleSyncResult}
-                      />
+                  {canRunTests && (
+                    <div className="mt-3">
+                      <div className="flex align-items-center gap-2 mb-1">
+                        <label className="block text-color-secondary text-sm m-0">Catatan</label>
+                        <Button
+                          icon="pi pi-pencil"
+                          text
+                          rounded
+                          size="small"
+                          aria-label="Edit catatan"
+                          onClick={openNotesDialog}
+                          style={{ width: '1.5rem', height: '1.5rem' }}
+                        />
+                      </div>
+                      {resultNotes ? (
+                        <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{resultNotes}</p>
+                      ) : (
+                        <p className="m-0 text-color-secondary" style={{ fontStyle: 'italic' }}>Tidak ada catatan</p>
+                      )}
                     </div>
                   )}
                 </Card>
 
                 {canRunTests && (
-                  <Card
-                    title={
-                      <div className="flex align-items-center justify-content-between">
-                        <span>Catat Hasil Eksekusi</span>
-                        {activeResult.testCase && (
-                          <Button
-                            label="Lihat Test Case Asli"
-                            icon="pi pi-external-link"
-                            iconPos="right"
-                            size="small"
-                            text
-                            onClick={() => navigate(`/test-cases/${activeResult.testCase!.id}?projectId=${testPlan?.projectId ?? ''}`)}
-                          />
-                        )}
-                      </div>
-                    }
-                    className="mb-3"
-                  >
+                  <Card title="Hasil Eksekusi" className="mb-3">
                     <div className="flex flex-column gap-3">
                       <div className="grid">
                         <div className="col-12 md:col-6 flex flex-column gap-1">
                           <label htmlFor="result-status">Status</label>
-                          <Dropdown id="result-status" value={resultStatus} options={RESULT_OPTIONS} onChange={(e) => setResultStatus(e.value)} className="w-full" />
+                          <Dropdown
+                            id="result-status"
+                            value={resultStatus}
+                            options={RESULT_OPTIONS}
+                            onChange={(e) => {
+                              setResultStatus(e.value);
+                              saveResult({ status: e.value });
+                            }}
+                            className="w-full"
+                          />
                         </div>
                         <div className="col-12 md:col-6 flex flex-column gap-1">
                           <label htmlFor="result-tester">Tester</label>
                           <Dropdown
                             id="result-tester"
                             value={resultTesterId}
-                            options={approvedUsers.map((u) => ({ label: u.fullName ?? u.email, value: u.id }))}
-                            onChange={(e) => setResultTesterId(e.value)}
+                            options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
+                            onChange={(e) => {
+                              setResultTesterId(e.value);
+                              saveResult({ testerId: e.value });
+                            }}
                             className="w-full"
                           />
                         </div>
                       </div>
 
-                      <div className="flex flex-column gap-1">
-                        <label htmlFor="result-notes">Catatan</label>
-                        <InputTextarea id="result-notes" value={resultNotes} onChange={(e) => setResultNotes(e.target.value)} rows={3} />
+                      <div>
+                        <label className="block text-color-secondary text-sm mb-1">Hasil yang Diharapkan</label>
+                        <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseExpectedResult}</p>
                       </div>
 
-                      {activeResult.stepResults.length > 0 && (
+                      {/* Konsisten satu slot untuk "Langkah Pengujian" — simple test case
+                          tampil sebagai teks bebas, detailed tampil sebagai checklist per-step
+                          (masing-masing step juga membawa expected result sendiri). */}
+                      {activeResult.stepResults.length === 0 ? (
+                        <div>
+                          <label className="block text-color-secondary text-sm mb-1">Langkah Pengujian</label>
+                          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseSteps}</p>
+                        </div>
+                      ) : (
                         <div className="flex flex-column gap-2">
                           <label>Langkah Pengujian</label>
                           {activeResult.stepResults.map((sr) => (
                             <div key={sr.id} className="flex align-items-start gap-2 p-2 border-round surface-100">
-                              <span className="text-sm flex-grow-1">{sr.step.stepNumber}. {sr.step.action}</span>
+                              <div className="text-sm flex-grow-1">
+                                <div>{sr.step.stepNumber}. {sr.step.action}</div>
+                                {sr.step.expectedResult && (
+                                  <div className="text-color-secondary mt-1">
+                                    Expected: {sr.step.expectedResult}
+                                  </div>
+                                )}
+                              </div>
                               <Dropdown
                                 value={sr.status === 'not_run' ? null : sr.status}
                                 options={[{ label: 'Pass', value: 'pass' }, { label: 'Fail', value: 'fail' }]}
@@ -675,32 +739,62 @@ export function TestRunResultDetailPage() {
                           ))}
                         </div>
                       )}
-
-                      <Button label="Simpan" size="small" onClick={handleSaveResult} disabled={!resultTesterId} />
                     </div>
                   </Card>
                 )}
 
                 {canManageIssues && (
                   <Card
-                    title="Link Issue"
+                    title="Issues"
                     className="mb-3"
                     subTitle={linkedIssues.length > 0 ? `${linkedIssues.length} issue tertaut` : undefined}
                   >
                     <div className="flex flex-column gap-2">
+                      <div className="flex align-items-center gap-2">
+                        <AutoComplete
+                          value={issueQuery}
+                          suggestions={issueSuggestions}
+                          completeMethod={searchIssues}
+                          field="title"
+                          itemTemplate={(issue: IssueWithDetails) => (
+                            <span className="text-sm">
+                              <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} className="mr-2" />
+                              <span className="font-medium">{issue.code}</span> — {issue.title}
+                            </span>
+                          )}
+                          onChange={(e) => setIssueQuery(typeof e.value === 'string' ? e.value : '')}
+                          onSelect={(e) => handlePickIssue(e.value as IssueWithDetails)}
+                          placeholder="Browse existing issues..."
+                          className="flex-grow-1"
+                          inputClassName="w-full"
+                        />
+                        <Button label="New Issue" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />
+                      </div>
                       {linkedIssues.length === 0 && (
                         <p className="text-color-secondary text-sm m-0">Belum ada issue yang ditautkan ke test case ini.</p>
                       )}
                       {linkedIssues.map((issue) => (
                         <div key={issue.id} className="flex align-items-center justify-content-between gap-2 p-2 border-round surface-100">
-                          <span className="text-sm">
+                          <a
+                            href={`/issues/${issue.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-color entity-link no-underline flex-grow-1"
+                          >
                             <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} className="mr-2" />
                             <span className="font-medium">{issue.code}</span> — {issue.title}
-                          </span>
+                          </a>
                           <Tag value={ISSUE_PRIORITY_LABEL[issue.priority]} severity={ISSUE_PRIORITY_SEVERITY[issue.priority]} />
+                          <Button
+                            icon="pi pi-times"
+                            size="small"
+                            text
+                            severity="secondary"
+                            aria-label="Lepas tautan"
+                            onClick={() => handleUnlinkIssue(issue)}
+                          />
                         </div>
                       ))}
-                      <Button label="Browse Issues" icon="pi pi-search" size="small" outlined onClick={openBrowseDialog} className="mt-2" />
                     </div>
                   </Card>
                 )}
@@ -710,35 +804,7 @@ export function TestRunResultDetailPage() {
         </div>
       </div>
 
-      {/* --- Browse Issues Dialog: pick existing to link, or open Create Issue --- */}
-      <Dialog header="Browse Issues" visible={browseDialogOpen} onHide={() => setBrowseDialogOpen(false)} style={{ width: '34rem' }}>
-        <div className="flex flex-column gap-3">
-          <div className="flex align-items-center gap-2">
-            <IconField iconPosition="left" className="flex-grow-1">
-              <InputIcon className="pi pi-search" />
-              <InputText value={browseSearch} onChange={(e) => setBrowseSearch(e.target.value)} placeholder="Cari judul/kode..." className="w-full" />
-            </IconField>
-            <Button label="Buat Issue" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />
-          </div>
-          <DataTable value={filteredProjectIssues} paginator rows={5} size="small" emptyMessage="Tidak ada issue yang cocok." dataKey="id">
-            <Column
-              header=""
-              style={{ width: '2.5rem' }}
-              body={(issue: IssueWithDetails & { _linked: boolean }) => (
-                <Checkbox
-                  checked={issue._linked}
-                  onChange={(e) => handleToggleLink(issue.id, e.checked ?? false)}
-                />
-              )}
-            />
-            <Column field="code" header="Kode" style={{ width: '6rem' }} />
-            <Column header="Tipe" body={(issue: IssueWithDetails) => <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} />} style={{ width: '7rem' }} />
-            <Column field="title" header="Judul" />
-          </DataTable>
-        </div>
-      </Dialog>
-
-      {/* --- Create Issue Dialog (nested inside Browse): saving auto-links to activeResult --- */}
+      {/* --- Create Issue Dialog: saving auto-links to activeResult --- */}
       <Dialog header="Tambah Issue" visible={createIssueDialogOpen} onHide={() => setCreateIssueDialogOpen(false)} style={{ width: '32rem' }}>
         <div className="flex flex-column gap-3">
           {issueError && <small className="p-error">{issueError}</small>}
@@ -806,6 +872,19 @@ export function TestRunResultDetailPage() {
             <InputTextarea id="issue-expected" value={issueExpected} onChange={(e) => setIssueExpected(e.target.value)} rows={2} />
           </div>
           <Button label="Buat & Tautkan" size="small" onClick={handleCreateAndLinkIssue} />
+        </div>
+      </Dialog>
+
+      {/* --- Notes Dialog: catatan hasil eksekusi, autosave saat disimpan --- */}
+      <Dialog header="Add notes" visible={notesDialogOpen} onHide={() => setNotesDialogOpen(false)} style={{ width: '28rem' }}>
+        <div className="flex flex-column gap-3">
+          <InputTextarea value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} rows={5} autoFocus />
+          <div className="flex gap-2">
+            <Button label="Simpan" size="small" onClick={handleSaveNotes} />
+            {resultNotes && (
+              <Button label="Hapus Catatan" size="small" text severity="danger" onClick={handleClearNotes} />
+            )}
+          </div>
         </div>
       </Dialog>
 
