@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabaseClient';
-import { mapModuleRow, mapTagRow, mapTestCaseRow, mapTestPlanCaseRow } from '../helpers/mappers';
+import { mapModuleRow, mapTagRow, mapTestCaseRow, mapTestPlanCaseRow, mapTestRoleRow } from '../helpers/mappers';
 import type { TestCase, TestCaseWithDetails, TestPlanCase, TestPlanCaseWithDetails } from '../types/domain';
 
 export const testCaseRepository = {
@@ -19,7 +19,7 @@ export const testCaseRepository = {
   async findAllByProjectWithDetails(projectId: string): Promise<TestCaseWithDetails[]> {
     const { data, error } = await supabase
       .from('test_cases')
-      .select('*, module:modules(*), test_case_tags(tag:tags(*))')
+      .select('*, module:modules(*), target_role:test_roles(*), test_case_tags(tag:tags(*))')
       .eq('project_id', projectId)
       .order('code');
 
@@ -27,6 +27,7 @@ export const testCaseRepository = {
     return (data ?? []).map((row: any) => ({
       ...mapTestCaseRow(row),
       module: row.module ? mapModuleRow(row.module) : null,
+      targetRole: row.target_role ? mapTestRoleRow(row.target_role) : null,
       tags: (row.test_case_tags ?? []).map((t: any) => mapTagRow(t.tag)),
     }));
   },
@@ -40,7 +41,7 @@ export const testCaseRepository = {
   async findByIdWithDetails(id: string): Promise<(TestCaseWithDetails & { project: { id: string; name: string } }) | null> {
     const { data, error } = await supabase
       .from('test_cases')
-      .select('*, module:modules(*), test_case_tags(tag:tags(*)), project:projects(id, name)')
+      .select('*, module:modules(*), target_role:test_roles(*), test_case_tags(tag:tags(*)), project:projects(id, name)')
       .eq('id', id)
       .maybeSingle();
 
@@ -50,6 +51,7 @@ export const testCaseRepository = {
     return {
       ...mapTestCaseRow(data),
       module: data.module ? mapModuleRow(data.module) : null,
+      targetRole: data.target_role ? mapTestRoleRow(data.target_role) : null,
       tags: (data.test_case_tags ?? []).map((t: any) => mapTagRow(t.tag)),
       project: data.project,
     };
@@ -72,7 +74,7 @@ export const testCaseRepository = {
         status: input.status,
         notes: input.notes,
         step_type: input.stepType,
-        target_role: input.targetRole,
+        target_role_id: input.targetRoleId,
       })
       .select('*')
       .single();
@@ -94,7 +96,7 @@ export const testCaseRepository = {
     if (changes.status !== undefined) payload.status = changes.status;
     if (changes.notes !== undefined) payload.notes = changes.notes;
     if (changes.stepType !== undefined) payload.step_type = changes.stepType;
-    if (changes.targetRole !== undefined) payload.target_role = changes.targetRole;
+    if (changes.targetRoleId !== undefined) payload.target_role_id = changes.targetRoleId;
 
     const { data, error } = await supabase
       .from('test_cases')
@@ -117,7 +119,7 @@ export const testCaseRepository = {
   async findCasesForPlan(testPlanId: string): Promise<TestPlanCaseWithDetails[]> {
     const { data, error } = await supabase
       .from('test_plan_cases')
-      .select('*, test_case:test_cases(*, module:modules(*), test_case_tags(tag:tags(*)))')
+      .select('*, test_case:test_cases(*, module:modules(*), target_role:test_roles(*), test_case_tags(tag:tags(*)))')
       .eq('test_plan_id', testPlanId)
       .order('order', { ascending: true });
 
@@ -127,6 +129,7 @@ export const testCaseRepository = {
       testCase: {
         ...mapTestCaseRow(row.test_case),
         module: row.test_case.module ? mapModuleRow(row.test_case.module) : null,
+        targetRole: row.test_case.target_role ? mapTestRoleRow(row.test_case.target_role) : null,
         tags: (row.test_case.test_case_tags ?? []).map((t: any) => mapTagRow(t.tag)),
       },
     }));

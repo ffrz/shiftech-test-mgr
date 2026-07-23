@@ -35,7 +35,7 @@ export const testCaseService = {
     preconditions?: string;
     priority?: TestCase['priority'];
     notes?: string;
-    targetRole?: string;
+    targetRoleId?: string | null;
     tagNames?: string[];
     stepType?: TestCase['stepType'];
     detailedSteps?: { action: string; expectedResult?: string }[];
@@ -62,7 +62,7 @@ export const testCaseService = {
       status: 'active',
       notes: input.notes?.trim() || null,
       stepType,
-      targetRole: input.targetRole?.trim() || null,
+      targetRoleId: input.targetRoleId ?? null,
     });
 
     if (input.tagNames?.length) {

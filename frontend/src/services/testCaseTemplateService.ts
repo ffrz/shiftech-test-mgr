@@ -1,6 +1,7 @@
 import { testCaseTemplateRepository } from '../repositories/testCaseTemplateRepository';
 import { testCaseService } from './testCaseService';
 import { moduleService } from './moduleService';
+import { testRoleService } from './testRoleService';
 import type { TestCaseTemplate, TestCaseTemplateItem, TestCaseTemplateItemWithSteps } from '../types/domain';
 
 export const testCaseTemplateService = {
@@ -124,8 +125,22 @@ export const testCaseTemplateService = {
       return created.id;
     }
 
+    const existingTestRoles = await testRoleService.listByProject(projectId);
+    const testRoleIdByName = new Map(existingTestRoles.map((r) => [r.name.toLowerCase(), r.id]));
+
+    async function resolveTestRoleId(roleName: string | null): Promise<string | null> {
+      if (!roleName) return null;
+      const key = roleName.toLowerCase();
+      const existing = testRoleIdByName.get(key);
+      if (existing) return existing;
+      const created = await testRoleService.create({ projectId, name: roleName });
+      testRoleIdByName.set(key, created.id);
+      return created.id;
+    }
+
     for (const item of items) {
       const moduleId = await resolveModuleId(item.moduleName);
+      const targetRoleId = await resolveTestRoleId(item.targetRole);
       const detailedSteps =
         item.stepType === 'detailed' ? await testCaseTemplateRepository.findStepsByItem(item.id) : [];
 
@@ -138,7 +153,7 @@ export const testCaseTemplateService = {
         steps: item.steps,
         expectedResult: item.expectedResult,
         priority: item.priority,
-        targetRole: item.targetRole ?? undefined,
+        targetRoleId,
         tagNames: item.tagNames,
         stepType: item.stepType,
         detailedSteps: item.stepType === 'detailed'

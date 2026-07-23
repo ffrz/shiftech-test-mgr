@@ -172,6 +172,28 @@ export function IssueDetailPage() {
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
   }
 
+  // Full-fidelity duplicate (no dialog here, unlike ProjectDetailPage's "Issue Baru" dialog
+  // which doesn't expose actualResult/expectedResult/githubLinks) — new issue always starts
+  // open/unassigned, same as issueService.create's own defaults.
+  async function handleDuplicate() {
+    if (!issue) return;
+    const created = await issueService.create({
+      projectId: issue.projectId,
+      moduleId: issue.moduleId,
+      type: issue.type,
+      title: `${issue.title} (Copy)`,
+      description: issue.description ?? undefined,
+      actualResult: issue.actualResult ?? undefined,
+      expectedResult: issue.expectedResult ?? undefined,
+      priority: issue.priority,
+      githubLinks: issue.githubLinks,
+      tagNames: issue.tags.map((t) => t.name),
+    });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
+    toast.current?.show({ severity: 'success', summary: 'Issue diduplikat' });
+    navigate(`/issues/${created.id}`);
+  }
+
   function handleDelete() {
     if (!issue) return;
     confirmDialog({
@@ -269,6 +291,7 @@ export function IssueDetailPage() {
         </div>
         <div className="flex gap-2">
           {canManageIssues && <Button label="Edit" icon="pi pi-pencil" size="small" outlined onClick={openEditDialog} />}
+          {canManageIssues && <Button label="Duplikat" icon="pi pi-copy" size="small" outlined onClick={handleDuplicate} />}
           {canDeleteContent ? (
             <Button label="Hapus" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleDelete} />
           ) : (

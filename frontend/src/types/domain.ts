@@ -54,6 +54,16 @@ export interface Tag {
   createdAt: string;
 }
 
+// Role WITHIN the application under test (e.g. Admin/Manager/Member) — not a TestManager user
+// role (see UserRole / ProjectMemberRole). Named TestRole to avoid confusion between the two.
+export interface TestRole {
+  id: string;
+  projectId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type TestPlanStatus = 'draft' | 'active' | 'completed' | 'archived';
 
 export interface TestPlan {
@@ -88,10 +98,10 @@ export interface TestCase {
   status: TestCaseStatus;
   notes: string | null;
   stepType: TestCaseStepType;
-  // Free-text label for RBAC testing (e.g. "Admin", "Manager") — the same logical test case
+  // App role this test case targets (e.g. "Admin", "Manager") — the same logical test case
   // often needs a separate row per app role, this is purely for labeling/filtering, not a
   // variant system. Duplication across roles is manual.
-  targetRole: string | null;
+  targetRoleId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -99,6 +109,7 @@ export interface TestCase {
 export interface TestCaseWithDetails extends TestCase {
   module: Module | null;
   tags: Tag[];
+  targetRole: TestRole | null;
 }
 
 // Template step — only meaningful when the parent TestCase.stepType === 'detailed'.

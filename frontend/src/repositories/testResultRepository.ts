@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabaseClient';
-import { mapModuleRow, mapProfileRow, mapTagRow, mapTestCaseRow, mapTestCaseStepRow, mapTestResultRow, mapTestResultStepRow } from '../helpers/mappers';
+import { mapModuleRow, mapProfileRow, mapTagRow, mapTestCaseRow, mapTestCaseStepRow, mapTestResultRow, mapTestResultStepRow, mapTestRoleRow } from '../helpers/mappers';
 import type { TestResult, TestResultStatus, TestResultWithDetails } from '../types/domain';
 
 export const testResultRepository = {
@@ -76,7 +76,7 @@ export const testResultRepository = {
     const { data, error } = await supabase
       .from('test_results')
       .select(
-        '*, test_case:test_cases(*, module:modules(*), test_case_tags(tag:tags(*))), tester:profiles(*), test_result_steps(*, test_case_step:test_case_steps(*))',
+        '*, test_case:test_cases(*, module:modules(*), target_role:test_roles(*), test_case_tags(tag:tags(*))), tester:profiles(*), test_result_steps(*, test_case_step:test_case_steps(*))',
       )
       .eq('test_run_id', testRunId)
       .order('order', { ascending: true });
@@ -88,6 +88,7 @@ export const testResultRepository = {
         ? {
             ...mapTestCaseRow(row.test_case),
             module: row.test_case.module ? mapModuleRow(row.test_case.module) : null,
+            targetRole: row.test_case.target_role ? mapTestRoleRow(row.test_case.target_role) : null,
             tags: (row.test_case.test_case_tags ?? []).map((t: any) => mapTagRow(t.tag)),
           }
         : null,

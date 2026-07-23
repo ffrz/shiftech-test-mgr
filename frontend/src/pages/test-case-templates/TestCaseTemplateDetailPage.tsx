@@ -193,7 +193,7 @@ export function TestCaseTemplateDetailPage() {
         actions={isAdmin ? <Button label="Item Baru" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} /> : undefined}
       />
 
-      <DataTable value={items} loading={loading} paginator rows={10} emptyMessage="Belum ada item" size="small">
+      <DataTable value={items} loading={loading} paginator rows={5} emptyMessage="Belum ada item" size="small">
         <Column field="title" header="Judul" sortable />
         <Column field="moduleName" header="Module" body={(row: TestCaseTemplateItem) => row.moduleName || '-'} />
         <Column field="priority" header="Prioritas" body={(row: TestCaseTemplateItem) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />} />

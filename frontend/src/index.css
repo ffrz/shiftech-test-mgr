@@ -83,6 +83,14 @@ html.dark .breadcrumb-link:hover {
   font-size: 0.85rem;
 }
 
+/* Header text is bold and lacks descenders/padding the body rows get from
+   their content, so at equal padding the header row reads visibly shorter
+   than a data row — nudge its vertical padding up to balance the two. */
+.p-datatable .p-datatable-thead>tr>th {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
 /* Rounded table shell to match .p-card and other surfaces (dialogs, dropdowns)
    which already use rounded corners — the theme's default table is square,
    which stood out as inconsistent. Corners are clipped on the wrapper since
@@ -99,6 +107,13 @@ html.dark .breadcrumb-link:hover {
 
 .p-datatable .p-datatable-tbody>tr:last-child>td {
   border-bottom: none;
+}
+
+/* Paginator sits inside the same rounded, bordered table shell — the theme's
+   own top border on the paginator duplicated the wrapper's border, showing
+   as a stray line above the pagination controls. */
+.p-datatable .p-paginator {
+  border-top: none;
 }
 
 .p-datatable .p-datatable-thead>tr>th,
@@ -511,4 +526,45 @@ h2 {
 .p-dialog .p-dialog-header .p-dialog-title {
   font-weight: 600;
   font-size: 0.8rem;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page,
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-last {
+  min-width: 1.75rem;
+  height: 1.75rem;
+}
+
+.p-tag-icon,
+.p-tag-value,
+.p-tag-icon.pi {
+  line-height: 1em !important;
+  font-size: 0.7rem;
+}
+
+.p-tabview .p-tabview-panels {
+  padding: 1rem 0;
+}
+
+.p-card .p-card-body {
+  padding: 0.5rem;
+}
+
+.p-inputtext,
+.p-dropdown .p-dropdown-label,
+.p-multiselect .p-multiselect-label,
+.p-button,
+.p-chips .p-chips-multiple-container,
+.p-inputnumber-input {
+  font-size: 0.75rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.p-button.p-button-icon-only {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
 }

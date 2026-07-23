@@ -10,6 +10,7 @@ import type {
   Profile,
   Module,
   Tag,
+  TestRole,
   TestRun,
   TestResult,
   TestResultStep,
@@ -71,6 +72,16 @@ export function mapTagRow(row: any): Tag {
   };
 }
 
+export function mapTestRoleRow(row: any): TestRole {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    name: row.name,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 export function mapTestPlanRow(row: any): TestPlan {
   return {
     id: row.id,
@@ -99,7 +110,7 @@ export function mapTestCaseRow(row: any): TestCase {
     status: row.status,
     notes: row.notes,
     stepType: row.step_type,
-    targetRole: row.target_role,
+    targetRoleId: row.target_role_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

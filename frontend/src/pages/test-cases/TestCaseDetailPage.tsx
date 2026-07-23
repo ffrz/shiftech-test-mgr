@@ -193,6 +193,34 @@ export function TestCaseDetailPage() {
     }
   }
 
+  // Creates a new test case pre-filled from this one, then jumps straight to editing the
+  // new copy — no intermediate dialog here (that dialog lives on ProjectDetailPage, not on
+  // this single-test-case viewer).
+  async function handleDuplicate() {
+    if (!testCase) return;
+    const sourceSteps = testCase.stepType === 'detailed' ? detailedSteps : [];
+    const created = await testCaseService.create({
+      projectId: testCase.project.id,
+      moduleId: testCase.moduleId,
+      title: `${testCase.title} (Copy)`,
+      objective: testCase.objective ?? undefined,
+      preconditions: testCase.preconditions ?? undefined,
+      steps: testCase.steps,
+      expectedResult: testCase.expectedResult,
+      priority: testCase.priority,
+      notes: testCase.notes ?? undefined,
+      targetRoleId: testCase.targetRoleId,
+      tagNames: testCase.tags.map((t) => t.name),
+      stepType: testCase.stepType,
+      detailedSteps: testCase.stepType === 'detailed'
+        ? sourceSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? undefined }))
+        : undefined,
+    });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
+    toast.current?.show({ severity: 'success', summary: 'Test case diduplikat' });
+    navigate(`/test-cases/${created.id}${projectId ? `?projectId=${projectId}` : ''}`);
+  }
+
   function handleDelete() {
     if (!testCase) return;
     confirmDialog({
@@ -247,6 +275,7 @@ export function TestCaseDetailPage() {
         </div>
         <div className="flex gap-2">
           {canEditContent && <Button label="Edit" icon="pi pi-pencil" size="small" outlined onClick={openEditDialog} />}
+          {canEditContent && <Button label="Duplikat" icon="pi pi-copy" size="small" outlined onClick={handleDuplicate} />}
           {canDeleteContent && <Button label="Hapus" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleDelete} />}
         </div>
       </div>
@@ -257,7 +286,7 @@ export function TestCaseDetailPage() {
             <h2 className="m-0">{testCase.code} — {testCase.title}</h2>
             <Tag value={TEST_CASE_PRIORITY_LABEL[testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[testCase.priority]} />
             <Tag value={TEST_CASE_STATUS_LABEL[testCase.status]} severity={TEST_CASE_STATUS_SEVERITY[testCase.status]} />
-            {testCase.targetRole && <Tag value={testCase.targetRole} severity="secondary" />}
+            {testCase.targetRole && <Tag value={testCase.targetRole.name} severity="secondary" />}
           </div>
         </div>
 

@@ -5,6 +5,9 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { Dropdown } from 'primereact/dropdown';
+import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
+import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { useTestPlans } from '../../hooks/useTestPlans';
 import { useProjectRole } from '../../hooks/useProjectRole';
@@ -38,6 +41,30 @@ export function TestPlansPage() {
     toast.current?.show({ severity: 'success', summary: `Status diubah ke ${TEST_PLAN_STATUS_LABEL[status]}` });
   }
 
+  // --- Duplicate: quick access from this cross-project list without opening the detail page ---
+  const [duplicateRow, setDuplicateRow] = useState<TestPlan | null>(null);
+  const [duplicateName, setDuplicateName] = useState('');
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+
+  function openDuplicateDialog(row: TestPlan) {
+    setDuplicateRow(row);
+    setDuplicateName(`${row.name} (Copy)`);
+    setDuplicateError(null);
+  }
+
+  async function handleDuplicate() {
+    if (!duplicateRow) return;
+    setDuplicateError(null);
+    try {
+      await testPlanService.duplicate(duplicateRow.id, duplicateName);
+      setDuplicateRow(null);
+      await reload();
+      toast.current?.show({ severity: 'success', summary: 'Test plan diduplikat' });
+    } catch (err) {
+      setDuplicateError(err instanceof Error ? err.message : 'Gagal menduplikat test plan');
+    }
+  }
+
   return (
     <div>
       <Toast ref={toast} />
@@ -61,7 +88,7 @@ export function TestPlansPage() {
         </p>
       )}
 
-      <DataTable value={testPlans} loading={loading} paginator rows={10} emptyMessage="Belum ada test plan" size="small"
+      <DataTable value={testPlans} loading={loading} paginator rows={5} emptyMessage="Belum ada test plan" size="small"
         selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
         <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
         <Column field="name" header="Nama" sortable />
@@ -73,15 +100,29 @@ export function TestPlansPage() {
             style={{ width: '4rem' }}
             body={(row: TestPlan) => (
               <RowActionsMenu
-                items={TEST_PLAN_STATUS_OPTIONS.filter((s) => s !== row.status).map((status) => ({
-                  label: `Ubah ke ${TEST_PLAN_STATUS_LABEL[status]}`,
-                  command: () => handleChangeStatus(row, status),
-                }))}
+                items={[
+                  { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
+                  ...TEST_PLAN_STATUS_OPTIONS.filter((s) => s !== row.status).map((status) => ({
+                    label: `Ubah ke ${TEST_PLAN_STATUS_LABEL[status]}`,
+                    command: () => handleChangeStatus(row, status),
+                  })),
+                ]}
               />
             )}
           />
         )}
       </DataTable>
+
+      <Dialog header="Duplikat Test Plan" visible={!!duplicateRow} onHide={() => setDuplicateRow(null)} style={{ width: '28rem' }}>
+        <div className="flex flex-column gap-3">
+          {duplicateError && <small className="p-error">{duplicateError}</small>}
+          <div className="flex flex-column gap-1">
+            <label htmlFor="duplicate-plan-name">Nama Test Plan Baru</label>
+            <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} autoFocus />
+          </div>
+          <Button label="Duplikat" size="small" onClick={handleDuplicate} />
+        </div>
+      </Dialog>
     </div>
   );
 }

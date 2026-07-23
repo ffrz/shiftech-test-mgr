@@ -52,7 +52,7 @@ export function TestCasesPage() {
         </p>
       )}
 
-      <DataTable value={testCases} loading={loading} paginator rows={10} emptyMessage="Belum ada test case" size="small">
+      <DataTable value={testCases} loading={loading} paginator rows={5} emptyMessage="Belum ada test case" size="small">
         <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
         <Column field="title" header="Judul" sortable />
         <Column field="module.name" header="Module" body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} sortable />

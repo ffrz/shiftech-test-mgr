@@ -108,7 +108,7 @@ export function TestCaseTemplatesPage() {
         value={templates}
         loading={loading}
         paginator
-        rows={10}
+        rows={5}
         emptyMessage="Belum ada template"
         size="small"
         onRowClick={(e) => navigate(`/test-case-templates/${(e.data as TestCaseTemplate).id}`)}

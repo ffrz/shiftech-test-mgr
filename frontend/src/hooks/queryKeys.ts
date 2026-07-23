@@ -9,6 +9,7 @@ export const queryKeys = {
 
   modules: (projectId: string) => ['modules', projectId] as const,
   tags: (projectId: string) => ['tags', projectId] as const,
+  testRoles: (projectId: string) => ['testRoles', projectId] as const,
 
   testPlan: (id: string) => ['testPlan', id] as const,
   testPlans: (projectId: string) => ['testPlans', projectId] as const,

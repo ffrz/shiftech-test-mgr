@@ -48,6 +48,23 @@ export const testPlanService = {
     return testPlanRepository.remove(id);
   },
 
+  // Clones a Test Plan's scope (which test cases it covers, in order) into a brand-new plan
+  // in the same project — the test cases themselves are NOT duplicated, they're re-attached
+  // by the same testCaseId, since Test Case is meant to stay reusable/shared across plans.
+  async duplicate(sourceTestPlanId: string, newName: string): Promise<TestPlan> {
+    const source = await testPlanRepository.findById(sourceTestPlanId);
+    if (!source) throw new Error('Test plan sumber tidak ditemukan');
+
+    const newPlan = await testPlanService.create({ projectId: source.projectId, name: newName });
+
+    const sourceCases = await testPlanService.listCases(sourceTestPlanId);
+    for (let i = 0; i < sourceCases.length; i++) {
+      await testPlanService.addCase(newPlan.id, sourceCases[i].testCaseId, i);
+    }
+
+    return newPlan;
+  },
+
   // Test cases in scope for this plan — no result/progress here anymore.
   // Progress belongs to a specific Test Run (see testRunService.getSummary).
   listCases(testPlanId: string) {

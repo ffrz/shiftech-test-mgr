@@ -1,11 +1,12 @@
 import { testCaseService } from './testCaseService';
 import { moduleService } from './moduleService';
+import { testRoleService } from './testRoleService';
 import type { ParsedTestCaseRow } from '../helpers/csvImport';
 
 export const testCaseImportService = {
-  // Commits already-validated rows into a project's test_cases — module names are resolved
-  // find-or-create per project (cached per call so a batch sharing a module only creates it
-  // once), same approach as testCaseTemplateService.cloneItemsToProject.
+  // Commits already-validated rows into a project's test_cases — module/role names are
+  // resolved find-or-create per project (cached per call so a batch sharing a value only
+  // creates it once), same approach as testCaseTemplateService.cloneItemsToProject.
   async importRows(projectId: string, rows: ParsedTestCaseRow[]): Promise<void> {
     if (rows.length === 0) return;
 
@@ -22,8 +23,22 @@ export const testCaseImportService = {
       return created.id;
     }
 
+    const existingTestRoles = await testRoleService.listByProject(projectId);
+    const testRoleIdByName = new Map(existingTestRoles.map((r) => [r.name.toLowerCase(), r.id]));
+
+    async function resolveTestRoleId(roleName: string | null): Promise<string | null> {
+      if (!roleName) return null;
+      const key = roleName.toLowerCase();
+      const existing = testRoleIdByName.get(key);
+      if (existing) return existing;
+      const created = await testRoleService.create({ projectId, name: roleName });
+      testRoleIdByName.set(key, created.id);
+      return created.id;
+    }
+
     for (const row of rows) {
       const moduleId = await resolveModuleId(row.moduleName);
+      const targetRoleId = await resolveTestRoleId(row.targetRole);
       await testCaseService.create({
         projectId,
         moduleId,
@@ -33,7 +48,7 @@ export const testCaseImportService = {
         steps: row.steps,
         expectedResult: row.expectedResult,
         priority: row.priority,
-        targetRole: row.targetRole ?? undefined,
+        targetRoleId,
         tagNames: row.tagNames,
         stepType: 'simple',
       });

@@ -601,7 +601,7 @@ export function TestRunResultDetailPage() {
                       <span className="text-color-secondary">
                         Modul: <span className="text-color">{activeResult.testCase?.module?.name ?? '-'}</span>
                       </span>
-                      {activeResult.testCase?.targetRole && <Tag value={activeResult.testCase.targetRole} severity="secondary" />}
+                      {activeResult.testCase?.targetRole && <Tag value={activeResult.testCase.targetRole.name} severity="secondary" />}
                       {activeResult.testCase && activeResult.testCase.tags.length > 0 && (
                         <span className="flex flex-wrap gap-1">
                           {activeResult.testCase.tags.map((tag) => (

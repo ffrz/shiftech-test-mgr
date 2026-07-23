@@ -29,6 +29,7 @@ import { issueService } from '../../services/issueService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
+import { testRoleService } from '../../services/testRoleService';
 import { testCaseTemplateService } from '../../services/testCaseTemplateService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
@@ -109,14 +110,14 @@ type TestRunWithSummary = TestRun & {
 
 // Index within the TabView -> which query keys that tab depends on, so loading state and
 // invalidation on mutation both know exactly what to touch without over-fetching other tabs.
-const TAB_QUERY_NAMES = ['testPlans', 'testCases', 'modules', 'tags', 'testRuns', 'issues', 'projectMembers'] as const;
+const TAB_QUERY_NAMES = ['testPlans', 'testCases', 'modules', 'tags', 'testRoles', 'testRuns', 'issues', 'projectMembers'] as const;
 // Stable empty-array reference — `data ?? []` alone allocates a new array every render
 // when the query has no data yet, which defeats useMemo below it (dependency "changes"
 // every render even though nothing meaningful did).
 const EMPTY_ARRAY: never[] = [];
 const TAB_DEPENDENCIES: (typeof TAB_QUERY_NAMES[number])[][] = [
   ['testPlans'],
-  ['testCases', 'modules', 'tags'],
+  ['testCases', 'modules', 'tags', 'testRoles'],
   ['testRuns'],
   ['issues', 'projectMembers'],
 ];
@@ -157,6 +158,11 @@ export function ProjectDetailPage() {
     queryFn: () => tagService.listByProject(id!),
     enabled: !!id,
   });
+  const testRolesQuery = useQuery({
+    queryKey: queryKeys.testRoles(id ?? ''),
+    queryFn: () => testRoleService.listByProject(id!),
+    enabled: !!id,
+  });
   const testRunsQuery = useQuery({
     queryKey: queryKeys.testRunsByProject(id ?? ''),
     queryFn: () => testRunService.listByProjectWithSummary(id!),
@@ -177,13 +183,14 @@ export function ProjectDetailPage() {
   const testCases = (testCasesQuery.data ?? EMPTY_ARRAY) as TestCaseWithDetails[];
   const modules = modulesQuery.data ?? EMPTY_ARRAY;
   const tags = tagsQuery.data ?? EMPTY_ARRAY;
+  const testRoles = testRolesQuery.data ?? EMPTY_ARRAY;
   const testRuns = (testRunsQuery.data ?? EMPTY_ARRAY) as TestRunWithSummary[];
   const issues = issuesQuery.data ?? EMPTY_ARRAY;
   const projectMembers = projectMembersQuery.data ?? EMPTY_ARRAY;
 
   const tabLoading: Record<number, boolean> = {
     0: testPlansQuery.isLoading,
-    1: testCasesQuery.isLoading || modulesQuery.isLoading || tagsQuery.isLoading,
+    1: testCasesQuery.isLoading || modulesQuery.isLoading || tagsQuery.isLoading || testRolesQuery.isLoading,
     2: testRunsQuery.isLoading,
     3: issuesQuery.isLoading || projectMembersQuery.isLoading,
   };
@@ -194,6 +201,7 @@ export function ProjectDetailPage() {
       testCases: queryKeys.testCasesWithDetails(id),
       modules: queryKeys.modules(id),
       tags: queryKeys.tags(id),
+      testRoles: queryKeys.testRoles(id),
       testRuns: queryKeys.testRunsByProject(id),
       issues: queryKeys.issuesByProject(id),
       projectMembers: queryKeys.projectMembers(id),
@@ -348,6 +356,32 @@ export function ProjectDetailPage() {
     }
   }
 
+  // --- Test Role quick-add (from Test Case dialog) ---
+  const [testRoleDialogOpen, setTestRoleDialogOpen] = useState(false);
+  const [testRoleName, setTestRoleName] = useState('');
+  const [testRoleError, setTestRoleError] = useState<string | null>(null);
+  const testRoleNameRef = useRef<HTMLInputElement>(null);
+
+  function openCreateTestRoleDialogFromCase() {
+    setTestRoleName('');
+    setTestRoleError(null);
+    setTestRoleDialogOpen(true);
+  }
+
+  async function handleSaveTestRole() {
+    if (!id) return;
+    setTestRoleError(null);
+    try {
+      const created = await testRoleService.create({ projectId: id, name: testRoleName });
+      setCaseTargetRoleId(created.id);
+      setTestRoleDialogOpen(false);
+      await loadAll();
+      toast.current?.show({ severity: 'success', summary: 'Role dibuat' });
+    } catch (err) {
+      setTestRoleError(err instanceof Error ? err.message : 'Gagal menyimpan role');
+    }
+  }
+
   // --- Tag quick-add (from Test Case dialog) ---
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState('');
@@ -385,7 +419,7 @@ export function ProjectDetailPage() {
   const [caseSteps, setCaseSteps] = useState('');
   const [caseExpectedResult, setCaseExpectedResult] = useState('');
   const [casePriority, setCasePriority] = useState<TestCasePriority>('medium');
-  const [caseTargetRole, setCaseTargetRole] = useState('');
+  const [caseTargetRoleId, setCaseTargetRoleId] = useState<string | null>(null);
   const [caseNotes, setCaseNotes] = useState('');
   const [caseTags, setCaseTags] = useState<string[]>([]);
   const [caseError, setCaseError] = useState<string | null>(null);
@@ -398,6 +432,7 @@ export function ProjectDetailPage() {
   const [casePriorityFilter, setCasePriorityFilter] = useState<TestCasePriority | null>(null);
   const [caseModuleFilter, setCaseModuleFilter] = useState<string | null>(null);
   const [caseTagFilter, setCaseTagFilter] = useState<string | null>(null);
+  const [caseTestRoleFilter, setCaseTestRoleFilter] = useState<string | null>(null);
   const [caseSortField, setCaseSortField] = useState('code');
   const [caseSortOrder, setCaseSortOrder] = useState<1 | -1>(1);
   const [selectedCases, setSelectedCases] = useState<TestCaseWithDetails[]>([]);
@@ -409,10 +444,11 @@ export function ProjectDetailPage() {
       if (casePriorityFilter && c.priority !== casePriorityFilter) return false;
       if (caseModuleFilter && c.moduleId !== caseModuleFilter) return false;
       if (caseTagFilter && !c.tags.some((t) => t.id === caseTagFilter)) return false;
+      if (caseTestRoleFilter && c.targetRoleId !== caseTestRoleFilter) return false;
       if (q && !c.title.toLowerCase().includes(q) && !c.code.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [testCases, caseSearch, caseStatusFilter, casePriorityFilter, caseModuleFilter, caseTagFilter]);
+  }, [testCases, caseSearch, caseStatusFilter, casePriorityFilter, caseModuleFilter, caseTagFilter, caseTestRoleFilter]);
 
   function openCreateCaseDialog() {
     setEditingCaseId(null);
@@ -424,7 +460,7 @@ export function ProjectDetailPage() {
     setCaseSteps('');
     setCaseExpectedResult('');
     setCasePriority('medium');
-    setCaseTargetRole('');
+    setCaseTargetRoleId(null);
     setCaseNotes('');
     setCaseTags([]);
     setCaseStepType('simple');
@@ -443,7 +479,34 @@ export function ProjectDetailPage() {
     setCaseSteps(row.steps);
     setCaseExpectedResult(row.expectedResult);
     setCasePriority(row.priority);
-    setCaseTargetRole(row.targetRole ?? '');
+    setCaseTargetRoleId(row.targetRoleId);
+    setCaseNotes(row.notes ?? '');
+    setCaseTags(row.tags.map((t) => t.name));
+    setCaseStepType(row.stepType);
+    setCaseError(null);
+    setCaseDialogOpen(true);
+    if (row.stepType === 'detailed') {
+      const steps = await testCaseService.listSteps(row.id);
+      setCaseDetailedSteps(steps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? '' })));
+    } else {
+      setCaseDetailedSteps([]);
+    }
+  }
+
+  // Opens the same Test Case dialog as create/edit, but pre-filled from an existing row with
+  // editingCaseId left null — submitting creates a brand-new test case instead of updating
+  // the source one. Code is left blank so the DB trigger auto-generates a fresh TC-####.
+  async function openDuplicateCaseDialog(row: TestCaseWithDetails) {
+    setEditingCaseId(null);
+    setCaseCode('');
+    setCaseModuleId(row.moduleId);
+    setCaseTitle(`${row.title} (Copy)`);
+    setCaseObjective(row.objective ?? '');
+    setCasePreconditions(row.preconditions ?? '');
+    setCaseSteps(row.steps);
+    setCaseExpectedResult(row.expectedResult);
+    setCasePriority(row.priority);
+    setCaseTargetRoleId(row.targetRoleId);
     setCaseNotes(row.notes ?? '');
     setCaseTags(row.tags.map((t) => t.name));
     setCaseStepType(row.stepType);
@@ -474,7 +537,7 @@ export function ProjectDetailPage() {
             steps: caseSteps,
             expectedResult: caseExpectedResult,
             priority: casePriority,
-            targetRole: caseTargetRole.trim() || null,
+            targetRoleId: caseTargetRoleId,
             notes: caseNotes.trim() || null,
             stepType: caseStepType,
           },
@@ -492,7 +555,7 @@ export function ProjectDetailPage() {
           steps: caseSteps,
           expectedResult: caseExpectedResult,
           priority: casePriority,
-          targetRole: caseTargetRole,
+          targetRoleId: caseTargetRoleId,
           notes: caseNotes,
           tagNames: caseTags,
           stepType: caseStepType,
@@ -742,6 +805,20 @@ export function ProjectDetailPage() {
     setIssueDialogOpen(true);
   }
 
+  // Prefills the same "Issue Baru" dialog from an existing row instead of opening a blank
+  // one — submitting always creates a new issue (this dialog has no edit mode), so no
+  // separate editingId bookkeeping is needed here unlike the Test Case dialog.
+  function openDuplicateIssueDialog(row: IssueWithDetails) {
+    setIssueTitle(`${row.title} (Copy)`);
+    setIssueType(row.type);
+    setIssueModuleId(row.moduleId);
+    setIssueDescription(row.description ?? '');
+    setIssuePriorityValue(row.priority);
+    setIssueTagNames(row.tags.map((t) => t.name));
+    setIssueFormError(null);
+    setIssueDialogOpen(true);
+  }
+
   async function handleSaveIssue() {
     if (!id) return;
     setIssueFormError(null);
@@ -796,6 +873,7 @@ export function ProjectDetailPage() {
 
   const moduleOptions = modules.map((m) => ({ label: m.name, value: m.id }));
   const tagOptions = tags.map((t) => ({ label: t.name, value: t.id }));
+  const testRoleOptions = testRoles.map((r) => ({ label: r.name, value: r.id }));
 
   function sortHandler(setField: (f: string) => void, setOrder: (o: 1 | -1) => void) {
     return (e: DataTableStateEvent) => {
@@ -874,7 +952,7 @@ export function ProjectDetailPage() {
               rowHover
               className="cursor-pointer"
               paginator
-              rows={10}
+              rows={5}
               sortField={planSortField}
               sortOrder={planSortOrder}
               onSort={sortHandler(setPlanSortField, setPlanSortOrder)}
@@ -949,6 +1027,14 @@ export function ProjectDetailPage() {
                   showClear
                   className="w-10rem"
                 />
+                <Dropdown
+                  value={caseTestRoleFilter}
+                  options={testRoleOptions}
+                  onChange={(e) => setCaseTestRoleFilter(e.value)}
+                  placeholder="Semua Role"
+                  showClear
+                  className="w-10rem"
+                />
               </div>
               {canEditContent && (
                 <div className="flex gap-2">
@@ -974,7 +1060,7 @@ export function ProjectDetailPage() {
               rowHover
               className="cursor-pointer"
               paginator
-              rows={10}
+              rows={5}
               sortField={caseSortField}
               sortOrder={caseSortOrder}
               onSort={sortHandler(setCaseSortField, setCaseSortOrder)}
@@ -1002,10 +1088,10 @@ export function ProjectDetailPage() {
                 )}
               />
               <Column
-                field="targetRole"
+                field="targetRole.name"
                 header="Role Target"
                 sortable
-                body={(row: TestCaseWithDetails) => (row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-')}
+                body={(row: TestCaseWithDetails) => (row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-')}
               />
               <Column
                 field="tags"
@@ -1027,6 +1113,7 @@ export function ProjectDetailPage() {
                       ...(canEditContent
                         ? [
                           { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditCaseDialog(row) },
+                          { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateCaseDialog(row) },
                           {
                             label: row.status === 'active' ? 'Arsipkan' : 'Aktifkan',
                             icon: row.status === 'active' ? 'pi pi-inbox' : 'pi pi-refresh',
@@ -1078,7 +1165,7 @@ export function ProjectDetailPage() {
               rowHover
               className="cursor-pointer"
               paginator
-              rows={10}
+              rows={5}
               sortField={runSortField}
               sortOrder={runSortOrder}
               onSort={sortHandler(setRunSortField, setRunSortOrder)}
@@ -1201,7 +1288,7 @@ export function ProjectDetailPage() {
               rowHover
               className="cursor-pointer"
               paginator
-              rows={10}
+              rows={5}
               sortField={issueSortField}
               sortOrder={issueSortOrder}
               onSort={sortHandler(setIssueSortField, setIssueSortOrder)}
@@ -1285,6 +1372,9 @@ export function ProjectDetailPage() {
                   <RowActionsMenu
                     items={[
                       { label: 'Buka Detail', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}`) },
+                      ...(canManageIssues
+                        ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateIssueDialog(row) }]
+                        : []),
                       ...(canManageIssues && row.status !== 'closed'
                         ? [
                           {
@@ -1471,6 +1561,33 @@ export function ProjectDetailPage() {
         </div>
       </Dialog>
 
+      {/* --- Test Role Dialog --- */}
+      <Dialog
+        header="Role Baru"
+        visible={testRoleDialogOpen}
+        onHide={() => setTestRoleDialogOpen(false)}
+        onShow={() => testRoleNameRef.current?.focus()}
+        style={{ width: '25rem' }}
+      >
+        <div className="flex flex-column gap-3">
+          {testRoleError && <small className="p-error">{testRoleError}</small>}
+          <div className="flex flex-column gap-1">
+            <label htmlFor="test-role-name">Nama Role</label>
+            <InputText
+              id="test-role-name"
+              ref={testRoleNameRef}
+              value={testRoleName}
+              onChange={(e) => setTestRoleName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveTestRole();
+              }}
+              placeholder="mis. Admin, Manager, Member"
+            />
+          </div>
+          <Button label="Simpan" size="small" onClick={handleSaveTestRole} />
+        </div>
+      </Dialog>
+
       {/* --- Test Case Dialog --- */}
       <Dialog
         header={editingCaseId ? 'Edit Test Case' : 'Test Case Baru'}
@@ -1524,12 +1641,28 @@ export function ProjectDetailPage() {
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
               <label htmlFor="case-target-role">Role Target (opsional)</label>
-              <InputText
-                id="case-target-role"
-                value={caseTargetRole}
-                onChange={(e) => setCaseTargetRole(e.target.value)}
-                placeholder="mis. Admin, Manager, Member"
-              />
+              <div className="flex align-items-center gap-1">
+                <Dropdown
+                  id="case-target-role"
+                  value={caseTargetRoleId}
+                  options={testRoleOptions}
+                  onChange={(e) => setCaseTargetRoleId(e.value)}
+                  editable
+                  placeholder="Pilih atau ketik role"
+                  showClear
+                  className="w-full"
+                />
+                <Button
+                  icon="pi pi-plus"
+                  type="button"
+                  text
+                  rounded
+                  size="small"
+                  aria-label="Role Baru"
+                  onClick={openCreateTestRoleDialogFromCase}
+                  style={{ width: '2rem', height: '2rem', flexShrink: 0 }}
+                />
+              </div>
             </div>
           </div>
 

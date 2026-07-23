@@ -113,7 +113,7 @@ export function UserManagementPage() {
         value={profiles}
         loading={loading}
         paginator
-        rows={10}
+        rows={5}
         emptyMessage="Belum ada user"
         size="small"
         onRowClick={(e) => navigate(`/users/${(e.data as Profile).id}`)}

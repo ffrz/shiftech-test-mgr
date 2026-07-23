@@ -80,6 +80,23 @@ export function TestRunIssuesPage() {
     await invalidateProjectIssues();
   }
 
+  async function handleDuplicate(row: IssueWithDetails) {
+    const created = await issueService.create({
+      projectId: row.projectId,
+      moduleId: row.moduleId,
+      type: row.type,
+      title: `${row.title} (Copy)`,
+      description: row.description ?? undefined,
+      actualResult: row.actualResult ?? undefined,
+      expectedResult: row.expectedResult ?? undefined,
+      priority: row.priority,
+      githubLinks: row.githubLinks,
+      tagNames: row.tags.map((t) => t.name),
+    });
+    await invalidateProjectIssues();
+    navigate(`/issues/${created.id}`);
+  }
+
   function handleDelete(row: IssueWithDetails) {
     confirmDialog({
       header: 'Hapus Issue',
@@ -141,7 +158,7 @@ export function TestRunIssuesPage() {
         value={issues}
         loading={loading}
         paginator
-        rows={10}
+        rows={5}
         emptyMessage="Belum ada issue"
         size="small"
         onRowClick={(e) => navigate(`/issues/${(e.data as IssueWithDetails).id}?testRunId=${id}`)}
@@ -190,6 +207,7 @@ export function TestRunIssuesPage() {
             <RowActionsMenu
               items={[
                 { label: 'Buka Detail', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}?testRunId=${id}`) },
+                ...(canManageIssues ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => handleDuplicate(row) }] : []),
                 ...(canDeleteContent
                   ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) }]
                   : canManageIssues && row.status !== 'closed'

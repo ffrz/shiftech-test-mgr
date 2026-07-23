@@ -18,10 +18,11 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
+import { testRoleService } from '../../services/testRoleService';
 import { profileService } from '../../services/profileService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { useProjectRole } from '../../hooks/useProjectRole';
-import type { Project, Module, Tag as TagEntity, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
+import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
 import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -42,6 +43,7 @@ export function ProjectSettingsPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
   const [tags, setTags] = useState<TagEntity[]>([]);
+  const [testRoles, setTestRoles] = useState<TestRole[]>([]);
   const [members, setMembers] = useState<ProjectMemberWithProfile[]>([]);
   const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,16 +51,18 @@ export function ProjectSettingsPage() {
   async function loadAll(showLoading = true) {
     if (!id) return;
     if (showLoading) setLoading(true);
-    const [projectResult, modulesResult, tagsResult, membersResult, usersResult] = await Promise.all([
+    const [projectResult, modulesResult, tagsResult, testRolesResult, membersResult, usersResult] = await Promise.all([
       projectService.getById(id),
       moduleService.listByProject(id),
       tagService.listByProject(id),
+      testRoleService.listByProject(id),
       projectMemberService.listByProject(id),
       profileService.listAll(),
     ]);
     setProject(projectResult);
     setModules(modulesResult);
     setTags(tagsResult);
+    setTestRoles(testRolesResult);
     setMembers(membersResult);
     setApprovedUsers(usersResult.filter((p: Profile) => p.role === 'user' || p.role === 'admin'));
     if (showLoading) setLoading(false);
@@ -236,6 +240,88 @@ export function ProjectSettingsPage() {
     });
   }
 
+  // --- Test Role dialog ---
+  const [testRoleDialogOpen, setTestRoleDialogOpen] = useState(false);
+  const [editingTestRoleId, setEditingTestRoleId] = useState<string | null>(null);
+  const [testRoleName, setTestRoleName] = useState('');
+  const [testRoleError, setTestRoleError] = useState<string | null>(null);
+  const testRoleNameRef = useRef<HTMLInputElement>(null);
+
+  const [testRoleSearch, setTestRoleSearch] = useState('');
+  const [testRoleSortField, setTestRoleSortField] = useState('name');
+  const [testRoleSortOrder, setTestRoleSortOrder] = useState<1 | -1>(1);
+  const [selectedTestRoles, setSelectedTestRoles] = useState<TestRole[]>([]);
+
+  const filteredTestRoles = useMemo(() => {
+    const q = testRoleSearch.trim().toLowerCase();
+    if (!q) return testRoles;
+    return testRoles.filter((r) => r.name.toLowerCase().includes(q));
+  }, [testRoles, testRoleSearch]);
+
+  function openCreateTestRoleDialog() {
+    setEditingTestRoleId(null);
+    setTestRoleName('');
+    setTestRoleError(null);
+    setTestRoleDialogOpen(true);
+  }
+
+  function openEditTestRoleDialog(row: TestRole) {
+    setEditingTestRoleId(row.id);
+    setTestRoleName(row.name);
+    setTestRoleError(null);
+    setTestRoleDialogOpen(true);
+  }
+
+  async function handleSaveTestRole() {
+    if (!id) return;
+    setTestRoleError(null);
+    try {
+      if (editingTestRoleId) {
+        await testRoleService.update(editingTestRoleId, { name: testRoleName });
+      } else {
+        await testRoleService.create({ projectId: id, name: testRoleName });
+      }
+      setTestRoleDialogOpen(false);
+      await loadAll(false);
+      toast.current?.show({ severity: 'success', summary: editingTestRoleId ? 'Role diperbarui' : 'Role dibuat' });
+    } catch (err) {
+      setTestRoleError(err instanceof Error ? err.message : 'Gagal menyimpan role');
+    }
+  }
+
+  function handleDeleteTestRole(row: TestRole) {
+    confirmDialog({
+      header: 'Hapus Role',
+      message: `Role "${row.name}" akan dihapus. Test case yang memakai role ini akan menjadi tanpa role. Lanjutkan?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Hapus',
+      rejectLabel: 'Batal',
+      acceptClassName: 'p-button-danger',
+      accept: async () => {
+        await testRoleService.remove(row.id);
+        await loadAll(false);
+        toast.current?.show({ severity: 'success', summary: 'Role dihapus' });
+      },
+    });
+  }
+
+  function handleBulkDeleteTestRoles() {
+    confirmDialog({
+      header: 'Hapus Role Terpilih',
+      message: `${selectedTestRoles.length} role akan dihapus. Test case yang memakai role ini akan menjadi tanpa role. Lanjutkan?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Hapus',
+      rejectLabel: 'Batal',
+      acceptClassName: 'p-button-danger',
+      accept: async () => {
+        await Promise.all(selectedTestRoles.map((r) => testRoleService.remove(r.id)));
+        setSelectedTestRoles([]);
+        await loadAll(false);
+        toast.current?.show({ severity: 'success', summary: 'Role terpilih dihapus' });
+      },
+    });
+  }
+
   // --- Members ---
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [memberUserId, setMemberUserId] = useState<string | null>(null);
@@ -394,7 +480,7 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="Belum ada module"
               paginator
-              rows={10}
+              rows={5}
               sortField={moduleSortField}
               sortOrder={moduleSortOrder}
               onSort={(e) => {
@@ -445,7 +531,7 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="Belum ada tag"
               paginator
-              rows={10}
+              rows={5}
               sortField={tagSortField}
               sortOrder={tagSortOrder}
               onSort={(e) => {
@@ -474,6 +560,57 @@ export function ProjectSettingsPage() {
             </DataTable>
           </TabPanel>
 
+          <TabPanel header="Role Pengujian">
+            <p className="text-color-secondary text-sm mb-3">
+              Role di dalam aplikasi yang diuji (mis. Admin, Manager, Member) — berbeda dari peran anggota project di tab "Anggota Project".
+              Dipakai sebagai "Role Target" saat membuat test case.
+            </p>
+            <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+              <IconField iconPosition="left">
+                <InputIcon className="pi pi-search" />
+                <InputText value={testRoleSearch} onChange={(e) => setTestRoleSearch(e.target.value)} placeholder="Cari nama..." />
+              </IconField>
+              <Button label="Role Baru" icon="pi pi-plus" size="small" onClick={openCreateTestRoleDialog} />
+            </div>
+            <BulkActionsBar
+              selectedCount={selectedTestRoles.length}
+              onClear={() => setSelectedTestRoles([])}
+              actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteTestRoles} />}
+            />
+            <DataTable
+              value={filteredTestRoles}
+              size="small"
+              emptyMessage="Belum ada role"
+              paginator
+              rows={5}
+              sortField={testRoleSortField}
+              sortOrder={testRoleSortOrder}
+              onSort={(e) => {
+                setTestRoleSortField(e.sortField);
+                setTestRoleSortOrder((e.sortOrder ?? 1) as 1 | -1);
+              }}
+              selection={selectedTestRoles}
+              onSelectionChange={(e) => setSelectedTestRoles(e.value as TestRole[])}
+              dataKey="id"
+              selectionMode="checkbox"
+            >
+              <Column selectionMode="multiple" style={{ width: '3rem' }} />
+              <Column field="name" header="Nama" sortable />
+              <Column
+                header=""
+                style={{ width: '3.5rem' }}
+                body={(row: TestRole) => (
+                  <RowActionsMenu
+                    items={[
+                      { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditTestRoleDialog(row) },
+                      { label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteTestRole(row) },
+                    ]}
+                  />
+                )}
+              />
+            </DataTable>
+          </TabPanel>
+
           <TabPanel header="Anggota Project">
             <p className="text-color-secondary text-sm mb-3">
               Hanya user yang terdaftar di sini (atau admin) yang bisa mengakses project ini. Manager bisa mengelola anggota lain.
@@ -492,7 +629,7 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="Belum ada anggota"
               paginator
-              rows={10}
+              rows={5}
               selection={selectedMembers}
               onSelectionChange={(e) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}
               dataKey="id"
@@ -526,28 +663,48 @@ export function ProjectSettingsPage() {
 
           {(canArchiveProject || canDeleteProject) && (
             <TabPanel header="Danger Zone">
-              <div className="flex flex-column gap-3" style={{ maxWidth: '32rem' }}>
+              <div className="flex flex-column gap-3" style={{ maxWidth: '40rem' }}>
                 {canArchiveProject && project.status !== 'archived' && (
-                  <div className="flex align-items-center justify-content-between gap-3 p-3 border-1 border-round surface-border">
+                  <div
+                    className="flex align-items-center justify-content-between gap-4 p-3 border-round-md"
+                    style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
+                  >
                     <div>
-                      <div className="font-medium">Arsipkan Project</div>
-                      <div className="text-color-secondary text-sm">
+                      <div className="font-medium text-color">Arsipkan Project</div>
+                      <div className="text-color-secondary text-sm mt-1">
                         Project ini status: <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />.
                         Project yang diarsipkan tidak muncul di daftar aktif.
                       </div>
                     </div>
-                    <Button label="Arsipkan" icon="pi pi-inbox" severity="warning" outlined onClick={handleArchiveProject} />
+                    <Button
+                      label="Arsipkan"
+                      icon="pi pi-inbox"
+                      severity="warning"
+                      outlined
+                      className="flex-shrink-0 white-space-nowrap"
+                      onClick={handleArchiveProject}
+                    />
                   </div>
                 )}
                 {canDeleteProject && (
-                  <div className="flex align-items-center justify-content-between gap-3 p-3 border-1 border-round surface-border">
+                  <div
+                    className="flex align-items-center justify-content-between gap-4 p-3 border-round-md"
+                    style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
+                  >
                     <div>
-                      <div className="font-medium">Hapus Permanen</div>
-                      <div className="text-color-secondary text-sm">
+                      <div className="font-medium text-color">Hapus Permanen</div>
+                      <div className="text-color-secondary text-sm mt-1">
                         Menghapus project beserta seluruh test plan dan test case. Tindakan ini tidak bisa dibatalkan.
                       </div>
                     </div>
-                    <Button label="Hapus Permanen" icon="pi pi-trash" severity="danger" outlined onClick={handleDeletePermanently} />
+                    <Button
+                      label="Hapus Permanen"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      outlined
+                      className="flex-shrink-0 white-space-nowrap"
+                      onClick={handleDeletePermanently}
+                    />
                   </div>
                 )}
               </div>
@@ -610,6 +767,33 @@ export function ProjectSettingsPage() {
             />
           </div>
           <Button label="Simpan" size="small" onClick={handleSaveTag} />
+        </div>
+      </Dialog>
+
+      {/* --- Test Role Dialog --- */}
+      <Dialog
+        header={editingTestRoleId ? 'Edit Role' : 'Role Baru'}
+        visible={testRoleDialogOpen}
+        onHide={() => setTestRoleDialogOpen(false)}
+        onShow={() => testRoleNameRef.current?.focus()}
+        style={{ width: '25rem' }}
+      >
+        <div className="flex flex-column gap-3">
+          {testRoleError && <small className="p-error">{testRoleError}</small>}
+          <div className="flex flex-column gap-1">
+            <label htmlFor="test-role-name">Nama Role</label>
+            <InputText
+              id="test-role-name"
+              ref={testRoleNameRef}
+              value={testRoleName}
+              onChange={(e) => setTestRoleName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveTestRole();
+              }}
+              placeholder="mis. Admin, Manager, Member"
+            />
+          </div>
+          <Button label="Simpan" size="small" onClick={handleSaveTestRole} />
         </div>
       </Dialog>
 

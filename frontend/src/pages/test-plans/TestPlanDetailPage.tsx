@@ -215,6 +215,32 @@ export function TestPlanDetailPage() {
     toast.current?.show({ severity: 'success', summary: `Status diubah ke ${TEST_PLAN_STATUS_LABEL[status]}` });
   }
 
+  // --- Duplicate: new plan + same scope (same testCaseId rows re-attached, not duplicated) ---
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [duplicateName, setDuplicateName] = useState('');
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+
+  function openDuplicateDialog() {
+    if (!testPlan) return;
+    setDuplicateName(`${testPlan.name} (Copy)`);
+    setDuplicateError(null);
+    setDuplicateDialogOpen(true);
+  }
+
+  async function handleDuplicate() {
+    if (!testPlan) return;
+    setDuplicateError(null);
+    try {
+      const newPlan = await testPlanService.duplicate(testPlan.id, duplicateName);
+      setDuplicateDialogOpen(false);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.testPlans(testPlan.projectId) });
+      toast.current?.show({ severity: 'success', summary: 'Test plan diduplikat' });
+      navigate(`/test-plans/${newPlan.id}`);
+    } catch (err) {
+      setDuplicateError(err instanceof Error ? err.message : 'Gagal menduplikat test plan');
+    }
+  }
+
   function handleDeleteRun(row: TestRun) {
     confirmDialog({
       header: 'Hapus Test Run',
@@ -249,19 +275,35 @@ export function TestPlanDetailPage() {
         title={testPlan ? `${testPlan.code} — ${testPlan.name}` : 'Detail Test Plan'}
         actions={
           testPlan && (
-            canEditContent ? (
-              <Dropdown
-                value={testPlan.status}
-                options={TEST_PLAN_STATUS_OPTIONS}
-                onChange={(e) => handleChangeStatus(e.value)}
-                className="w-10rem"
-              />
-            ) : (
-              <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />
-            )
+            <div className="flex align-items-center gap-2">
+              {canEditContent && (
+                <Button label="Duplikat" icon="pi pi-copy" size="small" outlined onClick={openDuplicateDialog} />
+              )}
+              {canEditContent ? (
+                <Dropdown
+                  value={testPlan.status}
+                  options={TEST_PLAN_STATUS_OPTIONS}
+                  onChange={(e) => handleChangeStatus(e.value)}
+                  className="w-10rem"
+                />
+              ) : (
+                <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />
+              )}
+            </div>
           )
         }
       />
+
+      <Dialog header="Duplikat Test Plan" visible={duplicateDialogOpen} onHide={() => setDuplicateDialogOpen(false)} style={{ width: '28rem' }}>
+        <div className="flex flex-column gap-3">
+          {duplicateError && <small className="p-error">{duplicateError}</small>}
+          <div className="flex flex-column gap-1">
+            <label htmlFor="duplicate-plan-name">Nama Test Plan Baru</label>
+            <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} autoFocus />
+          </div>
+          <Button label="Duplikat" size="small" onClick={handleDuplicate} />
+        </div>
+      </Dialog>
 
       <TabView>
         <TabPanel header="Test Runs">
@@ -288,7 +330,7 @@ export function TestPlanDetailPage() {
             value={filteredRuns}
             loading={runsLoading}
             paginator
-            rows={10}
+            rows={5}
             emptyMessage="Belum ada test run"
             onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
             rowHover
@@ -400,7 +442,7 @@ export function TestPlanDetailPage() {
             value={filteredCases}
             loading={casesLoading}
             paginator={isCaseFilterActive}
-            rows={10}
+            rows={5}
             emptyMessage="Belum ada test case di plan ini"
             size="small"
             selection={selectedCases}
