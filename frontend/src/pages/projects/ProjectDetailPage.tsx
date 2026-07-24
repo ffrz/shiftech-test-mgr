@@ -244,6 +244,12 @@ export function ProjectDetailPage() {
   const [planDescription, setPlanDescription] = useState('');
   const [planError, setPlanError] = useState<string | null>(null);
 
+  // --- Duplicate test plan from the project's test plan list ---
+  const [duplicatePlanDialogOpen, setDuplicatePlanDialogOpen] = useState(false);
+  const [duplicatePlanSource, setDuplicatePlanSource] = useState<TestPlan | null>(null);
+  const [duplicatePlanName, setDuplicatePlanName] = useState('');
+  const [duplicatePlanError, setDuplicatePlanError] = useState<string | null>(null);
+
   // Test Plans: search/filter/sort/selection
   const [planSearch, setPlanSearch] = useState('');
   const [planStatusFilter, setPlanStatusFilter] = useState<TestPlanStatus | null>(null);
@@ -326,6 +332,28 @@ export function ProjectDetailPage() {
         toast.current?.show({ severity: 'success', summary: 'Test plan terpilih dihapus' });
       },
     });
+  }
+
+  function openDuplicatePlanDialog(row: TestPlan) {
+    setDuplicatePlanSource(row);
+    setDuplicatePlanName(`${row.name} (Salinan)`);
+    setDuplicatePlanError(null);
+    setDuplicatePlanDialogOpen(true);
+  }
+
+  async function handleDuplicatePlan() {
+    if (!duplicatePlanSource) return;
+    setDuplicatePlanError(null);
+    try {
+      const newPlan = await testPlanService.duplicate(duplicatePlanSource.id, duplicatePlanName);
+      setDuplicatePlanDialogOpen(false);
+      setDuplicatePlanSource(null);
+      await loadAll();
+      toast.current?.show({ severity: 'success', summary: 'Test plan diduplikat' });
+      navigate(`/test-plans/${newPlan.id}`);
+    } catch (err) {
+      setDuplicatePlanError(err instanceof Error ? err.message : 'Gagal menduplikat test plan');
+    }
   }
 
   // --- Module quick-add (from Test Case dialog) ---
@@ -977,6 +1005,7 @@ export function ProjectDetailPage() {
                 body={(row: TestPlan) => (
                   <RowActionsMenu
                     items={[
+                      ...(canEditContent ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicatePlanDialog(row) }] : []),
                       ...(canEditContent ? [{ label: 'Edit', icon: 'pi pi-pencil', command: () => openEditPlanDialog(row) }] : []),
                       ...(canDeleteContent
                         ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeletePlan(row) }]
@@ -1452,6 +1481,23 @@ export function ProjectDetailPage() {
             <InputTextarea id="plan-description" value={planDescription} onChange={(e) => setPlanDescription(e.target.value)} rows={3} />
           </div>
           <Button label="Simpan" size="small" onClick={handleSavePlan} />
+        </div>
+      </Dialog>
+
+      {/* --- Duplicate Test Plan Dialog --- */}
+      <Dialog
+        header="Duplikat Test Plan"
+        visible={duplicatePlanDialogOpen}
+        onHide={() => setDuplicatePlanDialogOpen(false)}
+        style={{ width: '28rem' }}
+      >
+        <div className="flex flex-column gap-3">
+          {duplicatePlanError && <small className="p-error">{duplicatePlanError}</small>}
+          <div className="flex flex-column gap-1">
+            <label htmlFor="duplicate-plan-name">Nama Test Plan Baru</label>
+            <InputText id="duplicate-plan-name" value={duplicatePlanName} onChange={(e) => setDuplicatePlanName(e.target.value)} autoFocus />
+          </div>
+          <Button label="Duplikat" size="small" onClick={handleDuplicatePlan} />
         </div>
       </Dialog>
 
