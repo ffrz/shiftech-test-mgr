@@ -104,7 +104,7 @@ export function UserManagementPage() {
     <div>
       <Toast ref={toast} />
       <ConfirmDialog />
-      <Menu model={menuItems} popup ref={menuRef} />
+      <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
 
       <Breadcrumb items={[{ label: 'User Management' }]} />
 

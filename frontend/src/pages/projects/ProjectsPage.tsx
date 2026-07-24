@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable, type DataTableSortEvent } from 'primereact/datatable';
@@ -40,6 +41,8 @@ const STATUS_OPTIONS: { label: string; value: ProjectStatus | 'all' }[] = [
 export function ProjectsPage() {
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
   const menuRef = useRef<Menu>(null);
   const [menuRow, setMenuRow] = useState<Project | null>(null);
 
@@ -228,7 +231,7 @@ export function ProjectsPage() {
     <div>
       <Toast ref={toast} />
       <ConfirmDialog />
-      <Menu model={menuItems} popup ref={menuRef} />
+      <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
 
       <Breadcrumb items={[{ label: 'Projects' }]} />
 
@@ -259,37 +262,73 @@ export function ProjectsPage() {
         rows={5}
         size="small"
         emptyMessage="Belum ada project"
-        sortField={sortField}
-        sortOrder={sortDirection === 'asc' ? 1 : -1}
-        onSort={onSort}
+        sortField={isMobile ? undefined : sortField}
+        sortOrder={isMobile ? undefined : (sortDirection === 'asc' ? 1 : -1)}
+        onSort={isMobile ? undefined : onSort}
         onRowClick={(e) => navigate(`/projects/${(e.data as Project).id}`)}
         rowHover
         className="cursor-pointer"
       >
-        <Column field="name" header="Nama" sortable />
-        <Column field="description" header="Deskripsi" />
-        <Column
-          field="status"
-          header="Status"
-          body={(row: Project) => <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />}
-        />
-        <Column field="createdAt" header="Dibuat" body={(row: Project) => formatDate(row.createdAt)} sortable />
-        <Column
-          header=""
-          style={{ width: '4rem' }}
-          body={(row: Project) => (
-            <Button
-              icon="pi pi-ellipsis-v"
-              text
-              rounded
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                openRowMenu(row, e);
-              }}
+        {isMobile ? (
+          <Column
+            field="name"
+            header="Project"
+            body={(row: Project) => (
+              <div className="flex flex-column gap-2 py-1">
+                <div className="flex align-items-center justify-content-between gap-2">
+                  <span className="font-bold text-base">{row.name}</span>
+                  <Button
+                    icon="pi pi-ellipsis-v"
+                    text
+                    rounded
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openRowMenu(row, e);
+                    }}
+                  />
+                </div>
+                <div className="flex align-items-center gap-2 text-sm text-color-secondary">
+                  <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
+                </div>
+                {row.description && (
+                  <div className="text-sm text-color-secondary line-height-3">{row.description}</div>
+                )}
+                <div className="text-xs text-color-secondary">
+                  <i className="pi pi-calendar mr-1" />
+                  Dibuat {formatDate(row.createdAt)}
+                </div>
+              </div>
+            )}
+          />
+        ) : (
+          <>
+            <Column field="name" header="Nama" sortable />
+            <Column field="description" header="Deskripsi" />
+            <Column
+              field="status"
+              header="Status"
+              body={(row: Project) => <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />}
             />
-          )}
-        />
+            <Column field="createdAt" header="Dibuat" body={(row: Project) => formatDate(row.createdAt)} sortable />
+            <Column
+              header=""
+              style={{ width: '4rem' }}
+              body={(row: Project) => (
+                <Button
+                  icon="pi pi-ellipsis-v"
+                  text
+                  rounded
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openRowMenu(row, e);
+                  }}
+                />
+              )}
+            />
+          </>
+        )}
       </DataTable>
 
       <Dialog header={editingId ? 'Edit Project' : 'Project Baru'} visible={dialogOpen} onHide={() => setDialogOpen(false)} style={{ width: '30rem' }}>

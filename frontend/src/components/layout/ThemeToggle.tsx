@@ -28,7 +28,7 @@ export function ThemeToggle() {
         aria-label="Ganti tema"
         onClick={(e) => menuRef.current?.toggle(e)}
       />
-      <Menu model={items} popup ref={menuRef} />
+      <Menu model={items} popup ref={menuRef} appendTo={document.body} />
     </>
   );
 }
