@@ -269,66 +269,77 @@ export function ProjectsPage() {
         rowHover
         className="cursor-pointer"
       >
-        {isMobile ? (
-          <Column
-            field="name"
-            header="Project"
-            body={(row: Project) => (
-              <div className="flex flex-column gap-2 py-1">
-                <div className="flex align-items-center justify-content-between gap-2">
-                  <span className="font-bold text-base">{row.name}</span>
-                  <Button
-                    icon="pi pi-ellipsis-v"
-                    text
-                    rounded
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openRowMenu(row, e);
-                    }}
-                  />
-                </div>
-                <div className="flex align-items-center gap-2 text-sm text-color-secondary">
-                  <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
-                </div>
-                {row.description && (
-                  <div className="text-sm text-color-secondary line-height-3">{row.description}</div>
-                )}
-                <div className="text-xs text-color-secondary">
-                  <i className="pi pi-calendar mr-1" />
-                  Dibuat {formatDate(row.createdAt)}
-                </div>
-              </div>
-            )}
-          />
-        ) : (
-          <>
-            <Column field="name" header="Nama" sortable />
-            <Column field="description" header="Deskripsi" />
-            <Column
-              field="status"
-              header="Status"
-              body={(row: Project) => <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />}
-            />
-            <Column field="createdAt" header="Dibuat" body={(row: Project) => formatDate(row.createdAt)} sortable />
-            <Column
-              header=""
-              style={{ width: '4rem' }}
-              body={(row: Project) => (
-                <Button
-                  icon="pi pi-ellipsis-v"
-                  text
-                  rounded
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openRowMenu(row, e);
-                  }}
-                />
-              )}
-            />
-          </>
-        )}
+        {[
+          isMobile
+            ? {
+                field: 'name' as const,
+                header: 'Project',
+                body: (row: Project) => (
+                  <div className="flex flex-column gap-2 py-1">
+                    <div className="flex align-items-center justify-content-between gap-2">
+                      <span className="font-bold text-base">{row.name}</span>
+                      <Button
+                        icon="pi pi-ellipsis-v"
+                        text
+                        rounded
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openRowMenu(row, e);
+                        }}
+                      />
+                    </div>
+                    <div className="flex align-items-center gap-2 text-sm text-color-secondary">
+                      <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
+                    </div>
+                    {row.description && (
+                      <div className="text-sm text-color-secondary line-height-3">{row.description}</div>
+                    )}
+                    <div className="text-xs text-color-secondary">
+                      <i className="pi pi-calendar mr-1" />
+                      Dibuat {formatDate(row.createdAt)}
+                    </div>
+                  </div>
+                ),
+              }
+            : { field: 'name' as const, header: 'Nama', sortable: true },
+          ...(!isMobile
+            ? [
+                { field: 'description' as const, header: 'Deskripsi' },
+                {
+                  field: 'status' as const,
+                  header: 'Status',
+                  body: (row: Project) => (
+                    <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
+                  ),
+                },
+                {
+                  field: 'createdAt' as const,
+                  header: 'Dibuat',
+                  body: (row: Project) => formatDate(row.createdAt),
+                  sortable: true,
+                },
+                {
+                  header: '',
+                  style: { width: '4rem' },
+                  body: (row: Project) => (
+                    <Button
+                      icon="pi pi-ellipsis-v"
+                      text
+                      rounded
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openRowMenu(row, e);
+                      }}
+                    />
+                  ),
+                },
+              ]
+            : []),
+        ].map((col, i) => (
+          <Column key={col.field ?? `col-${i}`} {...col} />
+        ))}
       </DataTable>
 
       <Dialog header={editingId ? 'Edit Project' : 'Project Baru'} visible={dialogOpen} onHide={() => setDialogOpen(false)} style={{ width: '30rem' }}>
