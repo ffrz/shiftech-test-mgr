@@ -27,6 +27,44 @@ export const testCaseTemplateService = {
     return testCaseTemplateRepository.remove(id);
   },
 
+  async duplicateTemplate(
+    sourceTemplateId: string,
+    input: { name: string; description?: string },
+  ): Promise<TestCaseTemplate> {
+    if (!input.name.trim()) throw new Error('Nama template tidak boleh kosong');
+    const newTemplate = await testCaseTemplateRepository.create({
+      name: input.name.trim(),
+      description: input.description?.trim() || null,
+    });
+
+    const sourceItems = await testCaseTemplateRepository.findItemsByTemplate(sourceTemplateId);
+    for (const item of sourceItems) {
+      const detailedSteps =
+        item.stepType === 'detailed' ? await testCaseTemplateRepository.findStepsByItem(item.id) : [];
+
+      await this.addItem({
+        templateId: newTemplate.id,
+        moduleName: item.moduleName ?? undefined,
+        title: item.title,
+        objective: item.objective ?? undefined,
+        preconditions: item.preconditions ?? undefined,
+        steps: item.steps,
+        expectedResult: item.expectedResult,
+        priority: item.priority,
+        targetRole: item.targetRole ?? undefined,
+        tagNames: item.tagNames,
+        stepType: item.stepType,
+        detailedSteps: detailedSteps.map((s) => ({
+          action: s.action,
+          expectedResult: s.expectedResult ?? undefined,
+        })),
+        orderIndex: item.orderIndex,
+      });
+    }
+
+    return newTemplate;
+  },
+
   listItems(templateId: string) {
     return testCaseTemplateRepository.findItemsByTemplate(templateId);
   },

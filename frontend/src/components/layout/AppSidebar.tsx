@@ -9,7 +9,7 @@ export function AppSidebar() {
   return (
     <div className="layout-sidebar">
       <div className="layout-sidebar-header">
-        <Link to="/" className="layout-sidebar-logo" onClick={closeMenu}>
+        <Link to="/home" className="layout-sidebar-logo" onClick={closeMenu}>
           <i className="pi pi-check-square" />
           <span>Testify</span>
         </Link>

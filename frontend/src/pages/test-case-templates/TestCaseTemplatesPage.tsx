@@ -33,13 +33,17 @@ export function TestCaseTemplatesPage() {
   });
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<'create' | 'edit' | 'duplicate'>('create');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [duplicatingSourceId, setDuplicatingSourceId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   function openCreateDialog() {
+    setDialogMode('create');
     setEditingId(null);
+    setDuplicatingSourceId(null);
     setName('');
     setDescription('');
     setError(null);
@@ -47,8 +51,20 @@ export function TestCaseTemplatesPage() {
   }
 
   function openEditDialog(row: TestCaseTemplate) {
+    setDialogMode('edit');
     setEditingId(row.id);
+    setDuplicatingSourceId(null);
     setName(row.name);
+    setDescription(row.description ?? '');
+    setError(null);
+    setDialogOpen(true);
+  }
+
+  function openDuplicateDialog(row: TestCaseTemplate) {
+    setDialogMode('duplicate');
+    setEditingId(null);
+    setDuplicatingSourceId(row.id);
+    setName(`${row.name} (Salinan)`);
     setDescription(row.description ?? '');
     setError(null);
     setDialogOpen(true);
@@ -61,14 +77,21 @@ export function TestCaseTemplatesPage() {
   async function handleSave() {
     setError(null);
     try {
-      if (editingId) {
+      if (dialogMode === 'edit' && editingId) {
         await testCaseTemplateService.updateTemplate(editingId, { name, description });
+      } else if (dialogMode === 'duplicate' && duplicatingSourceId) {
+        await testCaseTemplateService.duplicateTemplate(duplicatingSourceId, { name, description });
       } else {
         await testCaseTemplateService.createTemplate({ name, description });
       }
       setDialogOpen(false);
       await reload();
-      toast.current?.show({ severity: 'success', summary: editingId ? 'Template diperbarui' : 'Template dibuat' });
+      const summaryMap: Record<typeof dialogMode, string> = {
+        create: 'Template dibuat',
+        edit: 'Template diperbarui',
+        duplicate: 'Template diduplikat',
+      };
+      toast.current?.show({ severity: 'success', summary: summaryMap[dialogMode] });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menyimpan template');
     }
@@ -125,6 +148,7 @@ export function TestCaseTemplatesPage() {
             body={(row: TestCaseTemplate) => (
               <RowActionsMenu
                 items={[
+                  { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
                   { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditDialog(row) },
                   { label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) },
                 ]}
@@ -135,7 +159,9 @@ export function TestCaseTemplatesPage() {
       </DataTable>
 
       <Dialog
-        header={editingId ? 'Edit Template' : 'Template Baru'}
+        header={
+          dialogMode === 'edit' ? 'Edit Template' : dialogMode === 'duplicate' ? 'Duplikat Template' : 'Template Baru'
+        }
         visible={dialogOpen}
         onHide={() => setDialogOpen(false)}
         style={{ width: '30rem' }}
