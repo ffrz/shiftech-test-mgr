@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
@@ -22,6 +22,7 @@ import { testRoleService } from '../../services/testRoleService';
 import { profileService } from '../../services/profileService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
 import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
@@ -39,6 +40,8 @@ export function ProjectSettingsPage() {
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
   const { loading: roleLoading, canManageSettings, canArchiveProject, canDeleteProject } = useProjectRole(id);
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
 
   const [project, setProject] = useState<Project | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
@@ -436,6 +439,33 @@ export function ProjectSettingsPage() {
     });
   }
 
+  const modulesMobileBody = useCallback((row: Module) => (
+    <div className="flex flex-column gap-2 py-1">
+      <div className="font-medium">{row.name}</div>
+      <div className="text-sm text-color-secondary">Kode: {row.code}</div>
+    </div>
+  ), []);
+
+  const tagsMobileBody = useCallback((row: TagEntity) => (
+    <div className="flex flex-column gap-2 py-1">
+      <div className="font-medium">{row.name}</div>
+    </div>
+  ), []);
+
+  const testRolesMobileBody = useCallback((row: TestRole) => (
+    <div className="flex flex-column gap-2 py-1">
+      <div className="font-medium">{row.name}</div>
+    </div>
+  ), []);
+
+  const membersMobileBody = useCallback((row: ProjectMemberWithProfile) => (
+    <div className="flex flex-column gap-2 py-1">
+      <div className="font-medium">{row.profile.fullName ?? '-'}</div>
+      <div className="text-sm text-color-secondary">Email: {row.profile.email}</div>
+      <div className="text-sm text-color-secondary">Peran: {PROJECT_MEMBER_ROLE_LABEL[row.role]}</div>
+    </div>
+  ), []);
+
   if (loading || roleLoading) return <p>Memuat...</p>;
   if (!canManageSettings) return <Navigate to={`/projects/${id}`} replace />;
   if (!project) return <p>Project tidak ditemukan.</p>;
@@ -488,13 +518,16 @@ export function ProjectSettingsPage() {
                 setModuleSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
               selection={selectedModules}
-              onSelectionChange={(e) => setSelectedModules(e.value as Module[])}
+               onSelectionChange={(e: any) => setSelectedModules(e.value as Module[])}
               dataKey="id"
               selectionMode="checkbox"
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
-              <Column field="name" header="Nama" sortable />
+              {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
+              {isMobile
+                ? <Column header="Nama" body={modulesMobileBody} />
+                : <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
+              }
+              {!isMobile && <Column field="name" header="Nama" sortable />}
               <Column
                 header=""
                 style={{ width: '3.5rem' }}
@@ -539,12 +572,15 @@ export function ProjectSettingsPage() {
                 setTagSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
               selection={selectedTags}
-              onSelectionChange={(e) => setSelectedTags(e.value as TagEntity[])}
+               onSelectionChange={(e: any) => setSelectedTags(e.value as TagEntity[])}
               dataKey="id"
               selectionMode="checkbox"
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} />
-              <Column field="name" header="Nama" sortable />
+              {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
+              {isMobile
+                ? <Column header="Nama" body={tagsMobileBody} />
+                : <Column field="name" header="Nama" sortable />
+              }
               <Column
                 header=""
                 style={{ width: '3.5rem' }}
@@ -590,12 +626,15 @@ export function ProjectSettingsPage() {
                 setTestRoleSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
               selection={selectedTestRoles}
-              onSelectionChange={(e) => setSelectedTestRoles(e.value as TestRole[])}
+               onSelectionChange={(e: any) => setSelectedTestRoles(e.value as TestRole[])}
               dataKey="id"
               selectionMode="checkbox"
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} />
-              <Column field="name" header="Nama" sortable />
+              {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
+              {isMobile
+                ? <Column header="Nama" body={testRolesMobileBody} />
+                : <Column field="name" header="Nama" sortable />
+              }
               <Column
                 header=""
                 style={{ width: '3.5rem' }}
@@ -631,24 +670,27 @@ export function ProjectSettingsPage() {
               paginator
               rows={5}
               selection={selectedMembers}
-              onSelectionChange={(e) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}
+               onSelectionChange={(e: any) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}
               dataKey="id"
               selectionMode="checkbox"
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} />
-              <Column header="Nama" body={(row: ProjectMemberWithProfile) => row.profile.fullName ?? '-'} />
-              <Column header="Email" body={(row: ProjectMemberWithProfile) => row.profile.email} />
-              <Column
-                header="Peran"
-                body={(row: ProjectMemberWithProfile) => (
-                  <Dropdown
-                    value={row.role}
-                    options={MEMBER_ROLE_OPTIONS}
-                    onChange={(e) => handleChangeMemberRole(row, e.value)}
-                    className="w-10rem"
-                  />
-                )}
-              />
+              {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
+              {isMobile && <Column header="Anggota" body={membersMobileBody} />}
+              {!isMobile && <Column header="Nama" body={(row: ProjectMemberWithProfile) => row.profile.fullName ?? '-'} />}
+              {!isMobile && <Column header="Email" body={(row: ProjectMemberWithProfile) => row.profile.email} />}
+              {!isMobile && (
+                <Column
+                  header="Peran"
+                  body={(row: ProjectMemberWithProfile) => (
+                    <Dropdown
+                      value={row.role}
+                      options={MEMBER_ROLE_OPTIONS}
+                      onChange={(e) => handleChangeMemberRole(row, e.value)}
+                      className="w-10rem"
+                    />
+                  )}
+                />
+              )}
               <Column
                 header=""
                 style={{ width: '3.5rem' }}

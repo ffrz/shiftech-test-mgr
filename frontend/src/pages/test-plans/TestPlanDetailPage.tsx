@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -29,6 +29,7 @@ import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { queryKeys } from '../../hooks/queryKeys';
 import { formatDateTime } from '../../helpers/dateFormatter';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import {
   TEST_PLAN_STATUS_LABEL,
   TEST_PLAN_STATUS_SEVERITY,
@@ -69,6 +70,9 @@ export function TestPlanDetailPage() {
   const { cases, loading: casesLoading, reload: reloadCases } = useTestPlanDetail(id ?? null);
   const { testRuns, loading: runsLoading, reload: reloadRuns } = useTestRuns(id ?? null);
   const { canEditContent, canDeleteContent, canRunTests } = useProjectRole(testPlan?.projectId);
+
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
 
   const { data: project } = useQuery({
     queryKey: queryKeys.project(testPlan?.projectId ?? ''),
@@ -258,6 +262,43 @@ export function TestPlanDetailPage() {
     });
   }
 
+  const mobileRunNameBody = useCallback((row: TestRunWithSummary) => (
+    <div className="flex flex-column gap-2 py-1">
+      <span className="font-medium">{row.name}</span>
+      <span className="text-sm text-color-secondary">{row.code}</span>
+      <span><Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} /></span>
+      <div className="flex gap-1 align-items-center">
+        <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
+        <Tag value={String(row.fail)} severity={TEST_RESULT_STATUS_SEVERITY.fail} />
+        <span className="text-color-secondary text-sm">/{row.total}</span>
+      </div>
+      <span className="text-sm text-color-secondary">
+        Tester: {row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-'}
+      </span>
+      <span className="text-sm text-color-secondary">
+        Selesai: {row.completedAt ? formatDateTime(row.completedAt) : '-'}
+      </span>
+    </div>
+  ), []);
+
+  const mobileCaseTitleBody = useCallback((row: TestPlanCaseWithDetails) => (
+    <div className="flex flex-column gap-2 py-1">
+      <span className="font-medium">{row.testCase.title}</span>
+      <span className="text-sm text-color-secondary">
+        <a className="entity-link" onClick={(e) => { e.stopPropagation(); navigate(`/test-cases/${row.testCase.id}?projectId=${testPlan?.projectId}`); }}>
+          {row.testCase.code}
+        </a>
+      </span>
+      <span className="text-sm text-color-secondary">Modul: {row.testCase.module?.name ?? '-'}</span>
+      <div className="flex flex-wrap gap-1">
+        {row.testCase.tags.map((t) => (
+          <Tag key={t.id} value={t.name} severity="info" />
+        ))}
+      </div>
+      <span><Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} /></span>
+    </div>
+  ), []);
+
   return (
     <div>
       <Toast ref={toast} />
@@ -337,30 +378,34 @@ export function TestPlanDetailPage() {
             className="cursor-pointer"
             size="small"
           >
-            <Column field="code" header="Kode" style={{ width: '7rem' }} />
-            <Column field="name" header="Nama Run" />
-            <Column field="status" header="Status" body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
-            <Column
-              header="Hasil"
-              body={(row: TestRunWithSummary) => (
-                <div className="flex gap-1 align-items-center">
-                  <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
-                  <Tag value={String(row.fail)} severity={TEST_RESULT_STATUS_SEVERITY.fail} />
-                  <span className="text-color-secondary text-sm">/{row.total}</span>
-                </div>
-              )}
-              sortable
-              sortField="pass"
-            />
-            <Column
-              header="Tester"
-              body={(row: TestRunWithSummary) =>
-                row.testers.length > 0
-                  ? row.testers.map((t) => t.fullName ?? t.id).join(', ')
-                  : '-'
-              }
-            />
-            <Column field="completedAt" header="Selesai" body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
+            {!isMobile && <Column field="code" header="Kode" style={{ width: '7rem' }} />}
+            <Column field="name" header="Nama Run" body={isMobile ? mobileRunNameBody : undefined} />
+            {!isMobile && <Column field="status" header="Status" body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
+            {!isMobile && (
+              <Column
+                header="Hasil"
+                body={(row: TestRunWithSummary) => (
+                  <div className="flex gap-1 align-items-center">
+                    <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
+                    <Tag value={String(row.fail)} severity={TEST_RESULT_STATUS_SEVERITY.fail} />
+                    <span className="text-color-secondary text-sm">/{row.total}</span>
+                  </div>
+                )}
+                sortable
+                sortField="pass"
+              />
+            )}
+            {!isMobile && (
+              <Column
+                header="Tester"
+                body={(row: TestRunWithSummary) =>
+                  row.testers.length > 0
+                    ? row.testers.map((t) => t.fullName ?? t.id).join(', ')
+                    : '-'
+                }
+              />
+            )}
+            {!isMobile && <Column field="completedAt" header="Selesai" body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
             {canDeleteContent && (
               <Column
                 header=""
@@ -454,43 +499,49 @@ export function TestPlanDetailPage() {
           >
             {canEditContent && !isCaseFilterActive && <Column rowReorder style={{ width: '3rem' }} />}
             {canEditContent && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-            <Column
-              field="testCase.code"
-              header="Kode"
-              sortable
-              style={{ width: '7rem' }}
-              body={(row: TestPlanCaseWithDetails) => (
-                <a
-                  className="entity-link"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/test-cases/${row.testCase.id}?projectId=${testPlan?.projectId}`);
-                  }}
-                >
-                  {row.testCase.code}
-                </a>
-              )}
-            />
-            <Column field="testCase.title" header="Test Case" sortable />
-            <Column field="testCase.module.name" header="Modul" sortable body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />
-            <Column
-              header="Tag"
-              body={(row: TestPlanCaseWithDetails) => (
-                <div className="flex flex-wrap gap-1">
-                  {row.testCase.tags.map((t) => (
-                    <Tag key={t.id} value={t.name} severity="info" />
-                  ))}
-                </div>
-              )}
-            />
-            <Column
-              field="testCase.priority"
-              header="Prioritas"
-              sortable
-              body={(row: TestPlanCaseWithDetails) => (
-                <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
-              )}
-            />
+            {!isMobile && (
+              <Column
+                field="testCase.code"
+                header="Kode"
+                sortable
+                style={{ width: '7rem' }}
+                body={(row: TestPlanCaseWithDetails) => (
+                  <a
+                    className="entity-link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/test-cases/${row.testCase.id}?projectId=${testPlan?.projectId}`);
+                    }}
+                  >
+                    {row.testCase.code}
+                  </a>
+                )}
+              />
+            )}
+            <Column field="testCase.title" header="Test Case" sortable body={isMobile ? mobileCaseTitleBody : undefined} />
+            {!isMobile && <Column field="testCase.module.name" header="Modul" sortable body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
+            {!isMobile && (
+              <Column
+                header="Tag"
+                body={(row: TestPlanCaseWithDetails) => (
+                  <div className="flex flex-wrap gap-1">
+                    {row.testCase.tags.map((t) => (
+                      <Tag key={t.id} value={t.name} severity="info" />
+                    ))}
+                  </div>
+                )}
+              />
+            )}
+            {!isMobile && (
+              <Column
+                field="testCase.priority"
+                header="Prioritas"
+                sortable
+                body={(row: TestPlanCaseWithDetails) => (
+                  <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
+                )}
+              />
+            )}
             {canEditContent && (
               <Column
                 header=""

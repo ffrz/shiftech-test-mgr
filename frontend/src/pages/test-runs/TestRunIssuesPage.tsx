@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -8,6 +8,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { issueService } from '../../services/issueService';
 import { projectMemberService } from '../../services/projectMemberService';
 import type { IssueStatus, IssueWithDetails } from '../../types/domain';
@@ -36,6 +37,8 @@ export function TestRunIssuesPage() {
     [allIssues, testResultId],
   );
   const queryClient = useQueryClient();
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
 
   const { data: testRun = null } = useQuery({
     queryKey: queryKeys.testRun(id ?? ''),
@@ -128,6 +131,18 @@ export function TestRunIssuesPage() {
     });
   }
 
+  const mobileBodyTemplate = useCallback((row: IssueWithDetails) => (
+    <div className="flex flex-column gap-2 py-1">
+      <div className="font-medium">{row.code}</div>
+      <div className="text-sm text-color-secondary">{row.title}</div>
+      <div className="text-sm text-color-secondary">
+        Prioritas: <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />
+      </div>
+      <div className="text-sm text-color-secondary">Status: {ISSUE_STATUS_LABEL[row.status]}</div>
+      <div className="text-sm text-color-secondary">Ditugaskan ke: {row.assignee?.fullName ?? row.assignee?.email ?? '-'}</div>
+    </div>
+  ), []);
+
   return (
     <div>
       <ConfirmDialog />
@@ -165,41 +180,48 @@ export function TestRunIssuesPage() {
         rowHover
         className="cursor-pointer"
       >
-        <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
-        <Column field="title" header="Judul" sortable />
-        <Column field="priority" header="Prioritas" body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} sortable />
-        <Column
-          field="status"
-          header="Status"
-          body={(row: IssueWithDetails) => (
-            <div onClick={(e) => e.stopPropagation()}>
-              <Dropdown
-                value={row.status}
-                options={STATUS_OPTIONS}
-                onChange={(e) => handleChangeStatus(row, e.value)}
-                disabled={!canManageIssues}
-                className="w-12rem"
-              />
-            </div>
-          )}
-        />
-        <Column
-          field="assignee"
-          header="Ditugaskan Ke"
-          body={(row: IssueWithDetails) => (
-            <div onClick={(e) => e.stopPropagation()}>
-              <Dropdown
-                value={row.assignedTo}
-                options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
-                onChange={(e) => handleAssign(row, e.value)}
-                placeholder="Belum ditugaskan"
-                showClear
-                disabled={!canManageIssues}
-                className="w-12rem"
-              />
-            </div>
-          )}
-        />
+        {isMobile
+          ? <Column header="Kode" body={mobileBodyTemplate} />
+          : <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
+        }
+        {!isMobile && <Column field="title" header="Judul" sortable />}
+        {!isMobile && <Column field="priority" header="Prioritas" body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} sortable />}
+        {!isMobile && (
+          <Column
+            field="status"
+            header="Status"
+            body={(row: IssueWithDetails) => (
+              <div onClick={(e) => e.stopPropagation()}>
+                <Dropdown
+                  value={row.status}
+                  options={STATUS_OPTIONS}
+                  onChange={(e) => handleChangeStatus(row, e.value)}
+                  disabled={!canManageIssues}
+                  className="w-12rem"
+                />
+              </div>
+            )}
+          />
+        )}
+        {!isMobile && (
+          <Column
+            field="assignee"
+            header="Ditugaskan Ke"
+            body={(row: IssueWithDetails) => (
+              <div onClick={(e) => e.stopPropagation()}>
+                <Dropdown
+                  value={row.assignedTo}
+                  options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
+                  onChange={(e) => handleAssign(row, e.value)}
+                  placeholder="Belum ditugaskan"
+                  showClear
+                  disabled={!canManageIssues}
+                  className="w-12rem"
+                />
+              </div>
+            )}
+          />
+        )}
         <Column
           header=""
           style={{ width: '3.5rem' }}

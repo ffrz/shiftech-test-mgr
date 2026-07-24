@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
@@ -14,6 +14,7 @@ import { SelectButton } from 'primereact/selectbutton';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useAuthContext } from '../../hooks/useAuth';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { testCaseTemplateService } from '../../services/testCaseTemplateService';
 import { queryKeys } from '../../hooks/queryKeys';
 import type { TestCasePriority, TestCaseStepType, TestCaseTemplateItem } from '../../types/domain';
@@ -30,6 +31,8 @@ export function TestCaseTemplateDetailPage() {
   const { id } = useParams<{ id: string }>();
   const toast = useRef<Toast>(null);
   const { isAdmin } = useAuthContext();
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
   const queryClient = useQueryClient();
 
   const { data: template = null } = useQuery({
@@ -199,6 +202,18 @@ export function TestCaseTemplateDetailPage() {
     });
   }
 
+  const mobileBodyTemplate = useCallback((row: TestCaseTemplateItem) => (
+    <div className="flex flex-column gap-2 py-1">
+      <div className="font-medium">{row.title}</div>
+      <div className="text-sm text-color-secondary">Module: {row.moduleName || '-'}</div>
+      <div className="text-sm text-color-secondary">
+        Prioritas: <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
+      </div>
+      <div className="text-sm text-color-secondary">Role Target: {row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-'}</div>
+      <div className="text-sm text-color-secondary">Mode: {row.stepType === 'detailed' ? 'Detailed' : 'Simple'}</div>
+    </div>
+  ), []);
+
   return (
     <div>
       <Toast ref={toast} />
@@ -225,11 +240,14 @@ export function TestCaseTemplateDetailPage() {
       />
 
       <DataTable value={items} loading={loading} paginator rows={5} emptyMessage="Belum ada item" size="small">
-        <Column field="title" header="Judul" sortable />
-        <Column field="moduleName" header="Module" body={(row: TestCaseTemplateItem) => row.moduleName || '-'} />
-        <Column field="priority" header="Prioritas" body={(row: TestCaseTemplateItem) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />} />
-        <Column field="targetRole" header="Role Target" body={(row: TestCaseTemplateItem) => (row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-')} />
-        <Column field="stepType" header="Mode" body={(row: TestCaseTemplateItem) => (row.stepType === 'detailed' ? 'Detailed' : 'Simple')} />
+        {isMobile
+          ? <Column header="Judul" body={mobileBodyTemplate} />
+          : <Column field="title" header="Judul" sortable />
+        }
+        {!isMobile && <Column field="moduleName" header="Module" body={(row: TestCaseTemplateItem) => row.moduleName || '-'} />}
+        {!isMobile && <Column field="priority" header="Prioritas" body={(row: TestCaseTemplateItem) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />} />}
+        {!isMobile && <Column field="targetRole" header="Role Target" body={(row: TestCaseTemplateItem) => (row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-')} />}
+        {!isMobile && <Column field="stepType" header="Mode" body={(row: TestCaseTemplateItem) => (row.stepType === 'detailed' ? 'Detailed' : 'Simple')} />}
         {isAdmin && (
           <Column
             header=""

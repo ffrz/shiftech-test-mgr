@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -12,6 +12,7 @@ import { Toast } from 'primereact/toast';
 import { useAuthContext } from '../../hooks/useAuth';
 import { testCaseTemplateService } from '../../services/testCaseTemplateService';
 import { queryKeys } from '../../hooks/queryKeys';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import type { TestCaseTemplate } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
@@ -26,6 +27,8 @@ export function TestCaseTemplatesPage() {
   const toast = useRef<Toast>(null);
   const { isAdmin } = useAuthContext();
   const queryClient = useQueryClient();
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
 
   const { data: templates = [], isLoading: loading } = useQuery({
     queryKey: queryKeys.testCaseTemplates(),
@@ -113,6 +116,14 @@ export function TestCaseTemplatesPage() {
     });
   }
 
+  const mobileBodyTemplate = useCallback((row: TestCaseTemplate) => (
+    <div className="flex flex-column gap-2 py-1">
+      <span className="font-bold">{row.name}</span>
+      <span className="text-sm text-color-secondary">{row.description || '-'}</span>
+      <span className="text-sm text-color-secondary">{formatDateTime(row.updatedAt)}</span>
+    </div>
+  ), []);
+
   return (
     <div>
       <Toast ref={toast} />
@@ -138,9 +149,10 @@ export function TestCaseTemplatesPage() {
         rowHover
         className="cursor-pointer"
       >
-        <Column field="name" header="Nama" sortable />
-        <Column field="description" header="Deskripsi" body={(row: TestCaseTemplate) => row.description || '-'} />
-        <Column field="updatedAt" header="Update Terakhir" body={(row: TestCaseTemplate) => formatDateTime(row.updatedAt)} sortable />
+        {isMobile && <Column body={mobileBodyTemplate} />}
+        {!isMobile && <Column field="name" header="Nama" sortable />}
+        {!isMobile && <Column field="description" header="Deskripsi" body={(row: TestCaseTemplate) => row.description || '-'} />}
+        {!isMobile && <Column field="updatedAt" header="Update Terakhir" body={(row: TestCaseTemplate) => formatDateTime(row.updatedAt)} sortable />}
         {isAdmin && (
           <Column
             header=""

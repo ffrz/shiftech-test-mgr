@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
@@ -65,6 +66,7 @@ import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
   ISSUE_STATUS_LABEL,
+  ISSUE_STATUS_SEVERITY,
   ISSUE_TYPE_LABEL,
   ISSUE_TYPE_SEVERITY,
 } from '../../helpers/statusLabels';
@@ -124,6 +126,8 @@ const TAB_DEPENDENCIES: (typeof TAB_QUERY_NAMES[number])[][] = [
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
   const { canEditContent, canDeleteContent, canManageIssues, canRunTests } = useProjectRole(id);
@@ -910,6 +914,62 @@ export function ProjectDetailPage() {
     };
   }
 
+  const mobilePlanBody = useCallback((row: TestPlan) => (
+    <div className="flex flex-column gap-1">
+      <div className="font-medium">{row.name}</div>
+      <div className="flex gap-2 align-items-center text-sm flex-wrap">
+        <span className="text-color-secondary">{row.code}</span>
+        <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />
+        <span className="text-color-secondary">{formatDateTime(row.updatedAt)}</span>
+      </div>
+    </div>
+  ), []);
+
+  const mobileCaseBody = useCallback((row: TestCaseWithDetails) => (
+    <div className="flex flex-column gap-1">
+      <div className="font-medium">{row.title}</div>
+      <div className="flex gap-2 align-items-center text-sm flex-wrap">
+        <span className="text-color-secondary">{row.code}</span>
+        <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
+        <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />
+        {row.module && <span className="text-color-secondary">{row.module.name}</span>}
+      </div>
+    </div>
+  ), []);
+
+  const mobileRunBody = useCallback((row: TestRunWithSummary) => (
+    <div className="flex flex-column gap-1">
+      <div className="font-medium">{row.name}</div>
+      <div className="text-sm text-color-secondary">{row.code}</div>
+      <div className="flex gap-1 align-items-center text-sm">
+        <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />
+      </div>
+      <div className="text-sm text-color-secondary">{row.pass} passed / {row.fail} failed</div>
+      <div className="text-sm text-color-secondary">
+        Tester: {row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-'}
+      </div>
+      <div className="text-sm text-color-secondary">
+        {row.completedAt ? formatDateTime(row.completedAt) : '-'}
+      </div>
+    </div>
+  ), []);
+
+  const mobileIssueBody = useCallback((row: IssueWithDetails) => (
+    <div className="flex flex-column gap-1">
+      <div className="font-medium">{row.title}</div>
+      <div className="flex gap-2 align-items-center text-sm flex-wrap">
+        <span className="text-color-secondary">{row.code}</span>
+        <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />
+        <Tag value={ISSUE_STATUS_LABEL[row.status]} severity={ISSUE_STATUS_SEVERITY[row.status]} />
+        <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />
+      </div>
+      <div className="text-sm text-color-secondary flex gap-2">
+        <span>Assignee: {row.assignee?.fullName ?? row.assignedTo ?? '-'}</span>
+        <span>{formatDateTime(row.updatedAt)}</span>
+      </div>
+    </div>
+  ), []);
+
   return (
     <div className="page-fade-in">
       <Toast ref={toast} />
@@ -981,24 +1041,25 @@ export function ProjectDetailPage() {
               className="cursor-pointer"
               paginator
               rows={5}
-              sortField={planSortField}
-              sortOrder={planSortOrder}
-              onSort={sortHandler(setPlanSortField, setPlanSortOrder)}
+              sortField={isMobile ? undefined : planSortField}
+              sortOrder={isMobile ? undefined : planSortOrder}
+              onSort={isMobile ? undefined : sortHandler(setPlanSortField, setPlanSortOrder)}
               selection={selectedPlans}
-              onSelectionChange={(e) => setSelectedPlans(e.value as TestPlan[])}
+              onSelectionChange={(e: any) => setSelectedPlans(e.value as TestPlan[])}
               dataKey="id"
-              selectionMode="checkbox"
+              selectionMode={isMobile ? null : 'checkbox'}
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
-              <Column field="name" header="Nama" sortable />
+              <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
+              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
+              <Column field="name" header="Nama" sortable={!isMobile} body={isMobile ? mobilePlanBody : undefined} />
               <Column
                 field="status"
                 header="Status"
                 sortable
+                hidden={isMobile}
                 body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />}
               />
-              <Column field="updatedAt" header="Update Terakhir" sortable body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
+              <Column field="updatedAt" header="Update Terakhir" sortable hidden={isMobile} body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
               <Column
                 header=""
                 style={{ width: '3.5rem' }}
@@ -1090,28 +1151,30 @@ export function ProjectDetailPage() {
               className="cursor-pointer"
               paginator
               rows={5}
-              sortField={caseSortField}
-              sortOrder={caseSortOrder}
-              onSort={sortHandler(setCaseSortField, setCaseSortOrder)}
+              sortField={isMobile ? undefined : caseSortField}
+              sortOrder={isMobile ? undefined : caseSortOrder}
+              onSort={isMobile ? undefined : sortHandler(setCaseSortField, setCaseSortOrder)}
               selection={selectedCases}
-              onSelectionChange={(e) => setSelectedCases(e.value as TestCaseWithDetails[])}
+              onSelectionChange={(e: any) => setSelectedCases(e.value as TestCaseWithDetails[])}
               dataKey="id"
-              selectionMode="checkbox"
+              selectionMode={isMobile ? null : 'checkbox'}
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
-              <Column field="title" header="Judul" sortable />
-              <Column field="module.name" header="Module" sortable body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} />
+              <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
+              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
+              <Column field="title" header="Judul" sortable={!isMobile} body={isMobile ? mobileCaseBody : undefined} />
+              <Column field="module.name" header="Module" sortable body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} hidden={isMobile} />
               <Column
                 field="priority"
                 header="Prioritas"
                 sortable
+                hidden={isMobile}
                 body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />}
               />
               <Column
                 field="status"
                 header="Status"
                 sortable
+                hidden={isMobile}
                 body={(row: TestCaseWithDetails) => (
                   <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />
                 )}
@@ -1120,11 +1183,13 @@ export function ProjectDetailPage() {
                 field="targetRole.name"
                 header="Role Target"
                 sortable
+                hidden={isMobile}
                 body={(row: TestCaseWithDetails) => (row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-')}
               />
               <Column
                 field="tags"
                 header="Tag"
+                hidden={isMobile}
                 body={(row: TestCaseWithDetails) => (
                   <div className="flex flex-wrap gap-1">
                     {row.tags.map((t) => (
@@ -1195,21 +1260,22 @@ export function ProjectDetailPage() {
               className="cursor-pointer"
               paginator
               rows={5}
-              sortField={runSortField}
-              sortOrder={runSortOrder}
-              onSort={sortHandler(setRunSortField, setRunSortOrder)}
+              sortField={isMobile ? undefined : runSortField}
+              sortOrder={isMobile ? undefined : runSortOrder}
+              onSort={isMobile ? undefined : sortHandler(setRunSortField, setRunSortOrder)}
               selection={selectedRuns}
-              onSelectionChange={(e) => setSelectedRuns(e.value as TestRunWithSummary[])}
+              onSelectionChange={(e: any) => setSelectedRuns(e.value as TestRunWithSummary[])}
               dataKey="id"
-              selectionMode="checkbox"
+              selectionMode={isMobile ? null : 'checkbox'}
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
-              <Column field="name" header="Nama Run" sortable />
+              <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
+              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
+              <Column field="name" header="Nama Run" sortable={!isMobile} body={isMobile ? mobileRunBody : undefined} />
               <Column
                 header="Test Plan"
                 field="testPlanName"
                 sortable
+                hidden={isMobile}
                 body={(row: TestRunWithSummary) =>
                   row.testPlanId ? (
                     <a
@@ -1226,9 +1292,10 @@ export function ProjectDetailPage() {
                   )
                 }
               />
-              <Column field="status" header="Status" sortable body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
+              <Column field="status" header="Status" sortable hidden={isMobile} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
               <Column
                 header="Hasil"
+                hidden={isMobile}
                 body={(row: TestRunWithSummary) => (
                   <div className="flex gap-1 align-items-center">
                     <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
@@ -1239,9 +1306,10 @@ export function ProjectDetailPage() {
               />
               <Column
                 header="Tester"
+                hidden={isMobile}
                 body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
               />
-              <Column field="completedAt" header="Selesai" sortable body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
+              <Column field="completedAt" header="Selesai" sortable hidden={isMobile} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
               <Column
                 header=""
                 style={{ width: '3.5rem' }}
@@ -1318,27 +1386,30 @@ export function ProjectDetailPage() {
               className="cursor-pointer"
               paginator
               rows={5}
-              sortField={issueSortField}
-              sortOrder={issueSortOrder}
-              onSort={sortHandler(setIssueSortField, setIssueSortOrder)}
+              sortField={isMobile ? undefined : issueSortField}
+              sortOrder={isMobile ? undefined : issueSortOrder}
+              onSort={isMobile ? undefined : sortHandler(setIssueSortField, setIssueSortOrder)}
               selection={selectedIssues}
-              onSelectionChange={(e) => setSelectedIssues(e.value as IssueWithDetails[])}
+              onSelectionChange={(e: any) => setSelectedIssues(e.value as IssueWithDetails[])}
               dataKey="id"
-              selectionMode="checkbox"
+              selectionMode={isMobile ? null : 'checkbox'}
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
-              <Column field="title" header="Judul" sortable />
+              <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
+              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
+              <Column field="title" header="Judul" sortable={!isMobile} body={isMobile ? mobileIssueBody : undefined} />
               <Column
                 header="Tipe"
+                hidden={isMobile}
                 body={(row: IssueWithDetails) => <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />}
               />
               <Column
                 header="Modul"
+                hidden={isMobile}
                 body={(row: IssueWithDetails) => row.module?.name ?? '-'}
               />
               <Column
                 header="Tag"
+                hidden={isMobile}
                 body={(row: IssueWithDetails) => (
                   <div className="flex flex-wrap gap-1">
                     {row.tags.length > 0 ? row.tags.map((t) => <Tag key={t.id} value={t.name} severity="info" />) : '-'}
@@ -1347,6 +1418,7 @@ export function ProjectDetailPage() {
               />
               <Column
                 header="Ditautkan"
+                hidden={isMobile}
                 body={(row: IssueWithDetails) =>
                   row.linkedTestResults.length > 0 ? (
                     <span className="text-sm">{row.linkedTestResults.length} Test Result</span>
@@ -1355,10 +1427,11 @@ export function ProjectDetailPage() {
                   )
                 }
               />
-              <Column field="priority" header="Prioritas" sortable body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} />
+              <Column field="priority" header="Prioritas" sortable hidden={isMobile} body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} />
               <Column
                 field="status"
                 header="Status"
+                hidden={isMobile}
                 body={(row: IssueWithDetails) => (
                   <div onClick={(e) => e.stopPropagation()}>
                     <Dropdown
@@ -1377,6 +1450,7 @@ export function ProjectDetailPage() {
               <Column
                 field="assignedTo"
                 header="Ditugaskan Ke"
+                hidden={isMobile}
                 body={(row: IssueWithDetails) => (
                   <div onClick={(e) => e.stopPropagation()}>
                     <Dropdown

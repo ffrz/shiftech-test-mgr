@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -16,6 +16,7 @@ import { testPlanService } from '../../services/testPlanService';
 import { queryKeys } from '../../hooks/queryKeys';
 import type { TestPlan, TestPlanStatus } from '../../types/domain';
 import { formatDate } from '../../helpers/dateFormatter';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -28,6 +29,9 @@ export function TestPlansPage() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const { testPlans, loading, reload } = useTestPlans(projectId);
   const { canEditContent } = useProjectRole(projectId ?? undefined);
+
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
 
   const { data: projects = [] } = useQuery({
     queryKey: queryKeys.projects(),
@@ -65,6 +69,15 @@ export function TestPlansPage() {
     }
   }
 
+  const mobileCodeBody = useCallback((row: TestPlan) => (
+    <div className="flex flex-column gap-2 py-1">
+      <span className="font-medium">{row.code}</span>
+      <span className="text-sm text-color-secondary">{row.name}</span>
+      <span><Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} /></span>
+      <span className="text-sm text-color-secondary">{formatDate(row.updatedAt)}</span>
+    </div>
+  ), []);
+
   return (
     <div>
       <Toast ref={toast} />
@@ -90,10 +103,11 @@ export function TestPlansPage() {
 
       <DataTable value={testPlans} loading={loading} paginator rows={5} emptyMessage="Belum ada test plan" size="small"
         selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
-        <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
-        <Column field="name" header="Nama" sortable />
-        <Column field="status" header="Status" body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />
-        <Column field="updatedAt" header="Update Terakhir" body={(row: TestPlan) => formatDate(row.updatedAt)} sortable />
+        <Column field="code" header="Kode" sortable style={{ width: isMobile ? undefined : '7rem' }}
+          body={isMobile ? mobileCodeBody : undefined} />
+        {!isMobile && <Column field="name" header="Nama" sortable />}
+        {!isMobile && <Column field="status" header="Status" body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />}
+        {!isMobile && <Column field="updatedAt" header="Update Terakhir" body={(row: TestPlan) => formatDate(row.updatedAt)} sortable />}
         {canEditContent && (
           <Column
             header=""
