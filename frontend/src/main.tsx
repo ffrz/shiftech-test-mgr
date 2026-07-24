@@ -28,7 +28,7 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <PrimeReactProvider value={{ ripple: true, inputStyle: 'outlined' }}>
+      <PrimeReactProvider value={{ ripple: true, inputStyle: 'outlined', appendTo: document.body, autoZIndex: true }}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <AuthProvider>

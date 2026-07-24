@@ -25,7 +25,7 @@ export function RowActionsMenu({ items }: RowActionsMenuProps) {
           menuRef.current?.toggle(e);
         }}
       />
-      <Menu ref={menuRef} model={items} popup />
+      <Menu ref={menuRef} model={items} popup appendTo={document.body} />
     </>
   );
 }
