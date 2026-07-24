@@ -52,6 +52,7 @@ export function TestCaseTemplateDetailPage() {
   // module/tag pickers (templates aren't project-scoped) — module/tags are free text here,
   // resolved into real per-project rows only at clone time (testCaseTemplateService.cloneItemsToProject).
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
+  const [itemDialogMode, setItemDialogMode] = useState<'create' | 'edit' | 'duplicate'>('create');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [itemModuleName, setItemModuleName] = useState('');
   const [itemTitle, setItemTitle] = useState('');
@@ -67,6 +68,7 @@ export function TestCaseTemplateDetailPage() {
   const [itemError, setItemError] = useState<string | null>(null);
 
   function openCreateItemDialog() {
+    setItemDialogMode('create');
     setEditingItemId(null);
     setItemModuleName('');
     setItemTitle('');
@@ -84,9 +86,33 @@ export function TestCaseTemplateDetailPage() {
   }
 
   async function openEditItemDialog(row: TestCaseTemplateItem) {
+    setItemDialogMode('edit');
     setEditingItemId(row.id);
     setItemModuleName(row.moduleName ?? '');
     setItemTitle(row.title);
+    setItemObjective(row.objective ?? '');
+    setItemPreconditions(row.preconditions ?? '');
+    setItemSteps(row.steps);
+    setItemExpectedResult(row.expectedResult);
+    setItemPriority(row.priority);
+    setItemTargetRole(row.targetRole ?? '');
+    setItemTagNames(row.tagNames.join(', '));
+    setItemStepType(row.stepType);
+    setItemError(null);
+    setItemDialogOpen(true);
+    if (row.stepType === 'detailed') {
+      const withSteps = await testCaseTemplateService.getItemWithSteps(row);
+      setItemDetailedSteps(withSteps.detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? '' })));
+    } else {
+      setItemDetailedSteps([]);
+    }
+  }
+
+  async function openDuplicateItemDialog(row: TestCaseTemplateItem) {
+    setItemDialogMode('duplicate');
+    setEditingItemId(null);
+    setItemModuleName(row.moduleName ?? '');
+    setItemTitle(`${row.title} (Salinan)`);
     setItemObjective(row.objective ?? '');
     setItemPreconditions(row.preconditions ?? '');
     setItemSteps(row.steps);
@@ -146,7 +172,12 @@ export function TestCaseTemplateDetailPage() {
       }
       setItemDialogOpen(false);
       await reloadItems();
-      toast.current?.show({ severity: 'success', summary: editingItemId ? 'Item diperbarui' : 'Item ditambahkan' });
+      const summaryMap: Record<typeof itemDialogMode, string> = {
+        create: 'Item ditambahkan',
+        edit: 'Item diperbarui',
+        duplicate: 'Item diduplikat',
+      };
+      toast.current?.show({ severity: 'success', summary: summaryMap[itemDialogMode] });
     } catch (err) {
       setItemError(err instanceof Error ? err.message : 'Gagal menyimpan item');
     }
@@ -206,6 +237,7 @@ export function TestCaseTemplateDetailPage() {
             body={(row: TestCaseTemplateItem) => (
               <RowActionsMenu
                 items={[
+                  { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateItemDialog(row) },
                   { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditItemDialog(row) },
                   { label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteItem(row) },
                 ]}
@@ -217,7 +249,9 @@ export function TestCaseTemplateDetailPage() {
 
       {/* --- Item Dialog --- */}
       <Dialog
-        header={editingItemId ? 'Edit Item' : 'Item Baru'}
+        header={
+          itemDialogMode === 'edit' ? 'Edit Item' : itemDialogMode === 'duplicate' ? 'Duplikat Item' : 'Item Baru'
+        }
         visible={itemDialogOpen}
         onHide={() => setItemDialogOpen(false)}
         style={{ width: '40rem' }}
