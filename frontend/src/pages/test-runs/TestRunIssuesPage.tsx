@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -8,6 +8,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { issueService } from '../../services/issueService';
 import { projectMemberService } from '../../services/projectMemberService';
 import type { IssueStatus, IssueWithDetails } from '../../types/domain';
@@ -36,6 +37,8 @@ export function TestRunIssuesPage() {
     [allIssues, testResultId],
   );
   const queryClient = useQueryClient();
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
 
   const { data: testRun = null } = useQuery({
     queryKey: queryKeys.testRun(id ?? ''),
@@ -99,11 +102,11 @@ export function TestRunIssuesPage() {
 
   function handleDelete(row: IssueWithDetails) {
     confirmDialog({
-      header: 'Delete Issue',
-      message: `Issue "${row.title}" will be permanently deleted. Continue?`,
+      header: 'Hapus Issue',
+      message: `Issue "${row.title}" akan dihapus permanen. Lanjutkan?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      acceptLabel: 'Hapus',
+      rejectLabel: 'Batal',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await issueService.remove(row.id);
@@ -115,11 +118,11 @@ export function TestRunIssuesPage() {
 
   function handleArchive(row: IssueWithDetails) {
     confirmDialog({
-      header: 'Archive Issue',
-      message: `Issue "${row.title}" will be archived (closed). Continue?`,
+      header: 'Arsipkan Issue',
+      message: `Issue "${row.title}" akan diarsipkan (ditutup). Lanjutkan?`,
       icon: 'pi pi-info-circle',
-      acceptLabel: 'Archive',
-      rejectLabel: 'Cancel',
+      acceptLabel: 'Arsipkan',
+      rejectLabel: 'Batal',
       accept: async () => {
         await issueService.changeStatus(row.id, 'closed');
         await reload();
@@ -127,6 +130,18 @@ export function TestRunIssuesPage() {
       },
     });
   }
+
+  const mobileBodyTemplate = useCallback((row: IssueWithDetails) => (
+    <div className="flex flex-column gap-2 py-1">
+      <div className="font-medium">{row.code}</div>
+      <div className="text-sm text-color-secondary">{row.title}</div>
+      <div className="text-sm text-color-secondary">
+        Prioritas: <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />
+      </div>
+      <div className="text-sm text-color-secondary">Status: {ISSUE_STATUS_LABEL[row.status]}</div>
+      <div className="text-sm text-color-secondary">Ditugaskan ke: {row.assignee?.fullName ?? row.assignee?.email ?? '-'}</div>
+    </div>
+  ), []);
 
   return (
     <div>
@@ -144,7 +159,7 @@ export function TestRunIssuesPage() {
         actions={
           testResultId ? (
             <Button
-              label="Clear Test Case Filter"
+              label="Hapus Filter Test Case"
               icon="pi pi-times"
               size="small"
               text
@@ -159,59 +174,66 @@ export function TestRunIssuesPage() {
         loading={loading}
         paginator
         rows={5}
-        emptyMessage="No issues yet"
+        emptyMessage="Belum ada issue"
         size="small"
         onRowClick={(e) => navigate(`/issues/${(e.data as IssueWithDetails).id}?testRunId=${id}`)}
         rowHover
         className="cursor-pointer"
       >
-        <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
-        <Column field="title" header="Title" sortable />
-        <Column field="priority" header="Priority" body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} sortable />
-        <Column
-          field="status"
-          header="Status"
-          body={(row: IssueWithDetails) => (
-            <div onClick={(e) => e.stopPropagation()}>
-              <Dropdown
-                value={row.status}
-                options={STATUS_OPTIONS}
-                onChange={(e) => handleChangeStatus(row, e.value)}
-                disabled={!canManageIssues}
-                className="w-12rem"
-              />
-            </div>
-          )}
-        />
-        <Column
-          field="assignee"
-          header="Assigned To"
-          body={(row: IssueWithDetails) => (
-            <div onClick={(e) => e.stopPropagation()}>
-              <Dropdown
-                value={row.assignedTo}
-                options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
-                onChange={(e) => handleAssign(row, e.value)}
-                placeholder="Unassigned"
-                showClear
-                disabled={!canManageIssues}
-                className="w-12rem"
-              />
-            </div>
-          )}
-        />
+        {isMobile
+          ? <Column header="Kode" body={mobileBodyTemplate} />
+          : <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
+        }
+        {!isMobile && <Column field="title" header="Judul" sortable />}
+        {!isMobile && <Column field="priority" header="Prioritas" body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} sortable />}
+        {!isMobile && (
+          <Column
+            field="status"
+            header="Status"
+            body={(row: IssueWithDetails) => (
+              <div onClick={(e) => e.stopPropagation()}>
+                <Dropdown
+                  value={row.status}
+                  options={STATUS_OPTIONS}
+                  onChange={(e) => handleChangeStatus(row, e.value)}
+                  disabled={!canManageIssues}
+                  className="w-12rem"
+                />
+              </div>
+            )}
+          />
+        )}
+        {!isMobile && (
+          <Column
+            field="assignee"
+            header="Ditugaskan Ke"
+            body={(row: IssueWithDetails) => (
+              <div onClick={(e) => e.stopPropagation()}>
+                <Dropdown
+                  value={row.assignedTo}
+                  options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
+                  onChange={(e) => handleAssign(row, e.value)}
+                  placeholder="Belum ditugaskan"
+                  showClear
+                  disabled={!canManageIssues}
+                  className="w-12rem"
+                />
+              </div>
+            )}
+          />
+        )}
         <Column
           header=""
           style={{ width: '3.5rem' }}
           body={(row: IssueWithDetails) => (
             <RowActionsMenu
               items={[
-                { label: 'Open Detail', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}?testRunId=${id}`) },
-                ...(canManageIssues ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => handleDuplicate(row) }] : []),
+                { label: 'Buka Detail', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}?testRunId=${id}`) },
+                ...(canManageIssues ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => handleDuplicate(row) }] : []),
                 ...(canDeleteContent
-                  ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) }]
+                  ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) }]
                   : canManageIssues && row.status !== 'closed'
-                    ? [{ label: 'Archive', icon: 'pi pi-inbox', command: () => handleArchive(row) }]
+                    ? [{ label: 'Arsipkan', icon: 'pi pi-inbox', command: () => handleArchive(row) }]
                     : []),
               ]}
             />

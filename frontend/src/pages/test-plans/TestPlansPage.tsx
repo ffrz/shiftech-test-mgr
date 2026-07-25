@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -16,6 +16,7 @@ import { testPlanService } from '../../services/testPlanService';
 import { queryKeys } from '../../hooks/queryKeys';
 import type { TestPlan, TestPlanStatus } from '../../types/domain';
 import { formatDate } from '../../helpers/dateFormatter';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -29,6 +30,9 @@ export function TestPlansPage() {
   const { testPlans, loading, reload } = useTestPlans(projectId);
   const { canEditContent } = useProjectRole(projectId ?? undefined);
 
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
+
   const { data: projects = [] } = useQuery({
     queryKey: queryKeys.projects(),
     queryFn: () => projectService.list(),
@@ -38,7 +42,7 @@ export function TestPlansPage() {
     if (status === row.status) return;
     await testPlanService.changeStatus(row.id, status);
     await reload();
-    toast.current?.show({ severity: 'success', summary: `Status changed to ${TEST_PLAN_STATUS_LABEL[status]}` });
+    toast.current?.show({ severity: 'success', summary: `Status diubah ke ${TEST_PLAN_STATUS_LABEL[status]}` });
   }
 
   // --- Duplicate: quick access from this cross-project list without opening the detail page ---
@@ -59,11 +63,20 @@ export function TestPlansPage() {
       await testPlanService.duplicate(duplicateRow.id, duplicateName);
       setDuplicateRow(null);
       await reload();
-      toast.current?.show({ severity: 'success', summary: 'Test plan duplicated' });
+      toast.current?.show({ severity: 'success', summary: 'Test plan diduplikat' });
     } catch (err) {
-      setDuplicateError(err instanceof Error ? err.message : 'Failed to duplicate test plan');
+      setDuplicateError(err instanceof Error ? err.message : 'Gagal menduplikat test plan');
     }
   }
+
+  const mobileCodeBody = useCallback((row: TestPlan) => (
+    <div className="flex flex-column gap-2 py-1">
+      <span className="font-medium">{row.code}</span>
+      <span className="text-sm text-color-secondary">{row.name}</span>
+      <span><Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} /></span>
+      <span className="text-sm text-color-secondary">{formatDate(row.updatedAt)}</span>
+    </div>
+  ), []);
 
   return (
     <div>
@@ -75,7 +88,7 @@ export function TestPlansPage() {
             value={projectId}
             options={projects.map((p) => ({ label: p.name, value: p.id }))}
             onChange={(e) => setProjectId(e.value)}
-            placeholder="Select project"
+            placeholder="Pilih project"
             className="w-15rem"
             showClear
           />
@@ -84,16 +97,17 @@ export function TestPlansPage() {
 
       {!projectId && (
         <p className="text-color-secondary">
-          Select a project above to view its test plans. New test plans are created from the project detail page.
+          Pilih project di atas untuk melihat test plan-nya. Test plan baru dibuat dari halaman detail project.
         </p>
       )}
 
-      <DataTable value={testPlans} loading={loading} paginator rows={5} emptyMessage="No test plans yet" size="small"
+      <DataTable value={testPlans} loading={loading} paginator rows={5} emptyMessage="Belum ada test plan" size="small"
         selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
-        <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
-        <Column field="name" header="Name" sortable />
-        <Column field="status" header="Status" body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />
-        <Column field="updatedAt" header="Last Updated" body={(row: TestPlan) => formatDate(row.updatedAt)} sortable />
+        <Column field="code" header="Kode" sortable style={{ width: isMobile ? undefined : '7rem' }}
+          body={isMobile ? mobileCodeBody : undefined} />
+        {!isMobile && <Column field="name" header="Nama" sortable />}
+        {!isMobile && <Column field="status" header="Status" body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />}
+        {!isMobile && <Column field="updatedAt" header="Update Terakhir" body={(row: TestPlan) => formatDate(row.updatedAt)} sortable />}
         {canEditContent && (
           <Column
             header=""
@@ -101,9 +115,9 @@ export function TestPlansPage() {
             body={(row: TestPlan) => (
               <RowActionsMenu
                 items={[
-                  { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
+                  { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
                   ...TEST_PLAN_STATUS_OPTIONS.filter((s) => s !== row.status).map((status) => ({
-                    label: `Change to ${TEST_PLAN_STATUS_LABEL[status]}`,
+                    label: `Ubah ke ${TEST_PLAN_STATUS_LABEL[status]}`,
                     command: () => handleChangeStatus(row, status),
                   })),
                 ]}
@@ -113,14 +127,14 @@ export function TestPlansPage() {
         )}
       </DataTable>
 
-      <Dialog header="Duplicate Test Plan" visible={!!duplicateRow} onHide={() => setDuplicateRow(null)} style={{ width: '28rem' }}>
+      <Dialog header="Duplikat Test Plan" visible={!!duplicateRow} onHide={() => setDuplicateRow(null)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">
           {duplicateError && <small className="p-error">{duplicateError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-plan-name">New Test Plan Name</label>
+            <label htmlFor="duplicate-plan-name">Nama Test Plan Baru</label>
             <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} autoFocus />
           </div>
-          <Button label="Duplicate" size="small" onClick={handleDuplicate} />
+          <Button label="Duplikat" size="small" onClick={handleDuplicate} />
         </div>
       </Dialog>
     </div>
