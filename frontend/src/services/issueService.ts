@@ -34,7 +34,7 @@ export const issueService = {
     // "create new inline" flow in the Test Run Link Issue dialog.
     linkToTestResultId?: string;
   }): Promise<Issue> {
-    if (!input.title.trim()) throw new Error('Judul issue tidak boleh kosong');
+    if (!input.title.trim()) throw new Error('Issue title cannot be empty');
 
     const issue = await issueRepository.create({
       projectId: input.projectId,
@@ -76,7 +76,7 @@ export const issueService = {
     },
     tagNames?: string[],
   ) {
-    if (!input.title.trim()) throw new Error('Judul issue tidak boleh kosong');
+    if (!input.title.trim()) throw new Error('Issue title cannot be empty');
     const issue = await issueRepository.update(id, {
       title: input.title.trim(),
       description: input.description?.trim() || null,

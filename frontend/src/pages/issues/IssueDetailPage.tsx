@@ -152,9 +152,9 @@ export function IssueDetailPage() {
       setEditDialogOpen(false);
       await reload();
       await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-      toast.current?.show({ severity: 'success', summary: 'Issue diperbarui' });
+      toast.current?.show({ severity: 'success', summary: 'Issue updated' });
     } catch (err) {
-      setEditError(err instanceof Error ? err.message : 'Gagal menyimpan issue');
+      setEditError(err instanceof Error ? err.message : 'Failed to save issue');
     }
   }
 
@@ -172,7 +172,7 @@ export function IssueDetailPage() {
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
   }
 
-  // Full-fidelity duplicate (no dialog here, unlike ProjectDetailPage's "Issue Baru" dialog
+  // Full-fidelity duplicate (no dialog here, unlike ProjectDetailPage's "New Issue" dialog
   // which doesn't expose actualResult/expectedResult/githubLinks) — new issue always starts
   // open/unassigned, same as issueService.create's own defaults.
   async function handleDuplicate() {
@@ -190,23 +190,23 @@ export function IssueDetailPage() {
       tagNames: issue.tags.map((t) => t.name),
     });
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-    toast.current?.show({ severity: 'success', summary: 'Issue diduplikat' });
+    toast.current?.show({ severity: 'success', summary: 'Issue duplicated' });
     navigate(`/issues/${created.id}`);
   }
 
   function handleDelete() {
     if (!issue) return;
     confirmDialog({
-      header: 'Hapus Issue',
-      message: `Issue "${issue.title}" akan dihapus permanen. Lanjutkan?`,
+      header: 'Delete Issue',
+      message: `Issue "${issue.title}" will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await issueService.remove(issue.id);
         await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-        toast.current?.show({ severity: 'success', summary: 'Issue dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Issue deleted' });
         handleBack();
       },
     });
@@ -215,16 +215,16 @@ export function IssueDetailPage() {
   function handleArchive() {
     if (!issue) return;
     confirmDialog({
-      header: 'Arsipkan Issue',
-      message: `Issue "${issue.title}" akan diarsipkan (ditutup). Lanjutkan?`,
+      header: 'Archive Issue',
+      message: `Issue "${issue.title}" will be archived (closed). Continue?`,
       icon: 'pi pi-info-circle',
-      acceptLabel: 'Arsipkan',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Archive',
+      rejectLabel: 'Cancel',
       accept: async () => {
         await issueService.changeStatus(issue.id, 'closed');
         await reload();
         await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-        toast.current?.show({ severity: 'success', summary: 'Issue diarsipkan' });
+        toast.current?.show({ severity: 'success', summary: 'Issue archived' });
       },
     });
   }
@@ -236,19 +236,19 @@ export function IssueDetailPage() {
         await attachmentService.upload(issue.id, file);
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) });
-      toast.current?.show({ severity: 'success', summary: 'Attachment diunggah' });
+      toast.current?.show({ severity: 'success', summary: 'Attachment uploaded' });
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Gagal unggah', detail: err instanceof Error ? err.message : undefined });
+      toast.current?.show({ severity: 'error', summary: 'Upload failed', detail: err instanceof Error ? err.message : undefined });
     }
   }
 
   function handleRemoveAttachment(attachment: Attachment) {
     confirmDialog({
-      header: 'Hapus Attachment',
-      message: `Attachment "${attachment.fileName}" akan dihapus. Lanjutkan?`,
+      header: 'Delete Attachment',
+      message: `Attachment "${attachment.fileName}" will be deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         if (!issue) return;
@@ -262,12 +262,12 @@ export function IssueDetailPage() {
     const breadcrumbItems: BreadcrumbItem[] = [
       { label: 'Projects', path: '/' },
       { label: issue ? (projectName ?? '…') : '…', path: issue?.projectId ? `/projects/${issue.projectId}` : undefined },
-      { label: loading ? '…' : 'Issue tidak ditemukan' },
+      { label: loading ? '…' : 'Issue not found' },
     ];
     return (
       <div>
         <Breadcrumb items={breadcrumbItems} />
-        {!loading && <p>Issue tidak ditemukan.</p>}
+        {!loading && <p>Issue not found.</p>}
       </div>
     );
   }
@@ -287,17 +287,17 @@ export function IssueDetailPage() {
 
       <div className="flex justify-content-between align-items-center mb-3">
         <div>
-          <h2>Rincian Issue</h2>
+          <h2>Issue Detail</h2>
         </div>
         <div className="flex gap-2">
           {canManageIssues && <Button label="Edit" icon="pi pi-pencil" size="small" outlined onClick={openEditDialog} />}
-          {canManageIssues && <Button label="Duplikat" icon="pi pi-copy" size="small" outlined onClick={handleDuplicate} />}
+          {canManageIssues && <Button label="Duplicate" icon="pi pi-copy" size="small" outlined onClick={handleDuplicate} />}
           {canDeleteContent ? (
-            <Button label="Hapus" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleDelete} />
+            <Button label="Delete" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleDelete} />
           ) : (
             canManageIssues &&
             issue.status !== 'closed' && (
-              <Button label="Arsipkan" icon="pi pi-inbox" size="small" outlined onClick={handleArchive} />
+              <Button label="Archive" icon="pi pi-inbox" size="small" outlined onClick={handleArchive} />
             )
           )}
         </div>
@@ -312,11 +312,11 @@ export function IssueDetailPage() {
 
         <div className="flex flex-wrap gap-4 mt-3 text-sm">
           <span className="text-color-secondary">
-            Modul: <span className="text-color">{issue.module?.name ?? '-'}</span>
+            Module: <span className="text-color">{issue.module?.name ?? '-'}</span>
           </span>
           {issue.tags.length > 0 && (
             <span className="text-color-secondary flex align-items-center gap-2">
-              Tag:
+              Tags:
               <span className="flex flex-wrap gap-1">
                 {issue.tags.map((tag) => (
                   <Tag key={tag.id} value={tag.name} severity="info" />
@@ -324,13 +324,13 @@ export function IssueDetailPage() {
               </span>
             </span>
           )}
-          <span className="text-color-secondary">Dibuat: <span className="text-color">{formatDateTime(issue.createdAt)}</span></span>
-          <span className="text-color-secondary">Update Terakhir: <span className="text-color">{formatDateTime(issue.updatedAt)}</span></span>
+          <span className="text-color-secondary">Created: <span className="text-color">{formatDateTime(issue.createdAt)}</span></span>
+          <span className="text-color-secondary">Last Updated: <span className="text-color">{formatDateTime(issue.updatedAt)}</span></span>
         </div>
 
         {issue.linkedTestResults.length > 0 && (
           <div className="mt-2 text-sm">
-            <span className="text-color-secondary">Ditautkan ke Test Result: </span>
+            <span className="text-color-secondary">Linked to Test Result: </span>
             <span className="flex flex-wrap gap-2 mt-1">
               {issue.linkedTestResults.map((link) => (
                 <a key={link.id} className="entity-link" onClick={() => navigate(`/test-runs/${link.testRunId}`)}>
@@ -360,12 +360,12 @@ export function IssueDetailPage() {
             <Dropdown value={issue.status} options={STATUS_OPTIONS} onChange={(e) => handleChangeStatus(e.value)} disabled={!canManageIssues} className="w-full" />
           </div>
           <div className="col-12 md:col-6 flex flex-column gap-1">
-            <label className="text-color-secondary text-sm">Ditugaskan Ke</label>
+            <label className="text-color-secondary text-sm">Assigned To</label>
             <Dropdown
               value={issue.assignedTo}
               options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
               onChange={(e) => handleAssign(e.value)}
-              placeholder="Belum ditugaskan"
+              placeholder="Unassigned"
               showClear
               disabled={!canManageIssues}
               className="w-full"
@@ -375,19 +375,19 @@ export function IssueDetailPage() {
       </Card>
 
       {issue.description && (
-        <Card title="Deskripsi" className="mb-3">
+        <Card title="Description" className="mb-3">
           <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.description}</p>
         </Card>
       )}
 
       {issue.actualResult && (
-        <Card title="Hasil Aktual" className="mb-3">
+        <Card title="Actual Result" className="mb-3">
           <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.actualResult}</p>
         </Card>
       )}
 
       {issue.expectedResult && (
-        <Card title="Hasil yang Diharapkan" className="mb-3">
+        <Card title="Expected Result" className="mb-3">
           <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.expectedResult}</p>
         </Card>
       )}
@@ -405,9 +405,9 @@ export function IssueDetailPage() {
               )}
             </div>
           ))}
-          {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">Belum ada attachment.</p>}
+          {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
           {canManageIssues && (
-            <FileUpload mode="basic" chooseLabel="Unggah File" customUpload uploadHandler={handleUpload} auto multiple />
+            <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
           )}
         </div>
       </Card>
@@ -417,54 +417,54 @@ export function IssueDetailPage() {
         <div className="flex flex-column gap-3">
           {editError && <small className="p-error">{editError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-title">Judul</label>
+            <label htmlFor="issue-edit-title">Title</label>
             <InputText id="issue-edit-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} autoFocus />
           </div>
           <div className="grid">
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-edit-type">Tipe</label>
+              <label htmlFor="issue-edit-type">Type</label>
               <Dropdown id="issue-edit-type" value={editType} options={TYPE_OPTIONS} onChange={(e) => setEditType(e.value)} className="w-full" />
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-edit-priority">Prioritas</label>
+              <label htmlFor="issue-edit-priority">Priority</label>
               <Dropdown id="issue-edit-priority" value={editPriority} options={PRIORITY_OPTIONS} onChange={(e) => setEditPriority(e.value)} className="w-full" />
             </div>
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-module">Modul (opsional)</label>
+            <label htmlFor="issue-edit-module">Module (optional)</label>
             <Dropdown
               id="issue-edit-module"
               value={editModuleId}
               options={modules.map((m) => ({ label: m.name, value: m.id }))}
               onChange={(e) => setEditModuleId(e.value)}
               showClear
-              placeholder="Tidak terikat module"
+              placeholder="Not tied to a module"
               className="w-full"
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-tags">Tag</label>
+            <label htmlFor="issue-edit-tags">Tags</label>
             <MultiSelect
               id="issue-edit-tags"
               value={editTags}
               options={projectTags.map((t) => ({ label: t.name, value: t.name }))}
               onChange={(e) => setEditTags(e.value ?? [])}
-              placeholder="Pilih tag"
+              placeholder="Select tags"
               display="chip"
               filter
               className="w-full"
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-description">Deskripsi</label>
+            <label htmlFor="issue-edit-description">Description</label>
             <InputTextarea id="issue-edit-description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={2} />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-actual">Hasil Aktual</label>
+            <label htmlFor="issue-edit-actual">Actual Result</label>
             <InputTextarea id="issue-edit-actual" value={editActual} onChange={(e) => setEditActual(e.target.value)} rows={2} />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-expected">Hasil yang Diharapkan</label>
+            <label htmlFor="issue-edit-expected">Expected Result</label>
             <InputTextarea id="issue-edit-expected" value={editExpected} onChange={(e) => setEditExpected(e.target.value)} rows={2} />
           </div>
           <div className="flex flex-column gap-1">
@@ -478,7 +478,7 @@ export function IssueDetailPage() {
                   className="w-full"
                 />
                 <InputText
-                  placeholder="Label (opsional)"
+                  placeholder="Label (optional)"
                   value={link.label ?? ''}
                   onChange={(e) => setEditGithubLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, label: e.target.value } : l)))}
                   className="w-full"
@@ -487,14 +487,14 @@ export function IssueDetailPage() {
               </div>
             ))}
             <Button
-              label="Tambah Link"
+              label="Add Link"
               icon="pi pi-plus"
               text
               size="small"
               onClick={() => setEditGithubLinks((prev) => [...prev, { url: '', label: '' }])}
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveEdit} />
+          <Button label="Save" size="small" onClick={handleSaveEdit} />
         </div>
       </Dialog>
     </div>
