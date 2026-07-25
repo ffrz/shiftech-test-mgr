@@ -84,15 +84,20 @@ shape yet, but every later phase needs a stable identity model to build on.
 | V2-P1-T10 | Audit + fix every `.from('profiles')` call site across services/hooks/pages (testResult tester join, issue assignee join, project member join, etc.) — repoint to `profiles` (public fields) or `users` (email/role) as appropriate. Also fixed `is_admin()`/`is_approved()` SQL functions, which silently would have broken (see migration comment) | done |
 | V2-P1-T11 | `useAuth.tsx` / `AuthProvider`: fetch both `users` row (role) and `profiles` row (identity) on session load, expose both via `useAuthContext()` | done |
 | V2-P1-T12 | Settings page: let a user view/edit their own `username`, `display_name`, `avatar_url`, `bio` | done |
-| V2-P1-T13 | Regression pass: User Management admin page still reads `email`/`role` correctly from `users`; manually verify migration against a Supabase branch/staging before merging to main | todo |
+| V2-P1-T13 | Regression pass: verified against Supabase cloud project (`pgyuxtwzhflzujhrxixl`) on `feature/platform-foundation` — users/profiles rows intact, FKs correctly repointed, `is_admin()`/`is_approved()` correct, tester/assignee/member name resolution all pass. tsc + lint + build clean. One gap found and fixed (see below) | done |
 
 Also landed ahead of schedule: Phase 6's `/@:username` minimal lookup page (V2-P6-T01/T02),
 built alongside T12 since both touch `profileService`. See Phase 6 below — only V2-P6-T03
 (username picker reused by the Phase 4 invite UI) remains there.
 
-**Migration file:** `supabase/migrations/20260725000005_split_profiles_into_users_and_profiles.sql`.
-T01–T12 done on `feature/platform-foundation`, not yet applied to any live database — apply
-and smoke-test on a staging/branch DB before this phase is considered fully closed (T13).
+**Verification gap found & fixed:** the new `profiles` table wasn't added to the
+`supabase_realtime` publication (the old `profiles`' membership carried forward to the
+renamed `users` table, but the newly created `profiles` needed its own explicit add) — fixed
+in `supabase/migrations/20260725000008_fix_profiles_realtime_publication.sql`.
+
+**Migration files:** `20260725000005_split_profiles_into_users_and_profiles.sql`,
+`20260725000008_fix_profiles_realtime_publication.sql`. Applied and verified on staging —
+phase fully closed.
 
 **Exit criteria:** app builds, lints, and every existing feature (test runs, issues,
 project members list) still renders tester/assignee names correctly after the split.
@@ -116,9 +121,9 @@ and directly required for "finish within one hour" to even be possible for a fir
 
 Also: `UserRole` type narrowed to `'user' \| 'admin'` (dropped `'pending'`), `PendingApprovalPage.tsx` and its route deleted, `isApproved`/`isPending` removed from `useAuthContext()`.
 
-**Migration file:** `supabase/migrations/20260725000006_drop_approval_gate.sql`. Same
-caveat as Phase 1 — not yet applied to any live database, needs staging smoke-test
-(covered by the same V2-P1-T13 verification pass) before merging to main.
+**Migration file:** `supabase/migrations/20260725000006_drop_approval_gate.sql`. Applied
+and verified alongside Phase 1's migration in the same staging pass (V2-P1-T13) — phase
+fully closed.
 
 **Exit criteria:** a brand-new Google sign-in lands directly in the app with a
 usable account — no admin action required.
@@ -146,7 +151,9 @@ Phase 6 note).
 | V2-P3-T09 | Project list/detail: visibility badge added to `ProjectsPage.tsx` and `ProjectDetailPage.tsx`. Owner *name* display deferred (not blocking) — would need a `profiles` lookup by `ownerId`, revisit if it becomes needed | done |
 
 **Migration file:** `supabase/migrations/20260725000007_project_ownership_and_visibility.sql`.
-Same staging-smoke-test caveat as Phase 1/2.
+Landed after Phase 1/2's staging verification pass — **not yet independently smoke-tested**.
+Low risk (renames an existing verified-working column, adds one new column with a safe
+default) but worth a quick staging apply before merging to main, same as Phase 4 below.
 
 **Exit criteria:** creating a project sets an owner and a visibility; existing
 projects all have a valid owner post-migration.
