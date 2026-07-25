@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Testify — Simple Manual Test Management</title>
+    <meta
+      name="description"
+      content="Testify helps QA teams track Test Plans, Test Cases, and Test Runs without messy spreadsheets. 100% FREE, real-time collaboration."
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="./favicon.svg"
+    />
+    <link
+      rel="stylesheet"
+      href="./styles.css"
+    />
+  </head>
+  <body>
+    <div
+      class="bg-decor"
+      aria-hidden="true"
+    ></div>
+
+    <header class="nav">
+      <div class="nav-inner">
+        <a
+          href="/"
+          class="brand"
+        >
+          <span class="brand-mark">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect
+                x="3"
+                y="3"
+                width="18"
+                height="18"
+                rx="5"
+                fill="currentColor"
+              />
+              <path
+                d="M7.5 12.5L10.2 15.2L16.5 8.5"
+                stroke="white"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          Testify
+        </a>
+
+        <nav
+          class="nav-links"
+          id="navLinks"
+        >
+          <a
+            href="/"
+            class="nav-link active"
+            >Home</a
+          >
+          <a
+            href="/login"
+            class="nav-link"
+            >Sign In</a
+          >
+          <a
+            href="/login"
+            class="nav-link nav-link-cta"
+            >Sign Up Free</a
+          >
+        </nav>
+
+        <button
+          class="nav-toggle"
+          id="navToggle"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-inner">
+          <span class="badge">
+            <span class="badge-dot"></span>
+            100% FREE — no credit card required
+          </span>
+
+          <h1>
+            Manage <span class="text-gradient">Test Plans</span> &amp; Test
+            Cases without the spreadsheet mess
+          </h1>
+
+          <p class="hero-sub">
+            Testify helps QA teams record, run, and track manual test results in
+            a structured way — from Test Cases and Test Plans to Test Run
+            history — collaborating with your team in real time.
+          </p>
+
+          <div class="hero-cta">
+            <a
+              href="/login"
+              class="btn btn-primary btn-lg"
+            >
+              Get Started Free
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M5 12h14M13 6l6 6-6 6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+            <a
+              href="/login"
+              class="btn btn-ghost btn-lg"
+              >Sign In</a
+            >
+          </div>
+
+          <p class="hero-note">
+            Sign in with one click using Google — no new password to create.
+          </p>
+        </div>
+
+        <div
+          class="hero-visual"
+          aria-hidden="true"
+        >
+          <div class="mock-window">
+            <div class="mock-titlebar">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="mock-body">
+              <div class="mock-row">
+                <div class="mock-check mock-check-pass">✓</div>
+                <div class="mock-lines">
+                  <div class="mock-line w-70"></div>
+                  <div class="mock-line w-40 dim"></div>
+                </div>
+                <span class="mock-tag pass">PASS</span>
+              </div>
+              <div class="mock-row">
+                <div class="mock-check mock-check-fail">✕</div>
+                <div class="mock-lines">
+                  <div class="mock-line w-60"></div>
+                  <div class="mock-line w-30 dim"></div>
+                </div>
+                <span class="mock-tag fail">FAIL</span>
+              </div>
+              <div class="mock-row">
+                <div class="mock-check mock-check-pass">✓</div>
+                <div class="mock-lines">
+                  <div class="mock-line w-80"></div>
+                  <div class="mock-line w-45 dim"></div>
+                </div>
+                <span class="mock-tag pass">PASS</span>
+              </div>
+              <div class="mock-row">
+                <div class="mock-check mock-check-pending">…</div>
+                <div class="mock-lines">
+                  <div class="mock-line w-50"></div>
+                  <div class="mock-line w-35 dim"></div>
+                </div>
+                <span class="mock-tag pending">SKIP</span>
+              </div>
+              <div class="mock-progress">
+                <div class="mock-progress-bar"></div>
+              </div>
+            </div>
+          </div>
+          <div class="floating-card floating-card-1">
+            <span class="pi-dot"></span> Test Run completed
+          </div>
+          <div class="floating-card floating-card-2">3 testers online</div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section
+        class="section"
+        id="features"
+      >
+        <div class="section-head">
+          <span class="eyebrow">Key Features</span>
+          <h2>Everything your QA team needs, in one workflow</h2>
+          <p>
+            From test planning to bug tracking, structured and easy to follow —
+            even for team members testing for the first time.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="--c: #14b8a6"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-5 9 2 2 4-4"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h3>Reusable Test Cases</h3>
+            <p>
+              Write a test template once, reuse it across as many Test Plans as
+              you need without retyping.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="--c: #0ea5e9"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M8 7V3m8 4V3M4 11h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h3>Test Plans &amp; Sequencing</h3>
+            <p>
+              Define the scope of testing for each release, and order workflow
+              steps with drag &amp; drop.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="--c: #8b5cf6"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h3>Test Run History</h3>
+            <p>
+              Every re-run creates a new Test Run — previous release history is
+              never overwritten.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="--c: #f59e0b"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h3>Real-time Collaboration</h3>
+            <p>
+              Multiple testers can work on the same Test Run at once — results
+              sync automatically without a refresh.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="--c: #ef4444"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h3>Issue Tracking</h3>
+            <p>
+              Bugs found during testing can be linked directly to Issues,
+              complete with priority and status.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div
+              class="feature-icon"
+              style="--c: #14b8a6"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2m14-14 2 2-4 4m-9-2a4 4 0 1 0 8 0 4 4 0 0 0-8 0Z"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h3>Google Sign-In, Project-Based Access</h3>
+            <p>
+              Sign in with one click using Google — access is controlled per
+              project, not just a global role.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- How it works -->
+      <section
+        class="section section-alt"
+        id="how"
+      >
+        <div class="section-head">
+          <span class="eyebrow">How It Works</span>
+          <h2>From template to results, in three simple steps</h2>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <h3>Write Test Cases</h3>
+            <p>
+              Define objective, preconditions, steps, and expected result —
+              grouped by Module and tagged.
+            </p>
+          </div>
+          <div
+            class="step-line"
+            aria-hidden="true"
+          ></div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <h3>Build a Test Plan</h3>
+            <p>
+              Pick which Test Cases are relevant for this release or test cycle.
+            </p>
+          </div>
+          <div
+            class="step-line"
+            aria-hidden="true"
+          ></div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <h3>Run a Test Run</h3>
+            <p>
+              Record PASS/FAIL/SKIP results per tester, with progress calculated
+              automatically in real time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA banner -->
+      <section class="cta-banner">
+        <div class="cta-banner-inner">
+          <h2>Ready to streamline your team's testing process?</h2>
+          <p>
+            100% FREE, no hidden feature limits. Sign in with your Google
+            account and get started in seconds.
+          </p>
+          <a
+            href="/login"
+            class="btn btn-white btn-lg"
+          >
+            Sign Up — 100% FREE
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="brand-mark">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect
+                x="3"
+                y="3"
+                width="18"
+                height="18"
+                rx="5"
+                fill="currentColor"
+              />
+              <path
+                d="M7.5 12.5L10.2 15.2L16.5 8.5"
+                stroke="white"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          Testify
+        </div>
+        <nav class="footer-links">
+          <a href="/">Home</a>
+          <a href="/login">Sign In</a>
+          <a href="/login">Sign Up</a>
+        </nav>
+        <p class="footer-copy">© <span id="year"></span> Testify</p>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      const navToggle = document.getElementById("navToggle");
+      const navLinks = document.getElementById("navLinks");
+      navToggle.addEventListener("click", () => {
+        const isOpen = navLinks.classList.toggle("open");
+        navToggle.setAttribute("aria-expanded", String(isOpen));
+      });
+    </script>
+  </body>
+</html>
