@@ -403,7 +403,7 @@ export function TestRunResultDetailPage() {
 
       <Breadcrumb
         items={[
-          { label: 'Projects', path: '/' },
+          { label: 'Projects', path: '/projects' },
           { label: projectId ? (projectName ?? '…') : '…', path: projectId ? `/projects/${projectId}` : undefined },
           // Custom/unplanned runs (E16) have no test_plan_id — skip this crumb entirely
           // instead of showing a permanently-unresolved "…".

@@ -6,7 +6,7 @@ import type { ParsedTestCaseRow } from '../helpers/csvImport';
 export const testCaseImportService = {
   // Commits already-validated rows into a project's test_cases — module/role names are
   // resolved find-or-create per project (cached per call so a batch sharing a value only
-  // creates it once), same approach as testCaseTemplateService.cloneItemsToProject.
+  // creates it once), same approach as testSuiteService.cloneItemsToProject.
   async importRows(projectId: string, rows: ParsedTestCaseRow[]): Promise<void> {
     if (rows.length === 0) return;
 

@@ -61,14 +61,14 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
   const visibleProjects = sortedProjects.slice(0, MAX_VISIBLE_PROJECTS);
 
   const mainItems: MenuItemModel[] = [
-    { label: 'Home', icon: 'pi pi-home', url: '/home' },
-    { label: 'Projects', icon: 'pi pi-folder', url: '/', end: true },
+    { label: 'Home', icon: 'pi pi-home', url: '/', end: true },
+    { label: 'Projects', icon: 'pi pi-folder', url: '/projects' },
     ...(isAdmin
       ? [
         {
           label: 'Library',
           icon: 'pi pi-book',
-          items: [{ label: 'Test Suite', icon: 'pi pi-copy', url: '/test-case-templates' }],
+          items: [{ label: 'Test Suite', icon: 'pi pi-copy', url: '/test-suites' }],
         },
         {
           label: 'Administration',

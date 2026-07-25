@@ -20,9 +20,9 @@ export const queryKeys = {
   testCases: (projectId: string) => ['testCases', projectId] as const,
   testCasesWithDetails: (projectId: string) => ['testCases', 'withDetails', projectId] as const,
 
-  testCaseTemplates: () => ['testCaseTemplates'] as const,
-  testCaseTemplate: (id: string) => ['testCaseTemplate', id] as const,
-  testCaseTemplateItems: (templateId: string) => ['testCaseTemplateItems', templateId] as const,
+  testSuites: () => ['testSuites'] as const,
+  testSuite: (id: string) => ['testSuite', id] as const,
+  testSuiteItems: (suiteId: string) => ['testSuiteItems', suiteId] as const,
 
   testRun: (id: string) => ['testRun', id] as const,
   testRunResults: (id: string) => ['testRunResults', id] as const,
@@ -37,4 +37,8 @@ export const queryKeys = {
 
   profiles: () => ['profiles'] as const,
   projectMembers: (projectId: string) => ['projectMembers', projectId] as const,
+
+  dashboardCounts: () => ['dashboard', 'counts'] as const,
+  dashboardRecentProjects: () => ['dashboard', 'recentProjects'] as const,
+  dashboardContinueWorking: () => ['dashboard', 'continueWorking'] as const,
 } as const;

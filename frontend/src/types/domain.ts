@@ -124,8 +124,8 @@ export interface TestCaseStep {
 }
 
 // Global, admin-managed library of reusable test case sets — not project-scoped. A project
-// clones items from a template into its own test_cases via testCaseTemplateService.cloneItemsToProject.
-export interface TestCaseTemplate {
+// clones items from a suite into its own test_cases via testSuiteService.cloneItemsToProject.
+export interface TestSuite {
   id: string;
   name: string;
   description: string | null;
@@ -133,9 +133,9 @@ export interface TestCaseTemplate {
   updatedAt: string;
 }
 
-export interface TestCaseTemplateItem {
+export interface TestSuiteItem {
   id: string;
-  templateId: string;
+  suiteId: string;
   // Text, not a FK — modules are project-scoped, resolved (find-or-create) at clone time.
   moduleName: string | null;
   title: string;
@@ -152,16 +152,16 @@ export interface TestCaseTemplateItem {
   updatedAt: string;
 }
 
-export interface TestCaseTemplateItemStep {
+export interface TestSuiteItemStep {
   id: string;
-  templateItemId: string;
+  suiteItemId: string;
   stepNumber: number;
   action: string;
   expectedResult: string | null;
 }
 
-export interface TestCaseTemplateItemWithSteps extends TestCaseTemplateItem {
-  detailedSteps: TestCaseTemplateItemStep[];
+export interface TestSuiteItemWithSteps extends TestSuiteItem {
+  detailedSteps: TestSuiteItemStep[];
 }
 
 // Junction: which test cases are in scope for a plan. No result columns here —

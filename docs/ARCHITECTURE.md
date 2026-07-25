@@ -279,6 +279,13 @@ timestamp:
     bentuk BARU: `is_approved()` untuk select (siapa pun bisa browse/clone),
     `is_admin()` untuk insert/update/delete — berbeda dari semua tabel
     sebelumnya yang project-scoped atau "approved users, akses penuh"
+20. **`20260725000001_rename_test_case_templates_to_test_suites.sql`** — rename
+    murni (data preserved): `test_case_templates` → `test_suites`,
+    `test_case_template_items` → `test_suite_items` (kolom `template_id` →
+    `suite_id`), `test_case_template_item_steps` → `test_suite_item_steps`
+    (kolom `template_item_id` → `suite_item_id`). Dipicu oleh rename menu UI
+    "Test Case Templates" → "Test Suite" — nama tabel/kolom/kode disamakan
+    supaya tidak drift dari label yang dilihat user (lihat §6.7)
 
 | Tabel                   | Keterangan                                                                                                                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -299,9 +306,9 @@ timestamp:
 | `issue_tags`            | Junction many-to-many `issue_id` ↔ `tag_id`, reuse tabel `tags`                                                                                                                                                              |
 | `attachments`           | `issue_id`, `storage_provider`, `url`, `file_name`, `file_size`, `content_type` — lihat §6.6 untuk `StorageAdapter`                                                                                                          |
 | `entity_code_sequences` | Bookkeeping internal: satu row per `(project_id, prefix)`, menyimpan `last_value` counter. Dipakai fungsi `next_entity_code()`                                                                                               |
-| `test_case_templates`   | **Global (E17), TIDAK project-scoped** — library reusable, dikelola admin: name, description. Lihat §6.7                                                                                                                     |
-| `test_case_template_items` | Item di dalam template: template_id, `module_name`/`tag_names` (teks bebas, di-resolve find-or-create ke project nyata saat clone), title, objective, preconditions, steps, expected_result, priority, `step_type`, `target_role`, `order_index` |
-| `test_case_template_item_steps` | Step detail untuk item `step_type='detailed'`, sama seperti `test_case_steps` tapi untuk template item                                                                                                                  |
+| `test_suites`           | **Global (E17), TIDAK project-scoped** — library reusable ("Test Suite" di UI), dikelola admin: name, description. Nama tabel semula `test_case_templates` (lihat migrasi #20). Lihat §6.7                                  |
+| `test_suite_items`      | Item di dalam suite: `suite_id`, `module_name`/`tag_names` (teks bebas, di-resolve find-or-create ke project nyata saat clone), title, objective, preconditions, steps, expected_result, priority, `step_type`, `target_role`, `order_index`. Semula `test_case_template_items` |
+| `test_suite_item_steps` | Step detail untuk item `step_type='detailed'`, sama seperti `test_case_steps` tapi untuk suite item. Semula `test_case_template_item_steps`                                                                                  |
 | `profiles`              | 1:1 dengan `auth.users` (Supabase Auth). Kolom: `email`, `full_name`, `avatar_url`, `role` (`pending`\|`user`\|`admin`), `deleted_at` (soft-delete)                                                                          |
 
 Semua tabel punya trigger `updated_at` otomatis kecuali `test_plan_cases` dan
@@ -674,28 +681,39 @@ seperti amanah-pos, karena diminta eksplisit).
   (bukan lagi cache `Map` module-level) — lihat §2.6 untuk rationale
   lengkap kenapa ini diganti
 
-### 6.7 Test Case Template Library, Import CSV, RBAC Field (E17)
+### 6.7 Test Suite Library, Import CSV, RBAC Field (E17)
+
+> Awalnya modul ini disebut "Test Case Template Library" (halaman, route,
+> service, repository, dan tabel semua bernama `*Template*`). UI-nya lalu
+> di-rename ke **"Test Suite"** karena lebih jelas membedakan dari "Test
+> Case" (entitas project-scoped di tab Test Cases) — "Template" dan "Test
+> Case" terdengar seperti sinonim, padahal ini library global yang di-clone,
+> bukan template dari satu test case. Kode (route, file, service, repository,
+> domain type) dan skema tabel di-refactor mengikuti nama baru ini (migrasi
+> `20260725000001_rename_test_case_templates_to_test_suites.sql`) supaya
+> tidak ada drift antara label UI dan nama di kode — lihat konvensi §"Naming
+> & Convention" di CLAUDE.md.
 
 ```
-TestCaseTemplatesPage (/test-case-templates) → testCaseTemplateService.listTemplates → testCaseTemplateRepository
-TestCaseTemplateDetailPage (/test-case-templates/:id) → listItems/addItem/updateItem/removeItem (+ steps kalau detailed)
-ProjectsPage (dialog Project Baru) → testCaseTemplateService.cloneItemsToProject setelah projectService.create
+TestSuitesPage (/test-suites) → testSuiteService.listSuites → testSuiteRepository
+TestSuiteDetailPage (/test-suites/:id) → listItems/addItem/updateItem/removeItem (+ steps kalau detailed)
+ProjectsPage (dialog Project Baru) → testSuiteService.cloneItemsToProject setelah projectService.create
 ProjectDetailPage (tab Test Cases) → tombol "Import dari Template" (cloneItemsToProject) & "Import dari Excel" (ExcelImportPanel → testCaseImportService.importRows)
 ```
 
-- **Template library bersifat global, bukan project-scoped** — satu-satunya
+- **Test Suite library bersifat global, bukan project-scoped** — satu-satunya
   tabel di codebase ini dengan bentuk RLS "semua approved user boleh SELECT,
   hanya admin boleh INSERT/UPDATE/DELETE" (`is_approved()`/`is_admin()`
   langsung, tanpa lewat `project_members`). Semua tabel lain sebelumnya
   selalu project-scoped atau "approved users, akses penuh"
-- **`module_name`/`tag_names` di template item adalah teks bebas**, bukan FK
-  ke `modules`/`tags` — karena keduanya scoped per-project sementara template
+- **`module_name`/`tag_names` di suite item adalah teks bebas**, bukan FK
+  ke `modules`/`tags` — karena keduanya scoped per-project sementara suite
   tidak. Resolusi jadi row `Module`/`Tag` sungguhan (find-or-create, di-cache
   per panggilan supaya batch item yang share nama module cuma create sekali)
-  terjadi di `testCaseTemplateService.cloneItemsToProject()`, dipanggil baik
+  terjadi di `testSuiteService.cloneItemsToProject()`, dipanggil baik
   dari alur "New Project from Template" maupun tombol "Import dari Template"
 - **Tidak pakai `next_entity_code()`** — fungsi itu murni per-`project_id`,
-  template item tidak dapat kode entity sama sekali (template bukan bagian
+  suite item tidak dapat kode entity sama sekali (suite bukan bagian
   dari skema kode `TC-####` project)
 - **Import CSV (bukan Excel/`xlsx`)**: paket npm `xlsx` (SheetJS) punya
   *high-severity* vulnerability (prototype pollution + ReDoS) yang belum ada

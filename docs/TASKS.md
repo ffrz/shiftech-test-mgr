@@ -334,3 +334,12 @@ custom-fields generik — keputusan eksplisit user).
 | E17-T08 | Clone dari template: dropdown "Mulai dari Template" (opsional) di dialog Project Baru (`ProjectsPage.tsx`) setelah `projectService.create()`; tombol "Import dari Template" di tab Test Cases `ProjectDetailPage.tsx` (pilih template → `MultiSelect` pilih sebagian/semua item → `cloneItemsToProject`) | done |
 | E17-T09 | Import CSV: paket `xlsx` (SheetJS) dari npm punya *high-severity* vulnerability tanpa fix (prototype pollution + ReDoS) — diganti CSV murni tanpa dependency eksternal. `helpers/csvImport.ts` (parser RFC 4180 minimal ditulis manual), `services/testCaseImportService.ts` (resolve Module/Tag find-or-create sama seperti clone template), `components/ui/ExcelImportPanel.tsx` (FileUpload custom + preview baris valid/invalid sebelum commit). Scope awal `step_type='simple'` saja | done |
 | E17-T10 | UI `target_role`: field `InputText` di dialog Test Case (`ProjectDetailPage.tsx`) dan dialog Item Template, ditampilkan sebagai `Tag` di tabel Test Cases, `TestCaseDetailPage.tsx`, dan card atas `TestRunResultDetailPage.tsx` | done |
+
+> **Rename pasca-E17 (2026-07-25):** modul ini di-rename dari "Test Case
+> Template" jadi **"Test Suite"** di seluruh layer (tabel `test_case_templates*`
+> → `test_suites`/`test_suite_items`/`test_suite_item_steps`, service/repo/type
+> `TestCaseTemplate*` → `TestSuite*`, route `/test-case-templates` →
+> `/test-suites`). Task table di atas dibiarkan apa adanya sebagai catatan
+> historis (nama lama saat epic ini dikerjakan); state kode saat ini mengikuti
+> nama baru — lihat `docs/ARCHITECTURE.md` §6.7 dan migrasi
+> `20260725000001_rename_test_case_templates_to_test_suites.sql`.

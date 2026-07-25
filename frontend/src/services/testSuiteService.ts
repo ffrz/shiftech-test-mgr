@@ -1,49 +1,49 @@
-import { testCaseTemplateRepository } from '../repositories/testCaseTemplateRepository';
+import { testSuiteRepository } from '../repositories/testSuiteRepository';
 import { testCaseService } from './testCaseService';
 import { moduleService } from './moduleService';
 import { testRoleService } from './testRoleService';
-import type { TestCaseTemplate, TestCaseTemplateItem, TestCaseTemplateItemWithSteps } from '../types/domain';
+import type { TestSuite, TestSuiteItem, TestSuiteItemWithSteps } from '../types/domain';
 
-export const testCaseTemplateService = {
-  listTemplates() {
-    return testCaseTemplateRepository.findAll();
+export const testSuiteService = {
+  listSuites() {
+    return testSuiteRepository.findAll();
   },
 
-  getTemplate(id: string) {
-    return testCaseTemplateRepository.findById(id);
+  getSuite(id: string) {
+    return testSuiteRepository.findById(id);
   },
 
-  async createTemplate(input: { name: string; description?: string }): Promise<TestCaseTemplate> {
-    if (!input.name.trim()) throw new Error('Template name cannot be empty');
-    return testCaseTemplateRepository.create({ name: input.name.trim(), description: input.description?.trim() || null });
+  async createSuite(input: { name: string; description?: string }): Promise<TestSuite> {
+    if (!input.name.trim()) throw new Error('Suite name cannot be empty');
+    return testSuiteRepository.create({ name: input.name.trim(), description: input.description?.trim() || null });
   },
 
-  async updateTemplate(id: string, input: { name: string; description?: string }): Promise<TestCaseTemplate> {
-    if (!input.name.trim()) throw new Error('Template name cannot be empty');
-    return testCaseTemplateRepository.update(id, { name: input.name.trim(), description: input.description?.trim() || null });
+  async updateSuite(id: string, input: { name: string; description?: string }): Promise<TestSuite> {
+    if (!input.name.trim()) throw new Error('Suite name cannot be empty');
+    return testSuiteRepository.update(id, { name: input.name.trim(), description: input.description?.trim() || null });
   },
 
-  removeTemplate(id: string) {
-    return testCaseTemplateRepository.remove(id);
+  removeSuite(id: string) {
+    return testSuiteRepository.remove(id);
   },
 
-  async duplicateTemplate(
-    sourceTemplateId: string,
+  async duplicateSuite(
+    sourceSuiteId: string,
     input: { name: string; description?: string },
-  ): Promise<TestCaseTemplate> {
-    if (!input.name.trim()) throw new Error('Template name cannot be empty');
-    const newTemplate = await testCaseTemplateRepository.create({
+  ): Promise<TestSuite> {
+    if (!input.name.trim()) throw new Error('Suite name cannot be empty');
+    const newSuite = await testSuiteRepository.create({
       name: input.name.trim(),
       description: input.description?.trim() || null,
     });
 
-    const sourceItems = await testCaseTemplateRepository.findItemsByTemplate(sourceTemplateId);
+    const sourceItems = await testSuiteRepository.findItemsBySuite(sourceSuiteId);
     for (const item of sourceItems) {
       const detailedSteps =
-        item.stepType === 'detailed' ? await testCaseTemplateRepository.findStepsByItem(item.id) : [];
+        item.stepType === 'detailed' ? await testSuiteRepository.findStepsByItem(item.id) : [];
 
       await this.addItem({
-        templateId: newTemplate.id,
+        suiteId: newSuite.id,
         moduleName: item.moduleName ?? undefined,
         title: item.title,
         objective: item.objective ?? undefined,
@@ -62,33 +62,33 @@ export const testCaseTemplateService = {
       });
     }
 
-    return newTemplate;
+    return newSuite;
   },
 
-  listItems(templateId: string) {
-    return testCaseTemplateRepository.findItemsByTemplate(templateId);
+  listItems(suiteId: string) {
+    return testSuiteRepository.findItemsBySuite(suiteId);
   },
 
-  async getItemWithSteps(item: TestCaseTemplateItem): Promise<TestCaseTemplateItemWithSteps> {
-    const detailedSteps = item.stepType === 'detailed' ? await testCaseTemplateRepository.findStepsByItem(item.id) : [];
+  async getItemWithSteps(item: TestSuiteItem): Promise<TestSuiteItemWithSteps> {
+    const detailedSteps = item.stepType === 'detailed' ? await testSuiteRepository.findStepsByItem(item.id) : [];
     return { ...item, detailedSteps };
   },
 
   async addItem(input: {
-    templateId: string;
+    suiteId: string;
     moduleName?: string;
     title: string;
     objective?: string;
     preconditions?: string;
     steps: string;
     expectedResult: string;
-    priority?: TestCaseTemplateItem['priority'];
+    priority?: TestSuiteItem['priority'];
     targetRole?: string;
     tagNames?: string[];
-    stepType?: TestCaseTemplateItem['stepType'];
+    stepType?: TestSuiteItem['stepType'];
     detailedSteps?: { action: string; expectedResult?: string }[];
     orderIndex: number;
-  }): Promise<TestCaseTemplateItem> {
+  }): Promise<TestSuiteItem> {
     if (!input.title.trim()) throw new Error('Test case title cannot be empty');
     const stepType = input.stepType ?? 'simple';
     if (stepType === 'simple') {
@@ -98,8 +98,8 @@ export const testCaseTemplateService = {
       throw new Error('A detailed test case must have at least one step');
     }
 
-    const item = await testCaseTemplateRepository.createItem({
-      templateId: input.templateId,
+    const item = await testSuiteRepository.createItem({
+      suiteId: input.suiteId,
       moduleName: input.moduleName?.trim() || null,
       title: input.title.trim(),
       objective: input.objective?.trim() || null,
@@ -114,7 +114,7 @@ export const testCaseTemplateService = {
     });
 
     if (stepType === 'detailed' && input.detailedSteps) {
-      await testCaseTemplateRepository.replaceStepsForItem(
+      await testSuiteRepository.replaceStepsForItem(
         item.id,
         input.detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult?.trim() || null })),
       );
@@ -125,12 +125,12 @@ export const testCaseTemplateService = {
 
   async updateItem(
     id: string,
-    changes: Partial<Omit<TestCaseTemplateItem, 'id' | 'templateId' | 'createdAt' | 'updatedAt'>>,
+    changes: Partial<Omit<TestSuiteItem, 'id' | 'suiteId' | 'createdAt' | 'updatedAt'>>,
     detailedSteps?: { action: string; expectedResult?: string }[],
-  ): Promise<TestCaseTemplateItem> {
-    const item = await testCaseTemplateRepository.updateItem(id, changes);
+  ): Promise<TestSuiteItem> {
+    const item = await testSuiteRepository.updateItem(id, changes);
     if (item.stepType === 'detailed' && detailedSteps !== undefined) {
-      await testCaseTemplateRepository.replaceStepsForItem(
+      await testSuiteRepository.replaceStepsForItem(
         id,
         detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult?.trim() || null })),
       );
@@ -139,16 +139,16 @@ export const testCaseTemplateService = {
   },
 
   removeItem(id: string) {
-    return testCaseTemplateRepository.removeItem(id);
+    return testSuiteRepository.removeItem(id);
   },
 
-  // Clones the given template items into a project's own test_cases. module_name/tag_names
-  // are text on the template item (templates aren't project-scoped) — resolved here into
+  // Clones the given suite items into a project's own test_cases. module_name/tag_names
+  // are text on the suite item (suites aren't project-scoped) — resolved here into
   // real per-project Module/Tag rows, find-or-create, cached per call so a batch of items
   // sharing a module name only creates it once.
   async cloneItemsToProject(projectId: string, itemIds: string[]): Promise<void> {
     if (itemIds.length === 0) return;
-    const items = await testCaseTemplateRepository.findItemsByIds(itemIds);
+    const items = await testSuiteRepository.findItemsByIds(itemIds);
 
     const existingModules = await moduleService.listByProject(projectId);
     const moduleIdByName = new Map(existingModules.map((m) => [m.name.toLowerCase(), m.id]));
@@ -180,7 +180,7 @@ export const testCaseTemplateService = {
       const moduleId = await resolveModuleId(item.moduleName);
       const targetRoleId = await resolveTestRoleId(item.targetRole);
       const detailedSteps =
-        item.stepType === 'detailed' ? await testCaseTemplateRepository.findStepsByItem(item.id) : [];
+        item.stepType === 'detailed' ? await testSuiteRepository.findStepsByItem(item.id) : [];
 
       await testCaseService.create({
         projectId,

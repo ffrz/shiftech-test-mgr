@@ -2,9 +2,9 @@ import type {
   TestPlan,
   TestCase,
   TestCaseStep,
-  TestCaseTemplate,
-  TestCaseTemplateItem,
-  TestCaseTemplateItemStep,
+  TestSuite,
+  TestSuiteItem,
+  TestSuiteItemStep,
   TestPlanCase,
   Project,
   Profile,
@@ -116,7 +116,7 @@ export function mapTestCaseRow(row: any): TestCase {
   };
 }
 
-export function mapTestCaseTemplateRow(row: any): TestCaseTemplate {
+export function mapTestSuiteRow(row: any): TestSuite {
   return {
     id: row.id,
     name: row.name,
@@ -126,10 +126,10 @@ export function mapTestCaseTemplateRow(row: any): TestCaseTemplate {
   };
 }
 
-export function mapTestCaseTemplateItemRow(row: any): TestCaseTemplateItem {
+export function mapTestSuiteItemRow(row: any): TestSuiteItem {
   return {
     id: row.id,
-    templateId: row.template_id,
+    suiteId: row.suite_id,
     moduleName: row.module_name,
     title: row.title,
     objective: row.objective,
@@ -146,10 +146,10 @@ export function mapTestCaseTemplateItemRow(row: any): TestCaseTemplateItem {
   };
 }
 
-export function mapTestCaseTemplateItemStepRow(row: any): TestCaseTemplateItemStep {
+export function mapTestSuiteItemStepRow(row: any): TestSuiteItemStep {
   return {
     id: row.id,
-    templateItemId: row.template_item_id,
+    suiteItemId: row.suite_item_id,
     stepNumber: row.step_number,
     action: row.action,
     expectedResult: row.expected_result,

@@ -31,7 +31,7 @@ import { projectMemberService } from '../../services/projectMemberService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
-import { testCaseTemplateService } from '../../services/testCaseTemplateService';
+import { testSuiteService } from '../../services/testSuiteService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
 import { queryKeys } from '../../hooks/queryKeys';
@@ -42,7 +42,7 @@ import type {
   TestCaseWithDetails,
   TestCasePriority,
   TestCaseStatus,
-  TestCaseTemplateItem,
+  TestSuiteItem,
   TestRun,
   TestRunStatus,
   IssueWithDetails,
@@ -605,13 +605,13 @@ export function ProjectDetailPage() {
   // --- Import Test Case from Template ---
   const [importTemplateDialogOpen, setImportTemplateDialogOpen] = useState(false);
   const [importTemplateId, setImportTemplateId] = useState<string | null>(null);
-  const [importTemplateItems, setImportTemplateItems] = useState<TestCaseTemplateItem[]>([]);
+  const [importTemplateItems, setImportTemplateItems] = useState<TestSuiteItem[]>([]);
   const [importTemplateItemIds, setImportTemplateItemIds] = useState<string[]>([]);
   const [importTemplateLoading, setImportTemplateLoading] = useState(false);
 
   const { data: availableTemplates = [] } = useQuery({
-    queryKey: queryKeys.testCaseTemplates(),
-    queryFn: () => testCaseTemplateService.listTemplates(),
+    queryKey: queryKeys.testSuites(),
+    queryFn: () => testSuiteService.listSuites(),
     enabled: importTemplateDialogOpen,
   });
 
@@ -629,14 +629,14 @@ export function ProjectDetailPage() {
       setImportTemplateItems([]);
       return;
     }
-    setImportTemplateItems(await testCaseTemplateService.listItems(nextTemplateId));
+    setImportTemplateItems(await testSuiteService.listItems(nextTemplateId));
   }
 
   async function handleImportFromTemplate() {
     if (!id || importTemplateItemIds.length === 0) return;
     setImportTemplateLoading(true);
     try {
-      await testCaseTemplateService.cloneItemsToProject(id, importTemplateItemIds);
+      await testSuiteService.cloneItemsToProject(id, importTemplateItemIds);
       setImportTemplateDialogOpen(false);
       await loadAll();
       toast.current?.show({ severity: 'success', summary: `${importTemplateItemIds.length} test case(s) imported` });
@@ -950,7 +950,7 @@ export function ProjectDetailPage() {
       <div className="page-fade-in">
         <Breadcrumb
           items={[
-            { label: 'Projects', path: '/' },
+            { label: 'Projects', path: '/projects' },
             { label: projectLoading ? '…' : 'Project not found' },
           ]}
         />
@@ -977,7 +977,7 @@ export function ProjectDetailPage() {
 
       <Breadcrumb
         items={[
-          { label: 'Projects', path: '/' },
+          { label: 'Projects', path: '/projects' },
           { label: project.name, path: `/projects/${id}` }
         ]}
       />

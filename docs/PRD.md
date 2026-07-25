@@ -235,23 +235,26 @@ skema penomoran kaku.
   valid vs invalid sebelum commit. Hanya mendukung test case `simple`
   (bukan `detailed`) untuk versi awal ini
 
-### 4.3.1 Test Case Template Library (E17)
+### 4.3.1 Test Suite Library (E17, semula "Test Case Template Library")
 
 Library test case global (bukan per-project), untuk inisialisasi cepat
-project baru tanpa mengetik ulang test case standar dari nol.
+project baru tanpa mengetik ulang test case standar dari nol. Menu UI-nya
+bernama **"Test Suite"** (di-rename dari "Test Case Templates" supaya tidak
+rancu dengan "Test Case" biasa) — kode dan skema tabel mengikuti nama ini
+(lihat `docs/ARCHITECTURE.md` §6.7).
 
-- Dikelola **admin** (create/edit/delete template dan isinya), tapi bisa
+- Dikelola **admin** (create/edit/delete suite dan isinya), tapi bisa
   **dilihat dan di-clone oleh semua user approved** — bukan fitur admin-only
   sepenuhnya, karena tujuannya adalah dipakai lintas project oleh siapa saja
-- Satu Template berisi banyak Item (setara Test Case: Module, Title,
+- Satu Suite berisi banyak Item (setara Test Case: Module, Title,
   Objective, Steps, Expected Result, Priority, Tags, Role Target, mendukung
   mode `simple`/`detailed` sama seperti Test Case biasa)
 - **Clone ke project**: saat membuat Project Baru, ada opsi "Mulai dari
-  Template" (opsional) yang otomatis clone semua item template itu jadi Test
+  Template" (opsional) yang otomatis clone semua item suite itu jadi Test
   Case nyata di project baru. Bisa juga dilakukan kapan saja setelah project
   ada, lewat tombol "Import dari Template" di tab Test Cases — dan boleh
   pilih sebagian item saja, tidak wajib semua
-- Module/Tag di template disimpan sebagai teks bebas (bukan terikat project
+- Module/Tag di suite disimpan sebagai teks bebas (bukan terikat project
   manapun) — saat di-clone, dicocokkan ke Module/Tag yang sudah ada di
   project tujuan atau dibuat baru otomatis kalau belum ada
 

@@ -98,7 +98,7 @@ export function IssueDetailPage() {
     } else if (issue?.projectId) {
       navigate(`/projects/${issue.projectId}`);
     } else {
-      navigate('/');
+      navigate('/projects');
     }
   }
 
@@ -260,7 +260,7 @@ export function IssueDetailPage() {
 
   if (loading || !issue) {
     const breadcrumbItems: BreadcrumbItem[] = [
-      { label: 'Projects', path: '/' },
+      { label: 'Projects', path: '/projects' },
       { label: issue ? (projectName ?? '…') : '…', path: issue?.projectId ? `/projects/${issue.projectId}` : undefined },
       { label: loading ? '…' : 'Issue not found' },
     ];
@@ -273,7 +273,7 @@ export function IssueDetailPage() {
   }
 
   const breadcrumbItems: BreadcrumbItem[] = [
-    { label: 'Projects', path: '/' },
+    { label: 'Projects', path: '/projects' },
     { label: projectName ?? '…', path: `/projects/${issue.projectId}` },
     { label: issue.code, path: `/issues/${issue.id}` },
   ];

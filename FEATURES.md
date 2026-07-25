@@ -29,10 +29,10 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] **Import dari Excel/CSV** (E17) — tombol di tab Test Cases, baca file CSV client-side (tanpa dependency `xlsx` karena vulnerability terbuka di npm — Excel/Sheets tetap bisa export CSV native), preview baris valid/invalid sebelum commit, hanya `step_type=simple`
 - [ ] Filter by priority/status di list
 
-## Test Case Template Library (E17)
-- [x] Library global (bukan per-project), dikelola admin — `TestCaseTemplatesPage`/`TestCaseTemplateDetailPage`, sidebar "Test Case Templates"
-- [x] Semua approved user bisa lihat & clone template ke project mereka; hanya admin yang bisa create/edit/delete template (RLS `is_approved()` select, `is_admin()` write)
-- [x] Item template mendukung `simple`/`detailed` step_type sama seperti Test Case biasa, plus Role Target dan Tag (teks bebas — module/tag di-resolve find-or-create ke project nyata saat clone)
+## Test Suite Library (E17, renamed from "Test Case Template Library")
+- [x] Library global (bukan per-project), dikelola admin — `TestSuitesPage`/`TestSuiteDetailPage`, sidebar "Test Suite"
+- [x] Semua approved user bisa lihat & clone suite ke project mereka; hanya admin yang bisa create/edit/delete suite (RLS `is_approved()` select, `is_admin()` write)
+- [x] Item suite mendukung `simple`/`detailed` step_type sama seperti Test Case biasa, plus Role Target dan Tag (teks bebas — module/tag di-resolve find-or-create ke project nyata saat clone)
 - [x] Clone saat inisialisasi project baru (dropdown "Mulai dari Template" opsional di dialog Project Baru) atau kapan saja lewat tombol "Import dari Template" di tab Test Cases (pilih sebagian item, bukan wajib semua)
 
 ## Test Plans

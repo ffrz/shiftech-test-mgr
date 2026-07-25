@@ -22,7 +22,7 @@ export function AppTopbar() {
         aria-label="Toggle menu"
         onClick={onMenuToggle}
       />
-      <Link to="/home" className="layout-topbar-logo">
+      <Link to="/" className="layout-topbar-logo">
         <span>Testify</span>
       </Link>
       {items.length > 0 && (

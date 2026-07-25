@@ -10,19 +10,19 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useAuthContext } from '../../hooks/useAuth';
-import { testCaseTemplateService } from '../../services/testCaseTemplateService';
+import { testSuiteService } from '../../services/testSuiteService';
 import { queryKeys } from '../../hooks/queryKeys';
 import { useScreenSize } from '../../hooks/useScreenSize';
-import type { TestCaseTemplate } from '../../types/domain';
+import type { TestSuite } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { formatDateTime } from '../../helpers/dateFormatter';
 
 // Global, admin-managed library of reusable test case sets — any approved user can browse
-// and clone from a template into their own project, but only admins can create/edit/delete
-// templates themselves (enforced by RLS; isAdmin here only drives what the UI offers).
-export function TestCaseTemplatesPage() {
+// and clone from a suite into their own project, but only admins can create/edit/delete
+// suites themselves (enforced by RLS; isAdmin here only drives what the UI offers).
+export function TestSuitesPage() {
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
   const { isAdmin } = useAuthContext();
@@ -30,9 +30,9 @@ export function TestCaseTemplatesPage() {
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
 
-  const { data: templates = [], isLoading: loading } = useQuery({
-    queryKey: queryKeys.testCaseTemplates(),
-    queryFn: () => testCaseTemplateService.listTemplates(),
+  const { data: suites = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.testSuites(),
+    queryFn: () => testSuiteService.listSuites(),
   });
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -53,7 +53,7 @@ export function TestCaseTemplatesPage() {
     setDialogOpen(true);
   }
 
-  function openEditDialog(row: TestCaseTemplate) {
+  function openEditDialog(row: TestSuite) {
     setDialogMode('edit');
     setEditingId(row.id);
     setDuplicatingSourceId(null);
@@ -63,7 +63,7 @@ export function TestCaseTemplatesPage() {
     setDialogOpen(true);
   }
 
-  function openDuplicateDialog(row: TestCaseTemplate) {
+  function openDuplicateDialog(row: TestSuite) {
     setDialogMode('duplicate');
     setEditingId(null);
     setDuplicatingSourceId(row.id);
@@ -74,49 +74,49 @@ export function TestCaseTemplatesPage() {
   }
 
   async function reload() {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.testCaseTemplates() });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.testSuites() });
   }
 
   async function handleSave() {
     setError(null);
     try {
       if (dialogMode === 'edit' && editingId) {
-        await testCaseTemplateService.updateTemplate(editingId, { name, description });
+        await testSuiteService.updateSuite(editingId, { name, description });
       } else if (dialogMode === 'duplicate' && duplicatingSourceId) {
-        await testCaseTemplateService.duplicateTemplate(duplicatingSourceId, { name, description });
+        await testSuiteService.duplicateSuite(duplicatingSourceId, { name, description });
       } else {
-        await testCaseTemplateService.createTemplate({ name, description });
+        await testSuiteService.createSuite({ name, description });
       }
       setDialogOpen(false);
       await reload();
       const summaryMap: Record<typeof dialogMode, string> = {
-        create: 'Template created',
-        edit: 'Template updated',
-        duplicate: 'Template duplicated',
+        create: 'Suite created',
+        edit: 'Suite updated',
+        duplicate: 'Suite duplicated',
       };
       toast.current?.show({ severity: 'success', summary: summaryMap[dialogMode] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save template');
+      setError(err instanceof Error ? err.message : 'Failed to save suite');
     }
   }
 
-  function handleDelete(row: TestCaseTemplate) {
+  function handleDelete(row: TestSuite) {
     confirmDialog({
-      header: 'Delete Template',
-      message: `Template "${row.name}" and all its items will be permanently deleted. Continue?`,
+      header: 'Delete Suite',
+      message: `Suite "${row.name}" and all its items will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await testCaseTemplateService.removeTemplate(row.id);
+        await testSuiteService.removeSuite(row.id);
         await reload();
-        toast.current?.show({ severity: 'success', summary: 'Template deleted' });
+        toast.current?.show({ severity: 'success', summary: 'Suite deleted' });
       },
     });
   }
 
-  const mobileBodyTemplate = useCallback((row: TestCaseTemplate) => (
+  const mobileBodyTemplate = useCallback((row: TestSuite) => (
     <div className="flex flex-column gap-2 py-1">
       <span className="font-bold">{row.name}</span>
       <span className="text-sm text-color-secondary">{row.description || '-'}</span>
@@ -131,7 +131,7 @@ export function TestCaseTemplatesPage() {
       <Breadcrumb items={[{ label: 'Test Suite' }]} />
       <PageHeader
         title="Test Suite"
-        actions={isAdmin ? <Button label="New Template" icon="pi pi-plus" size="small" onClick={openCreateDialog} /> : undefined}
+        actions={isAdmin ? <Button label="New Suite" icon="pi pi-plus" size="small" onClick={openCreateDialog} /> : undefined}
       />
 
       <p className="text-color-secondary text-sm">
@@ -139,25 +139,25 @@ export function TestCaseTemplatesPage() {
       </p>
 
       <DataTable
-        value={templates}
+        value={suites}
         loading={loading}
         paginator
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
-        emptyMessage="No templates yet"
+        emptyMessage="No suites yet"
         size="small"
-        onRowClick={(e) => navigate(`/test-case-templates/${(e.data as TestCaseTemplate).id}`)}
+        onRowClick={(e) => navigate(`/test-suites/${(e.data as TestSuite).id}`)}
         rowHover
         className="cursor-pointer"
       >
         {isMobile && <Column body={mobileBodyTemplate} />}
         {!isMobile && <Column field="name" header="Name" sortable />}
-        {!isMobile && <Column field="description" header="Description" body={(row: TestCaseTemplate) => row.description || '-'} />}
-        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: TestCaseTemplate) => formatDateTime(row.updatedAt)} sortable />}
+        {!isMobile && <Column field="description" header="Description" body={(row: TestSuite) => row.description || '-'} />}
+        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: TestSuite) => formatDateTime(row.updatedAt)} sortable />}
         {isAdmin && (
           <Column
             header=""
             style={{ width: '3.5rem' }}
-            body={(row: TestCaseTemplate) => (
+            body={(row: TestSuite) => (
               <RowActionsMenu
                 items={[
                   { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
@@ -172,7 +172,7 @@ export function TestCaseTemplatesPage() {
 
       <Dialog
         header={
-          dialogMode === 'edit' ? 'Edit Template' : dialogMode === 'duplicate' ? 'Duplicate Template' : 'New Template'
+          dialogMode === 'edit' ? 'Edit Suite' : dialogMode === 'duplicate' ? 'Duplicate Suite' : 'New Suite'
         }
         visible={dialogOpen}
         onHide={() => setDialogOpen(false)}
@@ -181,12 +181,12 @@ export function TestCaseTemplatesPage() {
         <div className="flex flex-column gap-3">
           {error && <small className="p-error">{error}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="template-name">Name</label>
-            <InputText id="template-name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+            <label htmlFor="suite-name">Name</label>
+            <InputText id="suite-name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="template-description">Description</label>
-            <InputTextarea id="template-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+            <label htmlFor="suite-description">Description</label>
+            <InputTextarea id="suite-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
           </div>
           <Button label="Save" size="small" onClick={handleSave} />
         </div>

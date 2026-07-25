@@ -434,7 +434,7 @@ export function ProjectSettingsPage() {
       accept: async () => {
         await projectService.deletePermanently(project.id);
         toast.current?.show({ severity: 'success', summary: 'Project permanently deleted' });
-        navigate('/');
+        navigate('/projects');
       },
     });
   }
@@ -477,7 +477,7 @@ export function ProjectSettingsPage() {
 
       <Breadcrumb
         items={[
-          { label: 'Projects', path: '/' },
+          { label: 'Projects', path: '/projects' },
           { label: project.name, path: `/projects/${id}` },
           { label: 'Pengaturan' },
         ]}

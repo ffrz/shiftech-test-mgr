@@ -15,9 +15,9 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useScreenSize } from '../../hooks/useScreenSize';
-import { testCaseTemplateService } from '../../services/testCaseTemplateService';
+import { testSuiteService } from '../../services/testSuiteService';
 import { queryKeys } from '../../hooks/queryKeys';
-import type { TestCasePriority, TestCaseStepType, TestCaseTemplateItem } from '../../types/domain';
+import type { TestCasePriority, TestCaseStepType, TestSuiteItem } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
@@ -27,7 +27,7 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = (
   ['low', 'medium', 'high', 'critical'] as const
 ).map((v) => ({ label: TEST_CASE_PRIORITY_LABEL[v], value: v }));
 
-export function TestCaseTemplateDetailPage() {
+export function TestSuiteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const toast = useRef<Toast>(null);
   const { isAdmin } = useAuthContext();
@@ -35,25 +35,25 @@ export function TestCaseTemplateDetailPage() {
   const isMobile = lt.sm;
   const queryClient = useQueryClient();
 
-  const { data: template = null } = useQuery({
-    queryKey: queryKeys.testCaseTemplate(id ?? ''),
-    queryFn: () => testCaseTemplateService.getTemplate(id!),
+  const { data: suite = null } = useQuery({
+    queryKey: queryKeys.testSuite(id ?? ''),
+    queryFn: () => testSuiteService.getSuite(id!),
     enabled: !!id,
   });
 
   const { data: items = [], isLoading: loading } = useQuery({
-    queryKey: queryKeys.testCaseTemplateItems(id ?? ''),
-    queryFn: () => testCaseTemplateService.listItems(id!),
+    queryKey: queryKeys.testSuiteItems(id ?? ''),
+    queryFn: () => testSuiteService.listItems(id!),
     enabled: !!id,
   });
 
   async function reloadItems() {
-    if (id) await queryClient.invalidateQueries({ queryKey: queryKeys.testCaseTemplateItems(id) });
+    if (id) await queryClient.invalidateQueries({ queryKey: queryKeys.testSuiteItems(id) });
   }
 
   // --- Item dialog: same shape as the project Test Case dialog, minus project-scoped
-  // module/tag pickers (templates aren't project-scoped) — module/tags are free text here,
-  // resolved into real per-project rows only at clone time (testCaseTemplateService.cloneItemsToProject).
+  // module/tag pickers (suites aren't project-scoped) — module/tags are free text here,
+  // resolved into real per-project rows only at clone time (testSuiteService.cloneItemsToProject).
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const [itemDialogMode, setItemDialogMode] = useState<'create' | 'edit' | 'duplicate'>('create');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -88,7 +88,7 @@ export function TestCaseTemplateDetailPage() {
     setItemDialogOpen(true);
   }
 
-  async function openEditItemDialog(row: TestCaseTemplateItem) {
+  async function openEditItemDialog(row: TestSuiteItem) {
     setItemDialogMode('edit');
     setEditingItemId(row.id);
     setItemModuleName(row.moduleName ?? '');
@@ -104,14 +104,14 @@ export function TestCaseTemplateDetailPage() {
     setItemError(null);
     setItemDialogOpen(true);
     if (row.stepType === 'detailed') {
-      const withSteps = await testCaseTemplateService.getItemWithSteps(row);
+      const withSteps = await testSuiteService.getItemWithSteps(row);
       setItemDetailedSteps(withSteps.detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? '' })));
     } else {
       setItemDetailedSteps([]);
     }
   }
 
-  async function openDuplicateItemDialog(row: TestCaseTemplateItem) {
+  async function openDuplicateItemDialog(row: TestSuiteItem) {
     setItemDialogMode('duplicate');
     setEditingItemId(null);
     setItemModuleName(row.moduleName ?? '');
@@ -127,7 +127,7 @@ export function TestCaseTemplateDetailPage() {
     setItemError(null);
     setItemDialogOpen(true);
     if (row.stepType === 'detailed') {
-      const withSteps = await testCaseTemplateService.getItemWithSteps(row);
+      const withSteps = await testSuiteService.getItemWithSteps(row);
       setItemDetailedSteps(withSteps.detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? '' })));
     } else {
       setItemDetailedSteps([]);
@@ -140,7 +140,7 @@ export function TestCaseTemplateDetailPage() {
     const tagNames = itemTagNames.split(',').map((t) => t.trim()).filter(Boolean);
     try {
       if (editingItemId) {
-        await testCaseTemplateService.updateItem(
+        await testSuiteService.updateItem(
           editingItemId,
           {
             moduleName: itemModuleName.trim() || null,
@@ -157,8 +157,8 @@ export function TestCaseTemplateDetailPage() {
           itemStepType === 'detailed' ? itemDetailedSteps : undefined,
         );
       } else {
-        await testCaseTemplateService.addItem({
-          templateId: id,
+        await testSuiteService.addItem({
+          suiteId: id,
           moduleName: itemModuleName,
           title: itemTitle,
           objective: itemObjective,
@@ -186,23 +186,23 @@ export function TestCaseTemplateDetailPage() {
     }
   }
 
-  function handleDeleteItem(row: TestCaseTemplateItem) {
+  function handleDeleteItem(row: TestSuiteItem) {
     confirmDialog({
       header: 'Delete Item',
-      message: `Item "${row.title}" will be removed from this template. Continue?`,
+      message: `Item "${row.title}" will be removed from this suite. Continue?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await testCaseTemplateService.removeItem(row.id);
+        await testSuiteService.removeItem(row.id);
         await reloadItems();
         toast.current?.show({ severity: 'success', summary: 'Item deleted' });
       },
     });
   }
 
-  const mobileBodyTemplate = useCallback((row: TestCaseTemplateItem) => (
+  const mobileBodyTemplate = useCallback((row: TestSuiteItem) => (
     <div className="flex flex-column gap-2 py-1">
       <div className="font-medium">{row.title}</div>
       <div className="text-sm text-color-secondary">Module: {row.moduleName || '-'}</div>
@@ -220,16 +220,16 @@ export function TestCaseTemplateDetailPage() {
       <ConfirmDialog />
       <Breadcrumb
         items={[
-          { label: 'Test Case Templates', path: '/test-case-templates' },
-          { label: template ? template.name : '…' },
+          { label: 'Test Suite', path: '/test-suites' },
+          { label: suite ? suite.name : '…' },
         ]}
       />
 
       <Card className="mb-3">
         <div className="flex align-items-center justify-content-between gap-2">
           <div>
-            <h2 className="m-0">{template?.name ?? '…'}</h2>
-            <p className="text-color-secondary text-sm m-0">{template?.description || 'No description'}</p>
+            <h2 className="m-0">{suite?.name ?? '…'}</h2>
+            <p className="text-color-secondary text-sm m-0">{suite?.description || 'No description'}</p>
           </div>
         </div>
       </Card>
@@ -244,15 +244,15 @@ export function TestCaseTemplateDetailPage() {
           ? <Column header="Title" body={mobileBodyTemplate} />
           : <Column field="title" header="Title" sortable />
         }
-        {!isMobile && <Column field="moduleName" header="Module" body={(row: TestCaseTemplateItem) => row.moduleName || '-'} />}
-        {!isMobile && <Column field="priority" header="Priority" body={(row: TestCaseTemplateItem) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />} />}
-        {!isMobile && <Column field="targetRole" header="Role Target" body={(row: TestCaseTemplateItem) => (row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-')} />}
-        {!isMobile && <Column field="stepType" header="Mode" body={(row: TestCaseTemplateItem) => (row.stepType === 'detailed' ? 'Detailed' : 'Simple')} />}
+        {!isMobile && <Column field="moduleName" header="Module" body={(row: TestSuiteItem) => row.moduleName || '-'} />}
+        {!isMobile && <Column field="priority" header="Priority" body={(row: TestSuiteItem) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />} />}
+        {!isMobile && <Column field="targetRole" header="Role Target" body={(row: TestSuiteItem) => (row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-')} />}
+        {!isMobile && <Column field="stepType" header="Mode" body={(row: TestSuiteItem) => (row.stepType === 'detailed' ? 'Detailed' : 'Simple')} />}
         {isAdmin && (
           <Column
             header=""
             style={{ width: '3.5rem' }}
-            body={(row: TestCaseTemplateItem) => (
+            body={(row: TestSuiteItem) => (
               <RowActionsMenu
                 items={[
                   { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateItemDialog(row) },

@@ -244,7 +244,7 @@ export function TestCaseDetailPage() {
       <div>
         <Breadcrumb
           items={[
-            { label: 'Projects', path: '/' },
+            { label: 'Projects', path: '/projects' },
             { label: testCase ? testCase.project.name : '…', path: testCase ? `/projects/${testCase.project.id}` : undefined },
             { label: loading ? '…' : 'Test case not found' },
           ]}
@@ -263,7 +263,7 @@ export function TestCaseDetailPage() {
 
       <Breadcrumb
         items={[
-          { label: 'Projects', path: '/' },
+          { label: 'Projects', path: '/projects' },
           { label: testCase.project.name, path: `/projects/${testCase.project.id}` },
           { label: `${testCase.code} — ${testCase.title}` },
         ]}

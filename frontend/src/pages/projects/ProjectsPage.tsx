@@ -19,7 +19,7 @@ import { Toast } from 'primereact/toast';
 import { useProjects } from '../../hooks/useProjects';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
-import { testCaseTemplateService } from '../../services/testCaseTemplateService';
+import { testSuiteService } from '../../services/testSuiteService';
 import { testPlanService } from '../../services/testPlanService';
 import { testCaseService } from '../../services/testCaseService';
 import { issueService } from '../../services/issueService';
@@ -97,8 +97,8 @@ export function ProjectsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { data: templates = [] } = useQuery({
-    queryKey: queryKeys.testCaseTemplates(),
-    queryFn: () => testCaseTemplateService.listTemplates(),
+    queryKey: queryKeys.testSuites(),
+    queryFn: () => testSuiteService.listSuites(),
     enabled: dialogOpen && !editingId,
   });
 
@@ -127,8 +127,8 @@ export function ProjectsPage() {
       } else {
         const created = await projectService.create({ name, description });
         if (templateId) {
-          const items = await testCaseTemplateService.listItems(templateId);
-          await testCaseTemplateService.cloneItemsToProject(created.id, items.map((i) => i.id));
+          const items = await testSuiteService.listItems(templateId);
+          await testSuiteService.cloneItemsToProject(created.id, items.map((i) => i.id));
         }
       }
       setDialogOpen(false);
