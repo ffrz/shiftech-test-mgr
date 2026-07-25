@@ -14,6 +14,13 @@ roadmap ini berjalan — lihat `backend/README.md`.
 - [ ] V2-P1-T01 — Backfill `role = 'pending'` → `'user'` (lihat ROADMAP_V2 Phase 1)
 - [ ] V2-P1-T02..T13 — Split `profiles` → `users` + `profiles` (identity split), lihat ROADMAP_V2 Phase 1 untuk detail lengkap
 
+**Backlog baru (2026-07-25, dari Phase 7 walkthrough)** — belum di-scope, lihat
+`docs/ROADMAP_V2.md` bagian "Backlog — captured, not yet scoped or scheduled":
+- [ ] Fitur activate/deactivate user (banned sementara/permanen) — butuh diskusi dulu
+- [ ] Search/browse Test Suite Template berdasarkan kategori
+- [ ] Ganti filter `TestSuitesPage` dari "All Visible Templates" → "Browse Templates" (hanya public milik orang lain, exclude milik sendiri)
+- [ ] Brainstorm: metadata Test Suite Template (category/difficulty/est. time/app type/coverage tags) — masih butuh diskusi taxonomy sebelum di-scope
+
 Item lama (non-V2), tetap terbuka tapi bukan prioritas saat ini:
 
 - [ ] E03-T06 — Filter test case by priority/status di list

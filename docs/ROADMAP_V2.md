@@ -307,6 +307,56 @@ model as current, not proposed.
 
 ---
 
+## Backlog — captured, not yet scoped or scheduled
+
+Raised during Phase 7's manual walkthrough (2026-07-25). Unlike "Explicitly out of
+scope" below, these haven't been through a scoping decision yet — they need discussion
+before becoming real roadmap tasks. Listed here so they don't get lost, not as a
+commitment to build them as described.
+
+- **Activate/deactivate user (temporary or permanent "ban").** Distinct from the
+  existing soft-delete (`userService.remove` / `deleted_at`) — needs discussion on
+  how it differs from delete, whether it's reversible, and what happens to a
+  deactivated user's existing project memberships/content in the meantime.
+- **Search/browse Test Suite Templates by category.** See the metadata brainstorm
+  below — likely the same underlying feature, needs the metadata model settled first
+  before a search/filter UI makes sense.
+- **`TestSuitesPage` filter: replace "All Visible Templates" with "Browse Templates."**
+  Current filter is "My Templates" vs "All Visible Templates" (mine + public/unlisted
+  others'). Requested change: a "Browse Templates" view that shows **only public
+  templates from other users**, excluding your own — i.e. a genuine discovery view,
+  not just "everything I can see." Small, well-scoped UI change — doesn't need the
+  metadata work below to ship.
+
+### Brainstorm: Test Suite Template metadata (needs discussion before scoping)
+
+Idea: give each Test Suite Template structured metadata instead of being just a bag of
+test cases, so the library becomes searchable by actual testing need rather than only
+by name:
+
+- **Category** — Authentication, CRUD, Security, Performance, etc.
+- **Difficulty** — Beginner, Intermediate, Advanced.
+- **Estimated execution time** — e.g. 10 min, 30 min, 2 hours.
+- **Recommended application types** — Web, Mobile, Desktop, API.
+- **Coverage tags** — Login, Validation, Authorization, Upload, etc.
+
+Goal: let a user search like "CRUD template for a web app" or "smoke test for a REST
+API" instead of browsing an undifferentiated list. This is the feature that would make
+the built-in library feel genuinely useful rather than just a list of test cases.
+
+Open questions to resolve before this becomes a scoped task: is this free-text tags or
+a fixed taxonomy (fixed categories are easier to filter/search reliably, free tags are
+more flexible but fragment quickly without curation)? Does "Coverage tags" overlap with
+or replace the existing per-project `Tag` entity, or is it deliberately a separate
+concept scoped to templates only? Does this schema live on `test_suites` directly or a
+separate metadata table (matters for how heavy the migration is)? Worth checking
+against `docs/PRODUCT_CONSTITUTION.md`'s Feature Acceptance Rule once scoped — this is
+squarely a testing-improvement feature, but "Simplicity First" means the filter UI for
+5 metadata dimensions needs care so Browse Templates doesn't turn into its own complex
+sub-app.
+
+---
+
 ## Explicitly out of scope (deferred or rejected — see `ARCHITECTURE_V2.md` §9)
 
 - Organizations/Workspaces (tables + UI) — deferred, schema-ready only
