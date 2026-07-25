@@ -19,12 +19,13 @@ import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
-import { profileService } from '../../services/profileService';
 import { projectMemberService } from '../../services/projectMemberService';
+import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
+import { UsernamePicker } from '../../components/ui/UsernamePicker';
 import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
-import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
+import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
 
@@ -39,6 +40,7 @@ export function ProjectSettingsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
+  const { user: currentUser } = useAuthContext();
   const { loading: roleLoading, canManageSettings, canArchiveProject, canDeleteProject } = useProjectRole(id);
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
@@ -48,26 +50,23 @@ export function ProjectSettingsPage() {
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [testRoles, setTestRoles] = useState<TestRole[]>([]);
   const [members, setMembers] = useState<ProjectMemberWithProfile[]>([]);
-  const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function loadAll(showLoading = true) {
     if (!id) return;
     if (showLoading) setLoading(true);
-    const [projectResult, modulesResult, tagsResult, testRolesResult, membersResult, usersResult] = await Promise.all([
+    const [projectResult, modulesResult, tagsResult, testRolesResult, membersResult] = await Promise.all([
       projectService.getById(id),
       moduleService.listByProject(id),
       tagService.listByProject(id),
       testRoleService.listByProject(id),
       projectMemberService.listByProject(id),
-      profileService.listAll(),
     ]);
     setProject(projectResult);
     setModules(modulesResult);
     setTags(tagsResult);
     setTestRoles(testRolesResult);
     setMembers(membersResult);
-    setApprovedUsers(usersResult.filter((p: Profile) => p.role === 'user' || p.role === 'admin'));
     if (showLoading) setLoading(false);
   }
 
@@ -327,39 +326,34 @@ export function ProjectSettingsPage() {
 
   // --- Members ---
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
-  const [memberUserId, setMemberUserId] = useState<string | null>(null);
+  const [memberProfile, setMemberProfile] = useState<Profile | null>(null);
   const [memberRole, setMemberRole] = useState<ProjectMemberRole>('member');
   const [memberError, setMemberError] = useState<string | null>(null);
   const [selectedMembers, setSelectedMembers] = useState<ProjectMemberWithProfile[]>([]);
 
-  const availableUserOptions = useMemo(() => {
-    const memberIds = new Set(members.map((m) => m.userId));
-    return approvedUsers
-      .filter((u) => !memberIds.has(u.id))
-      .map((u) => ({ label: u.fullName ?? u.email, value: u.id }));
-  }, [approvedUsers, members]);
+  const existingMemberIds = useMemo(() => members.map((m) => m.userId), [members]);
 
   function openAddMemberDialog() {
-    setMemberUserId(null);
+    setMemberProfile(null);
     setMemberRole('member');
     setMemberError(null);
     setMemberDialogOpen(true);
   }
 
   async function handleAddMember() {
-    if (!id) return;
+    if (!id || !currentUser) return;
     setMemberError(null);
-    if (!memberUserId) {
-      setMemberError('Select a user first');
+    if (!memberProfile) {
+      setMemberError('Search for and select a user first');
       return;
     }
     try {
-      await projectMemberService.add(id, memberUserId, memberRole);
+      await projectMemberService.invite(id, memberProfile.id, currentUser.id, memberRole);
       setMemberDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: 'Member added' });
+      toast.current?.show({ severity: 'success', summary: 'Invitation sent' });
     } catch (err) {
-      setMemberError(err instanceof Error ? err.message : 'Failed to add member');
+      setMemberError(err instanceof Error ? err.message : 'Failed to invite member');
     }
   }
 
@@ -371,7 +365,7 @@ export function ProjectSettingsPage() {
   function handleRemoveMember(row: ProjectMemberWithProfile) {
     confirmDialog({
       header: 'Remove Member',
-      message: `"${row.profile.fullName ?? row.profile.email}" will be removed from this project and lose access. Continue?`,
+      message: `"${row.profile.displayName ?? row.profile.username}" will be removed from this project and lose access. Continue?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
@@ -442,7 +436,7 @@ export function ProjectSettingsPage() {
   const modulesMobileBody = useCallback((row: Module) => (
     <div className="flex flex-column gap-2 py-1">
       <div className="font-medium">{row.name}</div>
-      <div className="text-sm text-color-secondary">Kode: {row.code}</div>
+      <div className="text-sm text-color-secondary">Code: {row.code}</div>
     </div>
   ), []);
 
@@ -460,9 +454,12 @@ export function ProjectSettingsPage() {
 
   const membersMobileBody = useCallback((row: ProjectMemberWithProfile) => (
     <div className="flex flex-column gap-2 py-1">
-      <div className="font-medium">{row.profile.fullName ?? '-'}</div>
-      <div className="text-sm text-color-secondary">Email: {row.profile.email}</div>
+      <div className="font-medium">{row.profile.displayName ?? '-'}</div>
+      <div className="text-sm text-color-secondary">@{row.profile.username}</div>
       <div className="text-sm text-color-secondary">Role: {PROJECT_MEMBER_ROLE_LABEL[row.role]}</div>
+      <div className="text-sm text-color-secondary">
+        Status: <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
+      </div>
     </div>
   ), []);
 
@@ -479,14 +476,14 @@ export function ProjectSettingsPage() {
         items={[
           { label: 'Projects', path: '/projects' },
           { label: project.name, path: `/projects/${id}` },
-          { label: 'Pengaturan' },
+          { label: 'Settings' },
         ]}
       />
 
       <Card className="mb-3">
         <div className="flex align-items-center gap-2">
           <Button icon="pi pi-arrow-left" text rounded aria-label="Back" onClick={() => navigate(`/projects/${id}`)} />
-          <h2 className="m-0">Pengaturan Project — {project.name}</h2>
+          <h2 className="m-0">Project Setting — {project.name}</h2>
         </div>
       </Card>
 
@@ -498,7 +495,7 @@ export function ProjectSettingsPage() {
                 <InputIcon className="pi pi-search" />
                 <InputText value={moduleSearch} onChange={(e) => setModuleSearch(e.target.value)} placeholder="Search name/code..." />
               </IconField>
-              <Button label="Module Baru" icon="pi pi-plus" size="small" onClick={openCreateModuleDialog} />
+              <Button label="New Module" icon="pi pi-plus" size="small" onClick={openCreateModuleDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedModules.length}
@@ -518,14 +515,14 @@ export function ProjectSettingsPage() {
                 setModuleSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
               selection={selectedModules}
-               onSelectionChange={(e: any) => setSelectedModules(e.value as Module[])}
+              onSelectionChange={(e: any) => setSelectedModules(e.value as Module[])}
               dataKey="id"
               selectionMode="checkbox"
             >
               {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
               {isMobile
                 ? <Column header="Nama" body={modulesMobileBody} />
-                : <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
+                : <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
               }
               {!isMobile && <Column field="name" header="Nama" sortable />}
               <Column
@@ -552,7 +549,7 @@ export function ProjectSettingsPage() {
                 <InputIcon className="pi pi-search" />
                 <InputText value={tagSearch} onChange={(e) => setTagSearch(e.target.value)} placeholder="Search name..." />
               </IconField>
-              <Button label="Tag Baru" icon="pi pi-plus" size="small" onClick={openCreateTagDialog} />
+              <Button label="New Tag" icon="pi pi-plus" size="small" onClick={openCreateTagDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedTags.length}
@@ -572,7 +569,7 @@ export function ProjectSettingsPage() {
                 setTagSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
               selection={selectedTags}
-               onSelectionChange={(e: any) => setSelectedTags(e.value as TagEntity[])}
+              onSelectionChange={(e: any) => setSelectedTags(e.value as TagEntity[])}
               dataKey="id"
               selectionMode="checkbox"
             >
@@ -626,7 +623,7 @@ export function ProjectSettingsPage() {
                 setTestRoleSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
               selection={selectedTestRoles}
-               onSelectionChange={(e: any) => setSelectedTestRoles(e.value as TestRole[])}
+              onSelectionChange={(e: any) => setSelectedTestRoles(e.value as TestRole[])}
               dataKey="id"
               selectionMode="checkbox"
             >
@@ -652,11 +649,11 @@ export function ProjectSettingsPage() {
 
           <TabPanel header="Project Members">
             <p className="text-color-secondary text-sm mb-3">
-              Only users listed here (or admins) can access this project. Managers can manage other members.
+              Only accepted members (or the owner) can access this project. Invited users must accept before they gain access. Managers can manage other members.
             </p>
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <span />
-              <Button label="Add Member" icon="pi pi-plus" size="small" onClick={openAddMemberDialog} />
+              <Button label="Invite Member" icon="pi pi-plus" size="small" onClick={openAddMemberDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedMembers.length}
@@ -670,14 +667,22 @@ export function ProjectSettingsPage() {
               paginator
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               selection={selectedMembers}
-               onSelectionChange={(e: any) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}
+              onSelectionChange={(e: any) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}
               dataKey="id"
               selectionMode="checkbox"
             >
               {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
               {isMobile && <Column header="Member" body={membersMobileBody} />}
-              {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => row.profile.fullName ?? '-'} />}
-              {!isMobile && <Column header="Email" body={(row: ProjectMemberWithProfile) => row.profile.email} />}
+              {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => row.profile.displayName ?? '-'} />}
+              {!isMobile && <Column header="Username" body={(row: ProjectMemberWithProfile) => `@${row.profile.username}`} />}
+              {!isMobile && (
+                <Column
+                  header="Status"
+                  body={(row: ProjectMemberWithProfile) => (
+                    <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
+                  )}
+                />
+              )}
               {!isMobile && (
                 <Column
                   header="Role"
@@ -757,7 +762,7 @@ export function ProjectSettingsPage() {
 
       {/* --- Module Dialog --- */}
       <Dialog
-        header={editingModuleId ? 'Edit Module' : 'Module Baru'}
+        header={editingModuleId ? 'Edit Module' : 'Add Module'}
         visible={moduleDialogOpen}
         onHide={() => setModuleDialogOpen(false)}
         onShow={() => moduleNameRef.current?.focus()}
@@ -766,11 +771,11 @@ export function ProjectSettingsPage() {
         <div className="flex flex-column gap-3">
           {moduleError && <small className="p-error">{moduleError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-code">Kode</label>
+            <label htmlFor="module-code">Code</label>
             <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Automatic if left empty" />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-name">Nama Module</label>
+            <label htmlFor="module-name">Module Name</label>
             <InputText
               id="module-name"
               ref={moduleNameRef}
@@ -814,7 +819,7 @@ export function ProjectSettingsPage() {
 
       {/* --- Test Role Dialog --- */}
       <Dialog
-        header={editingTestRoleId ? 'Edit Role' : 'Role Baru'}
+        header={editingTestRoleId ? 'Edit Role' : 'Add Test Role'}
         visible={testRoleDialogOpen}
         onHide={() => setTestRoleDialogOpen(false)}
         onShow={() => testRoleNameRef.current?.focus()}
@@ -823,7 +828,7 @@ export function ProjectSettingsPage() {
         <div className="flex flex-column gap-3">
           {testRoleError && <small className="p-error">{testRoleError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="test-role-name">Nama Role</label>
+            <label htmlFor="test-role-name">Role Name</label>
             <InputText
               id="test-role-name"
               ref={testRoleNameRef}
@@ -841,7 +846,7 @@ export function ProjectSettingsPage() {
 
       {/* --- Member Dialog --- */}
       <Dialog
-        header="Add Member"
+        header="Invite Member"
         visible={memberDialogOpen}
         onHide={() => setMemberDialogOpen(false)}
         style={{ width: '25rem' }}
@@ -849,16 +854,8 @@ export function ProjectSettingsPage() {
         <div className="flex flex-column gap-3">
           {memberError && <small className="p-error">{memberError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="member-user">User</label>
-            <Dropdown
-              id="member-user"
-              value={memberUserId}
-              options={availableUserOptions}
-              onChange={(e) => setMemberUserId(e.value)}
-              filter
-              placeholder="Select user"
-              className="w-full"
-            />
+            <label htmlFor="member-user">Username</label>
+            <UsernamePicker value={memberProfile} onChange={setMemberProfile} excludeIds={existingMemberIds} />
           </div>
           <div className="flex flex-column gap-1">
             <label htmlFor="member-role">Role</label>
@@ -870,7 +867,7 @@ export function ProjectSettingsPage() {
               className="w-full"
             />
           </div>
-          <Button label="Add" size="small" onClick={handleAddMember} />
+          <Button label="Send Invite" size="small" onClick={handleAddMember} />
         </div>
       </Dialog>
     </div>

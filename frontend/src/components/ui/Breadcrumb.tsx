@@ -30,7 +30,7 @@ function BreadcrumbTrail({ items, className }: { items: BreadcrumbItem[]; classN
                 onClick={(e) => {
                   e.preventDefault();
                   if (isLast) {
-                    window.location.href = item.path!;
+                    window.location.href = `/app${item.path}`;
                   } else {
                     navigate(item.path!);
                   }

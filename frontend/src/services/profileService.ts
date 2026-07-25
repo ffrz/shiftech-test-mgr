@@ -1,5 +1,7 @@
 import { profileRepository } from '../repositories/profileRepository';
 
+// Public-identity reads/updates (username, display name, avatar, bio). See userService
+// for admin-facing account management (email, role).
 export const profileService = {
   getOwnProfile(userId: string) {
     return profileRepository.findById(userId);
@@ -9,30 +11,19 @@ export const profileService = {
     return profileRepository.findById(id);
   },
 
-  listAll() {
-    return profileRepository.findAll();
+  getByUsername(username: string) {
+    return profileRepository.findByUsername(username);
   },
 
-  approve(id: string) {
-    return profileRepository.updateRole(id, 'user');
+  getByIds(ids: string[]) {
+    return profileRepository.findByIds(ids);
   },
 
-  // "Revoke access" is the OAuth-world equivalent of amanah-pos's "reset" action:
-  // there is no password to reset (login is Google-only), so instead we pull the user
-  // back to 'pending' — access is cut immediately and they must be re-approved.
-  revokeAccess(id: string) {
-    return profileRepository.updateRole(id, 'pending');
+  search(query: string) {
+    return profileRepository.search(query);
   },
 
-  promoteToAdmin(id: string) {
-    return profileRepository.updateRole(id, 'admin');
-  },
-
-  demoteToUser(id: string) {
-    return profileRepository.updateRole(id, 'user');
-  },
-
-  remove(id: string) {
-    return profileRepository.softDelete(id);
+  updateOwnProfile(userId: string, changes: Parameters<typeof profileRepository.update>[1]) {
+    return profileRepository.update(userId, changes);
   },
 };

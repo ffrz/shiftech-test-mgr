@@ -76,7 +76,7 @@ export const testResultRepository = {
     const { data, error } = await supabase
       .from('test_results')
       .select(
-        '*, test_case:test_cases(*, module:modules(*), target_role:test_roles(*), test_case_tags(tag:tags(*))), tester:profiles(*), test_result_steps(*, test_case_step:test_case_steps(*))',
+        '*, test_case:test_cases(*, module:modules(*), target_role:test_roles(*), test_case_tags(tag:tags(*))), tester:users!test_results_tester_id_fkey(profile:profiles(*)), test_result_steps(*, test_case_step:test_case_steps(*))',
       )
       .eq('test_run_id', testRunId)
       .order('order', { ascending: true });
@@ -92,7 +92,7 @@ export const testResultRepository = {
             tags: (row.test_case.test_case_tags ?? []).map((t: any) => mapTagRow(t.tag)),
           }
         : null,
-      tester: row.tester ? mapProfileRow(row.tester) : null,
+      tester: row.tester?.profile ? mapProfileRow(row.tester.profile) : null,
       stepResults: (row.test_result_steps ?? [])
         .filter((sr: any) => sr.test_case_step)
         .map((sr: any) => ({
@@ -173,10 +173,10 @@ export const testResultRepository = {
 
     const { data: profiles, error: profileError } = await supabase
       .from('profiles')
-      .select('id, full_name')
+      .select('id, display_name')
       .in('id', profileIds);
     if (profileError) throw profileError;
-    const profileMap = Object.fromEntries((profiles ?? []).map((p: any) => [p.id, { id: p.id, fullName: p.full_name }]));
+    const profileMap = Object.fromEntries((profiles ?? []).map((p: any) => [p.id, { id: p.id, fullName: p.display_name }]));
 
     const seen = new Set<string>();
     for (const row of data ?? []) {

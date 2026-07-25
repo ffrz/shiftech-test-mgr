@@ -2,7 +2,7 @@ import { testSuiteRepository } from '../repositories/testSuiteRepository';
 import { testCaseService } from './testCaseService';
 import { moduleService } from './moduleService';
 import { testRoleService } from './testRoleService';
-import type { TestSuite, TestSuiteItem, TestSuiteItemWithSteps } from '../types/domain';
+import type { TestSuite, TestSuiteItem, TestSuiteItemWithSteps, TestSuiteVisibility } from '../types/domain';
 
 export const testSuiteService = {
   listSuites() {
@@ -13,14 +13,22 @@ export const testSuiteService = {
     return testSuiteRepository.findById(id);
   },
 
-  async createSuite(input: { name: string; description?: string }): Promise<TestSuite> {
+  async createSuite(input: { name: string; description?: string; visibility?: TestSuiteVisibility }): Promise<TestSuite> {
     if (!input.name.trim()) throw new Error('Suite name cannot be empty');
-    return testSuiteRepository.create({ name: input.name.trim(), description: input.description?.trim() || null });
+    return testSuiteRepository.create({
+      name: input.name.trim(),
+      description: input.description?.trim() || null,
+      visibility: input.visibility ?? 'private',
+    });
   },
 
-  async updateSuite(id: string, input: { name: string; description?: string }): Promise<TestSuite> {
+  async updateSuite(id: string, input: { name: string; description?: string; visibility?: TestSuiteVisibility }): Promise<TestSuite> {
     if (!input.name.trim()) throw new Error('Suite name cannot be empty');
-    return testSuiteRepository.update(id, { name: input.name.trim(), description: input.description?.trim() || null });
+    return testSuiteRepository.update(id, {
+      name: input.name.trim(),
+      description: input.description?.trim() || null,
+      ...(input.visibility ? { visibility: input.visibility } : {}),
+    });
   },
 
   removeSuite(id: string) {

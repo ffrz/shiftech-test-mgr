@@ -4,7 +4,7 @@ import {
   mapTestSuiteItemStepRow,
   mapTestSuiteRow,
 } from '../helpers/mappers';
-import type { TestSuite, TestSuiteItem, TestSuiteItemStep } from '../types/domain';
+import type { TestSuite, TestSuiteItem, TestSuiteItemStep, TestSuiteVisibility } from '../types/domain';
 
 export const testSuiteRepository = {
   async findAll(): Promise<TestSuite[]> {
@@ -19,17 +19,17 @@ export const testSuiteRepository = {
     return data ? mapTestSuiteRow(data) : null;
   },
 
-  async create(input: { name: string; description: string | null }): Promise<TestSuite> {
+  async create(input: { name: string; description: string | null; visibility?: TestSuiteVisibility }): Promise<TestSuite> {
     const { data, error } = await supabase
       .from('test_suites')
-      .insert({ name: input.name, description: input.description })
+      .insert({ name: input.name, description: input.description, visibility: input.visibility })
       .select('*')
       .single();
     if (error) throw error;
     return mapTestSuiteRow(data);
   },
 
-  async update(id: string, changes: { name?: string; description?: string | null }): Promise<TestSuite> {
+  async update(id: string, changes: { name?: string; description?: string | null; visibility?: TestSuiteVisibility }): Promise<TestSuite> {
     const { data, error } = await supabase.from('test_suites').update(changes).eq('id', id).select('*').single();
     if (error) throw error;
     return mapTestSuiteRow(data);

@@ -1,41 +1,77 @@
-export type UserRole = 'pending' | 'user' | 'admin';
+// 'pending' removed in Platform Evolution V2 Phase 2 — role is now a platform-ops flag,
+// not a signup-approval gate. Self-serve signup lands directly as 'user'.
+export type UserRole = 'user' | 'admin';
 
-export interface Profile {
+// Auth-bound account — private fields (email, role). Never joined into public-facing
+// views. See Profile below for the public-identity counterpart. Split per
+// docs/ARCHITECTURE_V2.md §1/§3 (email must never be public).
+export interface User {
   id: string;
   email: string;
-  fullName: string | null;
-  avatarUrl: string | null;
   role: UserRole;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
 }
 
+// Public identity — safe to join into any display (tester name, assignee, member list,
+// project owner). 1:1 with User via id.
+export interface Profile {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type ProjectStatus = 'active' | 'inactive' | 'archived';
 export type ProjectSortField = 'name' | 'createdAt' | 'updatedAt';
 export type SortDirection = 'asc' | 'desc';
 
+export type ProjectOwnerType = 'user'; // widen to 'user' | 'organization' when orgs ship
+export type ProjectVisibility = 'private' | 'unlisted' | 'public';
+
 export interface Project {
   id: string;
+  ownerId: string;
+  ownerType: ProjectOwnerType;
   name: string;
   description: string | null;
   status: ProjectStatus;
+  visibility: ProjectVisibility;
   createdAt: string;
   updatedAt: string;
 }
 
 export type ProjectMemberRole = 'manager' | 'supervisor' | 'tester' | 'member';
+export type ProjectMemberStatus = 'invited' | 'accepted' | 'declined';
 
 export interface ProjectMember {
   id: string;
   projectId: string;
   userId: string;
   role: ProjectMemberRole;
+  status: ProjectMemberStatus;
+  invitedBy: string | null;
+  invitedAt: string;
+  respondedAt: string | null;
   createdAt: string;
 }
 
 export interface ProjectMemberWithProfile extends ProjectMember {
   profile: Profile;
+  // Admin-facing member management (ProjectSettingsPage) needs email too — fetched via a
+  // separate join to `users` since Profile itself deliberately excludes it (public identity
+  // only, see docs/ARCHITECTURE_V2.md §1).
+  email: string;
+}
+
+// Used by "My Invitations" (own pending invites) — same shape plus the project name,
+// since that list spans multiple projects and needs to say which one each invite is for.
+export interface ProjectMemberInvitation extends ProjectMemberWithProfile {
+  project: { id: string; name: string } | null;
 }
 
 export interface Module {
@@ -123,10 +159,16 @@ export interface TestCaseStep {
   updatedAt: string;
 }
 
-// Global, admin-managed library of reusable test case sets — not project-scoped. A project
-// clones items from a suite into its own test_cases via testSuiteService.cloneItemsToProject.
+// User-owned, reusable library of test case sets — not project-scoped. A project clones
+// items from a suite into its own test_cases via testSuiteService.cloneItemsToProject.
+// Ownership + visibility (private/unlisted/public) let a user share their own suites —
+// see docs/ARCHITECTURE_V2.md (Test Suite Templates).
+export type TestSuiteVisibility = 'private' | 'unlisted' | 'public';
+
 export interface TestSuite {
   id: string;
+  ownerId: string;
+  visibility: TestSuiteVisibility;
   name: string;
   description: string | null;
   createdAt: string;

@@ -7,6 +7,7 @@ import type {
   TestSuiteItemStep,
   TestPlanCase,
   Project,
+  User,
   Profile,
   Module,
   Tag,
@@ -19,6 +20,7 @@ import type {
   Attachment,
   ProjectMember,
   ProjectMemberWithProfile,
+  ProjectMemberInvitation,
 } from '../types/domain';
 
 // Supabase columns are snake_case; domain types are camelCase.
@@ -27,9 +29,12 @@ import type {
 export function mapProjectRow(row: any): Project {
   return {
     id: row.id,
+    ownerId: row.owner_id,
+    ownerType: row.owner_type,
     name: row.name,
     description: row.description,
     status: row.status,
+    visibility: row.visibility,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -41,6 +46,10 @@ export function mapProjectMemberRow(row: any): ProjectMember {
     projectId: row.project_id,
     userId: row.user_id,
     role: row.role,
+    status: row.status,
+    invitedBy: row.invited_by,
+    invitedAt: row.invited_at,
+    respondedAt: row.responded_at,
     createdAt: row.created_at,
   };
 }
@@ -48,7 +57,15 @@ export function mapProjectMemberRow(row: any): ProjectMember {
 export function mapProjectMemberWithProfileRow(row: any): ProjectMemberWithProfile {
   return {
     ...mapProjectMemberRow(row),
-    profile: mapProfileRow(row.profile),
+    profile: mapProfileRow(row.member_user?.profile),
+    email: row.member_user?.email ?? '',
+  };
+}
+
+export function mapProjectMemberInvitationRow(row: any): ProjectMemberInvitation {
+  return {
+    ...mapProjectMemberWithProfileRow(row),
+    project: row.project ? { id: row.project.id, name: row.project.name } : null,
   };
 }
 
@@ -119,6 +136,8 @@ export function mapTestCaseRow(row: any): TestCase {
 export function mapTestSuiteRow(row: any): TestSuite {
   return {
     id: row.id,
+    ownerId: row.owner_id,
+    visibility: row.visibility,
     name: row.name,
     description: row.description,
     createdAt: row.created_at,
@@ -267,15 +286,25 @@ export function mapAttachmentRow(row: any): Attachment {
   };
 }
 
-export function mapProfileRow(row: any): Profile {
+export function mapUserRow(row: any): User {
   return {
     id: row.id,
     email: row.email,
-    fullName: row.full_name,
-    avatarUrl: row.avatar_url,
     role: row.role,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
+  };
+}
+
+export function mapProfileRow(row: any): Profile {
+  return {
+    id: row.id,
+    username: row.username,
+    displayName: row.display_name,
+    avatarUrl: row.avatar_url,
+    bio: row.bio,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }

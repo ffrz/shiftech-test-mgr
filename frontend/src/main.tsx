@@ -30,7 +30,7 @@ createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
       <PrimeReactProvider value={{ ripple: true, inputStyle: 'outlined', appendTo: document.body, autoZIndex: true }}>
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
+          <BrowserRouter basename="/app">
             <AuthProvider>
               <App />
             </AuthProvider>

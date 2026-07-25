@@ -63,13 +63,14 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
   const mainItems: MenuItemModel[] = [
     { label: 'Home', icon: 'pi pi-home', url: '/', end: true },
     { label: 'Projects', icon: 'pi pi-folder', url: '/projects' },
+    { label: 'Settings', icon: 'pi pi-cog', url: '/settings' },
+    {
+      label: 'Library',
+      icon: 'pi pi-book',
+      items: [{ label: 'Test Suite', icon: 'pi pi-copy', url: '/test-suites' }],
+    },
     ...(isAdmin
       ? [
-        {
-          label: 'Library',
-          icon: 'pi pi-book',
-          items: [{ label: 'Test Suite', icon: 'pi pi-copy', url: '/test-suites' }],
-        },
         {
           label: 'Administration',
           icon: 'pi pi-cog',
@@ -84,7 +85,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
       <Toast ref={toast} />
       <ul className="layout-menu">
         {mainItems.map((item) => (
-          <AppMenuitem key={item.url} item={item} onNavigate={onNavigate} />
+          <AppMenuitem key={item.url ?? item.label} item={item} onNavigate={onNavigate} />
         ))}
 
         <AppMenuSeparator />

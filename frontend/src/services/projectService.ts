@@ -1,5 +1,5 @@
 import { projectRepository, type ProjectQuery } from '../repositories/projectRepository';
-import type { ProjectStatus } from '../types/domain';
+import type { ProjectStatus, ProjectVisibility } from '../types/domain';
 
 export const projectService = {
   list(query?: ProjectQuery) {
@@ -10,14 +10,22 @@ export const projectService = {
     return projectRepository.findById(id);
   },
 
-  async create(input: { name: string; description?: string }) {
+  async create(input: { name: string; description?: string; visibility?: ProjectVisibility }) {
     if (!input.name.trim()) throw new Error('Project name cannot be empty');
-    return projectRepository.create({ name: input.name.trim(), description: input.description?.trim() || null });
+    return projectRepository.create({
+      name: input.name.trim(),
+      description: input.description?.trim() || null,
+      visibility: input.visibility ?? 'private',
+    });
   },
 
-  async update(id: string, input: { name: string; description?: string }) {
+  async update(id: string, input: { name: string; description?: string; visibility?: ProjectVisibility }) {
     if (!input.name.trim()) throw new Error('Project name cannot be empty');
-    return projectRepository.update(id, { name: input.name.trim(), description: input.description?.trim() || null });
+    return projectRepository.update(id, {
+      name: input.name.trim(),
+      description: input.description?.trim() || null,
+      ...(input.visibility ? { visibility: input.visibility } : {}),
+    });
   },
 
   changeStatus(id: string, status: ProjectStatus) {

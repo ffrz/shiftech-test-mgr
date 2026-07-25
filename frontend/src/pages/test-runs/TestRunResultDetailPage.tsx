@@ -690,7 +690,7 @@ export function TestRunResultDetailPage() {
                           <Dropdown
                             id="result-tester"
                             value={resultTesterId}
-                            options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
+                            options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
                             onChange={(e) => {
                               setResultTesterId(e.value);
                               saveResult({ testerId: e.value });

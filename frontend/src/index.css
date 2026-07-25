@@ -109,6 +109,18 @@ html.dark .breadcrumb-link:hover {
   border-bottom: none;
 }
 
+/* Same lara-light-blue high-contrast bug as the Dropdown/MultiSelect fix above,
+   applied to DataTable's checkbox-selected rows — solid teal fill made row
+   content (badges, secondary text) hard to read. Tint instead. */
+.p-datatable .p-datatable-tbody>tr.p-highlight {
+  color: var(--primary-color);
+  background: var(--primary-50, var(--surface-100));
+}
+
+.p-datatable .p-datatable-tbody>tr.p-highlight:hover {
+  background: var(--primary-100, var(--surface-200));
+}
+
 /* Paginator sits inside the same rounded, bordered table shell — the theme's
    own top border on the paginator duplicated the wrapper's border, showing
    as a stray line above the pagination controls. */
@@ -256,7 +268,8 @@ h6 {
 }
 
 /* GitHub-style slide-in panel: covers the full viewport height, including
-   the area behind the topbar, rather than docking below it. */
+   the area behind the topbar, rather than docking below it. This is the
+   tablet/mobile behavior (< 992px); desktop overrides it below. */
 .layout-sidebar {
   position: fixed;
   top: 0;
@@ -265,11 +278,13 @@ h6 {
   height: 100vh;
   background: var(--surface-card);
   border-right: 1px solid var(--surface-border);
+  border-radius: 0 12px 12px 0;
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.12);
+  overflow-x: hidden;
   overflow-y: auto;
   z-index: 1100;
   transform: translateX(-100%);
-  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
 }
 
 .layout-wrapper.layout-menu-active .layout-sidebar {
@@ -282,6 +297,56 @@ h6 {
   justify-content: space-between;
   padding: 0.5rem 0.5rem 0.5rem 1rem;
   border-bottom: 1px solid var(--surface-border);
+}
+
+/* Desktop (>= 992px): sidebar docks in normal flow below the topbar, always
+   rendered, and is collapsed by shrinking its width to 0 instead of sliding
+   off-screen — main content reflows to fill the freed space. No rounded
+   corners here, unlike the mobile/tablet overlay — it sits flush against
+   the topbar and viewport edge, not floating over a dimmed backdrop. The
+   header row (logo + close button) is hidden since the topbar already
+   shows the logo and the menu-toggle button. */
+@media (min-width: 992px) {
+  .layout-sidebar {
+    position: fixed;
+    top: var(--topbar-height);
+    left: 0;
+    height: calc(100vh - var(--topbar-height));
+    width: var(--sidebar-width);
+    transform: none;
+    box-shadow: none;
+    border-right: 1px solid var(--surface-border);
+    border-radius: 0;
+  }
+
+  .layout-wrapper:not(.layout-menu-active) .layout-sidebar {
+    width: 0;
+    border-right: none;
+    overflow: hidden;
+  }
+
+  /* Keep inner content at full width while the panel itself animates to 0,
+     so items don't wrap/reflow mid-transition. */
+  .layout-menu {
+    width: var(--sidebar-width);
+  }
+
+  .layout-mask {
+    display: none !important;
+  }
+
+  .layout-sidebar-header-mobile {
+    display: none;
+  }
+
+  .layout-main-container {
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.2s ease-in-out;
+  }
+
+  .layout-wrapper:not(.layout-menu-active) .layout-main-container {
+    margin-left: 0;
+  }
 }
 
 .layout-sidebar-logo {
@@ -636,9 +701,10 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
 }
 
 /* Theme bug: PrimeReact's lara-light-blue sets both color and background to
-   the same teal (#0f766e) on highlighted dropdown items — use primary tint
-   so the text stays readable. */
-.p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
+   the same teal (#0f766e) on highlighted dropdown/multiselect items — use
+   primary tint so the text stays readable instead of solid high-contrast fill. */
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight,
+.p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight {
   color: var(--primary-color);
   background: var(--primary-50, var(--surface-100));
 }
@@ -658,4 +724,18 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   width: 2rem;
   height: 2rem;
   padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-bold {
+  font-weight: 550 !important;
+}
+
+.font-medium {
+  font-weight: 400 !important;
 }

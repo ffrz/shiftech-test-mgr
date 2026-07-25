@@ -10,8 +10,20 @@ export const projectMemberService = {
     return projectMemberRepository.findOwnRole(projectId, userId);
   },
 
-  add(projectId: string, userId: string, role: ProjectMemberRole = 'member') {
-    return projectMemberRepository.add(projectId, userId, role);
+  invite(projectId: string, userId: string, invitedBy: string, role: ProjectMemberRole = 'member') {
+    return projectMemberRepository.invite(projectId, userId, role, invitedBy);
+  },
+
+  listOwnPendingInvitations(userId: string) {
+    return projectMemberRepository.listPendingInvitationsForUser(userId);
+  },
+
+  accept(id: string) {
+    return projectMemberRepository.respond(id, 'accepted');
+  },
+
+  decline(id: string) {
+    return projectMemberRepository.respond(id, 'declined');
   },
 
   changeRole(id: string, role: ProjectMemberRole) {

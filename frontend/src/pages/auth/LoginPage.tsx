@@ -7,7 +7,7 @@ export function LoginPage() {
 
   return (
     <div className="flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-      <Card title="TestManager" className="w-25rem text-center">
+      <Card title="Testify" className="w-25rem text-center">
         <p className="text-color-secondary mb-4">Sign in to manage Test Plans &amp; Test Cases</p>
         <Button label="Sign in with Google" icon="pi pi-google" size="small" className="w-full" onClick={signInWithGoogle} />
       </Card>

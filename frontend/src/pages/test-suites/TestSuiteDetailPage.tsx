@@ -30,7 +30,7 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = (
 export function TestSuiteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const toast = useRef<Toast>(null);
-  const { isAdmin } = useAuthContext();
+  const { user, isAdmin } = useAuthContext();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
   const queryClient = useQueryClient();
@@ -40,6 +40,8 @@ export function TestSuiteDetailPage() {
     queryFn: () => testSuiteService.getSuite(id!),
     enabled: !!id,
   });
+
+  const canEdit = isAdmin || suite?.ownerId === user?.id;
 
   const { data: items = [], isLoading: loading } = useQuery({
     queryKey: queryKeys.testSuiteItems(id ?? ''),
@@ -236,7 +238,7 @@ export function TestSuiteDetailPage() {
 
       <PageHeader
         title="Item Test Case"
-        actions={isAdmin ? <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} /> : undefined}
+        actions={canEdit ? <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} /> : undefined}
       />
 
       <DataTable value={items} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small">
@@ -248,7 +250,7 @@ export function TestSuiteDetailPage() {
         {!isMobile && <Column field="priority" header="Priority" body={(row: TestSuiteItem) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />} />}
         {!isMobile && <Column field="targetRole" header="Role Target" body={(row: TestSuiteItem) => (row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-')} />}
         {!isMobile && <Column field="stepType" header="Mode" body={(row: TestSuiteItem) => (row.stepType === 'detailed' ? 'Detailed' : 'Simple')} />}
-        {isAdmin && (
+        {canEdit && (
           <Column
             header=""
             style={{ width: '3.5rem' }}

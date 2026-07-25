@@ -3,15 +3,41 @@ import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useDashboard } from '../../hooks/useDashboard';
+import { useProjectInvitations } from '../../hooks/useProjectInvitations';
 
 export function HomePage() {
   const navigate = useNavigate();
   const { profile } = useAuthContext();
   const { counts, recentProjects, continueWorking, loading } = useDashboard();
+  const { invitations, accept, decline } = useProjectInvitations();
 
   return (
     <div>
-      <h2 className="m-0 mb-4">Welcome Back{profile?.fullName ? `, ${profile.fullName}` : ''}</h2>
+      <h2 className="m-0 mb-4">Welcome Back{profile?.displayName ? `, ${profile.displayName}` : ''}</h2>
+
+      {invitations.length > 0 && (
+        <div className="mb-4">
+          <h3 className="mb-2">Pending Invitations</h3>
+          <div className="flex flex-column gap-2">
+            {invitations.map((invite) => (
+              <Card key={invite.id}>
+                <div className="flex align-items-center justify-content-between gap-3 flex-wrap">
+                  <div>
+                    <div className="font-bold">{invite.project?.name ?? 'Unknown project'}</div>
+                    <div className="text-sm text-color-secondary">
+                      Invited as {invite.role}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button label="Decline" text size="small" onClick={() => decline(invite.id)} />
+                    <Button label="Accept" size="small" onClick={() => accept(invite.id)} />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {!loading && continueWorking.length > 0 && (
         <div className="mb-4">
@@ -43,15 +69,15 @@ export function HomePage() {
 
       <div className="mb-4">
         <h3 className="mb-2">Recent Projects</h3>
-        <Card>
+        <Card pt={{ body: { className: 'p-2' }, content: { className: 'p-0' } }}>
           {recentProjects.length === 0 && !loading && (
             <span className="text-color-secondary">No projects yet.</span>
           )}
-          <div className="flex flex-column gap-2">
+          <div className="flex flex-column gap-1">
             {recentProjects.map((project) => (
               <div
                 key={project.id}
-                className="flex align-items-center justify-content-between gap-3 p-2 border-round cursor-pointer hover:surface-100"
+                className="flex align-items-center justify-content-between gap-3 p-1 border-round cursor-pointer hover:surface-100"
                 onClick={() => navigate(`/projects/${project.id}`)}
               >
                 <span className="font-medium">{project.name}</span>

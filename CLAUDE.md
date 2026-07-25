@@ -106,7 +106,7 @@ Project
 - Setiap kali test plan dites ulang → **Test Run baru** dibuat, bukan menimpa run sebelumnya
 - **Test Run "Completed" selalu manual** (tombol) — tapi **summary/progress selalu dihitung otomatis** on-the-fly dari `test_results` (`testRunService.getWithResults`), tidak pernah disimpan sebagai kolom
 - Issue 1:many terhadap Test Result
-- Tester HARUS user terdaftar (`profiles`), bukan teks bebas
+- Tester HARUS user terdaftar (`users`, ditampilkan lewat `profiles`), bukan teks bebas
 
 | Entity | Deskripsi |
 |---|---|
@@ -119,19 +119,24 @@ Project
 | `TestRun` | Satu sesi eksekusi — `status`: `in_progress`\|`completed` (manual) |
 | `TestResult` | Satu baris per (TestRun × TestCase) — `status`, `testerId`, `executedAt`, `notes` |
 | `Issue` | 0..N per TestResult FAIL — title, description, actualResult, expectedResult, priority, status, assignedTo |
-| `Profile` | 1:1 dengan `auth.users` Supabase — `role`: `pending`\|`user`\|`admin` |
+| `User` | 1:1 dengan `auth.users` Supabase — privat: `email`, `role` (`user`\|`admin`, platform-ops flag) |
+| `Profile` | 1:1 dengan `User` — publik: `username`, `displayName`, `avatarUrl`, `bio` (lihat `docs/ARCHITECTURE_V2.md` §1/§3) |
 
 Lihat `frontend/src/types/domain.ts` untuk tipe lengkap, dan `supabase/schema*.sql` (dijalankan berurutan: `schema.sql` → `schema_auth.sql` → `schema_project_lifecycle.sql` → `schema_test_management_v2.sql`) untuk skema tabel.
 
 ### Auth & RBAC (Google Login)
 
+**Sejak Platform Evolution V2 Phase 2** (lihat `docs/ARCHITECTURE_V2.md`, `docs/ROADMAP_V2.md`):
+signup **self-serve**, tidak ada lagi gate approval admin.
+
 - Login **hanya via Google OAuth** (Supabase Auth) — tidak ada email/password
-- Alur role: `pending` (default saat signup) → `user` (disetujui admin) → `admin`
-- User `pending` tidak bisa akses modul apa pun (diblokir di route guard DAN di RLS Supabase)
+- Setiap signup baru langsung dapat `role = 'user'` — tidak ada status `pending`, tidak butuh approval admin
+- `role` (`user` | `admin`) adalah **platform-ops flag**, bukan gate akses — akses ke suatu project ditentukan oleh `project_members` (lihat §Domain Model), bukan oleh `role` global
+- Identity di-split jadi dua tabel: `users` (privat — `email`, `role`, tidak pernah di-join ke tampilan publik) dan `profiles` (publik — `username`, `display_name`, `avatar_url`, `bio`). Selalu resolve nama/avatar tampilan lewat `profiles`, jangan lewat `users`
 - Admin pertama **di-set manual** lewat Supabase Table Editor — tidak ada mekanisme otomatis (sengaja, lihat `docs/PRD.md`)
-- State auth global ada di `AuthProvider` (`frontend/src/hooks/useAuth.tsx`), dikonsumsi via `useAuthContext()` — jangan query `supabase.auth` langsung dari component
-- Route guard: `components/auth/ProtectedRoute.tsx` (wajib login + approved), `components/auth/AdminRoute.tsx` (wajib admin) — **ini hanya UX**, keamanan sebenarnya ada di RLS
-- Modul User Management (`pages/users/UserManagementPage.tsx`) mengikuti pola layer yang sama: `profileRepository` → `profileService` → `useProfiles` hook → page
+- State auth global ada di `AuthProvider` (`frontend/src/hooks/useAuth.tsx`), expose `user` (role) dan `profile` (identity) terpisah, dikonsumsi via `useAuthContext()` — jangan query `supabase.auth` langsung dari component
+- Route guard: `components/auth/ProtectedRoute.tsx` (wajib login saja — tidak ada lagi cek approval), `components/auth/AdminRoute.tsx` (wajib admin, untuk layar admin-ops seperti User Management) — **ini hanya UX**, keamanan sebenarnya ada di RLS
+- Modul User Management (`pages/users/UserManagementPage.tsx`) baca `users` (email/role) lewat `userRepository` → `userService` → `useUsers` hook → page. Modul identity publik (Settings, `/@username`) baca `profiles` lewat `profileRepository` → `profileService` — dua jalur terpisah, jangan dicampur
 
 ### Naming & Convention
 

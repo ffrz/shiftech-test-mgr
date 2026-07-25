@@ -3,12 +3,15 @@ import type {
   IssueStatus,
   IssueType,
   ProjectMemberRole,
+  ProjectMemberStatus,
   ProjectStatus,
+  ProjectVisibility,
   TestCasePriority,
   TestCaseStatus,
   TestPlanStatus,
   TestResultStatus,
   TestRunStatus,
+  TestSuiteVisibility,
   UserRole,
 } from '../types/domain';
 
@@ -24,6 +27,30 @@ export const PROJECT_STATUS_SEVERITY: Record<ProjectStatus, TagSeverity> = {
   active: 'success',
   inactive: 'warning',
   archived: 'secondary',
+};
+
+export const PROJECT_VISIBILITY_LABEL: Record<ProjectVisibility, string> = {
+  private: 'Private',
+  unlisted: 'Unlisted',
+  public: 'Public',
+};
+
+export const PROJECT_VISIBILITY_SEVERITY: Record<ProjectVisibility, TagSeverity> = {
+  private: 'secondary',
+  unlisted: 'info',
+  public: 'success',
+};
+
+export const TEST_SUITE_VISIBILITY_LABEL: Record<TestSuiteVisibility, string> = {
+  private: 'Private',
+  unlisted: 'Unlisted',
+  public: 'Public',
+};
+
+export const TEST_SUITE_VISIBILITY_SEVERITY: Record<TestSuiteVisibility, TagSeverity> = {
+  private: 'secondary',
+  unlisted: 'info',
+  public: 'success',
 };
 
 export const TEST_PLAN_STATUS_LABEL: Record<TestPlanStatus, string> = {
@@ -135,13 +162,11 @@ export const ISSUE_TYPE_SEVERITY: Record<IssueType, TagSeverity> = {
 };
 
 export const USER_ROLE_LABEL: Record<UserRole, string> = {
-  pending: 'Pending',
   user: 'User',
   admin: 'Admin',
 };
 
 export const USER_ROLE_SEVERITY: Record<UserRole, TagSeverity> = {
-  pending: 'warning',
   user: 'info',
   admin: 'success',
 };
@@ -158,4 +183,16 @@ export const PROJECT_MEMBER_ROLE_SEVERITY: Record<ProjectMemberRole, TagSeverity
   supervisor: 'warning',
   tester: 'info',
   member: 'secondary',
+};
+
+export const PROJECT_MEMBER_STATUS_LABEL: Record<ProjectMemberStatus, string> = {
+  invited: 'Invited',
+  accepted: 'Accepted',
+  declined: 'Declined',
+};
+
+export const PROJECT_MEMBER_STATUS_SEVERITY: Record<ProjectMemberStatus, TagSeverity> = {
+  invited: 'warning',
+  accepted: 'success',
+  declined: 'secondary',
 };

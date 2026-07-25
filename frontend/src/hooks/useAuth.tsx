@@ -1,16 +1,16 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../config/supabaseClient';
+import { userService } from '../services/userService';
 import { profileService } from '../services/profileService';
-import type { Profile } from '../types/domain';
+import type { User, Profile } from '../types/domain';
 
 interface AuthContextValue {
   session: Session | null;
+  user: User | null;
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
-  isApproved: boolean;
-  isPending: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   reloadProfile: () => Promise<void>;
@@ -18,16 +18,20 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// Auth layer: wraps Supabase session + the `profiles` row (role) into one place.
-// Components read role/approval status via useAuthContext() instead of querying Supabase directly.
+// Auth layer: wraps Supabase session + the `users` row (role) + `profiles` row (public
+// identity) into one place. Components read role/approval status or display identity via
+// useAuthContext() instead of querying Supabase directly.
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function loadProfile(userId: string) {
-    setProfile(await profileService.getOwnProfile(userId));
+    const [u, p] = await Promise.all([userService.getOwn(userId), profileService.getOwnProfile(userId)]);
+    setUser(u);
+    setProfile(p);
   }
 
   useEffect(() => {
@@ -51,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Realtime: pick up role changes (e.g. pending -> user approval) made by an admin
+    // Realtime: pick up role changes (e.g. promote/demote to admin) made by an admin
     // while this user is already logged in, instead of requiring logout/login to see it.
     const userId = session?.user?.id;
     if (!userId) return;
@@ -60,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .channel(`profile-role-${userId}`)
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
+        { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${userId}` },
         () => {
           loadProfile(userId);
         },
@@ -75,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signInWithGoogle() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/app` },
     });
   }
 
@@ -84,25 +88,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Don't rely solely on onAuthStateChange to clear local state — force it here too,
     // then hard-reload so any stray Supabase client state/subscriptions are fully reset.
     setSession(null);
+    setUser(null);
     setProfile(null);
-    window.location.assign('/login');
+    window.location.assign('/app/login');
   }
 
   async function reloadProfile() {
     if (session?.user) await loadProfile(session.user.id);
   }
 
-  const role = profile?.role ?? null;
+  const role = user?.role ?? null;
 
   return (
     <AuthContext.Provider
       value={{
         session,
+        user,
         profile,
         loading,
         isAdmin: role === 'admin',
-        isApproved: role === 'user' || role === 'admin',
-        isPending: role === 'pending',
         signInWithGoogle,
         signOut,
         reloadProfile,
