@@ -659,3 +659,17 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   height: 2rem;
   padding: 0;
 }
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-bold {
+  font-weight: 550 !important;
+}
+
+.font-medium {
+  font-weight: 400 !important;
+}
