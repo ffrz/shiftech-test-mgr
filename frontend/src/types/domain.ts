@@ -30,11 +30,17 @@ export type ProjectStatus = 'active' | 'inactive' | 'archived';
 export type ProjectSortField = 'name' | 'createdAt' | 'updatedAt';
 export type SortDirection = 'asc' | 'desc';
 
+export type ProjectOwnerType = 'user'; // widen to 'user' | 'organization' when orgs ship
+export type ProjectVisibility = 'private' | 'unlisted' | 'public';
+
 export interface Project {
   id: string;
+  ownerId: string;
+  ownerType: ProjectOwnerType;
   name: string;
   description: string | null;
   status: ProjectStatus;
+  visibility: ProjectVisibility;
   createdAt: string;
   updatedAt: string;
 }

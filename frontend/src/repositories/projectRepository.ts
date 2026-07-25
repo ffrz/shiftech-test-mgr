@@ -1,6 +1,6 @@
 import { supabase } from '../config/supabaseClient';
 import { mapProjectRow } from '../helpers/mappers';
-import type { Project, ProjectSortField, ProjectStatus, SortDirection } from '../types/domain';
+import type { Project, ProjectSortField, ProjectStatus, ProjectVisibility, SortDirection } from '../types/domain';
 
 const SORT_COLUMN: Record<ProjectSortField, string> = {
   name: 'name',
@@ -41,13 +41,13 @@ export const projectRepository = {
     return data ? mapProjectRow(data) : null;
   },
 
-  async create(input: { name: string; description: string | null }): Promise<Project> {
+  async create(input: { name: string; description: string | null; visibility?: ProjectVisibility }): Promise<Project> {
     const { data, error } = await supabase.from('projects').insert(input).select('*').single();
     if (error) throw error;
     return mapProjectRow(data);
   },
 
-  async update(id: string, changes: Partial<Pick<Project, 'name' | 'description'>>): Promise<Project> {
+  async update(id: string, changes: Partial<Pick<Project, 'name' | 'description' | 'visibility'>>): Promise<Project> {
     const { data, error } = await supabase.from('projects').update(changes).eq('id', id).select('*').single();
     if (error) throw error;
     return mapProjectRow(data);

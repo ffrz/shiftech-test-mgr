@@ -135,15 +135,18 @@ Phase 6 note).
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P3-T01 | Migration: `projects.owner_type` (`check in ('user')`, default `'user'`), `projects.owner_id` (FK `profiles`) | todo |
-| V2-P3-T02 | Migration: backfill `owner_id` from earliest `manager` in `project_members` per project | todo |
-| V2-P3-T03 | Migration: `alter column owner_id set not null` once backfilled | todo |
-| V2-P3-T04 | Migration: `projects.visibility` (`private`\|`unlisted`\|`public`, default `private`) + partial index on `public` | todo |
-| V2-P3-T05 | Migration: update `projects` select RLS — public/unlisted readable without membership, private requires `has_project_access()` | todo |
-| V2-P3-T06 | `types/domain.ts`: add `ownerId`, `ownerType`, `visibility` to `Project` | todo |
-| V2-P3-T07 | `projectRepository.ts` / `projectService.ts`: include new fields in create/update/mappers | todo |
-| V2-P3-T08 | `ProjectsPage.tsx` create/edit form: add visibility selector (default Private) | todo |
-| V2-P3-T09 | Project list/detail: show owner (username) and a visibility badge | todo |
+| V2-P3-T01 | Migration: `projects.owner_type` (`check in ('user')`, default `'user'`), `projects.owner_id` — reused existing `created_by` column (added in 20260725000002 for an unrelated RLS fix) by renaming it, rather than adding a second column | done |
+| V2-P3-T02 | Migration: backfill `owner_id` from earliest `manager` in `project_members` per project | done (already backfilled as `created_by`; defensive re-backfill included) |
+| V2-P3-T03 | Migration: `alter column owner_id set not null` once backfilled | done |
+| V2-P3-T04 | Migration: `projects.visibility` (`private`\|`unlisted`\|`public`, default `private`) + partial index on `public` | done |
+| V2-P3-T05 | Migration: update `projects` select RLS — public/unlisted readable without membership, private requires `has_project_access()` | done |
+| V2-P3-T06 | `types/domain.ts`: add `ownerId`, `ownerType`, `visibility` to `Project` | done |
+| V2-P3-T07 | `projectRepository.ts` / `projectService.ts`: include new fields in create/update/mappers | done |
+| V2-P3-T08 | `ProjectsPage.tsx` create/edit form: add visibility selector (default Private) | done |
+| V2-P3-T09 | Project list/detail: visibility badge added to `ProjectsPage.tsx` and `ProjectDetailPage.tsx`. Owner *name* display deferred (not blocking) — would need a `profiles` lookup by `ownerId`, revisit if it becomes needed | done |
+
+**Migration file:** `supabase/migrations/20260725000007_project_ownership_and_visibility.sql`.
+Same staging-smoke-test caveat as Phase 1/2.
 
 **Exit criteria:** creating a project sets an owner and a visibility; existing
 projects all have a valid owner post-migration.

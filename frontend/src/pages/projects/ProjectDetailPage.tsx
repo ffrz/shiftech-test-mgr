@@ -54,6 +54,8 @@ import { formatDateTime } from '../../helpers/dateFormatter';
 import {
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_SEVERITY,
+  PROJECT_VISIBILITY_LABEL,
+  PROJECT_VISIBILITY_SEVERITY,
   TEST_CASE_PRIORITY_LABEL,
   TEST_CASE_PRIORITY_SEVERITY,
   TEST_CASE_STATUS_LABEL,
@@ -988,6 +990,7 @@ export function ProjectDetailPage() {
             <div className="flex align-items-center gap-2 mb-1">
               <h2 className="m-0">{project.name}</h2>
               <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
+              <Tag value={PROJECT_VISIBILITY_LABEL[project.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[project.visibility]} />
             </div>
             <p className="text-color-secondary text-sm m-0">{project.description || 'No description'}</p>
           </div>

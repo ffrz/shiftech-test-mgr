@@ -28,9 +28,12 @@ import type {
 export function mapProjectRow(row: any): Project {
   return {
     id: row.id,
+    ownerId: row.owner_id,
+    ownerType: row.owner_type,
     name: row.name,
     description: row.description,
     status: row.status,
+    visibility: row.visibility,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

@@ -4,6 +4,7 @@ import type {
   IssueType,
   ProjectMemberRole,
   ProjectStatus,
+  ProjectVisibility,
   TestCasePriority,
   TestCaseStatus,
   TestPlanStatus,
@@ -24,6 +25,18 @@ export const PROJECT_STATUS_SEVERITY: Record<ProjectStatus, TagSeverity> = {
   active: 'success',
   inactive: 'warning',
   archived: 'secondary',
+};
+
+export const PROJECT_VISIBILITY_LABEL: Record<ProjectVisibility, string> = {
+  private: 'Private',
+  unlisted: 'Unlisted',
+  public: 'Public',
+};
+
+export const PROJECT_VISIBILITY_SEVERITY: Record<ProjectVisibility, TagSeverity> = {
+  private: 'secondary',
+  unlisted: 'info',
+  public: 'success',
 };
 
 export const TEST_PLAN_STATUS_LABEL: Record<TestPlanStatus, string> = {

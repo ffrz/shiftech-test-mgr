@@ -25,17 +25,23 @@ import { testCaseService } from '../../services/testCaseService';
 import { issueService } from '../../services/issueService';
 import { projectDuplicateService } from '../../services/projectDuplicateService';
 import { queryKeys } from '../../hooks/queryKeys';
-import type { IssueWithDetails, Project, ProjectSortField, ProjectStatus, TestCaseWithDetails, TestPlan } from '../../types/domain';
+import type { IssueWithDetails, Project, ProjectSortField, ProjectStatus, ProjectVisibility, TestCaseWithDetails, TestPlan } from '../../types/domain';
 import type { ProjectQuery } from '../../repositories/projectRepository';
 import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
+import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY, PROJECT_VISIBILITY_LABEL, PROJECT_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 
 const STATUS_OPTIONS: { label: string; value: ProjectStatus | 'all' }[] = [
   { label: 'All Statuses', value: 'all' },
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' },
   { label: 'Archived', value: 'archived' },
+];
+
+const VISIBILITY_OPTIONS: { label: string; value: ProjectVisibility }[] = [
+  { label: 'Private — only invited members', value: 'private' },
+  { label: 'Unlisted — anyone with the link can view', value: 'unlisted' },
+  { label: 'Public — visible to everyone', value: 'public' },
 ];
 
 export function ProjectsPage() {
@@ -66,6 +72,7 @@ export function ProjectsPage() {
       </div>
       <div className="flex align-items-center gap-2 text-sm text-color-secondary">
         <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
+        <Tag value={PROJECT_VISIBILITY_LABEL[row.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[row.visibility]} />
       </div>
       {row.description && (
         <div className="text-sm text-color-secondary line-height-3">{row.description}</div>
@@ -93,6 +100,7 @@ export function ProjectsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [visibility, setVisibility] = useState<ProjectVisibility>('private');
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -106,6 +114,7 @@ export function ProjectsPage() {
     setEditingId(null);
     setName('');
     setDescription('');
+    setVisibility('private');
     setTemplateId(null);
     setError(null);
     setDialogOpen(true);
@@ -115,6 +124,7 @@ export function ProjectsPage() {
     setEditingId(row.id);
     setName(row.name);
     setDescription(row.description ?? '');
+    setVisibility(row.visibility);
     setError(null);
     setDialogOpen(true);
   }
@@ -123,9 +133,9 @@ export function ProjectsPage() {
     setError(null);
     try {
       if (editingId) {
-        await projectService.update(editingId, { name, description });
+        await projectService.update(editingId, { name, description, visibility });
       } else {
-        const created = await projectService.create({ name, description });
+        const created = await projectService.create({ name, description, visibility });
         if (templateId) {
           const items = await testSuiteService.listItems(templateId);
           await testSuiteService.cloneItemsToProject(created.id, items.map((i) => i.id));
@@ -314,6 +324,13 @@ export function ProjectsPage() {
           />
         )}
         {!isMobile && (
+          <Column
+            field="visibility"
+            header="Visibility"
+            body={(row: Project) => <Tag value={PROJECT_VISIBILITY_LABEL[row.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[row.visibility]} />}
+          />
+        )}
+        {!isMobile && (
           <Column field="createdAt" header="Created" body={(row: Project) => formatDate(row.createdAt)} sortable />
         )}
         {!isMobile && (
@@ -350,6 +367,16 @@ export function ProjectsPage() {
           <div className="flex flex-column gap-1">
             <label htmlFor="description">Description</label>
             <InputTextarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="visibility">Visibility</label>
+            <Dropdown
+              id="visibility"
+              value={visibility}
+              options={VISIBILITY_OPTIONS}
+              onChange={(e) => setVisibility(e.value)}
+              className="w-full"
+            />
           </div>
           {!editingId && (
             <div className="flex flex-column gap-1">
