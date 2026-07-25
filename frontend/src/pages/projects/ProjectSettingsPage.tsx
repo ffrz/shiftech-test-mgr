@@ -436,7 +436,7 @@ export function ProjectSettingsPage() {
   const modulesMobileBody = useCallback((row: Module) => (
     <div className="flex flex-column gap-2 py-1">
       <div className="font-medium">{row.name}</div>
-      <div className="text-sm text-color-secondary">Kode: {row.code}</div>
+      <div className="text-sm text-color-secondary">Code: {row.code}</div>
     </div>
   ), []);
 
@@ -476,14 +476,14 @@ export function ProjectSettingsPage() {
         items={[
           { label: 'Projects', path: '/projects' },
           { label: project.name, path: `/projects/${id}` },
-          { label: 'Pengaturan' },
+          { label: 'Settings' },
         ]}
       />
 
       <Card className="mb-3">
         <div className="flex align-items-center gap-2">
           <Button icon="pi pi-arrow-left" text rounded aria-label="Back" onClick={() => navigate(`/projects/${id}`)} />
-          <h2 className="m-0">Pengaturan Project — {project.name}</h2>
+          <h2 className="m-0">Project Setting — {project.name}</h2>
         </div>
       </Card>
 
@@ -495,7 +495,7 @@ export function ProjectSettingsPage() {
                 <InputIcon className="pi pi-search" />
                 <InputText value={moduleSearch} onChange={(e) => setModuleSearch(e.target.value)} placeholder="Search name/code..." />
               </IconField>
-              <Button label="Module Baru" icon="pi pi-plus" size="small" onClick={openCreateModuleDialog} />
+              <Button label="New Module" icon="pi pi-plus" size="small" onClick={openCreateModuleDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedModules.length}
@@ -515,14 +515,14 @@ export function ProjectSettingsPage() {
                 setModuleSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
               selection={selectedModules}
-               onSelectionChange={(e: any) => setSelectedModules(e.value as Module[])}
+              onSelectionChange={(e: any) => setSelectedModules(e.value as Module[])}
               dataKey="id"
               selectionMode="checkbox"
             >
               {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
               {isMobile
                 ? <Column header="Nama" body={modulesMobileBody} />
-                : <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
+                : <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
               }
               {!isMobile && <Column field="name" header="Nama" sortable />}
               <Column
@@ -549,7 +549,7 @@ export function ProjectSettingsPage() {
                 <InputIcon className="pi pi-search" />
                 <InputText value={tagSearch} onChange={(e) => setTagSearch(e.target.value)} placeholder="Search name..." />
               </IconField>
-              <Button label="Tag Baru" icon="pi pi-plus" size="small" onClick={openCreateTagDialog} />
+              <Button label="New Tag" icon="pi pi-plus" size="small" onClick={openCreateTagDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedTags.length}
@@ -569,7 +569,7 @@ export function ProjectSettingsPage() {
                 setTagSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
               selection={selectedTags}
-               onSelectionChange={(e: any) => setSelectedTags(e.value as TagEntity[])}
+              onSelectionChange={(e: any) => setSelectedTags(e.value as TagEntity[])}
               dataKey="id"
               selectionMode="checkbox"
             >
@@ -623,7 +623,7 @@ export function ProjectSettingsPage() {
                 setTestRoleSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
               selection={selectedTestRoles}
-               onSelectionChange={(e: any) => setSelectedTestRoles(e.value as TestRole[])}
+              onSelectionChange={(e: any) => setSelectedTestRoles(e.value as TestRole[])}
               dataKey="id"
               selectionMode="checkbox"
             >
@@ -667,7 +667,7 @@ export function ProjectSettingsPage() {
               paginator
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               selection={selectedMembers}
-               onSelectionChange={(e: any) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}
+              onSelectionChange={(e: any) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}
               dataKey="id"
               selectionMode="checkbox"
             >
@@ -762,7 +762,7 @@ export function ProjectSettingsPage() {
 
       {/* --- Module Dialog --- */}
       <Dialog
-        header={editingModuleId ? 'Edit Module' : 'Module Baru'}
+        header={editingModuleId ? 'Edit Module' : 'Add Module'}
         visible={moduleDialogOpen}
         onHide={() => setModuleDialogOpen(false)}
         onShow={() => moduleNameRef.current?.focus()}
@@ -771,11 +771,11 @@ export function ProjectSettingsPage() {
         <div className="flex flex-column gap-3">
           {moduleError && <small className="p-error">{moduleError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-code">Kode</label>
+            <label htmlFor="module-code">Code</label>
             <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Automatic if left empty" />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-name">Nama Module</label>
+            <label htmlFor="module-name">Module Name</label>
             <InputText
               id="module-name"
               ref={moduleNameRef}
@@ -819,7 +819,7 @@ export function ProjectSettingsPage() {
 
       {/* --- Test Role Dialog --- */}
       <Dialog
-        header={editingTestRoleId ? 'Edit Role' : 'Role Baru'}
+        header={editingTestRoleId ? 'Edit Role' : 'Add Test Role'}
         visible={testRoleDialogOpen}
         onHide={() => setTestRoleDialogOpen(false)}
         onShow={() => testRoleNameRef.current?.focus()}
@@ -828,7 +828,7 @@ export function ProjectSettingsPage() {
         <div className="flex flex-column gap-3">
           {testRoleError && <small className="p-error">{testRoleError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="test-role-name">Nama Role</label>
+            <label htmlFor="test-role-name">Role Name</label>
             <InputText
               id="test-role-name"
               ref={testRoleNameRef}

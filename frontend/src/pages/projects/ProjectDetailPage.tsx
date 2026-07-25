@@ -1053,7 +1053,7 @@ export function ProjectDetailPage() {
               selectionMode={isMobile ? null : 'checkbox'}
             >
               <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
+              <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
               <Column field="name" header="Nama" sortable={!isMobile} body={isMobile ? mobilePlanBody : undefined} />
               <Column
                 field="status"
@@ -1133,7 +1133,7 @@ export function ProjectDetailPage() {
                 <div className="flex gap-2">
                   <Button label="Import from Template" icon="pi pi-copy" size="small" outlined onClick={openImportTemplateDialog} />
                   <Button label="Import from Excel" icon="pi pi-file-excel" size="small" outlined onClick={openImportExcelDialog} />
-                  <Button label="Test Case Baru" icon="pi pi-plus" size="small" onClick={openCreateCaseDialog} />
+                  <Button label="New Test Case" icon="pi pi-plus" size="small" onClick={openCreateCaseDialog} />
                 </div>
               )}
             </div>
@@ -1163,7 +1163,7 @@ export function ProjectDetailPage() {
               selectionMode={isMobile ? null : 'checkbox'}
             >
               <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
+              <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
               <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileCaseBody : undefined} />
               <Column field="module.name" header="Module" sortable body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} hidden={isMobile} />
               <Column
@@ -1272,7 +1272,7 @@ export function ProjectDetailPage() {
               selectionMode={isMobile ? null : 'checkbox'}
             >
               <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
+              <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
               <Column field="name" header="Nama Run" sortable={!isMobile} body={isMobile ? mobileRunBody : undefined} />
               <Column
                 header="Test Plan"
@@ -1398,7 +1398,7 @@ export function ProjectDetailPage() {
               selectionMode={isMobile ? null : 'checkbox'}
             >
               <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
+              <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
               <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileIssueBody : undefined} />
               <Column
                 header="Tipe"
@@ -1546,7 +1546,7 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {planError && <small className="p-error">{planError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="plan-code">Kode</label>
+            <label htmlFor="plan-code">Code</label>
             <InputText id="plan-code" value={planCode} onChange={(e) => setPlanCode(e.target.value)} placeholder="Automatic if left empty" />
           </div>
           <div className="flex flex-column gap-1">
@@ -1628,7 +1628,7 @@ export function ProjectDetailPage() {
 
       {/* --- Module Dialog --- */}
       <Dialog
-        header="Module Baru"
+        header="New Module"
         visible={moduleDialogOpen}
         onHide={() => setModuleDialogOpen(false)}
         onShow={() => moduleNameRef.current?.focus()}
@@ -1637,11 +1637,11 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {moduleError && <small className="p-error">{moduleError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-code">Kode</label>
+            <label htmlFor="module-code">Code</label>
             <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Automatic if left empty" />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-name">Nama Module</label>
+            <label htmlFor="module-name">Module Name</label>
             <InputText
               id="module-name"
               ref={moduleNameRef}
@@ -1659,7 +1659,7 @@ export function ProjectDetailPage() {
 
       {/* --- Tag Dialog --- */}
       <Dialog
-        header="Tag Baru"
+        header="New Tag"
         visible={tagDialogOpen}
         onHide={() => setTagDialogOpen(false)}
         onShow={() => tagNameRef.current?.focus()}
@@ -1668,7 +1668,7 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {tagError && <small className="p-error">{tagError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="tag-name">Nama Tag</label>
+            <label htmlFor="tag-name">Tag</label>
             <InputText
               id="tag-name"
               ref={tagNameRef}
@@ -1686,7 +1686,7 @@ export function ProjectDetailPage() {
 
       {/* --- Test Role Dialog --- */}
       <Dialog
-        header="Role Baru"
+        header="New Test Role"
         visible={testRoleDialogOpen}
         onHide={() => setTestRoleDialogOpen(false)}
         onShow={() => testRoleNameRef.current?.focus()}
@@ -1695,7 +1695,7 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {testRoleError && <small className="p-error">{testRoleError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="test-role-name">Nama Role</label>
+            <label htmlFor="test-role-name">Role Name</label>
             <InputText
               id="test-role-name"
               ref={testRoleNameRef}
@@ -1713,7 +1713,7 @@ export function ProjectDetailPage() {
 
       {/* --- Test Case Dialog --- */}
       <Dialog
-        header={editingCaseId ? 'Edit Test Case' : 'Test Case Baru'}
+        header={editingCaseId ? 'Edit Test Case' : 'New Test Case'}
         visible={caseDialogOpen}
         onHide={() => setCaseDialogOpen(false)}
         style={{ width: '40rem' }}
@@ -1722,7 +1722,7 @@ export function ProjectDetailPage() {
           {caseError && <small className="p-error">{caseError}</small>}
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-code">Kode</label>
+            <label htmlFor="case-code">Code</label>
             <InputText id="case-code" value={caseCode} onChange={(e) => setCaseCode(e.target.value)} placeholder="Automatic if left empty" className="w-10rem" />
           </div>
 
@@ -1876,7 +1876,7 @@ export function ProjectDetailPage() {
                 filter
                 className="w-full"
               />
-              <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="Tag Baru" onClick={openCreateTagDialogFromCase} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
+              <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="New Tag" onClick={openCreateTagDialogFromCase} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
             </div>
           </div>
 
