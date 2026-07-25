@@ -459,7 +459,7 @@ html.dark .layout-menuitem-link.active-route {
 }
 
 /* Lightweight fade-in used when route/page content swaps in, so navigation
-   doesn't feel like an abrupt pop-in (or a blocking "Memuat..." flash). */
+   doesn't feel like an abrupt pop-in (or a blocking "Loading..." flash). */
 @keyframes page-fade-in {
   from {
     opacity: 0;

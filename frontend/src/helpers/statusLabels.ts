@@ -15,9 +15,9 @@ import type {
 export type TagSeverity = 'success' | 'info' | 'warning' | 'danger' | 'secondary';
 
 export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
-  active: 'Aktif',
-  inactive: 'Nonaktif',
-  archived: 'Arsip',
+  active: 'Active',
+  inactive: 'Inactive',
+  archived: 'Archived',
 };
 
 export const PROJECT_STATUS_SEVERITY: Record<ProjectStatus, TagSeverity> = {
@@ -27,10 +27,10 @@ export const PROJECT_STATUS_SEVERITY: Record<ProjectStatus, TagSeverity> = {
 };
 
 export const TEST_PLAN_STATUS_LABEL: Record<TestPlanStatus, string> = {
-  draft: 'Draf',
-  active: 'Aktif',
-  completed: 'Selesai',
-  archived: 'Diarsipkan',
+  draft: 'Draft',
+  active: 'Active',
+  completed: 'Completed',
+  archived: 'Archived',
 };
 
 export const TEST_PLAN_STATUS_SEVERITY: Record<TestPlanStatus, TagSeverity> = {
@@ -41,8 +41,8 @@ export const TEST_PLAN_STATUS_SEVERITY: Record<TestPlanStatus, TagSeverity> = {
 };
 
 export const TEST_CASE_STATUS_LABEL: Record<TestCaseStatus, string> = {
-  active: 'Aktif',
-  archived: 'Diarsipkan',
+  active: 'Active',
+  archived: 'Archived',
 };
 
 export const TEST_CASE_STATUS_SEVERITY: Record<TestCaseStatus, TagSeverity> = {
@@ -51,10 +51,10 @@ export const TEST_CASE_STATUS_SEVERITY: Record<TestCaseStatus, TagSeverity> = {
 };
 
 export const TEST_CASE_PRIORITY_LABEL: Record<TestCasePriority, string> = {
-  low: 'Rendah',
-  medium: 'Sedang',
-  high: 'Tinggi',
-  critical: 'Kritis',
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  critical: 'Critical',
 };
 
 export const TEST_CASE_PRIORITY_SEVERITY: Record<TestCasePriority, TagSeverity> = {
@@ -65,8 +65,8 @@ export const TEST_CASE_PRIORITY_SEVERITY: Record<TestCasePriority, TagSeverity> 
 };
 
 export const TEST_RUN_STATUS_LABEL: Record<TestRunStatus, string> = {
-  in_progress: 'Berjalan',
-  completed: 'Selesai',
+  in_progress: 'In Progress',
+  completed: 'Completed',
 };
 
 export const TEST_RUN_STATUS_SEVERITY: Record<TestRunStatus, TagSeverity> = {
@@ -75,11 +75,11 @@ export const TEST_RUN_STATUS_SEVERITY: Record<TestRunStatus, TagSeverity> = {
 };
 
 export const TEST_RESULT_STATUS_LABEL: Record<TestResultStatus, string> = {
-  pass: 'Lulus',
-  fail: 'Gagal',
-  skip: 'Dilewati',
-  blocked: 'Terblokir',
-  not_run: 'Belum Dites',
+  pass: 'Pass',
+  fail: 'Fail',
+  skip: 'Skipped',
+  blocked: 'Blocked',
+  not_run: 'Not Run',
 };
 
 export const TEST_RESULT_STATUS_SEVERITY: Record<TestResultStatus, TagSeverity> = {
@@ -91,10 +91,10 @@ export const TEST_RESULT_STATUS_SEVERITY: Record<TestResultStatus, TagSeverity> 
 };
 
 export const ISSUE_PRIORITY_LABEL: Record<IssuePriority, string> = {
-  low: 'Rendah',
-  medium: 'Sedang',
-  high: 'Tinggi',
-  critical: 'Kritis',
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  critical: 'Critical',
 };
 
 export const ISSUE_PRIORITY_SEVERITY: Record<IssuePriority, TagSeverity> = {
@@ -105,11 +105,11 @@ export const ISSUE_PRIORITY_SEVERITY: Record<IssuePriority, TagSeverity> = {
 };
 
 export const ISSUE_STATUS_LABEL: Record<IssueStatus, string> = {
-  open: 'Terbuka',
-  in_progress: 'Dikerjakan',
-  resolved: 'Terselesaikan',
-  verified: 'Terverifikasi',
-  closed: 'Ditutup',
+  open: 'Open',
+  in_progress: 'In Progress',
+  resolved: 'Resolved',
+  verified: 'Verified',
+  closed: 'Closed',
 };
 
 export const ISSUE_STATUS_SEVERITY: Record<IssueStatus, TagSeverity> = {
@@ -135,7 +135,7 @@ export const ISSUE_TYPE_SEVERITY: Record<IssueType, TagSeverity> = {
 };
 
 export const USER_ROLE_LABEL: Record<UserRole, string> = {
-  pending: 'Menunggu',
+  pending: 'Pending',
   user: 'User',
   admin: 'Admin',
 };
@@ -150,7 +150,7 @@ export const PROJECT_MEMBER_ROLE_LABEL: Record<ProjectMemberRole, string> = {
   manager: 'Manager',
   supervisor: 'Supervisor',
   tester: 'Tester',
-  member: 'Anggota',
+  member: 'Member',
 };
 
 export const PROJECT_MEMBER_ROLE_SEVERITY: Record<ProjectMemberRole, TagSeverity> = {
