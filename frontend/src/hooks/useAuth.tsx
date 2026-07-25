@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signInWithGoogle() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/app` },
     });
   }
 
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setUser(null);
     setProfile(null);
-    window.location.assign('/login');
+    window.location.assign('/app/login');
   }
 
   async function reloadProfile() {
