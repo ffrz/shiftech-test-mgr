@@ -18,7 +18,7 @@ export function HomePage() {
           <h3 className="mb-2">Continue Working</h3>
           <div className="flex flex-column gap-2">
             {continueWorking.map((item, i) => (
-              <Card key={i} className="shadow-1">
+              <Card key={i}>
                 <div className="flex align-items-center justify-content-between gap-3 flex-wrap">
                   <div>
                     <div className="font-bold">{item.project.name}</div>
@@ -43,7 +43,7 @@ export function HomePage() {
 
       <div className="mb-4">
         <h3 className="mb-2">Recent Projects</h3>
-        <Card className="shadow-1">
+        <Card>
           {recentProjects.length === 0 && !loading && (
             <span className="text-color-secondary">No projects yet.</span>
           )}
@@ -74,19 +74,19 @@ export function HomePage() {
         <h3 className="mb-2">Statistics</h3>
         <div className="grid">
           <div className="col-12 md:col-4">
-            <Card className="shadow-1 text-center">
+            <Card className="text-center">
               <div className="text-3xl font-bold">{counts.projectCount}</div>
               <div className="text-color-secondary">Projects</div>
             </Card>
           </div>
           <div className="col-12 md:col-4">
-            <Card className="shadow-1 text-center">
+            <Card className="text-center">
               <div className="text-3xl font-bold">{counts.testPlanCount}</div>
               <div className="text-color-secondary">Test Plans</div>
             </Card>
           </div>
           <div className="col-12 md:col-4">
-            <Card className="shadow-1 text-center">
+            <Card className="text-center">
               <div className="text-3xl font-bold">{counts.testCaseCount}</div>
               <div className="text-color-secondary">Test Cases</div>
             </Card>

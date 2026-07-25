@@ -32,13 +32,13 @@ export function useProjectRole(projectId: string | undefined) {
     };
   }, [projectId, session?.user?.id]);
 
-  const canEditContent = isAdmin || role === 'manager' || role === 'supervisor';
-  const canDeleteContent = isAdmin || role === 'manager';
-  const canManageSettings = isAdmin || role === 'manager';
-  const canRunTests = isAdmin || role === 'manager' || role === 'tester';
-  const canManageIssues = isAdmin || role === 'manager' || role === 'tester';
-  const canArchiveProject = isAdmin || role === 'manager';
-  const canDeleteProject = isAdmin;
+  const canEditContent = role === 'manager' || role === 'supervisor';
+  const canDeleteContent = role === 'manager';
+  const canManageSettings = role === 'manager';
+  const canRunTests = role === 'manager' || role === 'tester';
+  const canManageIssues = role === 'manager' || role === 'tester';
+  const canArchiveProject = role === 'manager';
+  const canDeleteProject = role === 'manager';
 
   return {
     loading,
