@@ -51,7 +51,7 @@ import {
 } from '../../helpers/statusLabels';
 
 const RESULT_OPTIONS: { label: string; value: TestResultStatus }[] = [
-  { label: 'Belum Dites', value: 'not_run' },
+  { label: 'Not Run', value: 'not_run' },
   { label: 'Pass', value: 'pass' },
   { label: 'Fail', value: 'fail' },
   { label: 'Skip', value: 'skip' },
@@ -59,7 +59,7 @@ const RESULT_OPTIONS: { label: string; value: TestResultStatus }[] = [
 ];
 
 const STATUS_FILTER_OPTIONS: { label: string; value: TestResultStatus }[] = [
-  { label: 'Belum Dites', value: 'not_run' },
+  { label: 'Not Run', value: 'not_run' },
   { label: 'Pass', value: 'pass' },
   { label: 'Fail', value: 'fail' },
   { label: 'Skip', value: 'skip' },
@@ -70,9 +70,9 @@ const PRIORITY_FILTER_OPTIONS: { label: string; value: TestCasePriority }[] = (
   ['low', 'medium', 'high', 'critical'] as const
 ).map((v) => ({ label: TEST_CASE_PRIORITY_LABEL[v], value: v }));
 
-// Batas tinggi maksimum daftar test case (panel kiri) dan panel kanan — masing-masing
-// scroll independen kalau kontennya melebihi ini, tapi tidak dipaksa setinggi ini kalau
-// isinya lebih pendek (mis. Panel Filter sedang collapsed, atau list test case sedikit).
+// Max height for the test case list (left panel) and the right panel — each scrolls
+// independently if its content exceeds this, but isn't forced to this height if its
+// content is shorter (e.g. the Filter panel is collapsed, or the list has few items).
 const MAX_PANEL_HEIGHT = 'calc(100vh - 14rem)';
 
 export function TestRunResultDetailPage() {
@@ -194,9 +194,9 @@ export function TestRunResultDetailPage() {
     try {
       await testRunService.syncResultWithTestCase(runId, activeResult.id);
       await reload();
-      toast.current?.show({ severity: 'success', summary: 'Test case disinkronkan' });
+      toast.current?.show({ severity: 'success', summary: 'Test case synced' });
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Gagal sync', detail: err instanceof Error ? err.message : undefined });
+      toast.current?.show({ severity: 'error', summary: 'Sync failed', detail: err instanceof Error ? err.message : undefined });
     }
   }
 
@@ -228,14 +228,14 @@ export function TestRunResultDetailPage() {
     setResultNotes(notesDraft);
     setNotesDialogOpen(false);
     await saveResult({ notes: notesDraft });
-    toast.current?.show({ severity: 'success', summary: 'Catatan tersimpan' });
+    toast.current?.show({ severity: 'success', summary: 'Notes saved' });
   }
 
   async function handleClearNotes() {
     setResultNotes('');
     setNotesDialogOpen(false);
     await saveResult({ notes: '' });
-    toast.current?.show({ severity: 'success', summary: 'Catatan dihapus' });
+    toast.current?.show({ severity: 'success', summary: 'Notes cleared' });
   }
 
   // --- Link Issue: AutoComplete (no dialog, no MultiSelect) — type to search server-side,
@@ -287,11 +287,11 @@ export function TestRunResultDetailPage() {
   function handleUnlinkIssue(issue: IssueWithDetails) {
     if (!activeResult) return;
     confirmDialog({
-      header: 'Lepas Tautan Issue',
-      message: `Issue "${issue.code} — ${issue.title}" akan dilepas dari test case ini. Issue itu sendiri tidak dihapus. Lanjutkan?`,
+      header: 'Unlink Issue',
+      message: `Issue "${issue.code} — ${issue.title}" will be unlinked from this test case. The issue itself will not be deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Lepas',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Unlink',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await issueService.unlinkFromTestResult(issue.id, activeResult!.id);
@@ -314,7 +314,7 @@ export function TestRunResultDetailPage() {
 
   function openCreateIssueDialog() {
     if (!activeResult) return;
-    setIssueTitle(activeResult.status === 'fail' ? `${activeResult.testCaseTitle} gagal` : '');
+    setIssueTitle(activeResult.status === 'fail' ? `${activeResult.testCaseTitle} failed` : '');
     setIssueType('bug');
     setIssueModuleId(null);
     setIssueTagNames([]);
@@ -344,15 +344,15 @@ export function TestRunResultDetailPage() {
       });
       setCreateIssueDialogOpen(false);
       await refreshLinkedIssues();
-      toast.current?.show({ severity: 'success', summary: 'Issue dibuat dan ditautkan' });
+      toast.current?.show({ severity: 'success', summary: 'Issue created and linked' });
     } catch (err) {
-      setIssueError(err instanceof Error ? err.message : 'Gagal membuat issue');
+      setIssueError(err instanceof Error ? err.message : 'Failed to create issue');
     }
   }
 
   // --- Complete run dialog ---
-  // Shadow di bawah toolbar Prev/Next hanya muncul saat konten di bawahnya sudah discroll —
-  // penanda visual "ada lebih banyak konten di atas", bukan dekorasi permanen.
+  // Shadow below the Prev/Next toolbar only appears once the content below it has scrolled —
+  // a visual cue that "there's more content above", not permanent decoration.
   const [rightPanelScrolled, setRightPanelScrolled] = useState(false);
   const rightPanelRef = useRef<HTMLDivElement>(null);
 
@@ -383,7 +383,7 @@ export function TestRunResultDetailPage() {
     setCompleteDialogOpen(false);
     await reload();
     await invalidateTestRunSummaries();
-    toast.current?.show({ severity: 'success', summary: 'Test run diselesaikan' });
+    toast.current?.show({ severity: 'success', summary: 'Test run completed' });
   }
 
   async function handleReopenRun() {
@@ -421,18 +421,18 @@ export function TestRunResultDetailPage() {
             testRun?.status === 'completed' ? (
               <Button label="Reopen" icon="pi pi-replay" size="small" severity="secondary" outlined onClick={handleReopenRun} />
             ) : (
-              <Button label="Selesaikan Run" icon="pi pi-check" size="small" onClick={openCompleteDialog} />
+              <Button label="Complete Run" icon="pi pi-check" size="small" onClick={openCompleteDialog} />
             )
           ) : undefined
         }
       />
 
-      {/* --- Summary/progress: selalu terlihat, tidak ikut scroll panel manapun --- */}
+      {/* --- Summary/progress: always visible, doesn't scroll with either panel --- */}
       {testRun && (
         <div className="flex align-items-center flex-wrap gap-2 mb-3">
           <Tag value={TEST_RUN_STATUS_LABEL[testRun.status]} severity={TEST_RUN_STATUS_SEVERITY[testRun.status]} />
           <span className="text-color-secondary text-sm">
-            {summary.pass} pass · {summary.fail} fail · {summary.skip} skip · {summary.blocked} blocked · {summary.notRun} belum dites
+            {summary.pass} pass · {summary.fail} fail · {summary.skip} skip · {summary.blocked} blocked · {summary.notRun} not run
           </span>
           {testPlan && (
             <span className="text-color-secondary text-sm">
@@ -447,7 +447,7 @@ export function TestRunResultDetailPage() {
 
       {testRun?.notes && (
         <div className="mb-3 p-0 surface-100 border-round">
-          <div className="text-sm font-medium mb-1">Catatan</div>
+          <div className="text-sm font-medium mb-1">Notes</div>
           <div className="text-sm white-space-pre-line">{testRun.notes}</div>
         </div>
       )}
@@ -455,7 +455,7 @@ export function TestRunResultDetailPage() {
       <div className="mb-4">
         <div className="flex justify-content-between mb-1">
           <span>
-            {summary.executed} / {summary.total} dieksekusi
+            {summary.executed} / {summary.total} executed
           </span>
           <span>{summary.progressPercent}%</span>
         </div>
@@ -480,12 +480,12 @@ export function TestRunResultDetailPage() {
             <div className="flex flex-column gap-1">
               <IconField iconPosition="left">
                 <InputIcon className="pi pi-search" />
-                <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari judul/kode..." className="w-full" />
+                <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search title/code..." className="w-full" />
               </IconField>
-              <Dropdown value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(e) => setStatusFilter(e.value)} placeholder="Semua Status" showClear className="w-full" />
-              <Dropdown value={priorityFilter} options={PRIORITY_FILTER_OPTIONS} onChange={(e) => setPriorityFilter(e.value)} placeholder="Semua Prioritas" showClear className="w-full" />
-              <Dropdown value={moduleFilter} options={moduleOptions} onChange={(e) => setModuleFilter(e.value)} placeholder="Semua Module" showClear className="w-full" />
-              <Dropdown value={tagFilter} options={tagOptions} onChange={(e) => setTagFilter(e.value)} placeholder="Semua Tag" showClear className="w-full" />
+              <Dropdown value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(e) => setStatusFilter(e.value)} placeholder="All Statuses" showClear className="w-full" />
+              <Dropdown value={priorityFilter} options={PRIORITY_FILTER_OPTIONS} onChange={(e) => setPriorityFilter(e.value)} placeholder="All Priorities" showClear className="w-full" />
+              <Dropdown value={moduleFilter} options={moduleOptions} onChange={(e) => setModuleFilter(e.value)} placeholder="All Modules" showClear className="w-full" />
+              <Dropdown value={tagFilter} options={tagOptions} onChange={(e) => setTagFilter(e.value)} placeholder="All Tags" showClear className="w-full" />
             </div>
           </Panel>
 
@@ -502,7 +502,7 @@ export function TestRunResultDetailPage() {
               borderBottomRightRadius: 'var(--border-radius, 6px)',
             }}
           >
-            {!loading && filteredResults.length === 0 && <p className="text-color-secondary text-sm px-2">Tidak ada test case yang cocok.</p>}
+            {!loading && filteredResults.length === 0 && <p className="text-color-secondary text-sm px-2">No matching test cases.</p>}
             {filteredResults.map((r, index) => (
               <div
                 key={r.id}
@@ -542,7 +542,7 @@ export function TestRunResultDetailPage() {
           </div>
         </div>
 
-        {/* --- Panel kanan: summary (default) atau detail test case terpilih (scroll independen) --- */}
+        {/* --- Right panel: summary (default) or selected test case detail (scrolls independently) --- */}
         <div className="col-12 md:col-8 flex flex-column" style={{ height: MAX_PANEL_HEIGHT }}>
           {activeResult && (
             <div
@@ -583,7 +583,7 @@ export function TestRunResultDetailPage() {
           >
             {!activeResult ? (
               <Card>
-                <p className="text-color-secondary m-0">Pilih test case di panel kiri untuk mencatat hasil, melihat detail, atau menautkan issue.</p>
+                <p className="text-color-secondary m-0">Select a test case in the left panel to record a result, view details, or link an issue.</p>
               </Card>
             ) : (
               <>
@@ -599,7 +599,7 @@ export function TestRunResultDetailPage() {
                   <div className="flex flex-wrap align-items-center justify-content-between gap-2 mt-2 mb-1 text-sm">
                     <div className="flex flex-wrap align-items-center gap-4">
                       <span className="text-color-secondary">
-                        Modul: <span className="text-color">{activeResult.testCase?.module?.name ?? '-'}</span>
+                        Module: <span className="text-color">{activeResult.testCase?.module?.name ?? '-'}</span>
                       </span>
                       {activeResult.testCase?.targetRole && <Tag value={activeResult.testCase.targetRole.name} severity="secondary" />}
                       {activeResult.testCase && activeResult.testCase.tags.length > 0 && (
@@ -627,20 +627,20 @@ export function TestRunResultDetailPage() {
                   {activeResult.testCase && activeResult.testCase.updatedAt > activeResult.updatedAt && (
                     <small className="text-color-secondary">
                       <i className="pi pi-info-circle mr-1" />
-                      Test case asli sudah diperbarui sejak run ini dimulai — tampilan ini adalah snapshot saat run dibuat.
+                      The original test case has been updated since this run started — this view is a snapshot taken when the run was created.
                     </small>
                   )}
 
                   {activeResult.testCaseObjective && (
                     <div className="mt-3">
-                      <label className="block text-color-secondary text-sm mb-1">Tujuan</label>
+                      <label className="block text-color-secondary text-sm mb-1">Objective</label>
                       <p className="m-0">{activeResult.testCaseObjective}</p>
                     </div>
                   )}
 
                   {activeResult.testCasePreconditions && (
                     <div className="mt-3">
-                      <label className="block text-color-secondary text-sm mb-1">Prasyarat</label>
+                      <label className="block text-color-secondary text-sm mb-1">Preconditions</label>
                       <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCasePreconditions}</p>
                     </div>
                   )}
@@ -648,13 +648,13 @@ export function TestRunResultDetailPage() {
                   {canRunTests && (
                     <div className="mt-3">
                       <div className="flex align-items-center gap-2 mb-1">
-                        <label className="block text-color-secondary text-sm m-0">Catatan</label>
+                        <label className="block text-color-secondary text-sm m-0">Notes</label>
                         <Button
                           icon="pi pi-pencil"
                           text
                           rounded
                           size="small"
-                          aria-label="Edit catatan"
+                          aria-label="Edit notes"
                           onClick={openNotesDialog}
                           style={{ width: '1.5rem', height: '1.5rem' }}
                         />
@@ -662,14 +662,14 @@ export function TestRunResultDetailPage() {
                       {resultNotes ? (
                         <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{resultNotes}</p>
                       ) : (
-                        <p className="m-0 text-color-secondary" style={{ fontStyle: 'italic' }}>Tidak ada catatan</p>
+                        <p className="m-0 text-color-secondary" style={{ fontStyle: 'italic' }}>No notes</p>
                       )}
                     </div>
                   )}
                 </Card>
 
                 {canRunTests && (
-                  <Card title="Hasil Eksekusi" className="mb-3">
+                  <Card title="Execution Result" className="mb-3">
                     <div className="flex flex-column gap-3">
                       <div className="grid">
                         <div className="col-12 md:col-6 flex flex-column gap-1">
@@ -701,21 +701,21 @@ export function TestRunResultDetailPage() {
                       </div>
 
                       <div>
-                        <label className="block text-color-secondary text-sm mb-1">Hasil yang Diharapkan</label>
+                        <label className="block text-color-secondary text-sm mb-1">Expected Result</label>
                         <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseExpectedResult}</p>
                       </div>
 
-                      {/* Konsisten satu slot untuk "Langkah Pengujian" — simple test case
-                          tampil sebagai teks bebas, detailed tampil sebagai checklist per-step
-                          (masing-masing step juga membawa expected result sendiri). */}
+                      {/* One consistent slot for "Test Steps" — simple test cases render as
+                          free text, detailed ones render as a per-step checklist (each step
+                          also carries its own expected result). */}
                       {activeResult.stepResults.length === 0 ? (
                         <div>
-                          <label className="block text-color-secondary text-sm mb-1">Langkah Pengujian</label>
+                          <label className="block text-color-secondary text-sm mb-1">Test Steps</label>
                           <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseSteps}</p>
                         </div>
                       ) : (
                         <div className="flex flex-column gap-2">
-                          <label>Langkah Pengujian</label>
+                          <label>Test Steps</label>
                           {activeResult.stepResults.map((sr) => (
                             <div key={sr.id} className="flex align-items-start gap-2 p-2 border-round surface-100">
                               <div className="text-sm flex-grow-1">
@@ -748,7 +748,7 @@ export function TestRunResultDetailPage() {
                   <Card
                     title="Issues"
                     className="mb-3"
-                    subTitle={linkedIssues.length > 0 ? `${linkedIssues.length} issue tertaut` : undefined}
+                    subTitle={linkedIssues.length > 0 ? `${linkedIssues.length} linked issue(s)` : undefined}
                   >
                     <div className="flex flex-column gap-2">
                       <div className="flex align-items-center gap-2">
@@ -772,7 +772,7 @@ export function TestRunResultDetailPage() {
                         <Button label="New Issue" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />
                       </div>
                       {linkedIssues.length === 0 && (
-                        <p className="text-color-secondary text-sm m-0">Belum ada issue yang ditautkan ke test case ini.</p>
+                        <p className="text-color-secondary text-sm m-0">No issues linked to this test case yet.</p>
                       )}
                       {linkedIssues.map((issue) => (
                         <div key={issue.id} className="flex align-items-center justify-content-between gap-2 p-2 border-round surface-100">
@@ -791,7 +791,7 @@ export function TestRunResultDetailPage() {
                             size="small"
                             text
                             severity="secondary"
-                            aria-label="Lepas tautan"
+                            aria-label="Unlink"
                             onClick={() => handleUnlinkIssue(issue)}
                           />
                         </div>
@@ -806,16 +806,16 @@ export function TestRunResultDetailPage() {
       </div>
 
       {/* --- Create Issue Dialog: saving auto-links to activeResult --- */}
-      <Dialog header="Tambah Issue" visible={createIssueDialogOpen} onHide={() => setCreateIssueDialogOpen(false)} style={{ width: '32rem' }}>
+      <Dialog header="Add Issue" visible={createIssueDialogOpen} onHide={() => setCreateIssueDialogOpen(false)} style={{ width: '32rem' }}>
         <div className="flex flex-column gap-3">
           {issueError && <small className="p-error">{issueError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-title">Judul</label>
+            <label htmlFor="issue-title">Title</label>
             <InputText id="issue-title" value={issueTitle} onChange={(e) => setIssueTitle(e.target.value)} autoFocus />
           </div>
           <div className="grid">
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-type">Tipe</label>
+              <label htmlFor="issue-type">Type</label>
               <Dropdown
                 id="issue-type"
                 value={issueType}
@@ -825,7 +825,7 @@ export function TestRunResultDetailPage() {
               />
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-priority">Prioritas</label>
+              <label htmlFor="issue-priority">Priority</label>
               <Dropdown
                 id="issue-priority"
                 value={issuePriority}
@@ -836,43 +836,43 @@ export function TestRunResultDetailPage() {
             </div>
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-module">Modul (opsional)</label>
+            <label htmlFor="issue-module">Module (optional)</label>
             <Dropdown
               id="issue-module"
               value={issueModuleId}
               options={modules.map((m) => ({ label: m.name, value: m.id }))}
               onChange={(e) => setIssueModuleId(e.value)}
               showClear
-              placeholder="Tidak terikat module"
+              placeholder="Not tied to a module"
               className="w-full"
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-tags">Tag</label>
+            <label htmlFor="issue-tags">Tags</label>
             <MultiSelect
               id="issue-tags"
               value={issueTagNames}
               options={projectTags.map((t) => ({ label: t.name, value: t.name }))}
               onChange={(e) => setIssueTagNames(e.value ?? [])}
-              placeholder="Pilih tag"
+              placeholder="Select tags"
               display="chip"
               filter
               className="w-full"
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-description">Deskripsi</label>
+            <label htmlFor="issue-description">Description</label>
             <InputTextarea id="issue-description" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} rows={2} />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-actual">Hasil Aktual</label>
+            <label htmlFor="issue-actual">Actual Result</label>
             <InputTextarea id="issue-actual" value={issueActual} onChange={(e) => setIssueActual(e.target.value)} rows={2} />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-expected">Hasil yang Diharapkan</label>
+            <label htmlFor="issue-expected">Expected Result</label>
             <InputTextarea id="issue-expected" value={issueExpected} onChange={(e) => setIssueExpected(e.target.value)} rows={2} />
           </div>
-          <Button label="Buat & Tautkan" size="small" onClick={handleCreateAndLinkIssue} />
+          <Button label="Create & Link" size="small" onClick={handleCreateAndLinkIssue} />
         </div>
       </Dialog>
 
@@ -881,32 +881,32 @@ export function TestRunResultDetailPage() {
         <div className="flex flex-column gap-3">
           <InputTextarea value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} rows={5} autoFocus />
           <div className="flex gap-2">
-            <Button label="Simpan" size="small" onClick={handleSaveNotes} />
+            <Button label="Save" size="small" onClick={handleSaveNotes} />
             {resultNotes && (
-              <Button label="Hapus Catatan" size="small" text severity="danger" onClick={handleClearNotes} />
+              <Button label="Clear Notes" size="small" text severity="danger" onClick={handleClearNotes} />
             )}
           </div>
         </div>
       </Dialog>
 
       {/* --- Complete Run Dialog --- */}
-      <Dialog header="Selesaikan Test Run" visible={completeDialogOpen} onHide={() => setCompleteDialogOpen(false)} style={{ width: '28rem' }}>
+      <Dialog header="Complete Test Run" visible={completeDialogOpen} onHide={() => setCompleteDialogOpen(false)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">
           <p className="m-0 text-sm text-color-secondary">
-            Test run ini akan ditandai selesai. Kamu masih bisa membuka kembali kapan saja.
+            This test run will be marked as completed. You can reopen it at any time.
           </p>
           <div className="flex flex-column gap-1">
-            <label htmlFor="complete-notes">Catatan (opsional)</label>
+            <label htmlFor="complete-notes">Notes (optional)</label>
             <InputTextarea
               id="complete-notes"
               value={completeNotes}
               onChange={(e) => setCompleteNotes(e.target.value)}
               rows={3}
-              placeholder="Mis. blocker, catatan environment, tindak lanjut..."
+              placeholder="E.g. blockers, environment notes, follow-ups..."
               autoFocus
             />
           </div>
-          <Button label="Selesaikan" icon="pi pi-check" size="small" onClick={handleCompleteRun} />
+          <Button label="Complete" icon="pi pi-check" size="small" onClick={handleCompleteRun} />
         </div>
       </Dialog>
     </div>

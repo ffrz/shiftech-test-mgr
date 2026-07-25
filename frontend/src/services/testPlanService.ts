@@ -16,7 +16,7 @@ export const testPlanService = {
 
   async create(input: { projectId: string; name: string; description?: string; code?: string }): Promise<TestPlan> {
     if (!input.name.trim()) {
-      throw new Error('Nama test plan tidak boleh kosong');
+      throw new Error('Test plan name cannot be empty');
     }
     return testPlanRepository.create({
       projectId: input.projectId,
@@ -27,12 +27,12 @@ export const testPlanService = {
   },
 
   rename(id: string, name: string) {
-    if (!name.trim()) throw new Error('Nama test plan tidak boleh kosong');
+    if (!name.trim()) throw new Error('Test plan name cannot be empty');
     return testPlanRepository.update(id, { name: name.trim() });
   },
 
   update(id: string, input: { name: string; description?: string; code?: string }) {
-    if (!input.name.trim()) throw new Error('Nama test plan tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Test plan name cannot be empty');
     return testPlanRepository.update(id, {
       name: input.name.trim(),
       description: input.description?.trim() || null,
@@ -53,7 +53,7 @@ export const testPlanService = {
   // by the same testCaseId, since Test Case is meant to stay reusable/shared across plans.
   async duplicate(sourceTestPlanId: string, newName: string): Promise<TestPlan> {
     const source = await testPlanRepository.findById(sourceTestPlanId);
-    if (!source) throw new Error('Test plan sumber tidak ditemukan');
+    if (!source) throw new Error('Source test plan not found');
 
     const newPlan = await testPlanService.create({ projectId: source.projectId, name: newName });
 

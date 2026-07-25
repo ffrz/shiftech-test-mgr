@@ -41,14 +41,14 @@ export const testRunService = {
   // test_results as 'not_run' — later edits to the plan's case list don't retroactively
   // change what this run covers, matching how a real regression cycle has a fixed scope.
   async start(testPlanId: string, name: string, code?: string) {
-    if (!name.trim()) throw new Error('Nama test run tidak boleh kosong');
+    if (!name.trim()) throw new Error('Test run name cannot be empty');
 
     const plan = await testPlanRepository.findById(testPlanId);
-    if (!plan) throw new Error('Test plan tidak ditemukan');
+    if (!plan) throw new Error('Test plan not found');
 
     const planCases = await testCaseRepository.findCasesForPlan(testPlanId);
     if (planCases.length === 0) {
-      throw new Error('Test plan ini belum punya test case — tambahkan test case dulu sebelum memulai run');
+      throw new Error('This test plan has no test cases yet — add test cases before starting a run');
     }
 
     const run = await testRunRepository.create({
@@ -66,8 +66,8 @@ export const testRunService = {
 
   // Custom/unplanned run — no Test Plan involved, test cases are picked directly.
   async startCustom(projectId: string, name: string, testCaseIds: string[], code?: string) {
-    if (!name.trim()) throw new Error('Nama test run tidak boleh kosong');
-    if (testCaseIds.length === 0) throw new Error('Pilih minimal satu test case untuk test run ini');
+    if (!name.trim()) throw new Error('Test run name cannot be empty');
+    if (testCaseIds.length === 0) throw new Error('Select at least one test case for this test run');
 
     const run = await testRunRepository.create({
       projectId,
@@ -80,8 +80,8 @@ export const testRunService = {
   },
 
   rename(id: string, input: { name: string; code: string }) {
-    if (!input.name.trim()) throw new Error('Nama test run tidak boleh kosong');
-    if (!input.code.trim()) throw new Error('Kode test run tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Test run name cannot be empty');
+    if (!input.code.trim()) throw new Error('Test run code cannot be empty');
     return testRunRepository.update(id, { name: input.name.trim(), code: input.code.trim() });
   },
 
@@ -133,7 +133,7 @@ export const testRunService = {
   async syncResultWithTestCase(testRunId: string, resultId: string) {
     const run = await testRunRepository.findById(testRunId);
     if (run?.status === 'completed') {
-      throw new Error('Test run sudah selesai — buka kembali run ini untuk melakukan sync');
+      throw new Error('This test run is already completed — reopen it to sync');
     }
     return testResultRepository.syncWithTestCase(resultId);
   },
