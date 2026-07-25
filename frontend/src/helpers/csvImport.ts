@@ -89,7 +89,7 @@ export async function parseTestCaseCsv(file: File): Promise<{ valid: ParsedTestC
   };
 
   if (idx.title === -1) {
-    throw new Error(`Kolom "Title" wajib ada di header. Kolom yang didukung: ${EXPECTED_HEADERS.join(', ')}`);
+    throw new Error(`The "Title" column is required in the header. Supported columns: ${EXPECTED_HEADERS.join(', ')}`);
   }
 
   const valid: ParsedTestCaseRow[] = [];
@@ -102,7 +102,7 @@ export async function parseTestCaseCsv(file: File): Promise<{ valid: ParsedTestC
 
     const title = cell(idx.title);
     if (!title) {
-      invalid.push({ rowNumber, reason: 'Title kosong' });
+      invalid.push({ rowNumber, reason: 'Title is empty' });
       continue;
     }
 

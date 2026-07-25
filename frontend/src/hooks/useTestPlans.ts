@@ -16,7 +16,7 @@ export function useTestPlans(projectId: string | null) {
   return {
     testPlans: data ?? [],
     loading: isLoading,
-    error: error ? (error instanceof Error ? error.message : 'Gagal memuat test plan') : null,
+    error: error ? (error instanceof Error ? error.message : 'Failed to load test plans') : null,
     reload: () =>
       projectId ? queryClient.invalidateQueries({ queryKey: queryKeys.testPlans(projectId) }) : Promise.resolve(),
   };

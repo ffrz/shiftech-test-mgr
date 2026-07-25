@@ -9,11 +9,11 @@ export function AppSidebar() {
   return (
     <div className="layout-sidebar">
       <div className="layout-sidebar-header">
-        <Link to="/home" className="layout-sidebar-logo" onClick={closeMenu}>
+        <Link to="/" className="layout-sidebar-logo" onClick={closeMenu}>
           <i className="pi pi-check-square" />
           <span>Testify</span>
         </Link>
-        <Button icon="pi pi-times" text rounded aria-label="Tutup menu" onClick={closeMenu} />
+        <Button icon="pi pi-times" text rounded aria-label="Close menu" onClick={closeMenu} />
       </div>
       <AppMenu onNavigate={closeMenu} />
     </div>

@@ -28,7 +28,7 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
       setInvalidRows(invalid);
       setParsed(true);
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Gagal membaca file', detail: err instanceof Error ? err.message : undefined });
+      toast.current?.show({ severity: 'error', summary: 'Failed to read file', detail: err instanceof Error ? err.message : undefined });
     }
   }
 
@@ -36,10 +36,10 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
     setImporting(true);
     try {
       await testCaseImportService.importRows(projectId, validRows);
-      toast.current?.show({ severity: 'success', summary: `${validRows.length} test case diimpor` });
+      toast.current?.show({ severity: 'success', summary: `${validRows.length} test case(s) imported` });
       await onImported();
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Gagal impor', detail: err instanceof Error ? err.message : undefined });
+      toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
     } finally {
       setImporting(false);
     }
@@ -52,11 +52,11 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
       {!parsed && (
         <>
           <p className="text-color-secondary text-sm m-0">
-            File CSV dengan header: Module, Title, Objective, Preconditions, Steps, Expected Result, Priority, Tags,
-            Target Role. Hanya <strong>Title</strong> yang wajib diisi. Tags dipisah koma. Simpan file Excel sebagai
-            CSV terlebih dahulu.
+            CSV file with header: Module, Title, Objective, Preconditions, Steps, Expected Result, Priority, Tags,
+            Target Role. Only <strong>Title</strong> is required. Tags are comma-separated. Save your Excel file as
+            CSV first.
           </p>
-          <FileUpload mode="basic" chooseLabel="Pilih File CSV" accept=".csv" customUpload uploadHandler={handleFile} auto />
+          <FileUpload mode="basic" chooseLabel="Choose CSV File" accept=".csv" customUpload uploadHandler={handleFile} auto />
         </>
       )}
 
@@ -65,22 +65,22 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
           <div className="flex align-items-center gap-2 text-sm">
             <Tag value={`${validRows.length} valid`} severity="success" />
             {invalidRows.length > 0 && <Tag value={`${invalidRows.length} invalid`} severity="danger" />}
-            <Button label="Pilih File Lain" size="small" text onClick={() => setParsed(false)} />
+            <Button label="Choose Another File" size="small" text onClick={() => setParsed(false)} />
           </div>
 
           {invalidRows.length > 0 && (
             <DataTable value={invalidRows} size="small" paginator rows={5} className="mb-2">
-              <Column field="rowNumber" header="Baris" style={{ width: '5rem' }} />
-              <Column field="reason" header="Alasan Gagal" body={(row: InvalidRow) => <span className="text-red-500">{row.reason}</span>} />
+              <Column field="rowNumber" header="Row" style={{ width: '5rem' }} />
+              <Column field="reason" header="Failure Reason" body={(row: InvalidRow) => <span className="text-red-500">{row.reason}</span>} />
             </DataTable>
           )}
 
-          <DataTable value={validRows} size="small" paginator rows={5} emptyMessage="Tidak ada baris valid untuk diimpor.">
-            <Column field="rowNumber" header="Baris" style={{ width: '5rem' }} />
-            <Column field="title" header="Judul" />
+          <DataTable value={validRows} size="small" paginator rows={5} emptyMessage="No valid rows to import.">
+            <Column field="rowNumber" header="Row" style={{ width: '5rem' }} />
+            <Column field="title" header="Title" />
             <Column field="moduleName" header="Module" body={(row: ParsedTestCaseRow) => row.moduleName ?? '-'} />
-            <Column field="priority" header="Prioritas" />
-            <Column field="targetRole" header="Role Target" body={(row: ParsedTestCaseRow) => row.targetRole ?? '-'} />
+            <Column field="priority" header="Priority" />
+            <Column field="targetRole" header="Target Role" body={(row: ParsedTestCaseRow) => row.targetRole ?? '-'} />
           </DataTable>
 
           <Button
