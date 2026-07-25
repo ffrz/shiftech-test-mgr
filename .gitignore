@@ -31,3 +31,4 @@ frontend/.vite/
 .playwright-mcp/
 supabase/.env.local
 backups/
+/.claude
