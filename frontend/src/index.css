@@ -126,7 +126,10 @@ html.dark .breadcrumb-link:hover {
    should stand out (the theme otherwise renders every sort icon at full
    contrast regardless of whether that column is the active sort). */
 .p-datatable .p-sortable-column-icon {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-left: 0.25rem;
 }
 
 .p-datatable .p-sortable-column:not(.p-highlight) .p-sortable-column-icon {
