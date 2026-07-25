@@ -115,7 +115,7 @@ export function TestCaseTemplateDetailPage() {
     setItemDialogMode('duplicate');
     setEditingItemId(null);
     setItemModuleName(row.moduleName ?? '');
-    setItemTitle(`${row.title} (Salinan)`);
+    setItemTitle(`${row.title} (Copy)`);
     setItemObjective(row.objective ?? '');
     setItemPreconditions(row.preconditions ?? '');
     setItemSteps(row.steps);
@@ -176,28 +176,28 @@ export function TestCaseTemplateDetailPage() {
       setItemDialogOpen(false);
       await reloadItems();
       const summaryMap: Record<typeof itemDialogMode, string> = {
-        create: 'Item ditambahkan',
-        edit: 'Item diperbarui',
-        duplicate: 'Item diduplikat',
+        create: 'Item added',
+        edit: 'Item updated',
+        duplicate: 'Item duplicated',
       };
       toast.current?.show({ severity: 'success', summary: summaryMap[itemDialogMode] });
     } catch (err) {
-      setItemError(err instanceof Error ? err.message : 'Gagal menyimpan item');
+      setItemError(err instanceof Error ? err.message : 'Failed to save item');
     }
   }
 
   function handleDeleteItem(row: TestCaseTemplateItem) {
     confirmDialog({
-      header: 'Hapus Item',
-      message: `Item "${row.title}" akan dihapus dari template ini. Lanjutkan?`,
+      header: 'Delete Item',
+      message: `Item "${row.title}" will be removed from this template. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testCaseTemplateService.removeItem(row.id);
         await reloadItems();
-        toast.current?.show({ severity: 'success', summary: 'Item dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Item deleted' });
       },
     });
   }
@@ -207,7 +207,7 @@ export function TestCaseTemplateDetailPage() {
       <div className="font-medium">{row.title}</div>
       <div className="text-sm text-color-secondary">Module: {row.moduleName || '-'}</div>
       <div className="text-sm text-color-secondary">
-        Prioritas: <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
+        Priority: <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
       </div>
       <div className="text-sm text-color-secondary">Role Target: {row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-'}</div>
       <div className="text-sm text-color-secondary">Mode: {row.stepType === 'detailed' ? 'Detailed' : 'Simple'}</div>
@@ -229,23 +229,23 @@ export function TestCaseTemplateDetailPage() {
         <div className="flex align-items-center justify-content-between gap-2">
           <div>
             <h2 className="m-0">{template?.name ?? '…'}</h2>
-            <p className="text-color-secondary text-sm m-0">{template?.description || 'Tidak ada deskripsi'}</p>
+            <p className="text-color-secondary text-sm m-0">{template?.description || 'No description'}</p>
           </div>
         </div>
       </Card>
 
       <PageHeader
         title="Item Test Case"
-        actions={isAdmin ? <Button label="Item Baru" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} /> : undefined}
+        actions={isAdmin ? <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} /> : undefined}
       />
 
-      <DataTable value={items} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="Belum ada item" size="small">
+      <DataTable value={items} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small">
         {isMobile
-          ? <Column header="Judul" body={mobileBodyTemplate} />
-          : <Column field="title" header="Judul" sortable />
+          ? <Column header="Title" body={mobileBodyTemplate} />
+          : <Column field="title" header="Title" sortable />
         }
         {!isMobile && <Column field="moduleName" header="Module" body={(row: TestCaseTemplateItem) => row.moduleName || '-'} />}
-        {!isMobile && <Column field="priority" header="Prioritas" body={(row: TestCaseTemplateItem) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />} />}
+        {!isMobile && <Column field="priority" header="Priority" body={(row: TestCaseTemplateItem) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />} />}
         {!isMobile && <Column field="targetRole" header="Role Target" body={(row: TestCaseTemplateItem) => (row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-')} />}
         {!isMobile && <Column field="stepType" header="Mode" body={(row: TestCaseTemplateItem) => (row.stepType === 'detailed' ? 'Detailed' : 'Simple')} />}
         {isAdmin && (
@@ -255,9 +255,9 @@ export function TestCaseTemplateDetailPage() {
             body={(row: TestCaseTemplateItem) => (
               <RowActionsMenu
                 items={[
-                  { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateItemDialog(row) },
+                  { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateItemDialog(row) },
                   { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditItemDialog(row) },
-                  { label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteItem(row) },
+                  { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteItem(row) },
                 ]}
               />
             )}
@@ -268,7 +268,7 @@ export function TestCaseTemplateDetailPage() {
       {/* --- Item Dialog --- */}
       <Dialog
         header={
-          itemDialogMode === 'edit' ? 'Edit Item' : itemDialogMode === 'duplicate' ? 'Duplikat Item' : 'Item Baru'
+          itemDialogMode === 'edit' ? 'Edit Item' : itemDialogMode === 'duplicate' ? 'Duplicate Item' : 'New Item'
         }
         visible={itemDialogOpen}
         onHide={() => setItemDialogOpen(false)}
@@ -279,32 +279,32 @@ export function TestCaseTemplateDetailPage() {
 
           <div className="grid">
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="item-module">Module (opsional)</label>
-              <InputText id="item-module" value={itemModuleName} onChange={(e) => setItemModuleName(e.target.value)} placeholder="mis. Auth, Checkout" />
+              <label htmlFor="item-module">Module (optional)</label>
+              <InputText id="item-module" value={itemModuleName} onChange={(e) => setItemModuleName(e.target.value)} placeholder="e.g. Auth, Checkout" />
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="item-priority">Prioritas</label>
+              <label htmlFor="item-priority">Priority</label>
               <Dropdown id="item-priority" value={itemPriority} options={PRIORITY_OPTIONS} onChange={(e) => setItemPriority(e.value)} className="w-full" />
             </div>
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="item-title">Judul</label>
+            <label htmlFor="item-title">Title</label>
             <InputText id="item-title" value={itemTitle} onChange={(e) => setItemTitle(e.target.value)} autoFocus />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="item-objective">Tujuan (opsional)</label>
+            <label htmlFor="item-objective">Objective (optional)</label>
             <InputText id="item-objective" value={itemObjective} onChange={(e) => setItemObjective(e.target.value)} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="item-preconditions">Prasyarat</label>
+            <label htmlFor="item-preconditions">Prerequisites</label>
             <InputTextarea id="item-preconditions" value={itemPreconditions} onChange={(e) => setItemPreconditions(e.target.value)} rows={2} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label>Mode Langkah</label>
+            <label>Step Mode</label>
             <SelectButton
               value={itemStepType}
               options={[
@@ -318,28 +318,28 @@ export function TestCaseTemplateDetailPage() {
           {itemStepType === 'simple' ? (
             <>
               <div className="flex flex-column gap-1">
-                <label htmlFor="item-steps">Langkah Pengujian</label>
+                <label htmlFor="item-steps">Test Steps</label>
                 <InputTextarea id="item-steps" value={itemSteps} onChange={(e) => setItemSteps(e.target.value)} rows={4} />
               </div>
               <div className="flex flex-column gap-1">
-                <label htmlFor="item-expected">Hasil yang Diharapkan</label>
+                <label htmlFor="item-expected">Expected Result</label>
                 <InputTextarea id="item-expected" value={itemExpectedResult} onChange={(e) => setItemExpectedResult(e.target.value)} rows={3} />
               </div>
             </>
           ) : (
             <div className="flex flex-column gap-2">
-              <label>Langkah Pengujian (Detailed)</label>
+              <label>Test Steps (Detailed)</label>
               {itemDetailedSteps.map((step, i) => (
                 <div key={i} className="flex gap-2 align-items-start p-2 border-round surface-100">
                   <span className="text-color-secondary text-sm mt-2">{i + 1}.</span>
                   <div className="flex flex-column gap-1 flex-grow-1">
                     <InputText
-                      placeholder="Aksi"
+                      placeholder="Action"
                       value={step.action}
                       onChange={(e) => setItemDetailedSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, action: e.target.value } : s)))}
                     />
                     <InputText
-                      placeholder="Hasil yang diharapkan (opsional)"
+                      placeholder="Expected result (optional)"
                       value={step.expectedResult}
                       onChange={(e) => setItemDetailedSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, expectedResult: e.target.value } : s)))}
                     />
@@ -348,7 +348,7 @@ export function TestCaseTemplateDetailPage() {
                 </div>
               ))}
               <Button
-                label="Tambah Langkah"
+                label="Add Step"
                 icon="pi pi-plus"
                 text
                 size="small"
@@ -358,16 +358,16 @@ export function TestCaseTemplateDetailPage() {
           )}
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="item-role">Role Target (opsional)</label>
-            <InputText id="item-role" value={itemTargetRole} onChange={(e) => setItemTargetRole(e.target.value)} placeholder="mis. Admin, Manager, Member" />
+            <label htmlFor="item-role">Role Target (optional)</label>
+            <InputText id="item-role" value={itemTargetRole} onChange={(e) => setItemTargetRole(e.target.value)} placeholder="e.g. Admin, Manager, Member" />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="item-tags">Tag (pisahkan dengan koma)</label>
-            <InputText id="item-tags" value={itemTagNames} onChange={(e) => setItemTagNames(e.target.value)} placeholder="mis. Regression, Smoke" />
+            <label htmlFor="item-tags">Tags (separate with comma)</label>
+            <InputText id="item-tags" value={itemTagNames} onChange={(e) => setItemTagNames(e.target.value)} placeholder="e.g. Regression, Smoke" />
           </div>
 
-          <Button label="Simpan" size="small" onClick={handleSaveItem} />
+          <Button label="Save" size="small" onClick={handleSaveItem} />
         </div>
       </Dialog>
     </div>

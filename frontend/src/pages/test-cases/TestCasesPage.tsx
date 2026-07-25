@@ -72,7 +72,7 @@ export function TestCasesPage() {
             value={projectId}
             options={projects.map((p) => ({ label: p.name, value: p.id }))}
             onChange={(e) => setProjectId(e.value)}
-            placeholder="Pilih project"
+            placeholder="Select project"
             className="w-15rem"
             showClear
           />
@@ -81,19 +81,19 @@ export function TestCasesPage() {
 
       {!projectId && (
         <p className="text-color-secondary">
-          Pilih project di atas untuk melihat test case-nya. Test case baru dibuat dari halaman detail project.
+          Select a project above to view its test cases. New test cases are created from the project detail page.
         </p>
       )}
 
-      <DataTable value={testCases} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="Belum ada test case" size="small">
+      <DataTable value={testCases} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small">
         {isMobile && <Column body={mobileBodyTemplate} />}
-        {!isMobile && <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />}
-        {!isMobile && <Column field="title" header="Judul" sortable />}
+        {!isMobile && <Column field="code" header="Code" sortable style={{ width: '7rem' }} />}
+        {!isMobile && <Column field="title" header="Title" sortable />}
         {!isMobile && <Column field="module.name" header="Module" body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} sortable />}
         {!isMobile && (
           <Column
             field="priority"
-            header="Prioritas"
+            header="Priority"
             body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />}
             sortable
           />

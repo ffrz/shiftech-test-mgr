@@ -122,41 +122,41 @@ export function ProjectSettingsPage() {
       }
       setModuleDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: editingModuleId ? 'Module diperbarui' : 'Module dibuat' });
+      toast.current?.show({ severity: 'success', summary: editingModuleId ? 'Module updated' : 'Module created' });
     } catch (err) {
-      setModuleError(err instanceof Error ? err.message : 'Gagal menyimpan module');
+      setModuleError(err instanceof Error ? err.message : 'Failed to save module');
     }
   }
 
   function handleDeleteModule(row: Module) {
     confirmDialog({
-      header: 'Hapus Module',
-      message: `Module "${row.name}" akan dihapus. Test case yang memakai module ini akan menjadi tanpa module. Lanjutkan?`,
+      header: 'Delete Module',
+      message: `Module "${row.name}" will be deleted. Test cases using this module will become unassigned. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await moduleService.remove(row.id);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Module dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Module deleted' });
       },
     });
   }
 
   function handleBulkDeleteModules() {
     confirmDialog({
-      header: 'Hapus Module Terpilih',
-      message: `${selectedModules.length} module akan dihapus. Test case yang memakai module ini akan menjadi tanpa module. Lanjutkan?`,
+      header: 'Delete Selected Modules',
+      message: `${selectedModules.length} module will be deleted. Test cases using this module will become unassigned. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedModules.map((m) => moduleService.remove(m.id)));
         setSelectedModules([]);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Module terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected modules deleted' });
       },
     });
   }
@@ -204,41 +204,41 @@ export function ProjectSettingsPage() {
       }
       setTagDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: editingTagId ? 'Tag diperbarui' : 'Tag dibuat' });
+      toast.current?.show({ severity: 'success', summary: editingTagId ? 'Tag updated' : 'Tag created' });
     } catch (err) {
-      setTagError(err instanceof Error ? err.message : 'Gagal menyimpan tag');
+      setTagError(err instanceof Error ? err.message : 'Failed to save tag');
     }
   }
 
   function handleDeleteTag(row: TagEntity) {
     confirmDialog({
-      header: 'Hapus Tag',
-      message: `Tag "${row.name}" akan dihapus dan dilepas dari seluruh test case yang memakainya. Lanjutkan?`,
+      header: 'Delete Tag',
+      message: `Tag "${row.name}" will be deleted and unlinked from all test cases using it. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await tagService.remove(row.id);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Tag dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Tag deleted' });
       },
     });
   }
 
   function handleBulkDeleteTags() {
     confirmDialog({
-      header: 'Hapus Tag Terpilih',
-      message: `${selectedTags.length} tag akan dihapus dan dilepas dari seluruh test case yang memakainya. Lanjutkan?`,
+      header: 'Delete Selected Tags',
+      message: `${selectedTags.length} tag will be deleted and unlinked from all test cases using it. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedTags.map((t) => tagService.remove(t.id)));
         setSelectedTags([]);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Tag terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected tags deleted' });
       },
     });
   }
@@ -286,41 +286,41 @@ export function ProjectSettingsPage() {
       }
       setTestRoleDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: editingTestRoleId ? 'Role diperbarui' : 'Role dibuat' });
+      toast.current?.show({ severity: 'success', summary: editingTestRoleId ? 'Role updated' : 'Role created' });
     } catch (err) {
-      setTestRoleError(err instanceof Error ? err.message : 'Gagal menyimpan role');
+      setTestRoleError(err instanceof Error ? err.message : 'Failed to save role');
     }
   }
 
   function handleDeleteTestRole(row: TestRole) {
     confirmDialog({
-      header: 'Hapus Role',
-      message: `Role "${row.name}" akan dihapus. Test case yang memakai role ini akan menjadi tanpa role. Lanjutkan?`,
+      header: 'Delete Role',
+      message: `Role "${row.name}" will be deleted. Test cases using this role will become unassigned. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testRoleService.remove(row.id);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Role dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Role deleted' });
       },
     });
   }
 
   function handleBulkDeleteTestRoles() {
     confirmDialog({
-      header: 'Hapus Role Terpilih',
-      message: `${selectedTestRoles.length} role akan dihapus. Test case yang memakai role ini akan menjadi tanpa role. Lanjutkan?`,
+      header: 'Delete Selected Roles',
+      message: `${selectedTestRoles.length} role will be deleted. Test cases using this role will become unassigned. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedTestRoles.map((r) => testRoleService.remove(r.id)));
         setSelectedTestRoles([]);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Role terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected roles deleted' });
       },
     });
   }
@@ -350,16 +350,16 @@ export function ProjectSettingsPage() {
     if (!id) return;
     setMemberError(null);
     if (!memberUserId) {
-      setMemberError('Pilih user terlebih dahulu');
+      setMemberError('Select a user first');
       return;
     }
     try {
       await projectMemberService.add(id, memberUserId, memberRole);
       setMemberDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: 'Anggota ditambahkan' });
+      toast.current?.show({ severity: 'success', summary: 'Member added' });
     } catch (err) {
-      setMemberError(err instanceof Error ? err.message : 'Gagal menambahkan anggota');
+      setMemberError(err instanceof Error ? err.message : 'Failed to add member');
     }
   }
 
@@ -370,33 +370,33 @@ export function ProjectSettingsPage() {
 
   function handleRemoveMember(row: ProjectMemberWithProfile) {
     confirmDialog({
-      header: 'Hapus Anggota',
-      message: `"${row.profile.fullName ?? row.profile.email}" akan dihapus dari project ini dan kehilangan akses. Lanjutkan?`,
+      header: 'Remove Member',
+      message: `"${row.profile.fullName ?? row.profile.email}" will be removed from this project and lose access. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await projectMemberService.remove(row.id);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Anggota dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Member removed' });
       },
     });
   }
 
   function handleBulkRemoveMembers() {
     confirmDialog({
-      header: 'Hapus Anggota Terpilih',
-      message: `${selectedMembers.length} anggota akan dihapus dari project ini. Lanjutkan?`,
+      header: 'Remove Selected Members',
+      message: `${selectedMembers.length} members will be removed from this project. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedMembers.map((m) => projectMemberService.remove(m.id)));
         setSelectedMembers([]);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Anggota terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected members removed' });
       },
     });
   }
@@ -404,15 +404,15 @@ export function ProjectSettingsPage() {
   function handleArchiveProject() {
     if (!project) return;
     confirmDialog({
-      header: 'Arsipkan Project',
-      message: `Project "${project.name}" akan diarsipkan. Lanjutkan?`,
+      header: 'Archive Project',
+      message: `Project "${project.name}" will be archived. Continue?`,
       icon: 'pi pi-info-circle',
-      acceptLabel: 'Arsipkan',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Archive',
+      rejectLabel: 'Cancel',
       accept: async () => {
         await projectService.changeStatus(project.id, 'archived');
         setProject({ ...project, status: 'archived' });
-        toast.current?.show({ severity: 'success', summary: 'Project diarsipkan' });
+        toast.current?.show({ severity: 'success', summary: 'Project archived' });
       },
     });
   }
@@ -420,20 +420,20 @@ export function ProjectSettingsPage() {
   function handleDeletePermanently() {
     if (!project) return;
     confirmDialog({
-      header: 'Hapus Permanen',
+      header: 'Permanently Delete',
       message: (
         <span>
-          Project <strong>"{project.name}"</strong> beserta seluruh test plan dan test case di dalamnya akan{' '}
-          <strong>dihapus permanen dan tidak bisa dikembalikan</strong>. Lanjutkan?
+          Project <strong>"{project.name}"</strong> along with all its test plans and test cases will be{' '}
+          <strong>permanently deleted and cannot be recovered</strong>. Continue?
         </span>
       ),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus Permanen',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Permanently Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await projectService.deletePermanently(project.id);
-        toast.current?.show({ severity: 'success', summary: 'Project dihapus permanen' });
+        toast.current?.show({ severity: 'success', summary: 'Project permanently deleted' });
         navigate('/');
       },
     });
@@ -462,7 +462,7 @@ export function ProjectSettingsPage() {
     <div className="flex flex-column gap-2 py-1">
       <div className="font-medium">{row.profile.fullName ?? '-'}</div>
       <div className="text-sm text-color-secondary">Email: {row.profile.email}</div>
-      <div className="text-sm text-color-secondary">Peran: {PROJECT_MEMBER_ROLE_LABEL[row.role]}</div>
+      <div className="text-sm text-color-secondary">Role: {PROJECT_MEMBER_ROLE_LABEL[row.role]}</div>
     </div>
   ), []);
 
@@ -485,7 +485,7 @@ export function ProjectSettingsPage() {
 
       <Card className="mb-3">
         <div className="flex align-items-center gap-2">
-          <Button icon="pi pi-arrow-left" text rounded aria-label="Kembali" onClick={() => navigate(`/projects/${id}`)} />
+          <Button icon="pi pi-arrow-left" text rounded aria-label="Back" onClick={() => navigate(`/projects/${id}`)} />
           <h2 className="m-0">Pengaturan Project — {project.name}</h2>
         </div>
       </Card>
@@ -496,19 +496,19 @@ export function ProjectSettingsPage() {
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <IconField iconPosition="left">
                 <InputIcon className="pi pi-search" />
-                <InputText value={moduleSearch} onChange={(e) => setModuleSearch(e.target.value)} placeholder="Cari nama/kode..." />
+                <InputText value={moduleSearch} onChange={(e) => setModuleSearch(e.target.value)} placeholder="Search name/code..." />
               </IconField>
               <Button label="Module Baru" icon="pi pi-plus" size="small" onClick={openCreateModuleDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedModules.length}
               onClear={() => setSelectedModules([])}
-              actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteModules} />}
+              actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteModules} />}
             />
             <DataTable
               value={filteredModules}
               size="small"
-              emptyMessage="Belum ada module"
+              emptyMessage="No modules yet"
               paginator
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={moduleSortField}
@@ -535,7 +535,7 @@ export function ProjectSettingsPage() {
                   <RowActionsMenu
                     items={[
                       { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditModuleDialog(row) },
-                      { label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteModule(row) },
+                      { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteModule(row) },
                     ]}
                   />
                 )}
@@ -550,19 +550,19 @@ export function ProjectSettingsPage() {
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <IconField iconPosition="left">
                 <InputIcon className="pi pi-search" />
-                <InputText value={tagSearch} onChange={(e) => setTagSearch(e.target.value)} placeholder="Cari nama..." />
+                <InputText value={tagSearch} onChange={(e) => setTagSearch(e.target.value)} placeholder="Search name..." />
               </IconField>
               <Button label="Tag Baru" icon="pi pi-plus" size="small" onClick={openCreateTagDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedTags.length}
               onClear={() => setSelectedTags([])}
-              actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteTags} />}
+              actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteTags} />}
             />
             <DataTable
               value={filteredTags}
               size="small"
-              emptyMessage="Belum ada tag"
+              emptyMessage="No tags yet"
               paginator
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={tagSortField}
@@ -588,7 +588,7 @@ export function ProjectSettingsPage() {
                   <RowActionsMenu
                     items={[
                       { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditTagDialog(row) },
-                      { label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteTag(row) },
+                      { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteTag(row) },
                     ]}
                   />
                 )}
@@ -596,27 +596,27 @@ export function ProjectSettingsPage() {
             </DataTable>
           </TabPanel>
 
-          <TabPanel header="Role Pengujian">
+          <TabPanel header="Test Roles">
             <p className="text-color-secondary text-sm mb-3">
-              Role di dalam aplikasi yang diuji (mis. Admin, Manager, Member) — berbeda dari peran anggota project di tab "Anggota Project".
-              Dipakai sebagai "Role Target" saat membuat test case.
+              Roles within the app under test (e.g. Admin, Manager, Member) — different from a member's role on the "Project Members" tab.
+              Used as the "Target Role" when creating a test case.
             </p>
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <IconField iconPosition="left">
                 <InputIcon className="pi pi-search" />
-                <InputText value={testRoleSearch} onChange={(e) => setTestRoleSearch(e.target.value)} placeholder="Cari nama..." />
+                <InputText value={testRoleSearch} onChange={(e) => setTestRoleSearch(e.target.value)} placeholder="Search name..." />
               </IconField>
               <Button label="Role Baru" icon="pi pi-plus" size="small" onClick={openCreateTestRoleDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedTestRoles.length}
               onClear={() => setSelectedTestRoles([])}
-              actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteTestRoles} />}
+              actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteTestRoles} />}
             />
             <DataTable
               value={filteredTestRoles}
               size="small"
-              emptyMessage="Belum ada role"
+              emptyMessage="No roles yet"
               paginator
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={testRoleSortField}
@@ -642,7 +642,7 @@ export function ProjectSettingsPage() {
                   <RowActionsMenu
                     items={[
                       { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditTestRoleDialog(row) },
-                      { label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteTestRole(row) },
+                      { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteTestRole(row) },
                     ]}
                   />
                 )}
@@ -650,23 +650,23 @@ export function ProjectSettingsPage() {
             </DataTable>
           </TabPanel>
 
-          <TabPanel header="Anggota Project">
+          <TabPanel header="Project Members">
             <p className="text-color-secondary text-sm mb-3">
-              Hanya user yang terdaftar di sini (atau admin) yang bisa mengakses project ini. Manager bisa mengelola anggota lain.
+              Only users listed here (or admins) can access this project. Managers can manage other members.
             </p>
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <span />
-              <Button label="Tambah Anggota" icon="pi pi-plus" size="small" onClick={openAddMemberDialog} />
+              <Button label="Add Member" icon="pi pi-plus" size="small" onClick={openAddMemberDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedMembers.length}
               onClear={() => setSelectedMembers([])}
-              actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkRemoveMembers} />}
+              actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkRemoveMembers} />}
             />
             <DataTable
               value={members}
               size="small"
-              emptyMessage="Belum ada anggota"
+              emptyMessage="No members yet"
               paginator
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               selection={selectedMembers}
@@ -675,12 +675,12 @@ export function ProjectSettingsPage() {
               selectionMode="checkbox"
             >
               {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-              {isMobile && <Column header="Anggota" body={membersMobileBody} />}
-              {!isMobile && <Column header="Nama" body={(row: ProjectMemberWithProfile) => row.profile.fullName ?? '-'} />}
+              {isMobile && <Column header="Member" body={membersMobileBody} />}
+              {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => row.profile.fullName ?? '-'} />}
               {!isMobile && <Column header="Email" body={(row: ProjectMemberWithProfile) => row.profile.email} />}
               {!isMobile && (
                 <Column
-                  header="Peran"
+                  header="Role"
                   body={(row: ProjectMemberWithProfile) => (
                     <Dropdown
                       value={row.role}
@@ -696,7 +696,7 @@ export function ProjectSettingsPage() {
                 style={{ width: '3.5rem' }}
                 body={(row: ProjectMemberWithProfile) => (
                   <RowActionsMenu
-                    items={[{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleRemoveMember(row) }]}
+                    items={[{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleRemoveMember(row) }]}
                   />
                 )}
               />
@@ -712,14 +712,14 @@ export function ProjectSettingsPage() {
                     style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
                   >
                     <div>
-                      <div className="font-medium text-color">Arsipkan Project</div>
+                      <div className="font-medium text-color">Archive Project</div>
                       <div className="text-color-secondary text-sm mt-1">
                         Project ini status: <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />.
-                        Project yang diarsipkan tidak muncul di daftar aktif.
+                        Archived projects do not appear in the active list.
                       </div>
                     </div>
                     <Button
-                      label="Arsipkan"
+                      label="Archive"
                       icon="pi pi-inbox"
                       severity="warning"
                       outlined
@@ -734,13 +734,13 @@ export function ProjectSettingsPage() {
                     style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
                   >
                     <div>
-                      <div className="font-medium text-color">Hapus Permanen</div>
+                      <div className="font-medium text-color">Permanently Delete</div>
                       <div className="text-color-secondary text-sm mt-1">
-                        Menghapus project beserta seluruh test plan dan test case. Tindakan ini tidak bisa dibatalkan.
+                        Deletes the project along with all its test plans and test cases. This action cannot be undone.
                       </div>
                     </div>
                     <Button
-                      label="Hapus Permanen"
+                      label="Permanently Delete"
                       icon="pi pi-trash"
                       severity="danger"
                       outlined
@@ -782,7 +782,7 @@ export function ProjectSettingsPage() {
               placeholder="mis. Autentikasi, Dashboard, Pembelian"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveModule} />
+          <Button label="Save" size="small" onClick={handleSaveModule} />
         </div>
       </Dialog>
 
@@ -808,7 +808,7 @@ export function ProjectSettingsPage() {
               }}
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveTag} />
+          <Button label="Save" size="small" onClick={handleSaveTag} />
         </div>
       </Dialog>
 
@@ -835,13 +835,13 @@ export function ProjectSettingsPage() {
               placeholder="mis. Admin, Manager, Member"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveTestRole} />
+          <Button label="Save" size="small" onClick={handleSaveTestRole} />
         </div>
       </Dialog>
 
       {/* --- Member Dialog --- */}
       <Dialog
-        header="Tambah Anggota"
+        header="Add Member"
         visible={memberDialogOpen}
         onHide={() => setMemberDialogOpen(false)}
         style={{ width: '25rem' }}
@@ -856,12 +856,12 @@ export function ProjectSettingsPage() {
               options={availableUserOptions}
               onChange={(e) => setMemberUserId(e.value)}
               filter
-              placeholder="Pilih user"
+              placeholder="Select user"
               className="w-full"
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="member-role">Peran</label>
+            <label htmlFor="member-role">Role</label>
             <Dropdown
               id="member-role"
               value={memberRole}

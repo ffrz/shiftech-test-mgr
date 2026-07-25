@@ -299,48 +299,48 @@ export function ProjectDetailPage() {
       }
       setPlanDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: editingPlanId ? 'Test plan diperbarui' : 'Test plan dibuat' });
+      toast.current?.show({ severity: 'success', summary: editingPlanId ? 'Test plan updated' : 'Test plan created' });
     } catch (err) {
-      setPlanError(err instanceof Error ? err.message : 'Gagal menyimpan test plan');
+      setPlanError(err instanceof Error ? err.message : 'Failed to save test plan');
     }
   }
 
   function handleDeletePlan(row: TestPlan) {
     confirmDialog({
-      header: 'Hapus Test Plan',
-      message: `Test plan "${row.name}" akan dihapus permanen. Lanjutkan?`,
+      header: 'Delete Test Plan',
+      message: `Test plan "${row.name}" will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testPlanService.remove(row.id);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test plan dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Test plan deleted' });
       },
     });
   }
 
   function handleBulkDeletePlans() {
     confirmDialog({
-      header: 'Hapus Test Plan Terpilih',
-      message: `${selectedPlans.length} test plan akan dihapus permanen. Lanjutkan?`,
+      header: 'Delete Selected Test Plans',
+      message: `${selectedPlans.length} test plan(s) will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedPlans.map((p) => testPlanService.remove(p.id)));
         setSelectedPlans([]);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test plan terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected test plans deleted' });
       },
     });
   }
 
   function openDuplicatePlanDialog(row: TestPlan) {
     setDuplicatePlanSource(row);
-    setDuplicatePlanName(`${row.name} (Salinan)`);
+    setDuplicatePlanName(`${row.name} (Copy)`);
     setDuplicatePlanError(null);
     setDuplicatePlanDialogOpen(true);
   }
@@ -353,10 +353,10 @@ export function ProjectDetailPage() {
       setDuplicatePlanDialogOpen(false);
       setDuplicatePlanSource(null);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Test plan diduplikat' });
+      toast.current?.show({ severity: 'success', summary: 'Test plan duplicated' });
       navigate(`/test-plans/${newPlan.id}`);
     } catch (err) {
-      setDuplicatePlanError(err instanceof Error ? err.message : 'Gagal menduplikat test plan');
+      setDuplicatePlanError(err instanceof Error ? err.message : 'Failed to duplicate test plan');
     }
   }
 
@@ -382,9 +382,9 @@ export function ProjectDetailPage() {
       setCaseModuleId(created.id);
       setModuleDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Module dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Module created' });
     } catch (err) {
-      setModuleError(err instanceof Error ? err.message : 'Gagal menyimpan module');
+      setModuleError(err instanceof Error ? err.message : 'Failed to save module');
     }
   }
 
@@ -408,9 +408,9 @@ export function ProjectDetailPage() {
       setCaseTargetRoleId(created.id);
       setTestRoleDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Role dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Role created' });
     } catch (err) {
-      setTestRoleError(err instanceof Error ? err.message : 'Gagal menyimpan role');
+      setTestRoleError(err instanceof Error ? err.message : 'Failed to save role');
     }
   }
 
@@ -434,9 +434,9 @@ export function ProjectDetailPage() {
       setCaseTags((prev) => [...prev, created.name]);
       setTagDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Tag dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Tag created' });
     } catch (err) {
-      setTagError(err instanceof Error ? err.message : 'Gagal menyimpan tag');
+      setTagError(err instanceof Error ? err.message : 'Failed to save tag');
     }
   }
 
@@ -596,13 +596,13 @@ export function ProjectDetailPage() {
       }
       setCaseDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: editingCaseId ? 'Test case diperbarui' : 'Test case dibuat' });
+      toast.current?.show({ severity: 'success', summary: editingCaseId ? 'Test case updated' : 'Test case created' });
     } catch (err) {
-      setCaseError(err instanceof Error ? err.message : 'Gagal menyimpan test case');
+      setCaseError(err instanceof Error ? err.message : 'Failed to save test case');
     }
   }
 
-  // --- Import Test Case dari Template ---
+  // --- Import Test Case from Template ---
   const [importTemplateDialogOpen, setImportTemplateDialogOpen] = useState(false);
   const [importTemplateId, setImportTemplateId] = useState<string | null>(null);
   const [importTemplateItems, setImportTemplateItems] = useState<TestCaseTemplateItem[]>([]);
@@ -639,15 +639,15 @@ export function ProjectDetailPage() {
       await testCaseTemplateService.cloneItemsToProject(id, importTemplateItemIds);
       setImportTemplateDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: `${importTemplateItemIds.length} test case diimpor` });
+      toast.current?.show({ severity: 'success', summary: `${importTemplateItemIds.length} test case(s) imported` });
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Gagal impor', detail: err instanceof Error ? err.message : undefined });
+      toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
     } finally {
       setImportTemplateLoading(false);
     }
   }
 
-  // --- Import Test Case dari Excel (state/handlers wired in the Excel import feature) ---
+  // --- Import Test Case from Excel (state/handlers wired in the Excel import feature) ---
   const [importExcelDialogOpen, setImportExcelDialogOpen] = useState(false);
 
   function openImportExcelDialog() {
@@ -656,14 +656,14 @@ export function ProjectDetailPage() {
 
   function handleArchiveCase(row: TestCase) {
     confirmDialog({
-      header: row.status === 'active' ? 'Arsipkan Test Case' : 'Aktifkan Kembali',
+      header: row.status === 'active' ? 'Archive Test Case' : 'Reactivate Test Case',
       message:
         row.status === 'active'
-          ? `Test case "${row.title}" akan diarsipkan dan tidak muncul di pemilihan test plan baru. Lanjutkan?`
-          : `Test case "${row.title}" akan diaktifkan kembali. Lanjutkan?`,
+          ? `Test case "${row.title}" will be archived and won't appear when selecting cases for a new test plan. Continue?`
+          : `Test case "${row.title}" will be reactivated. Continue?`,
       icon: 'pi pi-info-circle',
-      acceptLabel: row.status === 'active' ? 'Arsipkan' : 'Aktifkan',
-      rejectLabel: 'Batal',
+      acceptLabel: row.status === 'active' ? 'Archive' : 'Reactivate',
+      rejectLabel: 'Cancel',
       accept: async () => {
         if (row.status === 'active') {
           await testCaseService.archive(row.id);
@@ -677,33 +677,33 @@ export function ProjectDetailPage() {
 
   function handleDeleteCase(row: TestCase) {
     confirmDialog({
-      header: 'Hapus Test Case',
-      message: `Test case "${row.title}" akan dihapus permanen, termasuk seluruh riwayat hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Test Case',
+      message: `Test case "${row.title}" will be permanently deleted, including its full execution result history. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testCaseService.remove(row.id);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test case dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Test case deleted' });
       },
     });
   }
 
   function handleBulkDeleteCases() {
     confirmDialog({
-      header: 'Hapus Test Case Terpilih',
-      message: `${selectedCases.length} test case akan dihapus permanen, termasuk seluruh riwayat hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Selected Test Cases',
+      message: `${selectedCases.length} test case will be permanently deleted, including its full execution result history. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedCases.map((c) => testCaseService.remove(c.id)));
         setSelectedCases([]);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test case terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected test cases deleted' });
       },
     });
   }
@@ -725,7 +725,7 @@ export function ProjectDetailPage() {
 
   function openCreateRunDialog() {
     setRunMode('plan');
-    setRunFormName(`Run ${new Date().toLocaleDateString('id-ID')}`);
+    setRunFormName(`Run ${new Date().toLocaleDateString('en-US')}`);
     setRunFormPlanId(null);
     setRunFormCaseIds([]);
     setRunFormError(null);
@@ -739,7 +739,7 @@ export function ProjectDetailPage() {
       const run =
         runMode === 'plan'
           ? await (async () => {
-            if (!runFormPlanId) throw new Error('Pilih test plan terlebih dahulu');
+            if (!runFormPlanId) throw new Error('Select a test plan first');
             return testRunService.start(runFormPlanId, runFormName);
           })()
           : await testRunService.startCustom(id, runFormName, runFormCaseIds);
@@ -748,7 +748,7 @@ export function ProjectDetailPage() {
       await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(id) });
       navigate(`/test-runs/${run.id}`);
     } catch (err) {
-      setRunFormError(err instanceof Error ? err.message : 'Gagal membuat test run');
+      setRunFormError(err instanceof Error ? err.message : 'Failed to create test run');
     }
   }
 
@@ -763,33 +763,33 @@ export function ProjectDetailPage() {
 
   function handleDeleteRun(row: TestRunWithSummary) {
     confirmDialog({
-      header: 'Hapus Test Run',
-      message: `Test run "${row.name}" akan dihapus permanen, termasuk seluruh hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Test Run',
+      message: `Test run "${row.name}" will be permanently deleted, including all its execution results. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testRunService.remove(row.id);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test run dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Test run deleted' });
       },
     });
   }
 
   function handleBulkDeleteRuns() {
     confirmDialog({
-      header: 'Hapus Test Run Terpilih',
-      message: `${selectedRuns.length} test run akan dihapus permanen, termasuk seluruh hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Selected Test Runs',
+      message: `${selectedRuns.length} test run will be permanently deleted, including all its execution results. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedRuns.map((r) => testRunService.remove(r.id)));
         setSelectedRuns([]);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test run terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected test runs deleted' });
       },
     });
   }
@@ -866,25 +866,25 @@ export function ProjectDetailPage() {
       });
       setIssueDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Issue dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Issue created' });
     } catch (err) {
-      setIssueFormError(err instanceof Error ? err.message : 'Gagal membuat issue');
+      setIssueFormError(err instanceof Error ? err.message : 'Failed to create issue');
     }
   }
 
   function handleBulkDeleteIssues() {
     confirmDialog({
-      header: 'Hapus Issue Terpilih',
-      message: `${selectedIssues.length} issue akan dihapus permanen. Lanjutkan?`,
+      header: 'Delete Selected Issues',
+      message: `${selectedIssues.length} issue will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedIssues.map((i) => issueService.remove(i.id)));
         setSelectedIssues([]);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Issue terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected issues deleted' });
       },
     });
   }
@@ -951,10 +951,10 @@ export function ProjectDetailPage() {
         <Breadcrumb
           items={[
             { label: 'Projects', path: '/' },
-            { label: projectLoading ? '…' : 'Project tidak ditemukan' },
+            { label: projectLoading ? '…' : 'Project not found' },
           ]}
         />
-        {!projectLoading && <p>Project tidak ditemukan.</p>}
+        {!projectLoading && <p>Project not found.</p>}
       </div>
     );
   }
@@ -989,7 +989,7 @@ export function ProjectDetailPage() {
               <h2 className="m-0">{project.name}</h2>
               <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
             </div>
-            <p className="text-color-secondary text-sm m-0">{project.description || 'Tidak ada deskripsi'}</p>
+            <p className="text-color-secondary text-sm m-0">{project.description || 'No description'}</p>
           </div>
           <div className="flex gap-2">
             <Button text icon="pi pi-cog" outlined size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
@@ -997,8 +997,8 @@ export function ProjectDetailPage() {
         </div>
 
         <div className="flex flex-wrap gap-4 mt-3 text-sm">
-          <span className="text-color-secondary">Dibuat: <span className="text-color">{formatDateTime(project.createdAt)}</span></span>
-          <span className="text-color-secondary">Update Terakhir: <span className="text-color">{formatDateTime(project.updatedAt)}</span></span>
+          <span className="text-color-secondary">Created: <span className="text-color">{formatDateTime(project.createdAt)}</span></span>
+          <span className="text-color-secondary">Last Updated: <span className="text-color">{formatDateTime(project.updatedAt)}</span></span>
           <span className="text-color-secondary">Test Plan: <span className="text-color">{testPlans.length}</span></span>
           <span className="text-color-secondary">Test Case: <span className="text-color">{testCases.length}</span></span>
         </div>
@@ -1011,13 +1011,13 @@ export function ProjectDetailPage() {
               <div className="flex align-items-center gap-2 flex-wrap">
                 <IconField iconPosition="left">
                   <InputIcon className="pi pi-search" />
-                  <InputText value={planSearch} onChange={(e) => setPlanSearch(e.target.value)} placeholder="Cari nama/kode..." />
+                  <InputText value={planSearch} onChange={(e) => setPlanSearch(e.target.value)} placeholder="Search name/code..." />
                 </IconField>
                 <Dropdown
                   value={planStatusFilter}
                   options={TEST_PLAN_STATUS_OPTIONS}
                   onChange={(e) => setPlanStatusFilter(e.value)}
-                  placeholder="Semua Status"
+                  placeholder="All Statuses"
                   showClear
                   className="w-12rem"
                 />
@@ -1028,14 +1028,14 @@ export function ProjectDetailPage() {
               <BulkActionsBar
                 selectedCount={selectedPlans.length}
                 onClear={() => setSelectedPlans([])}
-                actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeletePlans} />}
+                actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeletePlans} />}
               />
             )}
             <DataTable
               value={filteredPlans}
               loading={tabLoading[0]}
               size="small"
-              emptyMessage="Belum ada test plan"
+              emptyMessage="No test plans yet"
               onRowClick={(e) => navigate(`/test-plans/${(e.data as TestPlan).id}`)}
               rowHover
               className="cursor-pointer"
@@ -1069,7 +1069,7 @@ export function ProjectDetailPage() {
                       ...(canEditContent ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicatePlanDialog(row) }] : []),
                       ...(canEditContent ? [{ label: 'Edit', icon: 'pi pi-pencil', command: () => openEditPlanDialog(row) }] : []),
                       ...(canDeleteContent
-                        ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeletePlan(row) }]
+                        ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeletePlan(row) }]
                         : []),
                     ]}
                   />
@@ -1083,13 +1083,13 @@ export function ProjectDetailPage() {
               <div className="flex align-items-center gap-2 flex-wrap">
                 <IconField iconPosition="left">
                   <InputIcon className="pi pi-search" />
-                  <InputText value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} placeholder="Cari judul/kode..." />
+                  <InputText value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} placeholder="Search title/code..." />
                 </IconField>
                 <Dropdown
                   value={caseStatusFilter}
                   options={TEST_CASE_STATUS_OPTIONS}
                   onChange={(e) => setCaseStatusFilter(e.value)}
-                  placeholder="Semua Status"
+                  placeholder="All Statuses"
                   showClear
                   className="w-10rem"
                 />
@@ -1097,7 +1097,7 @@ export function ProjectDetailPage() {
                   value={casePriorityFilter}
                   options={PRIORITY_OPTIONS}
                   onChange={(e) => setCasePriorityFilter(e.value)}
-                  placeholder="Semua Prioritas"
+                  placeholder="All Priorities"
                   showClear
                   className="w-10rem"
                 />
@@ -1105,7 +1105,7 @@ export function ProjectDetailPage() {
                   value={caseModuleFilter}
                   options={moduleOptions}
                   onChange={(e) => setCaseModuleFilter(e.value)}
-                  placeholder="Semua Module"
+                  placeholder="All Modules"
                   showClear
                   className="w-10rem"
                 />
@@ -1113,7 +1113,7 @@ export function ProjectDetailPage() {
                   value={caseTagFilter}
                   options={tagOptions}
                   onChange={(e) => setCaseTagFilter(e.value)}
-                  placeholder="Semua Tag"
+                  placeholder="All Tags"
                   showClear
                   className="w-10rem"
                 />
@@ -1121,15 +1121,15 @@ export function ProjectDetailPage() {
                   value={caseTestRoleFilter}
                   options={testRoleOptions}
                   onChange={(e) => setCaseTestRoleFilter(e.value)}
-                  placeholder="Semua Role"
+                  placeholder="All Roles"
                   showClear
                   className="w-10rem"
                 />
               </div>
               {canEditContent && (
                 <div className="flex gap-2">
-                  <Button label="Import dari Template" icon="pi pi-copy" size="small" outlined onClick={openImportTemplateDialog} />
-                  <Button label="Import dari Excel" icon="pi pi-file-excel" size="small" outlined onClick={openImportExcelDialog} />
+                  <Button label="Import from Template" icon="pi pi-copy" size="small" outlined onClick={openImportTemplateDialog} />
+                  <Button label="Import from Excel" icon="pi pi-file-excel" size="small" outlined onClick={openImportExcelDialog} />
                   <Button label="Test Case Baru" icon="pi pi-plus" size="small" onClick={openCreateCaseDialog} />
                 </div>
               )}
@@ -1138,14 +1138,14 @@ export function ProjectDetailPage() {
               <BulkActionsBar
                 selectedCount={selectedCases.length}
                 onClear={() => setSelectedCases([])}
-                actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteCases} />}
+                actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteCases} />}
               />
             )}
             <DataTable
               value={filteredCases}
               loading={tabLoading[1]}
               size="small"
-              emptyMessage="Belum ada test case"
+              emptyMessage="No test cases yet"
               onRowClick={(e) => navigate(`/test-cases/${(e.data as TestCaseWithDetails).id}?projectId=${id}`)}
               rowHover
               className="cursor-pointer"
@@ -1161,7 +1161,7 @@ export function ProjectDetailPage() {
             >
               <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
               <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
-              <Column field="title" header="Judul" sortable={!isMobile} body={isMobile ? mobileCaseBody : undefined} />
+              <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileCaseBody : undefined} />
               <Column field="module.name" header="Module" sortable body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} hidden={isMobile} />
               <Column
                 field="priority"
@@ -1216,7 +1216,7 @@ export function ProjectDetailPage() {
                         ]
                         : []),
                       ...(canDeleteContent
-                        ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteCase(row) }]
+                        ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteCase(row) }]
                         : []),
                     ]}
                   />
@@ -1230,13 +1230,13 @@ export function ProjectDetailPage() {
               <div className="flex align-items-center gap-2 flex-wrap">
                 <IconField iconPosition="left">
                   <InputIcon className="pi pi-search" />
-                  <InputText value={runSearch} onChange={(e) => setRunSearch(e.target.value)} placeholder="Cari nama/kode..." />
+                  <InputText value={runSearch} onChange={(e) => setRunSearch(e.target.value)} placeholder="Search name/code..." />
                 </IconField>
                 <Dropdown
                   value={runStatusFilter}
                   options={TEST_RUN_STATUS_OPTIONS}
                   onChange={(e) => setRunStatusFilter(e.value)}
-                  placeholder="Semua Status"
+                  placeholder="All Statuses"
                   showClear
                   className="w-12rem"
                 />
@@ -1247,14 +1247,14 @@ export function ProjectDetailPage() {
               <BulkActionsBar
                 selectedCount={selectedRuns.length}
                 onClear={() => setSelectedRuns([])}
-                actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteRuns} />}
+                actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteRuns} />}
               />
             )}
             <DataTable
               value={filteredRuns}
               loading={tabLoading[2]}
               size="small"
-              emptyMessage="Belum ada test run"
+              emptyMessage="No test runs yet"
               onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
               rowHover
               className="cursor-pointer"
@@ -1318,7 +1318,7 @@ export function ProjectDetailPage() {
                     items={[
                       { label: 'Lihat Detail', icon: 'pi pi-eye', command: () => navigate(`/test-runs/${row.id}`) },
                       ...(canDeleteContent
-                        ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteRun(row) }]
+                        ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteRun(row) }]
                         : []),
                     ]}
                   />
@@ -1332,13 +1332,13 @@ export function ProjectDetailPage() {
               <div className="flex align-items-center gap-2 flex-wrap">
                 <IconField iconPosition="left">
                   <InputIcon className="pi pi-search" />
-                  <InputText value={issueSearch} onChange={(e) => setIssueSearch(e.target.value)} placeholder="Cari judul..." />
+                  <InputText value={issueSearch} onChange={(e) => setIssueSearch(e.target.value)} placeholder="Search title..." />
                 </IconField>
                 <Dropdown
                   value={issueStatusFilter}
                   options={ISSUE_STATUS_OPTIONS}
                   onChange={(e) => setIssueStatusFilter(e.value)}
-                  placeholder="Semua Status"
+                  placeholder="All Statuses"
                   showClear
                   className="w-11rem"
                 />
@@ -1346,7 +1346,7 @@ export function ProjectDetailPage() {
                   value={issuePriorityFilter}
                   options={ISSUE_PRIORITY_OPTIONS}
                   onChange={(e) => setIssuePriorityFilter(e.value)}
-                  placeholder="Semua Prioritas"
+                  placeholder="All Priorities"
                   showClear
                   className="w-11rem"
                 />
@@ -1354,7 +1354,7 @@ export function ProjectDetailPage() {
                   value={issueModuleFilter}
                   options={moduleOptions}
                   onChange={(e) => setIssueModuleFilter(e.value)}
-                  placeholder="Semua Module"
+                  placeholder="All Modules"
                   showClear
                   className="w-10rem"
                 />
@@ -1362,7 +1362,7 @@ export function ProjectDetailPage() {
                   value={issueTagFilter}
                   options={tagOptions}
                   onChange={(e) => setIssueTagFilter(e.value)}
-                  placeholder="Semua Tag"
+                  placeholder="All Tags"
                   showClear
                   className="w-10rem"
                 />
@@ -1373,14 +1373,14 @@ export function ProjectDetailPage() {
               <BulkActionsBar
                 selectedCount={selectedIssues.length}
                 onClear={() => setSelectedIssues([])}
-                actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteIssues} />}
+                actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteIssues} />}
               />
             )}
             <DataTable
               value={filteredIssues}
               loading={tabLoading[3]}
               size="small"
-              emptyMessage="Belum ada issue"
+              emptyMessage="No issues yet"
               onRowClick={(e) => navigate(`/issues/${(e.data as IssueWithDetails).id}`)}
               rowHover
               className="cursor-pointer"
@@ -1396,7 +1396,7 @@ export function ProjectDetailPage() {
             >
               <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
               <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
-              <Column field="title" header="Judul" sortable={!isMobile} body={isMobile ? mobileIssueBody : undefined} />
+              <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileIssueBody : undefined} />
               <Column
                 header="Tipe"
                 hidden={isMobile}
@@ -1460,7 +1460,7 @@ export function ProjectDetailPage() {
                         issueService.assign(row.id, e.value);
                         patchIssue(row.id, { assignedTo: e.value });
                       }}
-                      placeholder="Belum ditugaskan"
+                      placeholder="Unassigned"
                       showClear
                       disabled={!canManageIssues}
                       className="w-11rem"
@@ -1486,14 +1486,14 @@ export function ProjectDetailPage() {
                             command: () => {
                               confirmDialog({
                                 header: 'Arsipkan Issue',
-                                message: `Issue "${row.title}" akan diarsipkan (ditutup). Lanjutkan?`,
+                                message: `Issue "${row.title}" will be archived (closed). Continue?`,
                                 icon: 'pi pi-info-circle',
                                 acceptLabel: 'Arsipkan',
-                                rejectLabel: 'Batal',
+                                rejectLabel: 'Cancel',
                                 accept: async () => {
                                   await issueService.changeStatus(row.id, 'closed');
                                   patchIssue(row.id, { status: 'closed' });
-                                  toast.current?.show({ severity: 'success', summary: 'Issue diarsipkan' });
+                                  toast.current?.show({ severity: 'success', summary: 'Issue archived' });
                                 },
                               });
                             },
@@ -1503,21 +1503,21 @@ export function ProjectDetailPage() {
                       ...(canDeleteContent
                         ? [
                           {
-                            label: 'Hapus',
+                            label: 'Delete',
                             icon: 'pi pi-trash',
                             className: 'p-error',
                             command: () => {
                               confirmDialog({
-                                header: 'Hapus Issue',
-                                message: `Issue "${row.title}" akan dihapus permanen. Lanjutkan?`,
+                                header: 'Delete Issue',
+                                message: `Issue "${row.title}" will be permanently deleted. Continue?`,
                                 icon: 'pi pi-exclamation-triangle',
-                                acceptLabel: 'Hapus',
-                                rejectLabel: 'Batal',
+                                acceptLabel: 'Delete',
+                                rejectLabel: 'Cancel',
                                 acceptClassName: 'p-button-danger',
                                 accept: async () => {
                                   await issueService.remove(row.id);
                                   await loadAll();
-                                  toast.current?.show({ severity: 'success', summary: 'Issue dihapus' });
+                                  toast.current?.show({ severity: 'success', summary: 'Issue deleted' });
                                 },
                               });
                             },
@@ -1551,10 +1551,10 @@ export function ProjectDetailPage() {
             <InputText id="plan-name" value={planName} onChange={(e) => setPlanName(e.target.value)} autoFocus />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="plan-description">Deskripsi</label>
+            <label htmlFor="plan-description">Description</label>
             <InputTextarea id="plan-description" value={planDescription} onChange={(e) => setPlanDescription(e.target.value)} rows={3} />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSavePlan} />
+          <Button label="Save" size="small" onClick={handleSavePlan} />
         </div>
       </Dialog>
 
@@ -1583,7 +1583,7 @@ export function ProjectDetailPage() {
             value={runMode}
             onChange={(e) => e.value && setRunMode(e.value)}
             options={[
-              { label: 'Dari Test Plan', value: 'plan' },
+              { label: 'From Test Plan', value: 'plan' },
               { label: 'Unplanned / Custom', value: 'custom' },
             ]}
           />
@@ -1599,7 +1599,7 @@ export function ProjectDetailPage() {
                 value={runFormPlanId}
                 options={testPlans.map((p) => ({ label: `${p.code} — ${p.name}`, value: p.id }))}
                 onChange={(e) => setRunFormPlanId(e.value)}
-                placeholder="Pilih test plan"
+                placeholder="Select test plan"
                 className="w-full"
                 filter
               />
@@ -1612,7 +1612,7 @@ export function ProjectDetailPage() {
                 value={runFormCaseIds}
                 options={testCases.filter((c) => c.status === 'active').map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
                 onChange={(e) => setRunFormCaseIds(e.value)}
-                placeholder="Pilih test case"
+                placeholder="Select test case"
                 filter
                 display="chip"
                 className="w-full"
@@ -1650,7 +1650,7 @@ export function ProjectDetailPage() {
               placeholder="mis. Autentikasi, Dashboard, Pembelian"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveModule} />
+          <Button label="Save" size="small" onClick={handleSaveModule} />
         </div>
       </Dialog>
 
@@ -1677,7 +1677,7 @@ export function ProjectDetailPage() {
               placeholder="mis. Regression, Smoke, UI"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveTag} />
+          <Button label="Save" size="small" onClick={handleSaveTag} />
         </div>
       </Dialog>
 
@@ -1704,7 +1704,7 @@ export function ProjectDetailPage() {
               placeholder="mis. Admin, Manager, Member"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveTestRole} />
+          <Button label="Save" size="small" onClick={handleSaveTestRole} />
         </div>
       </Dialog>
 
@@ -1733,7 +1733,7 @@ export function ProjectDetailPage() {
                   options={moduleOptions}
                   onChange={(e) => setCaseModuleId(e.value)}
                   editable
-                  placeholder="Pilih atau ketik module"
+                  placeholder="Select or type a module"
                   showClear
                   className="w-full"
                 />
@@ -1768,7 +1768,7 @@ export function ProjectDetailPage() {
                   options={testRoleOptions}
                   onChange={(e) => setCaseTargetRoleId(e.value)}
                   editable
-                  placeholder="Pilih atau ketik role"
+                  placeholder="Select or type a role"
                   showClear
                   className="w-full"
                 />
@@ -1787,7 +1787,7 @@ export function ProjectDetailPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-title">Judul</label>
+            <label htmlFor="case-title">Title</label>
             <InputText id="case-title" value={caseTitle} onChange={(e) => setCaseTitle(e.target.value)} autoFocus />
           </div>
 
@@ -1868,7 +1868,7 @@ export function ProjectDetailPage() {
                 value={caseTags}
                 options={tags.map((t) => ({ label: t.name, value: t.name }))}
                 onChange={(e) => setCaseTags(e.value ?? [])}
-                placeholder="Pilih tag"
+                placeholder="Select tags"
                 display="chip"
                 filter
                 className="w-full"
@@ -1878,16 +1878,16 @@ export function ProjectDetailPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-notes">Catatan (opsional)</label>
+            <label htmlFor="case-notes">Notes (optional)</label>
             <InputTextarea id="case-notes" value={caseNotes} onChange={(e) => setCaseNotes(e.target.value)} rows={2} />
           </div>
 
-          <Button label="Simpan" size="small" onClick={handleSaveCase} />
+          <Button label="Save" size="small" onClick={handleSaveCase} />
         </div>
       </Dialog>
 
-      {/* --- Import Test Case dari Template Dialog --- */}
-      <Dialog header="Import dari Template" visible={importTemplateDialogOpen} onHide={() => setImportTemplateDialogOpen(false)} style={{ width: '34rem' }}>
+      {/* --- Import Test Case from Template Dialog --- */}
+      <Dialog header="Import from Template" visible={importTemplateDialogOpen} onHide={() => setImportTemplateDialogOpen(false)} style={{ width: '34rem' }}>
         <div className="flex flex-column gap-3">
           <div className="flex flex-column gap-1">
             <label htmlFor="import-template">Template</label>
@@ -1896,7 +1896,7 @@ export function ProjectDetailPage() {
               value={importTemplateId}
               options={availableTemplates.map((t) => ({ label: t.name, value: t.id }))}
               onChange={(e) => handleSelectImportTemplate(e.value)}
-              placeholder="Pilih template"
+              placeholder="Select template"
               className="w-full"
               filter
             />
@@ -1909,7 +1909,7 @@ export function ProjectDetailPage() {
                 value={importTemplateItemIds}
                 options={importTemplateItems.map((i) => ({ label: i.title, value: i.id }))}
                 onChange={(e) => setImportTemplateItemIds(e.value ?? [])}
-                placeholder="Pilih item test case"
+                placeholder="Select test case items"
                 filter
                 display="chip"
                 className="w-full"
@@ -1926,8 +1926,8 @@ export function ProjectDetailPage() {
         </div>
       </Dialog>
 
-      {/* --- Import Test Case dari Excel Dialog --- */}
-      <Dialog header="Import dari Excel" visible={importExcelDialogOpen} onHide={() => setImportExcelDialogOpen(false)} style={{ width: '40rem' }}>
+      {/* --- Import Test Case from Excel Dialog --- */}
+      <Dialog header="Import from Excel" visible={importExcelDialogOpen} onHide={() => setImportExcelDialogOpen(false)} style={{ width: '40rem' }}>
         <ExcelImportPanel projectId={id ?? ''} onImported={async () => { setImportExcelDialogOpen(false); await loadAll(); }} />
       </Dialog>
 
@@ -1936,7 +1936,7 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {issueFormError && <small className="p-error">{issueFormError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-new-title">Judul</label>
+            <label htmlFor="issue-new-title">Title</label>
             <InputText id="issue-new-title" value={issueTitle} onChange={(e) => setIssueTitle(e.target.value)} autoFocus />
           </div>
           <div className="grid">
@@ -1968,17 +1968,17 @@ export function ProjectDetailPage() {
               value={issueTagNames}
               options={tags.map((t) => ({ label: t.name, value: t.name }))}
               onChange={(e) => setIssueTagNames(e.value ?? [])}
-              placeholder="Pilih tag"
+              placeholder="Select tags"
               display="chip"
               filter
               className="w-full"
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-new-description">Deskripsi (opsional)</label>
+            <label htmlFor="issue-new-description">Description (opsional)</label>
             <InputTextarea id="issue-new-description" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} rows={3} />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveIssue} />
+          <Button label="Save" size="small" onClick={handleSaveIssue} />
         </div>
       </Dialog>
 

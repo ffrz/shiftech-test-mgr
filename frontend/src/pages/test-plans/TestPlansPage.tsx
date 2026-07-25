@@ -42,7 +42,7 @@ export function TestPlansPage() {
     if (status === row.status) return;
     await testPlanService.changeStatus(row.id, status);
     await reload();
-    toast.current?.show({ severity: 'success', summary: `Status diubah ke ${TEST_PLAN_STATUS_LABEL[status]}` });
+    toast.current?.show({ severity: 'success', summary: `Status changed to ${TEST_PLAN_STATUS_LABEL[status]}` });
   }
 
   // --- Duplicate: quick access from this cross-project list without opening the detail page ---
@@ -63,9 +63,9 @@ export function TestPlansPage() {
       await testPlanService.duplicate(duplicateRow.id, duplicateName);
       setDuplicateRow(null);
       await reload();
-      toast.current?.show({ severity: 'success', summary: 'Test plan diduplikat' });
+      toast.current?.show({ severity: 'success', summary: 'Test plan duplicated' });
     } catch (err) {
-      setDuplicateError(err instanceof Error ? err.message : 'Gagal menduplikat test plan');
+      setDuplicateError(err instanceof Error ? err.message : 'Failed to duplicate test plan');
     }
   }
 
@@ -88,7 +88,7 @@ export function TestPlansPage() {
             value={projectId}
             options={projects.map((p) => ({ label: p.name, value: p.id }))}
             onChange={(e) => setProjectId(e.value)}
-            placeholder="Pilih project"
+            placeholder="Select project"
             className="w-15rem"
             showClear
           />
@@ -97,17 +97,17 @@ export function TestPlansPage() {
 
       {!projectId && (
         <p className="text-color-secondary">
-          Pilih project di atas untuk melihat test plan-nya. Test plan baru dibuat dari halaman detail project.
+          Select a project above to view its test plans. New test plans are created from the project detail page.
         </p>
       )}
 
-      <DataTable value={testPlans} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="Belum ada test plan" size="small"
+      <DataTable value={testPlans} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
         selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
-        <Column field="code" header="Kode" sortable style={{ width: isMobile ? undefined : '7rem' }}
+        <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : '7rem' }}
           body={isMobile ? mobileCodeBody : undefined} />
-        {!isMobile && <Column field="name" header="Nama" sortable />}
+        {!isMobile && <Column field="name" header="Name" sortable />}
         {!isMobile && <Column field="status" header="Status" body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />}
-        {!isMobile && <Column field="updatedAt" header="Update Terakhir" body={(row: TestPlan) => formatDate(row.updatedAt)} sortable />}
+        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: TestPlan) => formatDate(row.updatedAt)} sortable />}
         {canEditContent && (
           <Column
             header=""
@@ -115,9 +115,9 @@ export function TestPlansPage() {
             body={(row: TestPlan) => (
               <RowActionsMenu
                 items={[
-                  { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
+                  { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
                   ...TEST_PLAN_STATUS_OPTIONS.filter((s) => s !== row.status).map((status) => ({
-                    label: `Ubah ke ${TEST_PLAN_STATUS_LABEL[status]}`,
+                    label: `Change to ${TEST_PLAN_STATUS_LABEL[status]}`,
                     command: () => handleChangeStatus(row, status),
                   })),
                 ]}
@@ -127,14 +127,14 @@ export function TestPlansPage() {
         )}
       </DataTable>
 
-      <Dialog header="Duplikat Test Plan" visible={!!duplicateRow} onHide={() => setDuplicateRow(null)} style={{ width: '28rem' }}>
+      <Dialog header="Duplicate Test Plan" visible={!!duplicateRow} onHide={() => setDuplicateRow(null)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">
           {duplicateError && <small className="p-error">{duplicateError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-plan-name">Nama Test Plan Baru</label>
+            <label htmlFor="duplicate-plan-name">New Test Plan Name</label>
             <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} autoFocus />
           </div>
-          <Button label="Duplikat" size="small" onClick={handleDuplicate} />
+          <Button label="Duplicate" size="small" onClick={handleDuplicate} />
         </div>
       </Dialog>
     </div>

@@ -876,7 +876,7 @@ export function TestRunResultDetailPage() {
         </div>
       </Dialog>
 
-      {/* --- Notes Dialog: catatan hasil eksekusi, autosave saat disimpan --- */}
+      {/* --- Notes Dialog: execution result notes, autosaved on save --- */}
       <Dialog header="Add notes" visible={notesDialogOpen} onHide={() => setNotesDialogOpen(false)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">
           <InputTextarea value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} rows={5} autoFocus />

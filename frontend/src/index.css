@@ -547,6 +547,58 @@ h2 {
   height: 1.75rem;
 }
 
+/* Paginator: replace the theme's hardcoded blue active/hover colors (which
+   clash with our teal primary) with the app's actual primary tint, and
+   compact + left-align the rows-per-page dropdown to match the buttons. */
+.p-paginator {
+  padding: 0.35rem 0.5rem;
+  gap: 0.25rem;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page:not(.p-highlight):hover,
+.p-paginator .p-paginator-first:not(.p-disabled):not(.p-highlight):hover,
+.p-paginator .p-paginator-prev:not(.p-disabled):not(.p-highlight):hover,
+.p-paginator .p-paginator-next:not(.p-disabled):not(.p-highlight):hover,
+.p-paginator .p-paginator-last:not(.p-disabled):not(.p-highlight):hover {
+  background: var(--primary-50, var(--surface-100));
+  color: var(--primary-color);
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background: var(--primary-50, var(--surface-100));
+  border-color: var(--primary-50, var(--surface-100));
+  color: var(--primary-color);
+}
+
+html.dark .p-paginator .p-paginator-pages .p-paginator-page:not(.p-highlight):hover,
+html.dark .p-paginator .p-paginator-first:not(.p-disabled):not(.p-highlight):hover,
+html.dark .p-paginator .p-paginator-prev:not(.p-disabled):not(.p-highlight):hover,
+html.dark .p-paginator .p-paginator-next:not(.p-disabled):not(.p-highlight):hover,
+html.dark .p-paginator .p-paginator-last:not(.p-disabled):not(.p-highlight):hover,
+html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(96, 165, 250, 0.12);
+}
+
+.p-paginator .p-dropdown {
+  order: -1;
+  margin-left: 0;
+  margin-right: 0.5rem;
+  height: 1.75rem;
+  min-width: 4.5rem;
+}
+
+.p-paginator .p-dropdown .p-dropdown-label {
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.p-paginator .p-dropdown .p-dropdown-trigger {
+  width: 1.75rem;
+}
+
 .p-tag-icon,
 .p-tag-value,
 .p-tag-icon.pi {
@@ -578,6 +630,14 @@ h2 {
 
 .p-card .p-card-body {
   padding: 0.5rem;
+}
+
+/* Theme bug: PrimeReact's lara-light-blue sets both color and background to
+   the same teal (#0f766e) on highlighted dropdown items — use primary tint
+   so the text stays readable. */
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
+  color: var(--primary-color);
+  background: var(--primary-50, var(--surface-100));
 }
 
 .p-inputtext,

@@ -142,16 +142,16 @@ export function TestPlanDetailPage() {
     await Promise.all(selectedCaseIds.map((testCaseId, index) => testPlanService.addCase(id, testCaseId, cases.length + index)));
     setAddCaseDialogOpen(false);
     await reloadCases();
-    toast.current?.show({ severity: 'success', summary: 'Test case ditambahkan ke plan' });
+    toast.current?.show({ severity: 'success', summary: 'Test case added to plan' });
   }
 
   function handleRemoveCase(row: TestPlanCaseWithDetails) {
     confirmDialog({
-      header: 'Keluarkan Test Case',
-      message: `Test case "${row.testCase.title}" akan dikeluarkan dari plan ini. Lanjutkan?`,
+      header: 'Remove Test Case',
+      message: `Test case "${row.testCase.title}" will be removed from this plan. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Keluarkan',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Remove',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testPlanService.removeCase(row.id);
@@ -162,17 +162,17 @@ export function TestPlanDetailPage() {
 
   function handleBulkRemoveCases() {
     confirmDialog({
-      header: 'Keluarkan Test Case Terpilih',
-      message: `${selectedCases.length} test case akan dikeluarkan dari plan ini. Lanjutkan?`,
+      header: 'Remove Selected Test Cases',
+      message: `${selectedCases.length} test case(s) will be removed from this plan. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Keluarkan',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Remove',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedCases.map((row) => testPlanService.removeCase(row.id)));
         setSelectedCases([]);
         await reloadCases();
-        toast.current?.show({ severity: 'success', summary: 'Test case terpilih dikeluarkan dari plan' });
+        toast.current?.show({ severity: 'success', summary: 'Selected test cases removed from plan' });
       },
     });
   }
@@ -208,7 +208,7 @@ export function TestPlanDetailPage() {
       if (testPlan) await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(testPlan.projectId) });
       navigate(`/test-runs/${run.id}`);
     } catch (err) {
-      setRunError(err instanceof Error ? err.message : 'Gagal memulai test run');
+      setRunError(err instanceof Error ? err.message : 'Failed to start test run');
     }
   }
 
@@ -216,7 +216,7 @@ export function TestPlanDetailPage() {
     if (!testPlan || status === testPlan.status) return;
     const updated = await testPlanService.changeStatus(testPlan.id, status);
     queryClient.setQueryData(queryKeys.testPlan(testPlan.id), updated);
-    toast.current?.show({ severity: 'success', summary: `Status diubah ke ${TEST_PLAN_STATUS_LABEL[status]}` });
+    toast.current?.show({ severity: 'success', summary: `Status changed to ${TEST_PLAN_STATUS_LABEL[status]}` });
   }
 
   // --- Duplicate: new plan + same scope (same testCaseId rows re-attached, not duplicated) ---
@@ -241,23 +241,23 @@ export function TestPlanDetailPage() {
       toast.current?.show({ severity: 'success', summary: 'Test plan diduplikat' });
       navigate(`/test-plans/${newPlan.id}`);
     } catch (err) {
-      setDuplicateError(err instanceof Error ? err.message : 'Gagal menduplikat test plan');
+      setDuplicateError(err instanceof Error ? err.message : 'Failed to duplicate test plan');
     }
   }
 
   function handleDeleteRun(row: TestRun) {
     confirmDialog({
-      header: 'Hapus Test Run',
-      message: `Test run "${row.name}" akan dihapus permanen, termasuk seluruh hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Test Run',
+      message: `Test run "${row.name}" will be permanently deleted, including all execution results. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testRunService.remove(row.id);
         await reloadRuns();
         if (testPlan) await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(testPlan.projectId) });
-        toast.current?.show({ severity: 'success', summary: 'Test run dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Test run deleted' });
       },
     });
   }
@@ -276,7 +276,7 @@ export function TestPlanDetailPage() {
         Tester: {row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-'}
       </span>
       <span className="text-sm text-color-secondary">
-        Selesai: {row.completedAt ? formatDateTime(row.completedAt) : '-'}
+        Completed: {row.completedAt ? formatDateTime(row.completedAt) : '-'}
       </span>
     </div>
   ), []);
@@ -289,7 +289,7 @@ export function TestPlanDetailPage() {
           {row.testCase.code}
         </a>
       </span>
-      <span className="text-sm text-color-secondary">Modul: {row.testCase.module?.name ?? '-'}</span>
+      <span className="text-sm text-color-secondary">Module: {row.testCase.module?.name ?? '-'}</span>
       <div className="flex flex-wrap gap-1">
         {row.testCase.tags.map((t) => (
           <Tag key={t.id} value={t.name} severity="info" />
@@ -313,12 +313,12 @@ export function TestPlanDetailPage() {
       />
 
       <PageHeader
-        title={testPlan ? `${testPlan.code} — ${testPlan.name}` : 'Detail Test Plan'}
+        title={testPlan ? `${testPlan.code} — ${testPlan.name}` : 'Test Plan Detail'}
         actions={
           testPlan && (
             <div className="flex align-items-center gap-2">
               {canEditContent && (
-                <Button label="Duplikat" icon="pi pi-copy" size="small" outlined onClick={openDuplicateDialog} />
+                <Button label="Duplicate" icon="pi pi-copy" size="small" outlined onClick={openDuplicateDialog} />
               )}
               {canEditContent ? (
                 <Dropdown
@@ -335,14 +335,14 @@ export function TestPlanDetailPage() {
         }
       />
 
-      <Dialog header="Duplikat Test Plan" visible={duplicateDialogOpen} onHide={() => setDuplicateDialogOpen(false)} style={{ width: '28rem' }}>
+      <Dialog header="Duplicate Test Plan" visible={duplicateDialogOpen} onHide={() => setDuplicateDialogOpen(false)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">
           {duplicateError && <small className="p-error">{duplicateError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-plan-name">Nama Test Plan Baru</label>
+            <label htmlFor="duplicate-plan-name">New Test Plan Name</label>
             <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} autoFocus />
           </div>
-          <Button label="Duplikat" size="small" onClick={handleDuplicate} />
+          <Button label="Duplicate" size="small" onClick={handleDuplicate} />
         </div>
       </Dialog>
 
@@ -352,19 +352,19 @@ export function TestPlanDetailPage() {
             <div className="flex align-items-center gap-2 flex-wrap">
               <IconField iconPosition="left">
                 <InputIcon className="pi pi-search" />
-                <InputText value={runSearch} onChange={(e) => setRunSearch(e.target.value)} placeholder="Cari nama/kode..." />
+                <InputText value={runSearch} onChange={(e) => setRunSearch(e.target.value)} placeholder="Search name/code..." />
               </IconField>
               <Dropdown
                 value={runStatusFilter}
                 options={TEST_RUN_STATUS_OPTIONS}
                 onChange={(e) => setRunStatusFilter(e.value)}
-                placeholder="Semua Status"
+                placeholder="All Statuses"
                 showClear
                 className="w-10rem"
               />
             </div>
             {canRunTests && (
-              <Button label="Mulai Test Run" icon="pi pi-play" size="small" onClick={openStartRunDialog} />
+                <Button label="Start Test Run" icon="pi pi-play" size="small" onClick={openStartRunDialog} />
             )}
           </div>
           <DataTable
@@ -372,18 +372,18 @@ export function TestPlanDetailPage() {
             loading={runsLoading}
             paginator
             rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
-            emptyMessage="Belum ada test run"
+            emptyMessage="No test runs yet"
             onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
             rowHover
             className="cursor-pointer"
             size="small"
           >
-            {!isMobile && <Column field="code" header="Kode" style={{ width: '7rem' }} />}
-            <Column field="name" header="Nama Run" body={isMobile ? mobileRunNameBody : undefined} />
+            {!isMobile && <Column field="code" header="Code" style={{ width: '7rem' }} />}
+            <Column field="name" header="Run Name" body={isMobile ? mobileRunNameBody : undefined} />
             {!isMobile && <Column field="status" header="Status" body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
             {!isMobile && (
               <Column
-                header="Hasil"
+                header="Results"
                 body={(row: TestRunWithSummary) => (
                   <div className="flex gap-1 align-items-center">
                     <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
@@ -405,7 +405,7 @@ export function TestPlanDetailPage() {
                 }
               />
             )}
-            {!isMobile && <Column field="completedAt" header="Selesai" body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
+            {!isMobile && <Column field="completedAt" header="Completed" body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
             {canDeleteContent && (
               <Column
                 header=""
@@ -417,7 +417,7 @@ export function TestPlanDetailPage() {
                     rounded
                     size="small"
                     severity="danger"
-                    aria-label="Hapus"
+                    aria-label="Delete"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteRun(row);
@@ -433,13 +433,13 @@ export function TestPlanDetailPage() {
             <div className="flex align-items-center gap-2 flex-wrap">
               <IconField iconPosition="left">
                 <InputIcon className="pi pi-search" />
-                <InputText value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} placeholder="Cari judul/kode..." />
+                <InputText value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} placeholder="Search title/code..." />
               </IconField>
               <Dropdown
                 value={casePriorityFilter}
                 options={PRIORITY_OPTIONS}
                 onChange={(e) => setCasePriorityFilter(e.value)}
-                placeholder="Semua Prioritas"
+                placeholder="All Priorities"
                 showClear
                 className="w-10rem"
               />
@@ -447,7 +447,7 @@ export function TestPlanDetailPage() {
                 value={caseModuleFilter}
                 options={modules.map((m) => ({ label: m.name, value: m.id }))}
                 onChange={(e) => setCaseModuleFilter(e.value)}
-                placeholder="Semua Module"
+                placeholder="All Modules"
                 showClear
                 className="w-10rem"
               />
@@ -455,32 +455,32 @@ export function TestPlanDetailPage() {
                 value={caseTagFilter}
                 options={tags.map((t) => ({ label: t.name, value: t.id }))}
                 onChange={(e) => setCaseTagFilter(e.value)}
-                placeholder="Semua Tag"
+                placeholder="All Tags"
                 showClear
                 className="w-10rem"
               />
             </div>
             {canEditContent && (
-              <Button label="Tambah Test Case" icon="pi pi-plus" size="small" onClick={openAddCaseDialog} />
+              <Button label="Add Test Case" icon="pi pi-plus" size="small" onClick={openAddCaseDialog} />
             )}
           </div>
           {canEditContent && (
             <BulkActionsBar
               selectedCount={selectedCases.length}
               onClear={() => setSelectedCases([])}
-              actions={<Button label="Keluarkan Terpilih" icon="pi pi-times" size="small" severity="danger" outlined onClick={handleBulkRemoveCases} />}
+              actions={<Button label="Remove Selected" icon="pi pi-times" size="small" severity="danger" outlined onClick={handleBulkRemoveCases} />}
             />
           )}
           {canEditContent && !isCaseFilterActive && cases.length > 1 && (
             <p className="text-color-secondary text-sm mb-2">
               <i className="pi pi-info-circle mr-1" />
-              Drag baris (ikon ⠿) untuk mengubah urutan eksekusi — urutan ini diwarisi Test Run baru, tapi tester tetap boleh mengetes tidak sesuai urutan.
+              Drag rows (⠿ icon) to change the execution order — new Test Runs inherit this order, but testers may still test out of order.
             </p>
           )}
           {canEditContent && isCaseFilterActive && (
             <p className="text-color-secondary text-sm mb-2">
               <i className="pi pi-info-circle mr-1" />
-              Hapus filter/pencarian untuk mengubah urutan eksekusi (reorder hanya berlaku pada daftar penuh).
+              Clear filters/search to change execution order (reordering only applies to the full list).
             </p>
           )}
           <DataTable
@@ -488,7 +488,7 @@ export function TestPlanDetailPage() {
             loading={casesLoading}
             paginator={isCaseFilterActive}
             rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
-            emptyMessage="Belum ada test case di plan ini"
+            emptyMessage="No test cases in this plan yet"
             size="small"
             selection={selectedCases}
             onSelectionChange={(e: { value: TestPlanCaseWithDetails[] }) => setSelectedCases(e.value)}
@@ -502,7 +502,7 @@ export function TestPlanDetailPage() {
             {!isMobile && (
               <Column
                 field="testCase.code"
-                header="Kode"
+                header="Code"
                 sortable
                 style={{ width: '7rem' }}
                 body={(row: TestPlanCaseWithDetails) => (
@@ -519,7 +519,7 @@ export function TestPlanDetailPage() {
               />
             )}
             <Column field="testCase.title" header="Test Case" sortable body={isMobile ? mobileCaseTitleBody : undefined} />
-            {!isMobile && <Column field="testCase.module.name" header="Modul" sortable body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
+            {!isMobile && <Column field="testCase.module.name" header="Module" sortable body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
             {!isMobile && (
               <Column
                 header="Tag"
@@ -535,7 +535,7 @@ export function TestPlanDetailPage() {
             {!isMobile && (
               <Column
                 field="testCase.priority"
-                header="Prioritas"
+                header="Priority"
                 sortable
                 body={(row: TestPlanCaseWithDetails) => (
                   <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
@@ -547,7 +547,7 @@ export function TestPlanDetailPage() {
                 header=""
                 style={{ width: '4rem' }}
                 body={(row: TestPlanCaseWithDetails) => (
-                  <Button icon="pi pi-times" text rounded size="small" severity="danger" aria-label="Keluarkan" onClick={() => handleRemoveCase(row)} />
+                  <Button icon="pi pi-times" text rounded size="small" severity="danger" aria-label="Remove" onClick={() => handleRemoveCase(row)} />
                 )}
               />
             )}
@@ -556,30 +556,30 @@ export function TestPlanDetailPage() {
       </TabView>
 
       {/* --- Add Test Case Dialog --- */}
-      <Dialog header="Tambah Test Case ke Plan" visible={addCaseDialogOpen} onHide={() => setAddCaseDialogOpen(false)} style={{ width: '30rem' }}>
+      <Dialog header="Add Test Case to Plan" visible={addCaseDialogOpen} onHide={() => setAddCaseDialogOpen(false)} style={{ width: '30rem' }}>
         <div className="flex flex-column gap-3">
           <MultiSelect
             value={selectedCaseIds}
             options={availableCases.map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
             onChange={(e) => setSelectedCaseIds(e.value)}
-            placeholder="Pilih test case"
+            placeholder="Select test case"
             filter
             display="chip"
             className="w-full"
           />
-          <Button label="Tambahkan" size="small" onClick={handleAddCases} disabled={selectedCaseIds.length === 0} />
+          <Button label="Add" size="small" onClick={handleAddCases} disabled={selectedCaseIds.length === 0} />
         </div>
       </Dialog>
 
       {/* --- Start Test Run Dialog --- */}
-      <Dialog header="Mulai Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '25rem' }}>
+      <Dialog header="Start Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '25rem' }}>
         <div className="flex flex-column gap-3">
           {runError && <small className="p-error">{runError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="run-name">Nama Test Run</label>
+            <label htmlFor="run-name">Test Run Name</label>
             <InputText id="run-name" value={runName} onChange={(e) => setRunName(e.target.value)} autoFocus />
           </div>
-          <Button label="Mulai" size="small" onClick={handleStartRun} />
+          <Button label="Start" size="small" onClick={handleStartRun} />
         </div>
       </Dialog>
     </div>

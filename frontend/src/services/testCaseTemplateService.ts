@@ -14,12 +14,12 @@ export const testCaseTemplateService = {
   },
 
   async createTemplate(input: { name: string; description?: string }): Promise<TestCaseTemplate> {
-    if (!input.name.trim()) throw new Error('Nama template tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Template name cannot be empty');
     return testCaseTemplateRepository.create({ name: input.name.trim(), description: input.description?.trim() || null });
   },
 
   async updateTemplate(id: string, input: { name: string; description?: string }): Promise<TestCaseTemplate> {
-    if (!input.name.trim()) throw new Error('Nama template tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Template name cannot be empty');
     return testCaseTemplateRepository.update(id, { name: input.name.trim(), description: input.description?.trim() || null });
   },
 
@@ -31,7 +31,7 @@ export const testCaseTemplateService = {
     sourceTemplateId: string,
     input: { name: string; description?: string },
   ): Promise<TestCaseTemplate> {
-    if (!input.name.trim()) throw new Error('Nama template tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Template name cannot be empty');
     const newTemplate = await testCaseTemplateRepository.create({
       name: input.name.trim(),
       description: input.description?.trim() || null,
@@ -89,11 +89,11 @@ export const testCaseTemplateService = {
     detailedSteps?: { action: string; expectedResult?: string }[];
     orderIndex: number;
   }): Promise<TestCaseTemplateItem> {
-    if (!input.title.trim()) throw new Error('Judul test case tidak boleh kosong');
+    if (!input.title.trim()) throw new Error('Test case title cannot be empty');
     const stepType = input.stepType ?? 'simple';
     if (stepType === 'simple') {
-      if (!input.steps.trim()) throw new Error('Langkah pengujian tidak boleh kosong');
-      if (!input.expectedResult.trim()) throw new Error('Hasil yang diharapkan tidak boleh kosong');
+      if (!input.steps.trim()) throw new Error('Test steps cannot be empty');
+      if (!input.expectedResult.trim()) throw new Error('Expected result cannot be empty');
     } else if (!input.detailedSteps?.length) {
       throw new Error('Test case detailed harus punya minimal satu langkah');
     }

@@ -67,7 +67,7 @@ export function TestCaseTemplatesPage() {
     setDialogMode('duplicate');
     setEditingId(null);
     setDuplicatingSourceId(row.id);
-    setName(`${row.name} (Salinan)`);
+    setName(`${row.name} (Copy)`);
     setDescription(row.description ?? '');
     setError(null);
     setDialogOpen(true);
@@ -90,28 +90,28 @@ export function TestCaseTemplatesPage() {
       setDialogOpen(false);
       await reload();
       const summaryMap: Record<typeof dialogMode, string> = {
-        create: 'Template dibuat',
-        edit: 'Template diperbarui',
-        duplicate: 'Template diduplikat',
+        create: 'Template created',
+        edit: 'Template updated',
+        duplicate: 'Template duplicated',
       };
       toast.current?.show({ severity: 'success', summary: summaryMap[dialogMode] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menyimpan template');
+      setError(err instanceof Error ? err.message : 'Failed to save template');
     }
   }
 
   function handleDelete(row: TestCaseTemplate) {
     confirmDialog({
-      header: 'Hapus Template',
-      message: `Template "${row.name}" beserta seluruh item di dalamnya akan dihapus permanen. Lanjutkan?`,
+      header: 'Delete Template',
+      message: `Template "${row.name}" and all its items will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testCaseTemplateService.removeTemplate(row.id);
         await reload();
-        toast.current?.show({ severity: 'success', summary: 'Template dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Template deleted' });
       },
     });
   }
@@ -131,11 +131,11 @@ export function TestCaseTemplatesPage() {
       <Breadcrumb items={[{ label: 'Test Case Templates' }]} />
       <PageHeader
         title="Test Case Templates"
-        actions={isAdmin ? <Button label="Template Baru" icon="pi pi-plus" size="small" onClick={openCreateDialog} /> : undefined}
+        actions={isAdmin ? <Button label="New Template" icon="pi pi-plus" size="small" onClick={openCreateDialog} /> : undefined}
       />
 
       <p className="text-color-secondary text-sm">
-        Library test case yang bisa di-clone ke project mana pun untuk inisialisasi cepat.
+        Test case library that can be cloned to any project for quick initialization.
       </p>
 
       <DataTable
@@ -143,16 +143,16 @@ export function TestCaseTemplatesPage() {
         loading={loading}
         paginator
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
-        emptyMessage="Belum ada template"
+        emptyMessage="No templates yet"
         size="small"
         onRowClick={(e) => navigate(`/test-case-templates/${(e.data as TestCaseTemplate).id}`)}
         rowHover
         className="cursor-pointer"
       >
         {isMobile && <Column body={mobileBodyTemplate} />}
-        {!isMobile && <Column field="name" header="Nama" sortable />}
-        {!isMobile && <Column field="description" header="Deskripsi" body={(row: TestCaseTemplate) => row.description || '-'} />}
-        {!isMobile && <Column field="updatedAt" header="Update Terakhir" body={(row: TestCaseTemplate) => formatDateTime(row.updatedAt)} sortable />}
+        {!isMobile && <Column field="name" header="Name" sortable />}
+        {!isMobile && <Column field="description" header="Description" body={(row: TestCaseTemplate) => row.description || '-'} />}
+        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: TestCaseTemplate) => formatDateTime(row.updatedAt)} sortable />}
         {isAdmin && (
           <Column
             header=""
@@ -160,9 +160,9 @@ export function TestCaseTemplatesPage() {
             body={(row: TestCaseTemplate) => (
               <RowActionsMenu
                 items={[
-                  { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
+                  { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
                   { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditDialog(row) },
-                  { label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) },
+                  { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) },
                 ]}
               />
             )}
@@ -172,7 +172,7 @@ export function TestCaseTemplatesPage() {
 
       <Dialog
         header={
-          dialogMode === 'edit' ? 'Edit Template' : dialogMode === 'duplicate' ? 'Duplikat Template' : 'Template Baru'
+          dialogMode === 'edit' ? 'Edit Template' : dialogMode === 'duplicate' ? 'Duplicate Template' : 'New Template'
         }
         visible={dialogOpen}
         onHide={() => setDialogOpen(false)}
@@ -181,14 +181,14 @@ export function TestCaseTemplatesPage() {
         <div className="flex flex-column gap-3">
           {error && <small className="p-error">{error}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="template-name">Nama</label>
+            <label htmlFor="template-name">Name</label>
             <InputText id="template-name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="template-description">Deskripsi</label>
+            <label htmlFor="template-description">Description</label>
             <InputTextarea id="template-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSave} />
+          <Button label="Save" size="small" onClick={handleSave} />
         </div>
       </Dialog>
     </div>

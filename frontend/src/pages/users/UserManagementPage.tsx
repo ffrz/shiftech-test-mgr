@@ -29,7 +29,7 @@ export function UserManagementPage() {
 
   async function handleApprove(row: Profile) {
     await profileService.approve(row.id);
-    toast.current?.show({ severity: 'success', summary: 'User disetujui', detail: row.email });
+    toast.current?.show({ severity: 'success', summary: 'User approved', detail: row.email });
     await reload();
   }
 
@@ -45,15 +45,15 @@ export function UserManagementPage() {
 
   function handleRevokeAccess(row: Profile) {
     confirmDialog({
-      header: 'Cabut Akses',
-      message: `Akses "${row.email}" akan dicabut dan kembali berstatus pending sampai disetujui ulang. Lanjutkan?`,
+      header: 'Revoke Access',
+      message: `Access for "${row.email}" will be revoked and their status will return to pending until re-approved. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Cabut Akses',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Revoke Access',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-warning',
       accept: async () => {
         await profileService.revokeAccess(row.id);
-        toast.current?.show({ severity: 'warn', summary: 'Akses dicabut', detail: row.email });
+        toast.current?.show({ severity: 'warn', summary: 'Access revoked', detail: row.email });
         await reload();
       },
     });
@@ -61,15 +61,15 @@ export function UserManagementPage() {
 
   function handleDelete(row: Profile) {
     confirmDialog({
-      header: 'Hapus User',
-      message: `User "${row.email}" akan dihapus dari daftar. Lanjutkan?`,
+      header: 'Delete User',
+      message: `User "${row.email}" will be removed from the list. Continue?`,
       icon: 'pi pi-trash',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await profileService.remove(row.id);
-        toast.current?.show({ severity: 'success', summary: 'User dihapus', detail: row.email });
+        toast.current?.show({ severity: 'success', summary: 'User deleted', detail: row.email });
         await reload();
       },
     });
@@ -95,21 +95,21 @@ export function UserManagementPage() {
 
   const menuItems = menuRow
     ? [
-      { label: 'Lihat Detail', icon: 'pi pi-eye', command: () => navigate(`/users/${menuRow.id}`) },
+      { label: 'View Details', icon: 'pi pi-eye', command: () => navigate(`/users/${menuRow.id}`) },
       ...(menuRow.role === 'pending'
         ? [{ separator: true }, { label: 'Approve', icon: 'pi pi-check', command: () => handleApprove(menuRow) }]
         : []),
       ...(menuRow.role === 'user'
-        ? [{ separator: true }, { label: 'Jadikan Admin', icon: 'pi pi-shield', command: () => handlePromote(menuRow) }]
+        ? [{ separator: true }, { label: 'Make Admin', icon: 'pi pi-shield', command: () => handlePromote(menuRow) }]
         : []),
       ...(menuRow.role === 'admin' && !isMenuRowSelf
-        ? [{ separator: true }, { label: 'Turunkan ke User', icon: 'pi pi-user', command: () => handleDemote(menuRow) }]
+        ? [{ separator: true }, { label: 'Demote to User', icon: 'pi pi-user', command: () => handleDemote(menuRow) }]
         : []),
       ...(menuRow.role !== 'pending' && !isMenuRowSelf
-        ? [{ label: 'Cabut Akses', icon: 'pi pi-lock', command: () => handleRevokeAccess(menuRow) }]
+        ? [{ label: 'Revoke Access', icon: 'pi pi-lock', command: () => handleRevokeAccess(menuRow) }]
         : []),
       ...(!isMenuRowSelf
-        ? [{ separator: true }, { label: 'Hapus', icon: 'pi pi-trash', command: () => handleDelete(menuRow) }]
+        ? [{ separator: true }, { label: 'Delete', icon: 'pi pi-trash', command: () => handleDelete(menuRow) }]
         : []),
     ]
     : [];
@@ -128,7 +128,7 @@ export function UserManagementPage() {
         loading={loading}
         paginator
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
-        emptyMessage="Belum ada user"
+        emptyMessage="No users yet"
         size="small"
         onRowClick={(e) => navigate(`/users/${(e.data as Profile).id}`)}
         rowHover
@@ -136,9 +136,9 @@ export function UserManagementPage() {
       >
         {isMobile && <Column body={mobileBodyTemplate} />}
         {!isMobile && <Column field="email" header="Email" sortable />}
-        {!isMobile && <Column field="fullName" header="Nama" sortable />}
+        {!isMobile && <Column field="fullName" header="Name" sortable />}
         {!isMobile && <Column field="role" header="Role" body={(row: Profile) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />} sortable />}
-        {!isMobile && <Column field="createdAt" header="Terdaftar" body={(row: Profile) => formatDateTime(row.createdAt)} sortable />}
+        {!isMobile && <Column field="createdAt" header="Registered" body={(row: Profile) => formatDateTime(row.createdAt)} sortable />}
         <Column
           header=""
           style={{ width: '4rem' }}

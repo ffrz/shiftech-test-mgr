@@ -102,11 +102,11 @@ export function TestRunIssuesPage() {
 
   function handleDelete(row: IssueWithDetails) {
     confirmDialog({
-      header: 'Hapus Issue',
-      message: `Issue "${row.title}" akan dihapus permanen. Lanjutkan?`,
+      header: 'Delete Issue',
+      message: `Issue "${row.title}" will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await issueService.remove(row.id);
@@ -118,11 +118,11 @@ export function TestRunIssuesPage() {
 
   function handleArchive(row: IssueWithDetails) {
     confirmDialog({
-      header: 'Arsipkan Issue',
-      message: `Issue "${row.title}" akan diarsipkan (ditutup). Lanjutkan?`,
+      header: 'Archive Issue',
+      message: `Issue "${row.title}" will be archived (closed). Continue?`,
       icon: 'pi pi-info-circle',
-      acceptLabel: 'Arsipkan',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Archive',
+      rejectLabel: 'Cancel',
       accept: async () => {
         await issueService.changeStatus(row.id, 'closed');
         await reload();
@@ -136,10 +136,10 @@ export function TestRunIssuesPage() {
       <div className="font-medium">{row.code}</div>
       <div className="text-sm text-color-secondary">{row.title}</div>
       <div className="text-sm text-color-secondary">
-        Prioritas: <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />
+        Priority: <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />
       </div>
       <div className="text-sm text-color-secondary">Status: {ISSUE_STATUS_LABEL[row.status]}</div>
-      <div className="text-sm text-color-secondary">Ditugaskan ke: {row.assignee?.fullName ?? row.assignee?.email ?? '-'}</div>
+      <div className="text-sm text-color-secondary">Assigned to: {row.assignee?.fullName ?? row.assignee?.email ?? '-'}</div>
     </div>
   ), []);
 
@@ -159,7 +159,7 @@ export function TestRunIssuesPage() {
         actions={
           testResultId ? (
             <Button
-              label="Hapus Filter Test Case"
+              label="Clear Test Case Filter"
               icon="pi pi-times"
               size="small"
               text
@@ -174,18 +174,18 @@ export function TestRunIssuesPage() {
         loading={loading}
         paginator
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
-        emptyMessage="Belum ada issue"
+        emptyMessage="No issues yet"
         size="small"
         onRowClick={(e) => navigate(`/issues/${(e.data as IssueWithDetails).id}?testRunId=${id}`)}
         rowHover
         className="cursor-pointer"
       >
         {isMobile
-          ? <Column header="Kode" body={mobileBodyTemplate} />
-          : <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />
+          ? <Column header="Code" body={mobileBodyTemplate} />
+          : <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
         }
-        {!isMobile && <Column field="title" header="Judul" sortable />}
-        {!isMobile && <Column field="priority" header="Prioritas" body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} sortable />}
+        {!isMobile && <Column field="title" header="Title" sortable />}
+        {!isMobile && <Column field="priority" header="Priority" body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} sortable />}
         {!isMobile && (
           <Column
             field="status"
@@ -206,14 +206,14 @@ export function TestRunIssuesPage() {
         {!isMobile && (
           <Column
             field="assignee"
-            header="Ditugaskan Ke"
+            header="Assigned To"
             body={(row: IssueWithDetails) => (
               <div onClick={(e) => e.stopPropagation()}>
                 <Dropdown
                   value={row.assignedTo}
                   options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
                   onChange={(e) => handleAssign(row, e.value)}
-                  placeholder="Belum ditugaskan"
+                  placeholder="Unassigned"
                   showClear
                   disabled={!canManageIssues}
                   className="w-12rem"
@@ -228,12 +228,12 @@ export function TestRunIssuesPage() {
           body={(row: IssueWithDetails) => (
             <RowActionsMenu
               items={[
-                { label: 'Buka Detail', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}?testRunId=${id}`) },
-                ...(canManageIssues ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => handleDuplicate(row) }] : []),
+                { label: 'View Details', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}?testRunId=${id}`) },
+                ...(canManageIssues ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => handleDuplicate(row) }] : []),
                 ...(canDeleteContent
-                  ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) }]
+                  ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) }]
                   : canManageIssues && row.status !== 'closed'
-                    ? [{ label: 'Arsipkan', icon: 'pi pi-inbox', command: () => handleArchive(row) }]
+                    ? [{ label: 'Archive', icon: 'pi pi-inbox', command: () => handleArchive(row) }]
                     : []),
               ]}
             />

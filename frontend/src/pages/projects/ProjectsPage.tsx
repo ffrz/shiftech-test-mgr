@@ -32,10 +32,10 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
 
 const STATUS_OPTIONS: { label: string; value: ProjectStatus | 'all' }[] = [
-  { label: 'Semua Status', value: 'all' },
-  { label: 'Aktif', value: 'active' },
-  { label: 'Nonaktif', value: 'inactive' },
-  { label: 'Arsip', value: 'archived' },
+  { label: 'All Statuses', value: 'all' },
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' },
+  { label: 'Archived', value: 'archived' },
 ];
 
 export function ProjectsPage() {
@@ -68,7 +68,7 @@ export function ProjectsPage() {
       )}
       <div className="text-xs text-color-secondary">
         <i className="pi pi-calendar mr-1" />
-        Dibuat {formatDate(row.createdAt)}
+        Created {formatDate(row.createdAt)}
       </div>
     </div>
   ), []);
@@ -129,9 +129,9 @@ export function ProjectsPage() {
       }
       setDialogOpen(false);
       await reload();
-      toast.current?.show({ severity: 'success', summary: editingId ? 'Project diperbarui' : 'Project dibuat' });
+      toast.current?.show({ severity: 'success', summary: editingId ? 'Project updated' : 'Project created' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menyimpan project');
+      setError(err instanceof Error ? err.message : 'Failed to save project');
     }
   }
 
@@ -189,10 +189,10 @@ export function ProjectsPage() {
       );
       setDuplicateSourceProject(null);
       await reload();
-      toast.current?.show({ severity: 'success', summary: 'Project diduplikat' });
+      toast.current?.show({ severity: 'success', summary: 'Project duplicated' });
       navigate(`/projects/${created.id}`);
     } catch (err) {
-      setDuplicateError(err instanceof Error ? err.message : 'Gagal menduplikat project');
+      setDuplicateError(err instanceof Error ? err.message : 'Failed to duplicate project');
     } finally {
       setDuplicateLoading(false);
     }
@@ -201,26 +201,26 @@ export function ProjectsPage() {
   async function handleChangeStatus(row: Project, status: ProjectStatus) {
     await projectService.changeStatus(row.id, status);
     await reload();
-    toast.current?.show({ severity: 'success', summary: 'Status diperbarui', detail: row.name });
+    toast.current?.show({ severity: 'success', summary: 'Status updated', detail: row.name });
   }
 
   function handleDeletePermanently(row: Project) {
     confirmDialog({
-      header: 'Hapus Permanen',
+      header: 'Delete Permanently',
       message: (
         <span>
-          Project <strong>"{row.name}"</strong> beserta seluruh test plan dan test case di dalamnya akan{' '}
-          <strong>dihapus permanen dan tidak bisa dikembalikan</strong>. Lanjutkan?
+          Project <strong>"{row.name}"</strong> and all its test plans and test cases will be{' '}
+          <strong>permanently deleted and cannot be recovered</strong>. Continue?
         </span>
       ),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus Permanen',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete Permanently',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await projectService.deletePermanently(row.id);
         await reload();
-        toast.current?.show({ severity: 'success', summary: 'Project dihapus permanen', detail: row.name });
+        toast.current?.show({ severity: 'success', summary: 'Project permanently deleted', detail: row.name });
       },
     });
   }
@@ -237,21 +237,21 @@ export function ProjectsPage() {
 
   const menuItems = menuRow
     ? [
-      { label: 'Lihat Detail', icon: 'pi pi-eye', command: () => navigate(`/projects/${menuRow.id}`) },
+      { label: 'View Details', icon: 'pi pi-eye', command: () => navigate(`/projects/${menuRow.id}`) },
       { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditDialog(menuRow) },
-      { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateDialog(menuRow) },
+      { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(menuRow) },
       { separator: true },
       ...(menuRow.status !== 'active'
-        ? [{ label: 'Jadikan Aktif', icon: 'pi pi-play', command: () => handleChangeStatus(menuRow, 'active') }]
+        ? [{ label: 'Set Active', icon: 'pi pi-play', command: () => handleChangeStatus(menuRow, 'active') }]
         : []),
       ...(menuRow.status !== 'inactive'
-        ? [{ label: 'Jadikan Nonaktif', icon: 'pi pi-pause', command: () => handleChangeStatus(menuRow, 'inactive') }]
+        ? [{ label: 'Set Inactive', icon: 'pi pi-pause', command: () => handleChangeStatus(menuRow, 'inactive') }]
         : []),
       ...(menuRow.status !== 'archived'
-        ? [{ label: 'Arsipkan', icon: 'pi pi-inbox', command: () => handleChangeStatus(menuRow, 'archived') }]
+        ? [{ label: 'Archive', icon: 'pi pi-inbox', command: () => handleChangeStatus(menuRow, 'archived') }]
         : []),
       { separator: true },
-      { label: 'Hapus Permanen', icon: 'pi pi-trash', command: () => handleDeletePermanently(menuRow) },
+      { label: 'Delete Permanently', icon: 'pi pi-trash', command: () => handleDeletePermanently(menuRow) },
     ]
     : [];
 
@@ -263,14 +263,14 @@ export function ProjectsPage() {
 
       <Breadcrumb items={[{ label: 'Projects' }]} />
 
-      <PageHeader title="Projects" actions={<Button label="Project Baru" icon="pi pi-plus" size="small" onClick={openCreateDialog} />} />
+      <PageHeader title="Projects" actions={<Button label="New Project" icon="pi pi-plus" size="small" onClick={openCreateDialog} />} />
 
       <div className="flex gap-2 mb-3">
         <IconField iconPosition="left" className="flex-1">
           <InputIcon className="pi pi-search" />
           <InputText
             className="w-full"
-            placeholder="Cari project..."
+            placeholder="Search projects..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -289,7 +289,7 @@ export function ProjectsPage() {
         paginator
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         size="small"
-        emptyMessage="Belum ada project"
+        emptyMessage="No projects yet"
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : (sortDirection === 'asc' ? 1 : -1)}
         onSort={isMobile ? undefined : onSort}
@@ -300,8 +300,8 @@ export function ProjectsPage() {
         {isMobile && (
           <Column field="name" header="Project" body={mobileBody} />
         )}
-        {!isMobile && <Column field="name" header="Nama" sortable />}
-        {!isMobile && <Column field="description" header="Deskripsi" />}
+        {!isMobile && <Column field="name" header="Name" sortable />}
+        {!isMobile && <Column field="description" header="Description" />}
         {!isMobile && (
           <Column
             field="status"
@@ -310,7 +310,7 @@ export function ProjectsPage() {
           />
         )}
         {!isMobile && (
-          <Column field="createdAt" header="Dibuat" body={(row: Project) => formatDate(row.createdAt)} sortable />
+          <Column field="createdAt" header="Created" body={(row: Project) => formatDate(row.createdAt)} sortable />
         )}
         {!isMobile && (
           <Column
@@ -332,37 +332,37 @@ export function ProjectsPage() {
         )}
       </DataTable>
 
-      <Dialog header={editingId ? 'Edit Project' : 'Project Baru'} visible={dialogOpen} onHide={() => setDialogOpen(false)} style={{ width: '30rem' }}>
+      <Dialog header={editingId ? 'Edit Project' : 'New Project'} visible={dialogOpen} onHide={() => setDialogOpen(false)} style={{ width: '30rem' }}>
         <div className="flex flex-column gap-3">
           {error && <small className="p-error">{error}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="name">Nama</label>
+            <label htmlFor="name">Name</label>
             <InputText id="name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="description">Deskripsi</label>
+            <label htmlFor="description">Description</label>
             <InputTextarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
           </div>
           {!editingId && (
             <div className="flex flex-column gap-1">
-              <label htmlFor="project-template">Mulai dari Template (opsional)</label>
+              <label htmlFor="project-template">Start from Template (optional)</label>
               <Dropdown
                 id="project-template"
                 value={templateId}
                 options={templates.map((t) => ({ label: t.name, value: t.id }))}
                 onChange={(e) => setTemplateId(e.value)}
-                placeholder="Tanpa template"
+                placeholder="No template"
                 showClear
                 className="w-full"
               />
             </div>
           )}
-          <Button label="Simpan" size="small" onClick={handleSave} />
+          <Button label="Save" size="small" onClick={handleSave} />
         </div>
       </Dialog>
 
       <Dialog
-        header="Duplikat Project"
+        header="Duplicate Project"
         visible={!!duplicateSourceProject}
         onHide={() => setDuplicateSourceProject(null)}
         style={{ width: '40rem' }}
@@ -370,7 +370,7 @@ export function ProjectsPage() {
         <div className="flex flex-column gap-3">
           {duplicateError && <small className="p-error">{duplicateError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-project-name">Nama Project Baru</label>
+            <label htmlFor="duplicate-project-name">New Project Name</label>
             <InputText id="duplicate-project-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} autoFocus />
           </div>
 
@@ -382,11 +382,11 @@ export function ProjectsPage() {
                   checked={sourceTestPlans.length > 0 && selectedTestPlanIds.size === sourceTestPlans.length}
                   onChange={(e) => setSelectedTestPlanIds(e.checked ? new Set(sourceTestPlans.map((p) => p.id)) : new Set())}
                 />
-                <span className="text-sm text-color-secondary">Pilih Semua</span>
+                <span className="text-sm text-color-secondary">Select All</span>
               </div>
             </div>
             <div className="flex flex-column gap-1 p-2 border-round" style={{ border: '1px solid var(--surface-border)', maxHeight: '10rem', overflowY: 'auto' }}>
-              {sourceTestPlans.length === 0 && <span className="text-sm text-color-secondary">Tidak ada test plan.</span>}
+              {sourceTestPlans.length === 0 && <span className="text-sm text-color-secondary">No test plans.</span>}
               {sourceTestPlans.map((p) => (
                 <div key={p.id} className="flex align-items-center gap-2">
                   <Checkbox
@@ -408,11 +408,11 @@ export function ProjectsPage() {
                   checked={sourceTestCases.length > 0 && selectedTestCaseIds.size === sourceTestCases.length}
                   onChange={(e) => setSelectedTestCaseIds(e.checked ? new Set(sourceTestCases.map((c) => c.id)) : new Set())}
                 />
-                <span className="text-sm text-color-secondary">Pilih Semua</span>
+                <span className="text-sm text-color-secondary">Select All</span>
               </div>
             </div>
             <div className="flex flex-column gap-1 p-2 border-round" style={{ border: '1px solid var(--surface-border)', maxHeight: '10rem', overflowY: 'auto' }}>
-              {sourceTestCases.length === 0 && <span className="text-sm text-color-secondary">Tidak ada test case.</span>}
+              {sourceTestCases.length === 0 && <span className="text-sm text-color-secondary">No test cases.</span>}
               {sourceTestCases.map((c) => (
                 <div key={c.id} className="flex align-items-center gap-2">
                   <Checkbox
@@ -434,11 +434,11 @@ export function ProjectsPage() {
                   checked={sourceIssues.length > 0 && selectedIssueIds.size === sourceIssues.length}
                   onChange={(e) => setSelectedIssueIds(e.checked ? new Set(sourceIssues.map((i) => i.id)) : new Set())}
                 />
-                <span className="text-sm text-color-secondary">Pilih Semua</span>
+                <span className="text-sm text-color-secondary">Select All</span>
               </div>
             </div>
             <div className="flex flex-column gap-1 p-2 border-round" style={{ border: '1px solid var(--surface-border)', maxHeight: '10rem', overflowY: 'auto' }}>
-              {sourceIssues.length === 0 && <span className="text-sm text-color-secondary">Tidak ada issue.</span>}
+              {sourceIssues.length === 0 && <span className="text-sm text-color-secondary">No issues.</span>}
               {sourceIssues.map((i) => (
                 <div key={i.id} className="flex align-items-center gap-2">
                   <Checkbox
@@ -452,7 +452,7 @@ export function ProjectsPage() {
             </div>
           </div>
 
-          <Button label="Duplikat Project" size="small" loading={duplicateLoading} onClick={handleDuplicateProject} />
+          <Button label="Duplicate Project" size="small" loading={duplicateLoading} onClick={handleDuplicateProject} />
         </div>
       </Dialog>
     </div>
