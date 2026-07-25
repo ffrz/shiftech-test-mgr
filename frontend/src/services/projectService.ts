@@ -11,12 +11,12 @@ export const projectService = {
   },
 
   async create(input: { name: string; description?: string }) {
-    if (!input.name.trim()) throw new Error('Nama project tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Project name cannot be empty');
     return projectRepository.create({ name: input.name.trim(), description: input.description?.trim() || null });
   },
 
   async update(id: string, input: { name: string; description?: string }) {
-    if (!input.name.trim()) throw new Error('Nama project tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Project name cannot be empty');
     return projectRepository.update(id, { name: input.name.trim(), description: input.description?.trim() || null });
   },
 

@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useScreenSize } from '../../hooks/useScreenSize';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
@@ -66,7 +65,6 @@ import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
   ISSUE_STATUS_LABEL,
-  ISSUE_STATUS_SEVERITY,
   ISSUE_TYPE_LABEL,
   ISSUE_TYPE_SEVERITY,
 } from '../../helpers/statusLabels';
@@ -126,8 +124,6 @@ const TAB_DEPENDENCIES: (typeof TAB_QUERY_NAMES[number])[][] = [
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { lt } = useScreenSize();
-  const isMobile = lt.sm;
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
   const { canEditContent, canDeleteContent, canManageIssues, canRunTests } = useProjectRole(id);
@@ -248,12 +244,6 @@ export function ProjectDetailPage() {
   const [planDescription, setPlanDescription] = useState('');
   const [planError, setPlanError] = useState<string | null>(null);
 
-  // --- Duplicate test plan from the project's test plan list ---
-  const [duplicatePlanDialogOpen, setDuplicatePlanDialogOpen] = useState(false);
-  const [duplicatePlanSource, setDuplicatePlanSource] = useState<TestPlan | null>(null);
-  const [duplicatePlanName, setDuplicatePlanName] = useState('');
-  const [duplicatePlanError, setDuplicatePlanError] = useState<string | null>(null);
-
   // Test Plans: search/filter/sort/selection
   const [planSearch, setPlanSearch] = useState('');
   const [planStatusFilter, setPlanStatusFilter] = useState<TestPlanStatus | null>(null);
@@ -299,65 +289,43 @@ export function ProjectDetailPage() {
       }
       setPlanDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: editingPlanId ? 'Test plan diperbarui' : 'Test plan dibuat' });
+      toast.current?.show({ severity: 'success', summary: editingPlanId ? 'Test plan updated' : 'Test plan created' });
     } catch (err) {
-      setPlanError(err instanceof Error ? err.message : 'Gagal menyimpan test plan');
+      setPlanError(err instanceof Error ? err.message : 'Failed to save test plan');
     }
   }
 
   function handleDeletePlan(row: TestPlan) {
     confirmDialog({
-      header: 'Hapus Test Plan',
-      message: `Test plan "${row.name}" akan dihapus permanen. Lanjutkan?`,
+      header: 'Delete Test Plan',
+      message: `Test plan "${row.name}" will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testPlanService.remove(row.id);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test plan dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Test plan deleted' });
       },
     });
   }
 
   function handleBulkDeletePlans() {
     confirmDialog({
-      header: 'Hapus Test Plan Terpilih',
-      message: `${selectedPlans.length} test plan akan dihapus permanen. Lanjutkan?`,
+      header: 'Delete Selected Test Plans',
+      message: `${selectedPlans.length} test plan(s) will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedPlans.map((p) => testPlanService.remove(p.id)));
         setSelectedPlans([]);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test plan terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected test plans deleted' });
       },
     });
-  }
-
-  function openDuplicatePlanDialog(row: TestPlan) {
-    setDuplicatePlanSource(row);
-    setDuplicatePlanName(`${row.name} (Salinan)`);
-    setDuplicatePlanError(null);
-    setDuplicatePlanDialogOpen(true);
-  }
-
-  async function handleDuplicatePlan() {
-    if (!duplicatePlanSource) return;
-    setDuplicatePlanError(null);
-    try {
-      const newPlan = await testPlanService.duplicate(duplicatePlanSource.id, duplicatePlanName);
-      setDuplicatePlanDialogOpen(false);
-      setDuplicatePlanSource(null);
-      await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Test plan diduplikat' });
-      navigate(`/test-plans/${newPlan.id}`);
-    } catch (err) {
-      setDuplicatePlanError(err instanceof Error ? err.message : 'Gagal menduplikat test plan');
-    }
   }
 
   // --- Module quick-add (from Test Case dialog) ---
@@ -382,9 +350,9 @@ export function ProjectDetailPage() {
       setCaseModuleId(created.id);
       setModuleDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Module dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Module created' });
     } catch (err) {
-      setModuleError(err instanceof Error ? err.message : 'Gagal menyimpan module');
+      setModuleError(err instanceof Error ? err.message : 'Failed to save module');
     }
   }
 
@@ -408,9 +376,9 @@ export function ProjectDetailPage() {
       setCaseTargetRoleId(created.id);
       setTestRoleDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Role dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Role created' });
     } catch (err) {
-      setTestRoleError(err instanceof Error ? err.message : 'Gagal menyimpan role');
+      setTestRoleError(err instanceof Error ? err.message : 'Failed to save role');
     }
   }
 
@@ -434,9 +402,9 @@ export function ProjectDetailPage() {
       setCaseTags((prev) => [...prev, created.name]);
       setTagDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Tag dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Tag created' });
     } catch (err) {
-      setTagError(err instanceof Error ? err.message : 'Gagal menyimpan tag');
+      setTagError(err instanceof Error ? err.message : 'Failed to save tag');
     }
   }
 
@@ -596,13 +564,13 @@ export function ProjectDetailPage() {
       }
       setCaseDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: editingCaseId ? 'Test case diperbarui' : 'Test case dibuat' });
+      toast.current?.show({ severity: 'success', summary: editingCaseId ? 'Test case updated' : 'Test case created' });
     } catch (err) {
-      setCaseError(err instanceof Error ? err.message : 'Gagal menyimpan test case');
+      setCaseError(err instanceof Error ? err.message : 'Failed to save test case');
     }
   }
 
-  // --- Import Test Case dari Template ---
+  // --- Import Test Case from Template ---
   const [importTemplateDialogOpen, setImportTemplateDialogOpen] = useState(false);
   const [importTemplateId, setImportTemplateId] = useState<string | null>(null);
   const [importTemplateItems, setImportTemplateItems] = useState<TestCaseTemplateItem[]>([]);
@@ -639,15 +607,15 @@ export function ProjectDetailPage() {
       await testCaseTemplateService.cloneItemsToProject(id, importTemplateItemIds);
       setImportTemplateDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: `${importTemplateItemIds.length} test case diimpor` });
+      toast.current?.show({ severity: 'success', summary: `${importTemplateItemIds.length} test case(s) imported` });
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Gagal impor', detail: err instanceof Error ? err.message : undefined });
+      toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
     } finally {
       setImportTemplateLoading(false);
     }
   }
 
-  // --- Import Test Case dari Excel (state/handlers wired in the Excel import feature) ---
+  // --- Import Test Case from Excel (state/handlers wired in the Excel import feature) ---
   const [importExcelDialogOpen, setImportExcelDialogOpen] = useState(false);
 
   function openImportExcelDialog() {
@@ -656,14 +624,14 @@ export function ProjectDetailPage() {
 
   function handleArchiveCase(row: TestCase) {
     confirmDialog({
-      header: row.status === 'active' ? 'Arsipkan Test Case' : 'Aktifkan Kembali',
+      header: row.status === 'active' ? 'Archive Test Case' : 'Reactivate',
       message:
         row.status === 'active'
-          ? `Test case "${row.title}" akan diarsipkan dan tidak muncul di pemilihan test plan baru. Lanjutkan?`
-          : `Test case "${row.title}" akan diaktifkan kembali. Lanjutkan?`,
+          ? `Test case "${row.title}" will be archived and will no longer appear when selecting cases for a new test plan. Continue?`
+          : `Test case "${row.title}" will be reactivated. Continue?`,
       icon: 'pi pi-info-circle',
-      acceptLabel: row.status === 'active' ? 'Arsipkan' : 'Aktifkan',
-      rejectLabel: 'Batal',
+      acceptLabel: row.status === 'active' ? 'Archive' : 'Activate',
+      rejectLabel: 'Cancel',
       accept: async () => {
         if (row.status === 'active') {
           await testCaseService.archive(row.id);
@@ -677,33 +645,33 @@ export function ProjectDetailPage() {
 
   function handleDeleteCase(row: TestCase) {
     confirmDialog({
-      header: 'Hapus Test Case',
-      message: `Test case "${row.title}" akan dihapus permanen, termasuk seluruh riwayat hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Test Case',
+      message: `Test case "${row.title}" will be permanently deleted, including its entire execution history. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testCaseService.remove(row.id);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test case dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Test case deleted' });
       },
     });
   }
 
   function handleBulkDeleteCases() {
     confirmDialog({
-      header: 'Hapus Test Case Terpilih',
-      message: `${selectedCases.length} test case akan dihapus permanen, termasuk seluruh riwayat hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Selected Test Cases',
+      message: `${selectedCases.length} test case(s) will be permanently deleted, including their entire execution history. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedCases.map((c) => testCaseService.remove(c.id)));
         setSelectedCases([]);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test case terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected test cases deleted' });
       },
     });
   }
@@ -725,7 +693,7 @@ export function ProjectDetailPage() {
 
   function openCreateRunDialog() {
     setRunMode('plan');
-    setRunFormName(`Run ${new Date().toLocaleDateString('id-ID')}`);
+    setRunFormName(`Run ${new Date().toLocaleDateString('en-US')}`);
     setRunFormPlanId(null);
     setRunFormCaseIds([]);
     setRunFormError(null);
@@ -739,7 +707,7 @@ export function ProjectDetailPage() {
       const run =
         runMode === 'plan'
           ? await (async () => {
-            if (!runFormPlanId) throw new Error('Pilih test plan terlebih dahulu');
+            if (!runFormPlanId) throw new Error('Please select a test plan first');
             return testRunService.start(runFormPlanId, runFormName);
           })()
           : await testRunService.startCustom(id, runFormName, runFormCaseIds);
@@ -748,7 +716,7 @@ export function ProjectDetailPage() {
       await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(id) });
       navigate(`/test-runs/${run.id}`);
     } catch (err) {
-      setRunFormError(err instanceof Error ? err.message : 'Gagal membuat test run');
+      setRunFormError(err instanceof Error ? err.message : 'Failed to create test run');
     }
   }
 
@@ -763,33 +731,33 @@ export function ProjectDetailPage() {
 
   function handleDeleteRun(row: TestRunWithSummary) {
     confirmDialog({
-      header: 'Hapus Test Run',
-      message: `Test run "${row.name}" akan dihapus permanen, termasuk seluruh hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Test Run',
+      message: `Test run "${row.name}" will be permanently deleted, including all its results. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testRunService.remove(row.id);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test run dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Test run deleted' });
       },
     });
   }
 
   function handleBulkDeleteRuns() {
     confirmDialog({
-      header: 'Hapus Test Run Terpilih',
-      message: `${selectedRuns.length} test run akan dihapus permanen, termasuk seluruh hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Selected Test Runs',
+      message: `${selectedRuns.length} test run(s) will be permanently deleted, including all their results. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedRuns.map((r) => testRunService.remove(r.id)));
         setSelectedRuns([]);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Test run terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected test runs deleted' });
       },
     });
   }
@@ -837,7 +805,7 @@ export function ProjectDetailPage() {
     setIssueDialogOpen(true);
   }
 
-  // Prefills the same "Issue Baru" dialog from an existing row instead of opening a blank
+  // Prefills the same "New Issue" dialog from an existing row instead of opening a blank
   // one — submitting always creates a new issue (this dialog has no edit mode), so no
   // separate editingId bookkeeping is needed here unlike the Test Case dialog.
   function openDuplicateIssueDialog(row: IssueWithDetails) {
@@ -866,84 +834,28 @@ export function ProjectDetailPage() {
       });
       setIssueDialogOpen(false);
       await loadAll();
-      toast.current?.show({ severity: 'success', summary: 'Issue dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Issue created' });
     } catch (err) {
-      setIssueFormError(err instanceof Error ? err.message : 'Gagal membuat issue');
+      setIssueFormError(err instanceof Error ? err.message : 'Failed to create issue');
     }
   }
 
   function handleBulkDeleteIssues() {
     confirmDialog({
-      header: 'Hapus Issue Terpilih',
-      message: `${selectedIssues.length} issue akan dihapus permanen. Lanjutkan?`,
+      header: 'Delete Selected Issues',
+      message: `${selectedIssues.length} issue(s) will be permanently deleted. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await Promise.all(selectedIssues.map((i) => issueService.remove(i.id)));
         setSelectedIssues([]);
         await loadAll();
-        toast.current?.show({ severity: 'success', summary: 'Issue terpilih dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Selected issues deleted' });
       },
     });
   }
-
-  const mobilePlanBody = useCallback((row: TestPlan) => (
-    <div className="flex flex-column gap-1">
-      <div className="font-medium">{row.name}</div>
-      <div className="flex gap-2 align-items-center text-sm flex-wrap">
-        <span className="text-color-secondary">{row.code}</span>
-        <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />
-        <span className="text-color-secondary">{formatDateTime(row.updatedAt)}</span>
-      </div>
-    </div>
-  ), []);
-
-  const mobileCaseBody = useCallback((row: TestCaseWithDetails) => (
-    <div className="flex flex-column gap-1">
-      <div className="font-medium">{row.title}</div>
-      <div className="flex gap-2 align-items-center text-sm flex-wrap">
-        <span className="text-color-secondary">{row.code}</span>
-        <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
-        <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />
-        {row.module && <span className="text-color-secondary">{row.module.name}</span>}
-      </div>
-    </div>
-  ), []);
-
-  const mobileRunBody = useCallback((row: TestRunWithSummary) => (
-    <div className="flex flex-column gap-1">
-      <div className="font-medium">{row.name}</div>
-      <div className="text-sm text-color-secondary">{row.code}</div>
-      <div className="flex gap-1 align-items-center text-sm">
-        <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />
-      </div>
-      <div className="text-sm text-color-secondary">{row.pass} passed / {row.fail} failed</div>
-      <div className="text-sm text-color-secondary">
-        Tester: {row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-'}
-      </div>
-      <div className="text-sm text-color-secondary">
-        {row.completedAt ? formatDateTime(row.completedAt) : '-'}
-      </div>
-    </div>
-  ), []);
-
-  const mobileIssueBody = useCallback((row: IssueWithDetails) => (
-    <div className="flex flex-column gap-1">
-      <div className="font-medium">{row.title}</div>
-      <div className="flex gap-2 align-items-center text-sm flex-wrap">
-        <span className="text-color-secondary">{row.code}</span>
-        <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />
-        <Tag value={ISSUE_STATUS_LABEL[row.status]} severity={ISSUE_STATUS_SEVERITY[row.status]} />
-        <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />
-      </div>
-      <div className="text-sm text-color-secondary flex gap-2">
-        <span>Assignee: {row.assignee?.fullName ?? row.assignedTo ?? '-'}</span>
-        <span>{formatDateTime(row.updatedAt)}</span>
-      </div>
-    </div>
-  ), []);
 
   if (!project) {
     return (
@@ -951,10 +863,10 @@ export function ProjectDetailPage() {
         <Breadcrumb
           items={[
             { label: 'Projects', path: '/' },
-            { label: projectLoading ? '…' : 'Project tidak ditemukan' },
+            { label: projectLoading ? '…' : 'Project not found' },
           ]}
         />
-        {!projectLoading && <p>Project tidak ditemukan.</p>}
+        {!projectLoading && <p>Project not found.</p>}
       </div>
     );
   }
@@ -989,7 +901,7 @@ export function ProjectDetailPage() {
               <h2 className="m-0">{project.name}</h2>
               <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
             </div>
-            <p className="text-color-secondary text-sm m-0">{project.description || 'Tidak ada deskripsi'}</p>
+            <p className="text-color-secondary text-sm m-0">{project.description || 'No description'}</p>
           </div>
           <div className="flex gap-2">
             <Button text icon="pi pi-cog" outlined size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
@@ -997,8 +909,8 @@ export function ProjectDetailPage() {
         </div>
 
         <div className="flex flex-wrap gap-4 mt-3 text-sm">
-          <span className="text-color-secondary">Dibuat: <span className="text-color">{formatDateTime(project.createdAt)}</span></span>
-          <span className="text-color-secondary">Update Terakhir: <span className="text-color">{formatDateTime(project.updatedAt)}</span></span>
+          <span className="text-color-secondary">Created: <span className="text-color">{formatDateTime(project.createdAt)}</span></span>
+          <span className="text-color-secondary">Last Updated: <span className="text-color">{formatDateTime(project.updatedAt)}</span></span>
           <span className="text-color-secondary">Test Plan: <span className="text-color">{testPlans.length}</span></span>
           <span className="text-color-secondary">Test Case: <span className="text-color">{testCases.length}</span></span>
         </div>
@@ -1011,65 +923,63 @@ export function ProjectDetailPage() {
               <div className="flex align-items-center gap-2 flex-wrap">
                 <IconField iconPosition="left">
                   <InputIcon className="pi pi-search" />
-                  <InputText value={planSearch} onChange={(e) => setPlanSearch(e.target.value)} placeholder="Cari nama/kode..." />
+                  <InputText value={planSearch} onChange={(e) => setPlanSearch(e.target.value)} placeholder="Search name/code..." />
                 </IconField>
                 <Dropdown
                   value={planStatusFilter}
                   options={TEST_PLAN_STATUS_OPTIONS}
                   onChange={(e) => setPlanStatusFilter(e.value)}
-                  placeholder="Semua Status"
+                  placeholder="All Statuses"
                   showClear
                   className="w-12rem"
                 />
               </div>
-              {canEditContent && <Button label="Test Plan Baru" icon="pi pi-plus" size="small" onClick={openCreatePlanDialog} />}
+              {canEditContent && <Button label="New Test Plan" icon="pi pi-plus" size="small" onClick={openCreatePlanDialog} />}
             </div>
             {canDeleteContent && (
               <BulkActionsBar
                 selectedCount={selectedPlans.length}
                 onClear={() => setSelectedPlans([])}
-                actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeletePlans} />}
+                actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeletePlans} />}
               />
             )}
             <DataTable
               value={filteredPlans}
               loading={tabLoading[0]}
               size="small"
-              emptyMessage="Belum ada test plan"
+              emptyMessage="No test plans yet"
               onRowClick={(e) => navigate(`/test-plans/${(e.data as TestPlan).id}`)}
               rowHover
               className="cursor-pointer"
               paginator
               rows={5}
-              sortField={isMobile ? undefined : planSortField}
-              sortOrder={isMobile ? undefined : planSortOrder}
-              onSort={isMobile ? undefined : sortHandler(setPlanSortField, setPlanSortOrder)}
+              sortField={planSortField}
+              sortOrder={planSortOrder}
+              onSort={sortHandler(setPlanSortField, setPlanSortOrder)}
               selection={selectedPlans}
-              onSelectionChange={(e: any) => setSelectedPlans(e.value as TestPlan[])}
+              onSelectionChange={(e) => setSelectedPlans(e.value as TestPlan[])}
               dataKey="id"
-              selectionMode={isMobile ? null : 'checkbox'}
+              selectionMode="checkbox"
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
-              <Column field="name" header="Nama" sortable={!isMobile} body={isMobile ? mobilePlanBody : undefined} />
+              <Column selectionMode="multiple" style={{ width: '3rem' }} />
+              <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
+              <Column field="name" header="Name" sortable />
               <Column
                 field="status"
                 header="Status"
                 sortable
-                hidden={isMobile}
                 body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />}
               />
-              <Column field="updatedAt" header="Update Terakhir" sortable hidden={isMobile} body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
+              <Column field="updatedAt" header="Last Updated" sortable body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
               <Column
                 header=""
                 style={{ width: '3.5rem' }}
                 body={(row: TestPlan) => (
                   <RowActionsMenu
                     items={[
-                      ...(canEditContent ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicatePlanDialog(row) }] : []),
                       ...(canEditContent ? [{ label: 'Edit', icon: 'pi pi-pencil', command: () => openEditPlanDialog(row) }] : []),
                       ...(canDeleteContent
-                        ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeletePlan(row) }]
+                        ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeletePlan(row) }]
                         : []),
                     ]}
                   />
@@ -1083,13 +993,13 @@ export function ProjectDetailPage() {
               <div className="flex align-items-center gap-2 flex-wrap">
                 <IconField iconPosition="left">
                   <InputIcon className="pi pi-search" />
-                  <InputText value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} placeholder="Cari judul/kode..." />
+                  <InputText value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} placeholder="Search title/code..." />
                 </IconField>
                 <Dropdown
                   value={caseStatusFilter}
                   options={TEST_CASE_STATUS_OPTIONS}
                   onChange={(e) => setCaseStatusFilter(e.value)}
-                  placeholder="Semua Status"
+                  placeholder="All Statuses"
                   showClear
                   className="w-10rem"
                 />
@@ -1097,7 +1007,7 @@ export function ProjectDetailPage() {
                   value={casePriorityFilter}
                   options={PRIORITY_OPTIONS}
                   onChange={(e) => setCasePriorityFilter(e.value)}
-                  placeholder="Semua Prioritas"
+                  placeholder="All Priorities"
                   showClear
                   className="w-10rem"
                 />
@@ -1105,7 +1015,7 @@ export function ProjectDetailPage() {
                   value={caseModuleFilter}
                   options={moduleOptions}
                   onChange={(e) => setCaseModuleFilter(e.value)}
-                  placeholder="Semua Module"
+                  placeholder="All Modules"
                   showClear
                   className="w-10rem"
                 />
@@ -1113,7 +1023,7 @@ export function ProjectDetailPage() {
                   value={caseTagFilter}
                   options={tagOptions}
                   onChange={(e) => setCaseTagFilter(e.value)}
-                  placeholder="Semua Tag"
+                  placeholder="All Tags"
                   showClear
                   className="w-10rem"
                 />
@@ -1121,16 +1031,16 @@ export function ProjectDetailPage() {
                   value={caseTestRoleFilter}
                   options={testRoleOptions}
                   onChange={(e) => setCaseTestRoleFilter(e.value)}
-                  placeholder="Semua Role"
+                  placeholder="All Roles"
                   showClear
                   className="w-10rem"
                 />
               </div>
               {canEditContent && (
                 <div className="flex gap-2">
-                  <Button label="Import dari Template" icon="pi pi-copy" size="small" outlined onClick={openImportTemplateDialog} />
-                  <Button label="Import dari Excel" icon="pi pi-file-excel" size="small" outlined onClick={openImportExcelDialog} />
-                  <Button label="Test Case Baru" icon="pi pi-plus" size="small" onClick={openCreateCaseDialog} />
+                  <Button label="Import from Template" icon="pi pi-copy" size="small" outlined onClick={openImportTemplateDialog} />
+                  <Button label="Import from Excel" icon="pi pi-file-excel" size="small" outlined onClick={openImportExcelDialog} />
+                  <Button label="New Test Case" icon="pi pi-plus" size="small" onClick={openCreateCaseDialog} />
                 </div>
               )}
             </div>
@@ -1138,58 +1048,54 @@ export function ProjectDetailPage() {
               <BulkActionsBar
                 selectedCount={selectedCases.length}
                 onClear={() => setSelectedCases([])}
-                actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteCases} />}
+                actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteCases} />}
               />
             )}
             <DataTable
               value={filteredCases}
               loading={tabLoading[1]}
               size="small"
-              emptyMessage="Belum ada test case"
+              emptyMessage="No test cases yet"
               onRowClick={(e) => navigate(`/test-cases/${(e.data as TestCaseWithDetails).id}?projectId=${id}`)}
               rowHover
               className="cursor-pointer"
               paginator
               rows={5}
-              sortField={isMobile ? undefined : caseSortField}
-              sortOrder={isMobile ? undefined : caseSortOrder}
-              onSort={isMobile ? undefined : sortHandler(setCaseSortField, setCaseSortOrder)}
+              sortField={caseSortField}
+              sortOrder={caseSortOrder}
+              onSort={sortHandler(setCaseSortField, setCaseSortOrder)}
               selection={selectedCases}
-              onSelectionChange={(e: any) => setSelectedCases(e.value as TestCaseWithDetails[])}
+              onSelectionChange={(e) => setSelectedCases(e.value as TestCaseWithDetails[])}
               dataKey="id"
-              selectionMode={isMobile ? null : 'checkbox'}
+              selectionMode="checkbox"
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
-              <Column field="title" header="Judul" sortable={!isMobile} body={isMobile ? mobileCaseBody : undefined} />
-              <Column field="module.name" header="Module" sortable body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} hidden={isMobile} />
+              <Column selectionMode="multiple" style={{ width: '3rem' }} />
+              <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
+              <Column field="title" header="Title" sortable />
+              <Column field="module.name" header="Module" sortable body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} />
               <Column
                 field="priority"
-                header="Prioritas"
+                header="Priority"
                 sortable
-                hidden={isMobile}
                 body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />}
               />
               <Column
                 field="status"
                 header="Status"
                 sortable
-                hidden={isMobile}
                 body={(row: TestCaseWithDetails) => (
                   <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />
                 )}
               />
               <Column
                 field="targetRole.name"
-                header="Role Target"
+                header="Target Role"
                 sortable
-                hidden={isMobile}
                 body={(row: TestCaseWithDetails) => (row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-')}
               />
               <Column
                 field="tags"
-                header="Tag"
-                hidden={isMobile}
+                header="Tags"
                 body={(row: TestCaseWithDetails) => (
                   <div className="flex flex-wrap gap-1">
                     {row.tags.map((t) => (
@@ -1207,16 +1113,16 @@ export function ProjectDetailPage() {
                       ...(canEditContent
                         ? [
                           { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditCaseDialog(row) },
-                          { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateCaseDialog(row) },
+                          { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateCaseDialog(row) },
                           {
-                            label: row.status === 'active' ? 'Arsipkan' : 'Aktifkan',
+                            label: row.status === 'active' ? 'Archive' : 'Activate',
                             icon: row.status === 'active' ? 'pi pi-inbox' : 'pi pi-refresh',
                             command: () => handleArchiveCase(row),
                           },
                         ]
                         : []),
                       ...(canDeleteContent
-                        ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteCase(row) }]
+                        ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteCase(row) }]
                         : []),
                     ]}
                   />
@@ -1230,52 +1136,51 @@ export function ProjectDetailPage() {
               <div className="flex align-items-center gap-2 flex-wrap">
                 <IconField iconPosition="left">
                   <InputIcon className="pi pi-search" />
-                  <InputText value={runSearch} onChange={(e) => setRunSearch(e.target.value)} placeholder="Cari nama/kode..." />
+                  <InputText value={runSearch} onChange={(e) => setRunSearch(e.target.value)} placeholder="Search name/code..." />
                 </IconField>
                 <Dropdown
                   value={runStatusFilter}
                   options={TEST_RUN_STATUS_OPTIONS}
                   onChange={(e) => setRunStatusFilter(e.value)}
-                  placeholder="Semua Status"
+                  placeholder="All Statuses"
                   showClear
                   className="w-12rem"
                 />
               </div>
-              {canRunTests && <Button label="Buat Test Run" icon="pi pi-plus" size="small" onClick={openCreateRunDialog} />}
+              {canRunTests && <Button label="Create Test Run" icon="pi pi-plus" size="small" onClick={openCreateRunDialog} />}
             </div>
             {canDeleteContent && (
               <BulkActionsBar
                 selectedCount={selectedRuns.length}
                 onClear={() => setSelectedRuns([])}
-                actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteRuns} />}
+                actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteRuns} />}
               />
             )}
             <DataTable
               value={filteredRuns}
               loading={tabLoading[2]}
               size="small"
-              emptyMessage="Belum ada test run"
+              emptyMessage="No test runs yet"
               onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
               rowHover
               className="cursor-pointer"
               paginator
               rows={5}
-              sortField={isMobile ? undefined : runSortField}
-              sortOrder={isMobile ? undefined : runSortOrder}
-              onSort={isMobile ? undefined : sortHandler(setRunSortField, setRunSortOrder)}
+              sortField={runSortField}
+              sortOrder={runSortOrder}
+              onSort={sortHandler(setRunSortField, setRunSortOrder)}
               selection={selectedRuns}
-              onSelectionChange={(e: any) => setSelectedRuns(e.value as TestRunWithSummary[])}
+              onSelectionChange={(e) => setSelectedRuns(e.value as TestRunWithSummary[])}
               dataKey="id"
-              selectionMode={isMobile ? null : 'checkbox'}
+              selectionMode="checkbox"
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
-              <Column field="name" header="Nama Run" sortable={!isMobile} body={isMobile ? mobileRunBody : undefined} />
+              <Column selectionMode="multiple" style={{ width: '3rem' }} />
+              <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
+              <Column field="name" header="Run Name" sortable />
               <Column
                 header="Test Plan"
                 field="testPlanName"
                 sortable
-                hidden={isMobile}
                 body={(row: TestRunWithSummary) =>
                   row.testPlanId ? (
                     <a
@@ -1292,10 +1197,9 @@ export function ProjectDetailPage() {
                   )
                 }
               />
-              <Column field="status" header="Status" sortable hidden={isMobile} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
+              <Column field="status" header="Status" sortable body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
               <Column
-                header="Hasil"
-                hidden={isMobile}
+                header="Results"
                 body={(row: TestRunWithSummary) => (
                   <div className="flex gap-1 align-items-center">
                     <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
@@ -1306,19 +1210,18 @@ export function ProjectDetailPage() {
               />
               <Column
                 header="Tester"
-                hidden={isMobile}
                 body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
               />
-              <Column field="completedAt" header="Selesai" sortable hidden={isMobile} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
+              <Column field="completedAt" header="Completed" sortable body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
               <Column
                 header=""
                 style={{ width: '3.5rem' }}
                 body={(row: TestRunWithSummary) => (
                   <RowActionsMenu
                     items={[
-                      { label: 'Lihat Detail', icon: 'pi pi-eye', command: () => navigate(`/test-runs/${row.id}`) },
+                      { label: 'View Details', icon: 'pi pi-eye', command: () => navigate(`/test-runs/${row.id}`) },
                       ...(canDeleteContent
-                        ? [{ label: 'Hapus', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteRun(row) }]
+                        ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteRun(row) }]
                         : []),
                     ]}
                   />
@@ -1332,13 +1235,13 @@ export function ProjectDetailPage() {
               <div className="flex align-items-center gap-2 flex-wrap">
                 <IconField iconPosition="left">
                   <InputIcon className="pi pi-search" />
-                  <InputText value={issueSearch} onChange={(e) => setIssueSearch(e.target.value)} placeholder="Cari judul..." />
+                  <InputText value={issueSearch} onChange={(e) => setIssueSearch(e.target.value)} placeholder="Search title..." />
                 </IconField>
                 <Dropdown
                   value={issueStatusFilter}
                   options={ISSUE_STATUS_OPTIONS}
                   onChange={(e) => setIssueStatusFilter(e.value)}
-                  placeholder="Semua Status"
+                  placeholder="All Statuses"
                   showClear
                   className="w-11rem"
                 />
@@ -1346,7 +1249,7 @@ export function ProjectDetailPage() {
                   value={issuePriorityFilter}
                   options={ISSUE_PRIORITY_OPTIONS}
                   onChange={(e) => setIssuePriorityFilter(e.value)}
-                  placeholder="Semua Prioritas"
+                  placeholder="All Priorities"
                   showClear
                   className="w-11rem"
                 />
@@ -1354,7 +1257,7 @@ export function ProjectDetailPage() {
                   value={issueModuleFilter}
                   options={moduleOptions}
                   onChange={(e) => setIssueModuleFilter(e.value)}
-                  placeholder="Semua Module"
+                  placeholder="All Modules"
                   showClear
                   className="w-10rem"
                 />
@@ -1362,54 +1265,51 @@ export function ProjectDetailPage() {
                   value={issueTagFilter}
                   options={tagOptions}
                   onChange={(e) => setIssueTagFilter(e.value)}
-                  placeholder="Semua Tag"
+                  placeholder="All Tags"
                   showClear
                   className="w-10rem"
                 />
               </div>
-              {canManageIssues && <Button label="Issue Baru" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />}
+              {canManageIssues && <Button label="New Issue" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />}
             </div>
             {canDeleteContent && (
               <BulkActionsBar
                 selectedCount={selectedIssues.length}
                 onClear={() => setSelectedIssues([])}
-                actions={<Button label="Hapus Terpilih" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteIssues} />}
+                actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteIssues} />}
               />
             )}
             <DataTable
               value={filteredIssues}
               loading={tabLoading[3]}
               size="small"
-              emptyMessage="Belum ada issue"
+              emptyMessage="No issues yet"
               onRowClick={(e) => navigate(`/issues/${(e.data as IssueWithDetails).id}`)}
               rowHover
               className="cursor-pointer"
               paginator
               rows={5}
-              sortField={isMobile ? undefined : issueSortField}
-              sortOrder={isMobile ? undefined : issueSortOrder}
-              onSort={isMobile ? undefined : sortHandler(setIssueSortField, setIssueSortOrder)}
+              sortField={issueSortField}
+              sortOrder={issueSortOrder}
+              onSort={sortHandler(setIssueSortField, setIssueSortOrder)}
               selection={selectedIssues}
-              onSelectionChange={(e: any) => setSelectedIssues(e.value as IssueWithDetails[])}
+              onSelectionChange={(e) => setSelectedIssues(e.value as IssueWithDetails[])}
               dataKey="id"
-              selectionMode={isMobile ? null : 'checkbox'}
+              selectionMode="checkbox"
             >
-              <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-              <Column field="code" header="Kode" sortable style={{ width: '7rem' }} hidden={isMobile} />
-              <Column field="title" header="Judul" sortable={!isMobile} body={isMobile ? mobileIssueBody : undefined} />
+              <Column selectionMode="multiple" style={{ width: '3rem' }} />
+              <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
+              <Column field="title" header="Title" sortable />
               <Column
-                header="Tipe"
-                hidden={isMobile}
+                header="Type"
                 body={(row: IssueWithDetails) => <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />}
               />
               <Column
-                header="Modul"
-                hidden={isMobile}
+                header="Module"
                 body={(row: IssueWithDetails) => row.module?.name ?? '-'}
               />
               <Column
-                header="Tag"
-                hidden={isMobile}
+                header="Tags"
                 body={(row: IssueWithDetails) => (
                   <div className="flex flex-wrap gap-1">
                     {row.tags.length > 0 ? row.tags.map((t) => <Tag key={t.id} value={t.name} severity="info" />) : '-'}
@@ -1417,8 +1317,7 @@ export function ProjectDetailPage() {
                 )}
               />
               <Column
-                header="Ditautkan"
-                hidden={isMobile}
+                header="Linked"
                 body={(row: IssueWithDetails) =>
                   row.linkedTestResults.length > 0 ? (
                     <span className="text-sm">{row.linkedTestResults.length} Test Result</span>
@@ -1427,11 +1326,10 @@ export function ProjectDetailPage() {
                   )
                 }
               />
-              <Column field="priority" header="Prioritas" sortable hidden={isMobile} body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} />
+              <Column field="priority" header="Priority" sortable body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} />
               <Column
                 field="status"
                 header="Status"
-                hidden={isMobile}
                 body={(row: IssueWithDetails) => (
                   <div onClick={(e) => e.stopPropagation()}>
                     <Dropdown
@@ -1449,8 +1347,7 @@ export function ProjectDetailPage() {
               />
               <Column
                 field="assignedTo"
-                header="Ditugaskan Ke"
-                hidden={isMobile}
+                header="Assigned To"
                 body={(row: IssueWithDetails) => (
                   <div onClick={(e) => e.stopPropagation()}>
                     <Dropdown
@@ -1460,7 +1357,7 @@ export function ProjectDetailPage() {
                         issueService.assign(row.id, e.value);
                         patchIssue(row.id, { assignedTo: e.value });
                       }}
-                      placeholder="Belum ditugaskan"
+                      placeholder="Unassigned"
                       showClear
                       disabled={!canManageIssues}
                       className="w-11rem"
@@ -1474,26 +1371,26 @@ export function ProjectDetailPage() {
                 body={(row: IssueWithDetails) => (
                   <RowActionsMenu
                     items={[
-                      { label: 'Buka Detail', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}`) },
+                      { label: 'Open Details', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}`) },
                       ...(canManageIssues
-                        ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateIssueDialog(row) }]
+                        ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateIssueDialog(row) }]
                         : []),
                       ...(canManageIssues && row.status !== 'closed'
                         ? [
                           {
-                            label: 'Arsipkan',
+                            label: 'Archive',
                             icon: 'pi pi-inbox',
                             command: () => {
                               confirmDialog({
-                                header: 'Arsipkan Issue',
-                                message: `Issue "${row.title}" akan diarsipkan (ditutup). Lanjutkan?`,
+                                header: 'Archive Issue',
+                                message: `Issue "${row.title}" will be archived (closed). Continue?`,
                                 icon: 'pi pi-info-circle',
-                                acceptLabel: 'Arsipkan',
-                                rejectLabel: 'Batal',
+                                acceptLabel: 'Archive',
+                                rejectLabel: 'Cancel',
                                 accept: async () => {
                                   await issueService.changeStatus(row.id, 'closed');
                                   patchIssue(row.id, { status: 'closed' });
-                                  toast.current?.show({ severity: 'success', summary: 'Issue diarsipkan' });
+                                  toast.current?.show({ severity: 'success', summary: 'Issue archived' });
                                 },
                               });
                             },
@@ -1503,21 +1400,21 @@ export function ProjectDetailPage() {
                       ...(canDeleteContent
                         ? [
                           {
-                            label: 'Hapus',
+                            label: 'Delete',
                             icon: 'pi pi-trash',
                             className: 'p-error',
                             command: () => {
                               confirmDialog({
-                                header: 'Hapus Issue',
-                                message: `Issue "${row.title}" akan dihapus permanen. Lanjutkan?`,
+                                header: 'Delete Issue',
+                                message: `Issue "${row.title}" will be permanently deleted. Continue?`,
                                 icon: 'pi pi-exclamation-triangle',
-                                acceptLabel: 'Hapus',
-                                rejectLabel: 'Batal',
+                                acceptLabel: 'Delete',
+                                rejectLabel: 'Cancel',
                                 acceptClassName: 'p-button-danger',
                                 accept: async () => {
                                   await issueService.remove(row.id);
                                   await loadAll();
-                                  toast.current?.show({ severity: 'success', summary: 'Issue dihapus' });
+                                  toast.current?.show({ severity: 'success', summary: 'Issue deleted' });
                                 },
                               });
                             },
@@ -1535,7 +1432,7 @@ export function ProjectDetailPage() {
 
       {/* --- Test Plan Dialog --- */}
       <Dialog
-        header={editingPlanId ? 'Edit Test Plan' : 'Test Plan Baru'}
+        header={editingPlanId ? 'Edit Test Plan' : 'New Test Plan'}
         visible={planDialogOpen}
         onHide={() => setPlanDialogOpen(false)}
         style={{ width: '30rem' }}
@@ -1543,52 +1440,35 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {planError && <small className="p-error">{planError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="plan-code">Kode</label>
-            <InputText id="plan-code" value={planCode} onChange={(e) => setPlanCode(e.target.value)} placeholder="Otomatis jika dikosongkan" />
+            <label htmlFor="plan-code">Code</label>
+            <InputText id="plan-code" value={planCode} onChange={(e) => setPlanCode(e.target.value)} placeholder="Auto-generated if left blank" />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="plan-name">Nama</label>
+            <label htmlFor="plan-name">Name</label>
             <InputText id="plan-name" value={planName} onChange={(e) => setPlanName(e.target.value)} autoFocus />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="plan-description">Deskripsi</label>
+            <label htmlFor="plan-description">Description</label>
             <InputTextarea id="plan-description" value={planDescription} onChange={(e) => setPlanDescription(e.target.value)} rows={3} />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSavePlan} />
-        </div>
-      </Dialog>
-
-      {/* --- Duplicate Test Plan Dialog --- */}
-      <Dialog
-        header="Duplikat Test Plan"
-        visible={duplicatePlanDialogOpen}
-        onHide={() => setDuplicatePlanDialogOpen(false)}
-        style={{ width: '28rem' }}
-      >
-        <div className="flex flex-column gap-3">
-          {duplicatePlanError && <small className="p-error">{duplicatePlanError}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-plan-name">Nama Test Plan Baru</label>
-            <InputText id="duplicate-plan-name" value={duplicatePlanName} onChange={(e) => setDuplicatePlanName(e.target.value)} autoFocus />
-          </div>
-          <Button label="Duplikat" size="small" onClick={handleDuplicatePlan} />
+          <Button label="Save" size="small" onClick={handleSavePlan} />
         </div>
       </Dialog>
 
       {/* --- Create Test Run Dialog --- */}
-      <Dialog header="Buat Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '32rem' }}>
+      <Dialog header="Create Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '32rem' }}>
         <div className="flex flex-column gap-3">
           {runFormError && <small className="p-error">{runFormError}</small>}
           <SelectButton
             value={runMode}
             onChange={(e) => e.value && setRunMode(e.value)}
             options={[
-              { label: 'Dari Test Plan', value: 'plan' },
+              { label: 'From Test Plan', value: 'plan' },
               { label: 'Unplanned / Custom', value: 'custom' },
             ]}
           />
           <div className="flex flex-column gap-1">
-            <label htmlFor="run-name">Nama Run</label>
+            <label htmlFor="run-name">Run Name</label>
             <InputText id="run-name" value={runFormName} onChange={(e) => setRunFormName(e.target.value)} autoFocus />
           </div>
           {runMode === 'plan' ? (
@@ -1599,33 +1479,33 @@ export function ProjectDetailPage() {
                 value={runFormPlanId}
                 options={testPlans.map((p) => ({ label: `${p.code} — ${p.name}`, value: p.id }))}
                 onChange={(e) => setRunFormPlanId(e.value)}
-                placeholder="Pilih test plan"
+                placeholder="Select test plan"
                 className="w-full"
                 filter
               />
             </div>
           ) : (
             <div className="flex flex-column gap-1">
-              <label htmlFor="run-cases">Test Case</label>
+              <label htmlFor="run-cases">Test Cases</label>
               <MultiSelect
                 id="run-cases"
                 value={runFormCaseIds}
                 options={testCases.filter((c) => c.status === 'active').map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
                 onChange={(e) => setRunFormCaseIds(e.value)}
-                placeholder="Pilih test case"
+                placeholder="Select test cases"
                 filter
                 display="chip"
                 className="w-full"
               />
             </div>
           )}
-          <Button label="Buat" size="small" onClick={handleCreateRun} />
+          <Button label="Create" size="small" onClick={handleCreateRun} />
         </div>
       </Dialog>
 
       {/* --- Module Dialog --- */}
       <Dialog
-        header="Module Baru"
+        header="New Module"
         visible={moduleDialogOpen}
         onHide={() => setModuleDialogOpen(false)}
         onShow={() => moduleNameRef.current?.focus()}
@@ -1634,11 +1514,11 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {moduleError && <small className="p-error">{moduleError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-code">Kode</label>
-            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Otomatis jika dikosongkan" />
+            <label htmlFor="module-code">Code</label>
+            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Auto-generated if left blank" />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-name">Nama Module</label>
+            <label htmlFor="module-name">Module Name</label>
             <InputText
               id="module-name"
               ref={moduleNameRef}
@@ -1647,16 +1527,16 @@ export function ProjectDetailPage() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSaveModule();
               }}
-              placeholder="mis. Autentikasi, Dashboard, Pembelian"
+              placeholder="e.g. Authentication, Dashboard, Checkout"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveModule} />
+          <Button label="Save" size="small" onClick={handleSaveModule} />
         </div>
       </Dialog>
 
       {/* --- Tag Dialog --- */}
       <Dialog
-        header="Tag Baru"
+        header="New Tag"
         visible={tagDialogOpen}
         onHide={() => setTagDialogOpen(false)}
         onShow={() => tagNameRef.current?.focus()}
@@ -1665,7 +1545,7 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {tagError && <small className="p-error">{tagError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="tag-name">Nama Tag</label>
+            <label htmlFor="tag-name">Tag Name</label>
             <InputText
               id="tag-name"
               ref={tagNameRef}
@@ -1674,16 +1554,16 @@ export function ProjectDetailPage() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSaveTag();
               }}
-              placeholder="mis. Regression, Smoke, UI"
+              placeholder="e.g. Regression, Smoke, UI"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveTag} />
+          <Button label="Save" size="small" onClick={handleSaveTag} />
         </div>
       </Dialog>
 
       {/* --- Test Role Dialog --- */}
       <Dialog
-        header="Role Baru"
+        header="New Role"
         visible={testRoleDialogOpen}
         onHide={() => setTestRoleDialogOpen(false)}
         onShow={() => testRoleNameRef.current?.focus()}
@@ -1692,7 +1572,7 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {testRoleError && <small className="p-error">{testRoleError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="test-role-name">Nama Role</label>
+            <label htmlFor="test-role-name">Role Name</label>
             <InputText
               id="test-role-name"
               ref={testRoleNameRef}
@@ -1701,16 +1581,16 @@ export function ProjectDetailPage() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSaveTestRole();
               }}
-              placeholder="mis. Admin, Manager, Member"
+              placeholder="e.g. Admin, Manager, Member"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveTestRole} />
+          <Button label="Save" size="small" onClick={handleSaveTestRole} />
         </div>
       </Dialog>
 
       {/* --- Test Case Dialog --- */}
       <Dialog
-        header={editingCaseId ? 'Edit Test Case' : 'Test Case Baru'}
+        header={editingCaseId ? 'Edit Test Case' : 'New Test Case'}
         visible={caseDialogOpen}
         onHide={() => setCaseDialogOpen(false)}
         style={{ width: '40rem' }}
@@ -1719,8 +1599,8 @@ export function ProjectDetailPage() {
           {caseError && <small className="p-error">{caseError}</small>}
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-code">Kode</label>
-            <InputText id="case-code" value={caseCode} onChange={(e) => setCaseCode(e.target.value)} placeholder="Otomatis jika dikosongkan" className="w-10rem" />
+            <label htmlFor="case-code">Code</label>
+            <InputText id="case-code" value={caseCode} onChange={(e) => setCaseCode(e.target.value)} placeholder="Auto-generated if left blank" className="w-10rem" />
           </div>
 
           <div className="grid">
@@ -1733,7 +1613,7 @@ export function ProjectDetailPage() {
                   options={moduleOptions}
                   onChange={(e) => setCaseModuleId(e.value)}
                   editable
-                  placeholder="Pilih atau ketik module"
+                  placeholder="Select or type a module"
                   showClear
                   className="w-full"
                 />
@@ -1743,14 +1623,14 @@ export function ProjectDetailPage() {
                   text
                   rounded
                   size="small"
-                  aria-label="Module Baru"
+                  aria-label="New Module"
                   onClick={openCreateModuleDialogFromCase}
                   style={{ width: '2rem', height: '2rem', flexShrink: 0 }}
                 />
               </div>
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="case-priority">Prioritas</label>
+              <label htmlFor="case-priority">Priority</label>
               <Dropdown
                 id="case-priority"
                 value={casePriority}
@@ -1760,7 +1640,7 @@ export function ProjectDetailPage() {
               />
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="case-target-role">Role Target (opsional)</label>
+              <label htmlFor="case-target-role">Target Role (optional)</label>
               <div className="flex align-items-center gap-1">
                 <Dropdown
                   id="case-target-role"
@@ -1768,7 +1648,7 @@ export function ProjectDetailPage() {
                   options={testRoleOptions}
                   onChange={(e) => setCaseTargetRoleId(e.value)}
                   editable
-                  placeholder="Pilih atau ketik role"
+                  placeholder="Select or type a role"
                   showClear
                   className="w-full"
                 />
@@ -1778,7 +1658,7 @@ export function ProjectDetailPage() {
                   text
                   rounded
                   size="small"
-                  aria-label="Role Baru"
+                  aria-label="New Role"
                   onClick={openCreateTestRoleDialogFromCase}
                   style={{ width: '2rem', height: '2rem', flexShrink: 0 }}
                 />
@@ -1787,22 +1667,22 @@ export function ProjectDetailPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-title">Judul</label>
+            <label htmlFor="case-title">Title</label>
             <InputText id="case-title" value={caseTitle} onChange={(e) => setCaseTitle(e.target.value)} autoFocus />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-objective">Tujuan (opsional)</label>
+            <label htmlFor="case-objective">Objective (optional)</label>
             <InputText id="case-objective" value={caseObjective} onChange={(e) => setCaseObjective(e.target.value)} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-preconditions">Prasyarat</label>
+            <label htmlFor="case-preconditions">Preconditions</label>
             <InputTextarea id="case-preconditions" value={casePreconditions} onChange={(e) => setCasePreconditions(e.target.value)} rows={2} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label>Mode Langkah</label>
+            <label>Step Mode</label>
             <SelectButton
               value={caseStepType}
               options={[
@@ -1816,31 +1696,31 @@ export function ProjectDetailPage() {
           {caseStepType === 'simple' ? (
             <>
               <div className="flex flex-column gap-1">
-                <label htmlFor="case-steps">Langkah Pengujian</label>
+                <label htmlFor="case-steps">Test Steps</label>
                 <InputTextarea id="case-steps" value={caseSteps} onChange={(e) => setCaseSteps(e.target.value)} rows={4} />
               </div>
 
               <div className="flex flex-column gap-1">
-                <label htmlFor="case-expected">Hasil yang Diharapkan</label>
+                <label htmlFor="case-expected">Expected Result</label>
                 <InputTextarea id="case-expected" value={caseExpectedResult} onChange={(e) => setCaseExpectedResult(e.target.value)} rows={3} />
               </div>
             </>
           ) : (
             <div className="flex flex-column gap-2">
-              <label>Langkah Pengujian (Detailed)</label>
+              <label>Test Steps (Detailed)</label>
               {caseDetailedSteps.map((step, i) => (
                 <div key={i} className="flex gap-2 align-items-start p-2 border-round surface-100">
                   <span className="text-color-secondary text-sm mt-2">{i + 1}.</span>
                   <div className="flex flex-column gap-1 flex-grow-1">
                     <InputText
-                      placeholder="Aksi"
+                      placeholder="Action"
                       value={step.action}
                       onChange={(e) =>
                         setCaseDetailedSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, action: e.target.value } : s)))
                       }
                     />
                     <InputText
-                      placeholder="Hasil yang diharapkan (opsional)"
+                      placeholder="Expected result (optional)"
                       value={step.expectedResult}
                       onChange={(e) =>
                         setCaseDetailedSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, expectedResult: e.target.value } : s)))
@@ -1851,7 +1731,7 @@ export function ProjectDetailPage() {
                 </div>
               ))}
               <Button
-                label="Tambah Langkah"
+                label="Add Step"
                 icon="pi pi-plus"
                 text
                 size="small"
@@ -1861,33 +1741,33 @@ export function ProjectDetailPage() {
           )}
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-tags">Tag</label>
+            <label htmlFor="case-tags">Tags</label>
             <div className="flex align-items-center gap-1">
               <MultiSelect
                 id="case-tags"
                 value={caseTags}
                 options={tags.map((t) => ({ label: t.name, value: t.name }))}
                 onChange={(e) => setCaseTags(e.value ?? [])}
-                placeholder="Pilih tag"
+                placeholder="Select tags"
                 display="chip"
                 filter
                 className="w-full"
               />
-              <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="Tag Baru" onClick={openCreateTagDialogFromCase} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
+              <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="New Tag" onClick={openCreateTagDialogFromCase} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
             </div>
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-notes">Catatan (opsional)</label>
+            <label htmlFor="case-notes">Notes (optional)</label>
             <InputTextarea id="case-notes" value={caseNotes} onChange={(e) => setCaseNotes(e.target.value)} rows={2} />
           </div>
 
-          <Button label="Simpan" size="small" onClick={handleSaveCase} />
+          <Button label="Save" size="small" onClick={handleSaveCase} />
         </div>
       </Dialog>
 
-      {/* --- Import Test Case dari Template Dialog --- */}
-      <Dialog header="Import dari Template" visible={importTemplateDialogOpen} onHide={() => setImportTemplateDialogOpen(false)} style={{ width: '34rem' }}>
+      {/* --- Import Test Case from Template Dialog --- */}
+      <Dialog header="Import from Template" visible={importTemplateDialogOpen} onHide={() => setImportTemplateDialogOpen(false)} style={{ width: '34rem' }}>
         <div className="flex flex-column gap-3">
           <div className="flex flex-column gap-1">
             <label htmlFor="import-template">Template</label>
@@ -1896,20 +1776,20 @@ export function ProjectDetailPage() {
               value={importTemplateId}
               options={availableTemplates.map((t) => ({ label: t.name, value: t.id }))}
               onChange={(e) => handleSelectImportTemplate(e.value)}
-              placeholder="Pilih template"
+              placeholder="Select template"
               className="w-full"
               filter
             />
           </div>
           {importTemplateId && (
             <div className="flex flex-column gap-1">
-              <label htmlFor="import-template-items">Item</label>
+              <label htmlFor="import-template-items">Items</label>
               <MultiSelect
                 id="import-template-items"
                 value={importTemplateItemIds}
                 options={importTemplateItems.map((i) => ({ label: i.title, value: i.id }))}
                 onChange={(e) => setImportTemplateItemIds(e.value ?? [])}
-                placeholder="Pilih item test case"
+                placeholder="Select test case items"
                 filter
                 display="chip"
                 className="w-full"
@@ -1917,7 +1797,7 @@ export function ProjectDetailPage() {
             </div>
           )}
           <Button
-            label={`Import ${importTemplateItemIds.length > 0 ? importTemplateItemIds.length : ''} Test Case`}
+            label={`Import ${importTemplateItemIds.length > 0 ? importTemplateItemIds.length : ''} Test Case(s)`}
             size="small"
             loading={importTemplateLoading}
             disabled={importTemplateItemIds.length === 0}
@@ -1926,59 +1806,59 @@ export function ProjectDetailPage() {
         </div>
       </Dialog>
 
-      {/* --- Import Test Case dari Excel Dialog --- */}
-      <Dialog header="Import dari Excel" visible={importExcelDialogOpen} onHide={() => setImportExcelDialogOpen(false)} style={{ width: '40rem' }}>
+      {/* --- Import Test Case from Excel Dialog --- */}
+      <Dialog header="Import from Excel" visible={importExcelDialogOpen} onHide={() => setImportExcelDialogOpen(false)} style={{ width: '40rem' }}>
         <ExcelImportPanel projectId={id ?? ''} onImported={async () => { setImportExcelDialogOpen(false); await loadAll(); }} />
       </Dialog>
 
       {/* --- Issue Dialog (standalone, project-level) --- */}
-      <Dialog header="Issue Baru" visible={issueDialogOpen} onHide={() => setIssueDialogOpen(false)} style={{ width: '32rem' }}>
+      <Dialog header="New Issue" visible={issueDialogOpen} onHide={() => setIssueDialogOpen(false)} style={{ width: '32rem' }}>
         <div className="flex flex-column gap-3">
           {issueFormError && <small className="p-error">{issueFormError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-new-title">Judul</label>
+            <label htmlFor="issue-new-title">Title</label>
             <InputText id="issue-new-title" value={issueTitle} onChange={(e) => setIssueTitle(e.target.value)} autoFocus />
           </div>
           <div className="grid">
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-new-type">Tipe</label>
+              <label htmlFor="issue-new-type">Type</label>
               <Dropdown id="issue-new-type" value={issueType} options={ISSUE_TYPE_OPTIONS} onChange={(e) => setIssueType(e.value)} className="w-full" />
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-new-priority">Prioritas</label>
+              <label htmlFor="issue-new-priority">Priority</label>
               <Dropdown id="issue-new-priority" value={issuePriorityValue} options={ISSUE_PRIORITY_OPTIONS} onChange={(e) => setIssuePriorityValue(e.value)} className="w-full" />
             </div>
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-new-module">Modul (opsional)</label>
+            <label htmlFor="issue-new-module">Module (optional)</label>
             <Dropdown
               id="issue-new-module"
               value={issueModuleId}
               options={moduleOptions}
               onChange={(e) => setIssueModuleId(e.value)}
               showClear
-              placeholder="Tidak terikat module"
+              placeholder="Not tied to a module"
               className="w-full"
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-new-tags">Tag</label>
+            <label htmlFor="issue-new-tags">Tags</label>
             <MultiSelect
               id="issue-new-tags"
               value={issueTagNames}
               options={tags.map((t) => ({ label: t.name, value: t.name }))}
               onChange={(e) => setIssueTagNames(e.value ?? [])}
-              placeholder="Pilih tag"
+              placeholder="Select tags"
               display="chip"
               filter
               className="w-full"
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-new-description">Deskripsi (opsional)</label>
+            <label htmlFor="issue-new-description">Description (optional)</label>
             <InputTextarea id="issue-new-description" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} rows={3} />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveIssue} />
+          <Button label="Save" size="small" onClick={handleSaveIssue} />
         </div>
       </Dialog>
 
