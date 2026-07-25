@@ -689,9 +689,10 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
 }
 
 /* Theme bug: PrimeReact's lara-light-blue sets both color and background to
-   the same teal (#0f766e) on highlighted dropdown items — use primary tint
-   so the text stays readable. */
-.p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
+   the same teal (#0f766e) on highlighted dropdown/multiselect items — use
+   primary tint so the text stays readable instead of solid high-contrast fill. */
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight,
+.p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight {
   color: var(--primary-color);
   background: var(--primary-50, var(--surface-100));
 }
