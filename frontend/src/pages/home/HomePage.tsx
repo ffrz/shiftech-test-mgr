@@ -69,15 +69,15 @@ export function HomePage() {
 
       <div className="mb-4">
         <h3 className="mb-2">Recent Projects</h3>
-        <Card>
+        <Card pt={{ body: { className: 'p-2' }, content: { className: 'p-0' } }}>
           {recentProjects.length === 0 && !loading && (
             <span className="text-color-secondary">No projects yet.</span>
           )}
-          <div className="flex flex-column gap-2">
+          <div className="flex flex-column gap-1">
             {recentProjects.map((project) => (
               <div
                 key={project.id}
-                className="flex align-items-center justify-content-between gap-3 p-2 border-round cursor-pointer hover:surface-100"
+                className="flex align-items-center justify-content-between gap-3 p-1 border-round cursor-pointer hover:surface-100"
                 onClick={() => navigate(`/projects/${project.id}`)}
               >
                 <span className="font-medium">{project.name}</span>
