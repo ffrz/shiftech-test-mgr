@@ -466,9 +466,9 @@ export function ProjectSettingsPage() {
     </div>
   ), []);
 
-  if (loading || roleLoading) return <p>Memuat...</p>;
+  if (loading || roleLoading) return <p>Loading...</p>;
   if (!canManageSettings) return <Navigate to={`/projects/${id}`} replace />;
-  if (!project) return <p>Project tidak ditemukan.</p>;
+  if (!project) return <p>Project not found.</p>;
 
   return (
     <div>
@@ -545,7 +545,7 @@ export function ProjectSettingsPage() {
 
           <TabPanel header="Tags">
             <p className="text-color-secondary text-sm mb-3">
-              Tag juga otomatis dibuat saat diketik di form Test Case. Kelola tag di sini.
+              Tags are also created automatically when typed in the Test Case form. Manage tags here.
             </p>
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <IconField iconPosition="left">
@@ -767,7 +767,7 @@ export function ProjectSettingsPage() {
           {moduleError && <small className="p-error">{moduleError}</small>}
           <div className="flex flex-column gap-1">
             <label htmlFor="module-code">Kode</label>
-            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Otomatis jika dikosongkan" />
+            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Automatic if left empty" />
           </div>
           <div className="flex flex-column gap-1">
             <label htmlFor="module-name">Nama Module</label>
@@ -870,7 +870,7 @@ export function ProjectSettingsPage() {
               className="w-full"
             />
           </div>
-          <Button label="Tambah" size="small" onClick={handleAddMember} />
+          <Button label="Add" size="small" onClick={handleAddMember} />
         </div>
       </Dialog>
     </div>

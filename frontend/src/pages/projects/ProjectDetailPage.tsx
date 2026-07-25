@@ -1165,7 +1165,7 @@ export function ProjectDetailPage() {
               <Column field="module.name" header="Module" sortable body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} hidden={isMobile} />
               <Column
                 field="priority"
-                header="Prioritas"
+                header="Priority"
                 sortable
                 hidden={isMobile}
                 body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />}
@@ -1309,7 +1309,7 @@ export function ProjectDetailPage() {
                 hidden={isMobile}
                 body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
               />
-              <Column field="completedAt" header="Selesai" sortable hidden={isMobile} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
+              <Column field="completedAt" header="Completed" sortable hidden={isMobile} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
               <Column
                 header=""
                 style={{ width: '3.5rem' }}
@@ -1417,7 +1417,7 @@ export function ProjectDetailPage() {
                 )}
               />
               <Column
-                header="Ditautkan"
+                header="Linked"
                 hidden={isMobile}
                 body={(row: IssueWithDetails) =>
                   row.linkedTestResults.length > 0 ? (
@@ -1427,7 +1427,7 @@ export function ProjectDetailPage() {
                   )
                 }
               />
-              <Column field="priority" header="Prioritas" sortable hidden={isMobile} body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} />
+              <Column field="priority" header="Priority" sortable hidden={isMobile} body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} />
               <Column
                 field="status"
                 header="Status"
@@ -1449,7 +1449,7 @@ export function ProjectDetailPage() {
               />
               <Column
                 field="assignedTo"
-                header="Ditugaskan Ke"
+                header="Assigned To"
                 hidden={isMobile}
                 body={(row: IssueWithDetails) => (
                   <div onClick={(e) => e.stopPropagation()}>
@@ -1544,7 +1544,7 @@ export function ProjectDetailPage() {
           {planError && <small className="p-error">{planError}</small>}
           <div className="flex flex-column gap-1">
             <label htmlFor="plan-code">Kode</label>
-            <InputText id="plan-code" value={planCode} onChange={(e) => setPlanCode(e.target.value)} placeholder="Otomatis jika dikosongkan" />
+            <InputText id="plan-code" value={planCode} onChange={(e) => setPlanCode(e.target.value)} placeholder="Automatic if left empty" />
           </div>
           <div className="flex flex-column gap-1">
             <label htmlFor="plan-name">Nama</label>
@@ -1635,7 +1635,7 @@ export function ProjectDetailPage() {
           {moduleError && <small className="p-error">{moduleError}</small>}
           <div className="flex flex-column gap-1">
             <label htmlFor="module-code">Kode</label>
-            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Otomatis jika dikosongkan" />
+            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Automatic if left empty" />
           </div>
           <div className="flex flex-column gap-1">
             <label htmlFor="module-name">Nama Module</label>
@@ -1720,7 +1720,7 @@ export function ProjectDetailPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="case-code">Kode</label>
-            <InputText id="case-code" value={caseCode} onChange={(e) => setCaseCode(e.target.value)} placeholder="Otomatis jika dikosongkan" className="w-10rem" />
+            <InputText id="case-code" value={caseCode} onChange={(e) => setCaseCode(e.target.value)} placeholder="Automatic if left empty" className="w-10rem" />
           </div>
 
           <div className="grid">
@@ -1750,7 +1750,7 @@ export function ProjectDetailPage() {
               </div>
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="case-priority">Prioritas</label>
+              <label htmlFor="case-priority">Priority</label>
               <Dropdown
                 id="case-priority"
                 value={casePriority}
@@ -1760,7 +1760,7 @@ export function ProjectDetailPage() {
               />
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="case-target-role">Role Target (opsional)</label>
+              <label htmlFor="case-target-role">Target Role (optional)</label>
               <div className="flex align-items-center gap-1">
                 <Dropdown
                   id="case-target-role"
@@ -1792,17 +1792,17 @@ export function ProjectDetailPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-objective">Tujuan (opsional)</label>
+            <label htmlFor="case-objective">Objective (optional)</label>
             <InputText id="case-objective" value={caseObjective} onChange={(e) => setCaseObjective(e.target.value)} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="case-preconditions">Prasyarat</label>
+            <label htmlFor="case-preconditions">Preconditions</label>
             <InputTextarea id="case-preconditions" value={casePreconditions} onChange={(e) => setCasePreconditions(e.target.value)} rows={2} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label>Mode Langkah</label>
+            <label>Step Mode</label>
             <SelectButton
               value={caseStepType}
               options={[
@@ -1816,18 +1816,18 @@ export function ProjectDetailPage() {
           {caseStepType === 'simple' ? (
             <>
               <div className="flex flex-column gap-1">
-                <label htmlFor="case-steps">Langkah Pengujian</label>
+                <label htmlFor="case-steps">Test Steps</label>
                 <InputTextarea id="case-steps" value={caseSteps} onChange={(e) => setCaseSteps(e.target.value)} rows={4} />
               </div>
 
               <div className="flex flex-column gap-1">
-                <label htmlFor="case-expected">Hasil yang Diharapkan</label>
+                <label htmlFor="case-expected">Expected Result</label>
                 <InputTextarea id="case-expected" value={caseExpectedResult} onChange={(e) => setCaseExpectedResult(e.target.value)} rows={3} />
               </div>
             </>
           ) : (
             <div className="flex flex-column gap-2">
-              <label>Langkah Pengujian (Detailed)</label>
+              <label>Test Steps (Detailed)</label>
               {caseDetailedSteps.map((step, i) => (
                 <div key={i} className="flex gap-2 align-items-start p-2 border-round surface-100">
                   <span className="text-color-secondary text-sm mt-2">{i + 1}.</span>
@@ -1840,7 +1840,7 @@ export function ProjectDetailPage() {
                       }
                     />
                     <InputText
-                      placeholder="Hasil yang diharapkan (opsional)"
+                      placeholder="Expected result (optional)"
                       value={step.expectedResult}
                       onChange={(e) =>
                         setCaseDetailedSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, expectedResult: e.target.value } : s)))
@@ -1851,7 +1851,7 @@ export function ProjectDetailPage() {
                 </div>
               ))}
               <Button
-                label="Tambah Langkah"
+                label="Add Step"
                 icon="pi pi-plus"
                 text
                 size="small"
@@ -1945,12 +1945,12 @@ export function ProjectDetailPage() {
               <Dropdown id="issue-new-type" value={issueType} options={ISSUE_TYPE_OPTIONS} onChange={(e) => setIssueType(e.value)} className="w-full" />
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-new-priority">Prioritas</label>
+              <label htmlFor="issue-new-priority">Priority</label>
               <Dropdown id="issue-new-priority" value={issuePriorityValue} options={ISSUE_PRIORITY_OPTIONS} onChange={(e) => setIssuePriorityValue(e.value)} className="w-full" />
             </div>
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-new-module">Modul (opsional)</label>
+            <label htmlFor="issue-new-module">Module (optional)</label>
             <Dropdown
               id="issue-new-module"
               value={issueModuleId}
@@ -1975,7 +1975,7 @@ export function ProjectDetailPage() {
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-new-description">Description (opsional)</label>
+            <label htmlFor="issue-new-description">Description (optional)</label>
             <InputTextarea id="issue-new-description" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} rows={3} />
           </div>
           <Button label="Save" size="small" onClick={handleSaveIssue} />

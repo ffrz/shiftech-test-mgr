@@ -95,7 +95,7 @@ export const testCaseTemplateService = {
       if (!input.steps.trim()) throw new Error('Test steps cannot be empty');
       if (!input.expectedResult.trim()) throw new Error('Expected result cannot be empty');
     } else if (!input.detailedSteps?.length) {
-      throw new Error('Test case detailed harus punya minimal satu langkah');
+      throw new Error('A detailed test case must have at least one step');
     }
 
     const item = await testCaseTemplateRepository.createItem({
