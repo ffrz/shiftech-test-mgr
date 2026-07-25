@@ -85,7 +85,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
       <Toast ref={toast} />
       <ul className="layout-menu">
         {mainItems.map((item) => (
-          <AppMenuitem key={item.url} item={item} onNavigate={onNavigate} />
+          <AppMenuitem key={item.url ?? item.label} item={item} onNavigate={onNavigate} />
         ))}
 
         <AppMenuSeparator />
