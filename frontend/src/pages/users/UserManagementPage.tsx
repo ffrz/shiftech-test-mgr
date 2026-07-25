@@ -35,7 +35,8 @@ export function UserManagementPage() {
     enabled: users.length > 0,
   });
   const profileById = new Map<string, Profile>(profiles.map((p) => [p.id, p]));
-  const displayNameFor = (row: User) => profileById.get(row.id)?.displayName ?? profileById.get(row.id)?.username ?? '—';
+  const displayNameFor = (row: User) => profileById.get(row.id)?.displayName ?? '—';
+  const usernameFor = (row: User) => profileById.get(row.id)?.username ?? '—';
 
   async function handlePromote(row: User) {
     await userService.promoteToAdmin(row.id);
@@ -71,6 +72,8 @@ export function UserManagementPage() {
   const mobileBodyTemplate = useCallback((row: User) => (
     <div className="flex flex-column gap-2 py-1">
       <span className="font-bold">{displayNameFor(row)}</span>
+      <span className="text-sm text-color-secondary">@{usernameFor(row)}</span>
+      <span className="text-sm text-color-secondary">{row.email}</span>
       <span className="text-sm text-color-secondary">
         <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />
       </span>
@@ -120,6 +123,8 @@ export function UserManagementPage() {
       >
         {isMobile && <Column body={mobileBodyTemplate} />}
         {!isMobile && <Column header="Name" body={displayNameFor} />}
+        {!isMobile && <Column header="Username" body={usernameFor} />}
+        {!isMobile && <Column field="email" header="Email" sortable />}
         {!isMobile && <Column field="role" header="Role" body={(row: User) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />} sortable />}
         {!isMobile && <Column field="createdAt" header="Registered" body={(row: User) => formatDateTime(row.createdAt)} sortable />}
         <Column
