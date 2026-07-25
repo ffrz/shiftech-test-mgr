@@ -17,6 +17,7 @@ import { queryKeys } from '../../hooks/queryKeys';
 import type { TestPlan, TestPlanStatus } from '../../types/domain';
 import { formatDate } from '../../helpers/dateFormatter';
 import { useScreenSize } from '../../hooks/useScreenSize';
+import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -81,6 +82,7 @@ export function TestPlansPage() {
   return (
     <div>
       <Toast ref={toast} />
+      <Breadcrumb items={[{ label: 'Test Plans' }]} />
       <PageHeader
         title="Test Plans"
         actions={
