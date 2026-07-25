@@ -8,7 +8,9 @@ export function AppSidebar() {
 
   return (
     <div className="layout-sidebar">
-      <div className="layout-sidebar-header">
+      {/* Desktop: topbar already shows the Testify logo and the toggle button,
+          so this header row (duplicate logo + close button) is mobile/tablet-only. */}
+      <div className="layout-sidebar-header layout-sidebar-header-mobile">
         <Link to="/" className="layout-sidebar-logo" onClick={closeMenu}>
           <i className="pi pi-check-square" />
           <span>Testify</span>
