@@ -287,7 +287,7 @@ export function ProjectsPage() {
         value={projects}
         loading={loading}
         paginator
-        rows={5}
+        rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         size="small"
         emptyMessage="Belum ada project"
         sortField={isMobile ? undefined : sortField}

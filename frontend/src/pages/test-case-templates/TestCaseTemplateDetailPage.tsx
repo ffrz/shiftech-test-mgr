@@ -239,7 +239,7 @@ export function TestCaseTemplateDetailPage() {
         actions={isAdmin ? <Button label="Item Baru" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} /> : undefined}
       />
 
-      <DataTable value={items} loading={loading} paginator rows={5} emptyMessage="Belum ada item" size="small">
+      <DataTable value={items} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="Belum ada item" size="small">
         {isMobile
           ? <Column header="Judul" body={mobileBodyTemplate} />
           : <Column field="title" header="Judul" sortable />

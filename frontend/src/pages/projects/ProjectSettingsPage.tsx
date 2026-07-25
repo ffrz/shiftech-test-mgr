@@ -510,7 +510,7 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="Belum ada module"
               paginator
-              rows={5}
+              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={moduleSortField}
               sortOrder={moduleSortOrder}
               onSort={(e) => {
@@ -564,7 +564,7 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="Belum ada tag"
               paginator
-              rows={5}
+              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={tagSortField}
               sortOrder={tagSortOrder}
               onSort={(e) => {
@@ -618,7 +618,7 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="Belum ada role"
               paginator
-              rows={5}
+              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={testRoleSortField}
               sortOrder={testRoleSortOrder}
               onSort={(e) => {
@@ -668,7 +668,7 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="Belum ada anggota"
               paginator
-              rows={5}
+              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               selection={selectedMembers}
                onSelectionChange={(e: any) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}
               dataKey="id"

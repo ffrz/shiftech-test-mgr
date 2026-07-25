@@ -101,7 +101,7 @@ export function TestPlansPage() {
         </p>
       )}
 
-      <DataTable value={testPlans} loading={loading} paginator rows={5} emptyMessage="Belum ada test plan" size="small"
+      <DataTable value={testPlans} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="Belum ada test plan" size="small"
         selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
         <Column field="code" header="Kode" sortable style={{ width: isMobile ? undefined : '7rem' }}
           body={isMobile ? mobileCodeBody : undefined} />

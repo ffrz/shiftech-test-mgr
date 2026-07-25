@@ -173,7 +173,7 @@ export function TestRunIssuesPage() {
         value={issues}
         loading={loading}
         paginator
-        rows={5}
+        rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="Belum ada issue"
         size="small"
         onRowClick={(e) => navigate(`/issues/${(e.data as IssueWithDetails).id}?testRunId=${id}`)}

@@ -371,7 +371,7 @@ export function TestPlanDetailPage() {
             value={filteredRuns}
             loading={runsLoading}
             paginator
-            rows={5}
+            rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="Belum ada test run"
             onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
             rowHover
@@ -487,7 +487,7 @@ export function TestPlanDetailPage() {
             value={filteredCases}
             loading={casesLoading}
             paginator={isCaseFilterActive}
-            rows={5}
+            rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="Belum ada test case di plan ini"
             size="small"
             selection={selectedCases}

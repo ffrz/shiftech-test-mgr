@@ -85,7 +85,7 @@ export function TestCasesPage() {
         </p>
       )}
 
-      <DataTable value={testCases} loading={loading} paginator rows={5} emptyMessage="Belum ada test case" size="small">
+      <DataTable value={testCases} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="Belum ada test case" size="small">
         {isMobile && <Column body={mobileBodyTemplate} />}
         {!isMobile && <Column field="code" header="Kode" sortable style={{ width: '7rem' }} />}
         {!isMobile && <Column field="title" header="Judul" sortable />}

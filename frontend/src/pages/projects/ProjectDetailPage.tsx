@@ -1040,7 +1040,7 @@ export function ProjectDetailPage() {
               rowHover
               className="cursor-pointer"
               paginator
-              rows={5}
+              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={isMobile ? undefined : planSortField}
               sortOrder={isMobile ? undefined : planSortOrder}
               onSort={isMobile ? undefined : sortHandler(setPlanSortField, setPlanSortOrder)}
@@ -1150,7 +1150,7 @@ export function ProjectDetailPage() {
               rowHover
               className="cursor-pointer"
               paginator
-              rows={5}
+              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={isMobile ? undefined : caseSortField}
               sortOrder={isMobile ? undefined : caseSortOrder}
               onSort={isMobile ? undefined : sortHandler(setCaseSortField, setCaseSortOrder)}
@@ -1259,7 +1259,7 @@ export function ProjectDetailPage() {
               rowHover
               className="cursor-pointer"
               paginator
-              rows={5}
+              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={isMobile ? undefined : runSortField}
               sortOrder={isMobile ? undefined : runSortOrder}
               onSort={isMobile ? undefined : sortHandler(setRunSortField, setRunSortOrder)}
@@ -1385,7 +1385,7 @@ export function ProjectDetailPage() {
               rowHover
               className="cursor-pointer"
               paginator
-              rows={5}
+              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={isMobile ? undefined : issueSortField}
               sortOrder={isMobile ? undefined : issueSortOrder}
               onSort={isMobile ? undefined : sortHandler(setIssueSortField, setIssueSortOrder)}
