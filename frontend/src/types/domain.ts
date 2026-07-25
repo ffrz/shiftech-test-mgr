@@ -1,4 +1,6 @@
-export type UserRole = 'pending' | 'user' | 'admin';
+// 'pending' removed in Platform Evolution V2 Phase 2 — role is now a platform-ops flag,
+// not a signup-approval gate. Self-serve signup lands directly as 'user'.
+export type UserRole = 'user' | 'admin';
 
 // Auth-bound account — private fields (email, role). Never joined into public-facing
 // views. See Profile below for the public-identity counterpart. Split per

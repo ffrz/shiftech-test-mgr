@@ -83,12 +83,16 @@ shape yet, but every later phase needs a stable identity model to build on.
 | V2-P1-T09 | `repositories/profileRepository.ts`: split into `userRepository.ts` (email/role, admin-user-management only) + `profileRepository.ts` (public fields). Also split `profileService.ts` → `userService.ts`/`profileService.ts`, `useProfiles` → `useUsers` | done |
 | V2-P1-T10 | Audit + fix every `.from('profiles')` call site across services/hooks/pages (testResult tester join, issue assignee join, project member join, etc.) — repoint to `profiles` (public fields) or `users` (email/role) as appropriate. Also fixed `is_admin()`/`is_approved()` SQL functions, which silently would have broken (see migration comment) | done |
 | V2-P1-T11 | `useAuth.tsx` / `AuthProvider`: fetch both `users` row (role) and `profiles` row (identity) on session load, expose both via `useAuthContext()` | done |
-| V2-P1-T12 | Settings page: let a user view/edit their own `username`, `display_name`, `avatar_url`, `bio` | todo |
+| V2-P1-T12 | Settings page: let a user view/edit their own `username`, `display_name`, `avatar_url`, `bio` | done |
 | V2-P1-T13 | Regression pass: User Management admin page still reads `email`/`role` correctly from `users`; manually verify migration against a Supabase branch/staging before merging to main | todo |
 
+Also landed ahead of schedule: Phase 6's `/@:username` minimal lookup page (V2-P6-T01/T02),
+built alongside T12 since both touch `profileService`. See Phase 6 below — only V2-P6-T03
+(username picker reused by the Phase 4 invite UI) remains there.
+
 **Migration file:** `supabase/migrations/20260725000005_split_profiles_into_users_and_profiles.sql`.
-T01–T11 done on `feature/platform-foundation`, not yet applied to any live database — apply
-and smoke-test on a staging/branch DB before this phase is considered fully closed.
+T01–T12 done on `feature/platform-foundation`, not yet applied to any live database — apply
+and smoke-test on a staging/branch DB before this phase is considered fully closed (T13).
 
 **Exit criteria:** app builds, lints, and every existing feature (test runs, issues,
 project members list) still renders tester/assignee names correctly after the split.
@@ -103,12 +107,18 @@ and directly required for "finish within one hour" to even be possible for a fir
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P2-T01 | Confirm `role = 'pending'` fully backfilled from V2-P1-T01 (no remaining `pending` rows) | todo |
-| V2-P2-T02 | Drop `is_approved()` SQL function and all policies referencing it; replace call sites with direct `is_admin()` or no gate at all, per table | todo |
-| V2-P2-T03 | `ProtectedRoute.tsx`: remove the `pending` branch/redirect — login success is sufficient | todo |
-| V2-P2-T04 | `AdminRoute.tsx`: narrow scope — confirm it now only gates genuinely admin-ops screens (global user list, moderation), not general app access | todo |
-| V2-P2-T05 | `UserManagementPage.tsx`: remove "approve/reject" actions tied to `pending`; keep promote/demote `user`↔`admin` and soft-delete | todo |
-| V2-P2-T06 | Update `CLAUDE.md` Auth & RBAC section to describe self-serve signup instead of pending/approval flow | todo |
+| V2-P2-T01 | Confirm `role = 'pending'` fully backfilled from V2-P1-T01 (no remaining `pending` rows) | done |
+| V2-P2-T02 | Redefine `is_approved()` to check active account only (not soft-deleted) instead of dropping it — same low-risk approach as Phase 1's `is_admin()` redefinition, avoids rewriting ~18 files' worth of policies that call it | done |
+| V2-P2-T03 | `ProtectedRoute.tsx`: remove the `pending` branch/redirect — login success is sufficient | done |
+| V2-P2-T04 | `AdminRoute.tsx`: confirmed already scoped correctly (admin-only screens), no change needed | done |
+| V2-P2-T05 | `UserManagementPage.tsx`: removed `approve`/`revokeAccess` actions and the `userService` methods behind them (no more "back to pending" concept); kept promote/demote `user`↔`admin` and soft-delete | done |
+| V2-P2-T06 | Update `CLAUDE.md` Auth & RBAC section to describe self-serve signup instead of pending/approval flow | done |
+
+Also: `UserRole` type narrowed to `'user' \| 'admin'` (dropped `'pending'`), `PendingApprovalPage.tsx` and its route deleted, `isApproved`/`isPending` removed from `useAuthContext()`.
+
+**Migration file:** `supabase/migrations/20260725000006_drop_approval_gate.sql`. Same
+caveat as Phase 1 — not yet applied to any live database, needs staging smoke-test
+(covered by the same V2-P1-T13 verification pass) before merging to main.
 
 **Exit criteria:** a brand-new Google sign-in lands directly in the app with a
 usable account — no admin action required.
@@ -196,8 +206,8 @@ contributions/statistics.
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P6-T01 | Route `/@:username` → `PublicProfilePage` (display name, avatar, bio — nothing else) | todo |
-| V2-P6-T02 | `profileService.getByUsername(username)` — public fields only, no email leak | todo |
+| V2-P6-T01 | Route `/@:username` → `PublicProfilePage` (display name, avatar, bio — nothing else) | done |
+| V2-P6-T02 | `profileService.getByUsername(username)` — public fields only, no email leak | done |
 | V2-P6-T03 | Username picker/typeahead component reused by Phase 4's invite UI (resolve username → profile id) | todo |
 
 **Exit criteria:** looking up `/@username` shows a minimal identity card; inviting a

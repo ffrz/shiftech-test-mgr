@@ -27,12 +27,6 @@ export function UserManagementPage() {
   const menuRef = useRef<Menu>(null);
   const [menuRow, setMenuRow] = useState<User | null>(null);
 
-  async function handleApprove(row: User) {
-    await userService.approve(row.id);
-    toast.current?.show({ severity: 'success', summary: 'User approved', detail: row.email });
-    await reload();
-  }
-
   async function handlePromote(row: User) {
     await userService.promoteToAdmin(row.id);
     await reload();
@@ -41,22 +35,6 @@ export function UserManagementPage() {
   async function handleDemote(row: User) {
     await userService.demoteToUser(row.id);
     await reload();
-  }
-
-  function handleRevokeAccess(row: User) {
-    confirmDialog({
-      header: 'Revoke Access',
-      message: `Access for "${row.email}" will be revoked and their status will return to pending until re-approved. Continue?`,
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Revoke Access',
-      rejectLabel: 'Cancel',
-      acceptClassName: 'p-button-warning',
-      accept: async () => {
-        await userService.revokeAccess(row.id);
-        toast.current?.show({ severity: 'warn', summary: 'Access revoked', detail: row.email });
-        await reload();
-      },
-    });
   }
 
   function handleDelete(row: User) {
@@ -95,17 +73,11 @@ export function UserManagementPage() {
   const menuItems = menuRow
     ? [
       { label: 'View Details', icon: 'pi pi-eye', command: () => navigate(`/users/${menuRow.id}`) },
-      ...(menuRow.role === 'pending'
-        ? [{ separator: true }, { label: 'Approve', icon: 'pi pi-check', command: () => handleApprove(menuRow) }]
-        : []),
       ...(menuRow.role === 'user'
         ? [{ separator: true }, { label: 'Make Admin', icon: 'pi pi-shield', command: () => handlePromote(menuRow) }]
         : []),
       ...(menuRow.role === 'admin' && !isMenuRowSelf
         ? [{ separator: true }, { label: 'Demote to User', icon: 'pi pi-user', command: () => handleDemote(menuRow) }]
-        : []),
-      ...(menuRow.role !== 'pending' && !isMenuRowSelf
-        ? [{ label: 'Revoke Access', icon: 'pi pi-lock', command: () => handleRevokeAccess(menuRow) }]
         : []),
       ...(!isMenuRowSelf
         ? [{ separator: true }, { label: 'Delete', icon: 'pi pi-trash', command: () => handleDelete(menuRow) }]

@@ -6,7 +6,7 @@ import { useAuthContext } from '../../hooks/useAuth';
 // from flashing pages the user has no business seeing.
 
 export function ProtectedRoute() {
-  const { session, loading, isApproved, isPending } = useAuthContext();
+  const { session, loading } = useAuthContext();
 
   if (loading) {
     return (
@@ -17,8 +17,6 @@ export function ProtectedRoute() {
   }
 
   if (!session) return <Navigate to="/login" replace />;
-  if (isPending) return <Navigate to="/pending-approval" replace />;
-  if (!isApproved) return <Navigate to="/login" replace />;
 
   return <Outlet />;
 }

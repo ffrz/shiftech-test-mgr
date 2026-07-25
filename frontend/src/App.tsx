@@ -4,7 +4,6 @@ import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { LoginPage } from './pages/auth/LoginPage';
-import { PendingApprovalPage } from './pages/auth/PendingApprovalPage';
 import { HomePage } from './pages/home/HomePage';
 import { ProjectsPage } from './pages/projects/ProjectsPage';
 import { ProjectDetailPage } from './pages/projects/ProjectDetailPage';
@@ -29,7 +28,6 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>

@@ -11,8 +11,6 @@ interface AuthContextValue {
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
-  isApproved: boolean;
-  isPending: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   reloadProfile: () => Promise<void>;
@@ -57,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Realtime: pick up role changes (e.g. pending -> user approval) made by an admin
+    // Realtime: pick up role changes (e.g. promote/demote to admin) made by an admin
     // while this user is already logged in, instead of requiring logout/login to see it.
     const userId = session?.user?.id;
     if (!userId) return;
@@ -109,8 +107,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         loading,
         isAdmin: role === 'admin',
-        isApproved: role === 'user' || role === 'admin',
-        isPending: role === 'pending',
         signInWithGoogle,
         signOut,
         reloadProfile,
