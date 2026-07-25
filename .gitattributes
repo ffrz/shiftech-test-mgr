@@ -1,0 +1,5 @@
+# Shell scripts must always have LF line endings — a CRLF shebang line
+# (#!/usr/bin/env bash\r) breaks with "bash\r: No such file or directory" when
+# run on Linux (e.g. deploy/deploy-vps.sh from WSL). Force LF on checkout
+# regardless of a contributor's local core.autocrlf setting.
+*.sh text eol=lf
