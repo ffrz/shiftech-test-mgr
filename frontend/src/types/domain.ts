@@ -159,10 +159,16 @@ export interface TestCaseStep {
   updatedAt: string;
 }
 
-// Global, admin-managed library of reusable test case sets — not project-scoped. A project
-// clones items from a suite into its own test_cases via testSuiteService.cloneItemsToProject.
+// User-owned, reusable library of test case sets — not project-scoped. A project clones
+// items from a suite into its own test_cases via testSuiteService.cloneItemsToProject.
+// Ownership + visibility (private/unlisted/public) let a user share their own suites —
+// see docs/ARCHITECTURE_V2.md (Test Suite Templates).
+export type TestSuiteVisibility = 'private' | 'unlisted' | 'public';
+
 export interface TestSuite {
   id: string;
+  ownerId: string;
+  visibility: TestSuiteVisibility;
   name: string;
   description: string | null;
   createdAt: string;

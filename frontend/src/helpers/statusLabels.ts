@@ -11,6 +11,7 @@ import type {
   TestPlanStatus,
   TestResultStatus,
   TestRunStatus,
+  TestSuiteVisibility,
   UserRole,
 } from '../types/domain';
 
@@ -35,6 +36,18 @@ export const PROJECT_VISIBILITY_LABEL: Record<ProjectVisibility, string> = {
 };
 
 export const PROJECT_VISIBILITY_SEVERITY: Record<ProjectVisibility, TagSeverity> = {
+  private: 'secondary',
+  unlisted: 'info',
+  public: 'success',
+};
+
+export const TEST_SUITE_VISIBILITY_LABEL: Record<TestSuiteVisibility, string> = {
+  private: 'Private',
+  unlisted: 'Unlisted',
+  public: 'Public',
+};
+
+export const TEST_SUITE_VISIBILITY_SEVERITY: Record<TestSuiteVisibility, TagSeverity> = {
   private: 'secondary',
   unlisted: 'info',
   public: 'success',

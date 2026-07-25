@@ -136,6 +136,8 @@ export function mapTestCaseRow(row: any): TestCase {
 export function mapTestSuiteRow(row: any): TestSuite {
   return {
     id: row.id,
+    ownerId: row.owner_id,
+    visibility: row.visibility,
     name: row.name,
     description: row.description,
     createdAt: row.created_at,

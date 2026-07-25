@@ -197,16 +197,20 @@ storefront/browse UI beyond a simple "mine" vs "public" filter.
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P5-T01 | Migration: `test_suites.owner_id` (FK `profiles`) — decide backfill owner for existing global suites (ask which admin account, or introduce one interim "Testify" system profile) | blocked |
-| V2-P5-T02 | Migration: `test_suites.visibility` (`private`\|`unlisted`\|`public`, default `private`) | todo |
-| V2-P5-T03 | Migration: replace admin-only RLS policy with owner-or-admin write, visibility-aware read | todo |
-| V2-P5-T04 | `types/domain.ts`: add `ownerId`, `visibility` to `TestSuite` | todo |
-| V2-P5-T05 | `testSuiteRepository.ts` / `testSuiteService.ts`: scope create to current user as owner; validation for visibility changes | todo |
-| V2-P5-T06 | Test Suites page: remove admin-only gating, add visibility selector, "My Templates" vs "Public Templates" filter | todo |
-| V2-P5-T07 | Regression: existing `cloneItemsToProject` flow still works unchanged for owned/public suites | todo |
+| V2-P5-T01 | Migration: `test_suites.owner_id` (FK `users`) — resolved backfill by assigning existing global suites to the oldest admin account (no product requirement for a "correct" historical owner; can be reassigned manually later) | done |
+| V2-P5-T02 | Migration: `test_suites.visibility` (`private`\|`unlisted`\|`public`, default `private`) | done |
+| V2-P5-T03 | Migration: replace admin-only RLS policy with owner-or-admin write, visibility-aware read — on `test_suites` AND `test_suite_items`/`test_suite_item_steps` (access derived from parent suite via `suite_id`, same pattern as `test_plan_cases` deriving from `test_plans`) | done |
+| V2-P5-T04 | `types/domain.ts`: add `ownerId`, `visibility` to `TestSuite` | done |
+| V2-P5-T05 | `testSuiteRepository.ts` / `testSuiteService.ts`: `create`/`update` accept `visibility` (default `'private'`); ownership itself is enforced by RLS (`owner_id` defaults to `auth.uid()`), not duplicated client-side | done |
+| V2-P5-T06 | `TestSuitesPage.tsx`: removed `isAdmin`-only gating on create/edit/delete (now `isOwnerOrAdmin` per-row), added visibility selector, "My Templates" vs "All Visible Templates" `SelectButton` filter. `TestSuiteDetailPage.tsx` got the same per-row ownership check for its item CRUD. Sidebar's "Test Suite" link (`AppMenu.tsx`) was also admin-gated — opened to all users | done |
+| V2-P5-T07 | Regression: `cloneItemsToProject` unchanged — confirmed via `tsc`/lint, needs a staging smoke-test pass like Phases 3/4 | todo |
 
 **Exit criteria:** any user can create a private Test Suite Template; publishing it
 public makes it visible/cloneable by others, without admin involvement.
+
+**Migration file:** `supabase/migrations/20260725000010_test_suite_ownership_and_visibility.sql`.
+Not yet independently smoke-tested on staging — recommend testing alongside Phase 3/4's
+migrations before merging to main.
 
 ---
 
