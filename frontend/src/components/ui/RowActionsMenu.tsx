@@ -18,7 +18,9 @@ export function RowActionsMenu({ items }: RowActionsMenuProps) {
         icon="pi pi-ellipsis-v"
         text
         rounded
+        plain
         size="small"
+        className="text-color-secondary"
         aria-label=""
         onClick={(e) => {
           e.stopPropagation();

@@ -128,9 +128,9 @@ export function TestCaseTemplatesPage() {
     <div>
       <Toast ref={toast} />
       <ConfirmDialog />
-      <Breadcrumb items={[{ label: 'Test Case Templates' }]} />
+      <Breadcrumb items={[{ label: 'Test Suite' }]} />
       <PageHeader
-        title="Test Case Templates"
+        title="Test Suite"
         actions={isAdmin ? <Button label="New Template" icon="pi pi-plus" size="small" onClick={openCreateDialog} /> : undefined}
       />
 

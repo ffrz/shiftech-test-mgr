@@ -54,7 +54,9 @@ export function ProjectsPage() {
             icon="pi pi-ellipsis-v"
             text
             rounded
+            plain
             size="small"
+            className="text-color-secondary"
             onClick={(e) => {
               e.stopPropagation();
               openRowMenu(row, e);
@@ -324,7 +326,9 @@ export function ProjectsPage() {
                   icon="pi pi-ellipsis-v"
                   text
                   rounded
+                  plain
                   size="small"
+                  className="text-color-secondary"
                   onClick={(e) => {
                     e.stopPropagation();
                     openRowMenu(row, e);

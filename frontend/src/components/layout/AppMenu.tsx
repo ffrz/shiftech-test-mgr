@@ -65,17 +65,17 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
     { label: 'Projects', icon: 'pi pi-folder', url: '/', end: true },
     ...(isAdmin
       ? [
-          {
-            label: 'Library',
-            icon: 'pi pi-book',
-            items: [{ label: 'Test Case', icon: 'pi pi-copy', url: '/test-case-templates' }],
-          },
-          {
-            label: 'Administration',
-            icon: 'pi pi-cog',
-            items: [{ label: 'Users', icon: 'pi pi-users', url: '/users' }],
-          },
-        ]
+        {
+          label: 'Library',
+          icon: 'pi pi-book',
+          items: [{ label: 'Test Suite', icon: 'pi pi-copy', url: '/test-case-templates' }],
+        },
+        {
+          label: 'Administration',
+          icon: 'pi pi-cog',
+          items: [{ label: 'Users', icon: 'pi pi-users', url: '/users' }],
+        },
+      ]
       : []),
   ];
 
