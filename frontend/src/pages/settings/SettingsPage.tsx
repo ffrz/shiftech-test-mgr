@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Button } from 'primereact/button';
+import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useSettings } from '../../hooks/useSettings';
 
@@ -42,6 +43,7 @@ export function SettingsPage() {
   if (!profile) {
     return (
       <div>
+        <Breadcrumb items={[{ label: 'Settings' }]} />
         <PageHeader title="Settings" />
         <p className="text-color-secondary">Loading profile...</p>
       </div>
@@ -50,6 +52,7 @@ export function SettingsPage() {
 
   return (
     <div>
+      <Breadcrumb items={[{ label: 'Settings' }]} />
       <PageHeader title="Settings" />
       <div className="card">
         <div className="flex flex-column gap-3" style={{ maxWidth: '32rem' }}>
