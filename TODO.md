@@ -4,10 +4,12 @@ Titik mulai sesi kerja. Update file ini setiap kali mulai/selesai mengerjakan se
 
 ## Siap Dikerjakan (next up)
 
-**Platform Evolution V2 sedang jadi prioritas utama** — lihat
-[`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md) (desain) dan
-[`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) (fase + task detail). Backend Go
-(`backend/`) **di-pending** selama roadmap ini berjalan — lihat `backend/README.md`.
+**Platform Evolution V2 sedang jadi prioritas utama** — governed by
+[`docs/PRODUCT_CONSTITUTION.md`](docs/PRODUCT_CONSTITUTION.md) (product rules, MVP
+success criteria), lihat [`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md) (desain)
+dan [`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) (fase + task detail, framed di sekitar
+golden path 9-langkah dari Constitution). Backend Go (`backend/`) **di-pending** selama
+roadmap ini berjalan — lihat `backend/README.md`.
 
 - [ ] V2-P1-T01 — Backfill `role = 'pending'` → `'user'` (lihat ROADMAP_V2 Phase 1)
 - [ ] V2-P1-T02..T13 — Split `profiles` → `users` + `profiles` (identity split), lihat ROADMAP_V2 Phase 1 untuk detail lengkap

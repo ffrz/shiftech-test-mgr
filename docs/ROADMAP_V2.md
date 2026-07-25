@@ -1,6 +1,7 @@
 # Roadmap — Testify Platform Evolution (V2)
 
-Execution plan for [`ARCHITECTURE_V2.md`](./ARCHITECTURE_V2.md). Go backend track is
+Execution plan for [`ARCHITECTURE_V2.md`](./ARCHITECTURE_V2.md), governed by
+[`docs/PRODUCT_CONSTITUTION.md`](./PRODUCT_CONSTITUTION.md). Go backend track is
 **paused** for the duration of this roadmap — see [`backend/README.md`](../backend/README.md).
 
 Status legend: `todo` · `in-progress` · `done` · `blocked`
@@ -10,20 +11,54 @@ and mirror the current phase's next-up items into [`TODO.md`](../TODO.md).
 
 ---
 
+## The golden path this roadmap serves
+
+Every phase below exists to keep this flow working end-to-end, per the Constitution's
+**MVP Success Criteria** — a new user must be able to do all of this in under an hour:
+
+```
+1. Register an account
+2. Create a project
+3. Invite team members
+4. Write test cases
+5. Organize them into a test plan
+6. Execute testing
+7. Record results
+8. Create issues
+9. (finish within one hour)
+```
+
+Steps 4–8 already work today (validated Testing Domain, untouched by this roadmap).
+Steps 1–3 are what's actually changing — self-serve registration, project ownership,
+and real team invitation replace the current admin-gated / direct-add model. **Phase 7
+is a mandatory walk-through of this exact list before calling the roadmap done.**
+
+Any task below that doesn't serve steps 1–3 (or protect 4–8 from regressing) should be
+challenged against the Constitution's Feature Acceptance Rule before being built.
+
+---
+
 ## Phase Overview
 
-| Phase | Goal | Depends on |
-|---|---|---|
-| P1 | Split `profiles` → `users` + `profiles`, public username identity | — |
-| P2 | Drop approval gate, `admin` becomes ops-flag not login-gate | P1 |
-| P3 | Project ownership + visibility (private/unlisted/public) | P1 |
-| P4 | Project membership: invite → accept/decline flow | P1, P3 |
-| P5 | Test Suite ownership + visibility (marketplace groundwork) | P1 |
-| P6 | Public profile page + polish, cross-cutting QA | P1–P5 |
+| Phase | Goal | Golden-path step(s) it unblocks | Depends on |
+|---|---|---|---|
+| P1 | Split `profiles` → `users` + `profiles`, username identity | 1 (register) — foundation for 2–3 | — |
+| P2 | Drop approval gate, `admin` becomes ops-flag not login-gate | 1 (register, self-serve) | P1 |
+| P3 | Project ownership + visibility (private/unlisted/public) | 2 (create a project) | P1 |
+| P4 | Project membership: invite → accept/decline flow | 3 (invite team members) | P1, P3 |
+| P5 | Test Suite Template ownership + visibility | Community feature, not on the golden path — see note below | P1 |
+| P6 | Minimal public identity lookup (`/@username`) | Supports 3 (invite by username needs a resolvable target) | P1 |
+| P7 | Golden-path acceptance walkthrough + docs sync | Validates 1–9 end-to-end | P1–P6 |
+
+**Why P5 is in this roadmap despite not being on the golden path:** Test Suite
+Templates are an explicit Core Feature and Community capability in the Constitution
+("share reusable Test Suite templates"), and they already depend on the P1 identity
+split (an owner has to be *someone*). It's scoped small (owner + visibility, clone-only,
+no fork lineage) specifically so it doesn't compete with the golden path for effort.
 
 Each phase ships as its own PR(s) and its own `supabase/migrations/*.sql` file(s),
 per existing repo convention. Do not bundle phases into one migration — each must be
-independently revertable given the earlier "reversible where noted" guidance in
+independently revertable given the "reversible where noted" guidance in
 `ARCHITECTURE_V2.md` §7.
 
 ---
@@ -32,6 +67,8 @@ independently revertable given the earlier "reversible where noted" guidance in
 
 Foundation for everything else. Riskiest phase (touches every repository that reads
 `profiles` today) — do this first while the blast radius is easiest to reason about.
+Serves golden-path step 1 (Register) indirectly: registration itself doesn't change
+shape yet, but every later phase needs a stable identity model to build on.
 
 | ID | Task | Status |
 |---|---|---|
@@ -56,6 +93,10 @@ project members list) still renders tester/assignee names correctly after the sp
 
 ## Phase 2 — Drop Approval Gate
 
+Serves golden-path step 1: registration must be genuinely self-serve, not gated on an
+admin approving the account — this is the biggest single simplification in the roadmap
+and directly required for "finish within one hour" to even be possible for a first-time user.
+
 | ID | Task | Status |
 |---|---|---|
 | V2-P2-T01 | Confirm `role = 'pending'` fully backfilled from V2-P1-T01 (no remaining `pending` rows) | todo |
@@ -72,6 +113,12 @@ usable account — no admin action required.
 
 ## Phase 3 — Project Ownership + Visibility
 
+Serves golden-path step 2 (create a project). Visibility is scoped strictly to what's
+needed for ownership to make sense (private by default) — public/unlisted are included
+because the Constitution's Community section implies a project can be shared, but no
+public project *directory/browse* UI is built here (would drift toward a showcase, see
+Phase 6 note).
+
 | ID | Task | Status |
 |---|---|---|
 | V2-P3-T01 | Migration: `projects.owner_type` (`check in ('user')`, default `'user'`), `projects.owner_id` (FK `profiles`) | todo |
@@ -83,7 +130,6 @@ usable account — no admin action required.
 | V2-P3-T07 | `projectRepository.ts` / `projectService.ts`: include new fields in create/update/mappers | todo |
 | V2-P3-T08 | `ProjectsPage.tsx` create/edit form: add visibility selector (default Private) | todo |
 | V2-P3-T09 | Project list/detail: show owner (username) and a visibility badge | todo |
-| V2-P3-T10 | Decide + implement: does the Projects list show public projects owned by others, or only "my projects"? (needs a product call — flag for user before building) | blocked |
 
 **Exit criteria:** creating a project sets an owner and a visibility; existing
 projects all have a valid owner post-migration.
@@ -91,6 +137,10 @@ projects all have a valid owner post-migration.
 ---
 
 ## Phase 4 — Membership Invite/Accept Flow
+
+Serves golden-path step 3 (invite team members) — this is the step that most directly
+determines whether "invite team members" takes minutes or requires manual admin
+intervention, so it's the last piece before the golden path is fully self-serve.
 
 | ID | Task | Status |
 |---|---|---|
@@ -102,7 +152,7 @@ projects all have a valid owner post-migration.
 | V2-P4-T06 | `projectMemberService.ts`: validation — can't invite an existing accepted member twice, only manager/owner can invite | todo |
 | V2-P4-T07 | New hook `useProjectInvitations` (current user's pending invites) | todo |
 | V2-P4-T08 | Project Members tab: invite-by-username input, pending/accepted sections, revoke pending invite | todo |
-| V2-P4-T09 | New UI surface for "My Invitations" (e.g. notification bell or dedicated page) — accept/decline actions | todo |
+| V2-P4-T09 | New UI surface for "My Invitations" (e.g. a badge/list on the dashboard) — accept/decline actions. Keep this a simple list, not a notification system — notifications are explicitly deferred per ARCHITECTURE_V2 §9 | todo |
 | V2-P4-T10 | Update `handle_new_project()` trigger — creator becomes owner (not just first `manager` member); decide if creator still also gets an auto `accepted` `project_members` row for role purposes | todo |
 
 **Exit criteria:** inviting a user by username puts them in a pending state; they
@@ -110,7 +160,12 @@ must accept before `has_project_access()` grants them anything.
 
 ---
 
-## Phase 5 — Test Suite Ownership + Visibility
+## Phase 5 — Test Suite Template Ownership + Visibility
+
+Serves the Constitution's Community feature ("share reusable Test Suite templates"),
+not directly a golden-path step. Kept intentionally small: ownership + visibility on
+top of the existing clone-into-project mechanic. No forking, no versioning, no
+storefront/browse UI beyond a simple "mine" vs "public" filter.
 
 | ID | Task | Status |
 |---|---|---|
@@ -119,38 +174,60 @@ must accept before `has_project_access()` grants them anything.
 | V2-P5-T03 | Migration: replace admin-only RLS policy with owner-or-admin write, visibility-aware read | todo |
 | V2-P5-T04 | `types/domain.ts`: add `ownerId`, `visibility` to `TestSuite` | todo |
 | V2-P5-T05 | `testSuiteRepository.ts` / `testSuiteService.ts`: scope create to current user as owner; validation for visibility changes | todo |
-| V2-P5-T06 | Test Suites page: remove admin-only gating, add visibility selector, "My Suites" vs "Public Suites" views | todo |
+| V2-P5-T06 | Test Suites page: remove admin-only gating, add visibility selector, "My Templates" vs "Public Templates" filter | todo |
 | V2-P5-T07 | Regression: existing `cloneItemsToProject` flow still works unchanged for owned/public suites | todo |
 
-**Exit criteria:** any user can create a private Test Suite; publishing it public
-makes it visible/cloneable by others, without admin involvement.
+**Exit criteria:** any user can create a private Test Suite Template; publishing it
+public makes it visible/cloneable by others, without admin involvement.
 
 ---
 
-## Phase 6 — Public Profile Page + Cross-Cutting Polish
+## Phase 6 — Minimal Public Identity Lookup
+
+**Rescoped 2026-07-25** against `PRODUCT_CONSTITUTION.md`: this is *not* a portfolio or
+showcase page. Testify is explicitly not a social network. The only job of `/@username`
+is to be a resolvable identity — useful when inviting a collaborator (Phase 4) or
+verifying who owns a project. No public project list, no public Test Suite list, no
+contributions/statistics.
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P6-T01 | Route `/@:username` → `PublicProfilePage` | todo |
+| V2-P6-T01 | Route `/@:username` → `PublicProfilePage` (display name, avatar, bio — nothing else) | todo |
 | V2-P6-T02 | `profileService.getByUsername(username)` — public fields only, no email leak | todo |
-| V2-P6-T03 | Public profile: display name, avatar, bio, list of that user's public projects | todo |
-| V2-P6-T04 | Public profile: list of that user's public Test Suites | todo |
-| V2-P6-T05 | Full regression pass across Testing Context (test cases/plans/runs/results/issues) — confirm zero behavior change per ARCHITECTURE_V2 "Testing Domain unchanged" guarantee | todo |
-| V2-P6-T06 | Update `CLAUDE.md`, `docs/PRD.md`, `FEATURES.md` to reflect the shipped V2 model (mark ARCHITECTURE_V2 as the current architecture, fold key parts into ARCHITECTURE.md or cross-link) | todo |
-| V2-P6-T07 | Update `TODO.md` — clear V2 roadmap items, resume normal sprint board | todo |
+| V2-P6-T03 | Username picker/typeahead component reused by Phase 4's invite UI (resolve username → profile id) | todo |
 
-**Exit criteria:** `testify.dev/@username` (or local equivalent) renders a real
-public profile; docs reflect the new architecture as current, not proposed.
+**Exit criteria:** looking up `/@username` shows a minimal identity card; inviting a
+collaborator by username in Phase 4's UI resolves correctly against it.
 
 ---
 
-## Explicitly deferred (not in any phase above)
+## Phase 7 — Golden-Path Acceptance Walkthrough + Docs Sync
 
-Per `ARCHITECTURE_V2.md` §9 — do not schedule these without a fresh scoping pass:
+Mandatory closing phase. Not "polish" — this is the actual MVP acceptance test defined
+by the Constitution.
 
-- Organizations/Workspaces (tables + UI)
-- Test Suite forking/lineage (`forked_from_id`), versioning
-- Notifications (in-app or email)
-- Visibility on Issues/Attachments independent of parent Project
-- Public contribution/statistics surfaces on profile pages
+| ID | Task | Status |
+|---|---|---|
+| V2-P7-T01 | Manual walkthrough as a brand-new user: register → create project → invite a second account → write test cases → build a test plan → execute a run → record results → create an issue from a failed result. Time it — must be achievable well under an hour by someone already familiar with the UI | todo |
+| V2-P7-T02 | Full regression pass across Testing Context (test cases/plans/runs/results/issues) — confirm zero behavior change per ARCHITECTURE_V2 "Testing Domain unchanged" guarantee | todo |
+| V2-P7-T03 | Update `CLAUDE.md`, `docs/PRD.md`, `FEATURES.md` to reflect the shipped V2 model (mark ARCHITECTURE_V2 as the current architecture, fold key parts into ARCHITECTURE.md or cross-link) | todo |
+| V2-P7-T04 | Update `TODO.md` — clear V2 roadmap items, resume normal sprint board | todo |
+
+**Exit criteria:** the 9-step MVP Success Criteria flow works end-to-end for a fresh
+account with no admin intervention anywhere in the flow; docs describe the shipped
+model as current, not proposed.
+
+---
+
+## Explicitly out of scope (deferred or rejected — see `ARCHITECTURE_V2.md` §9)
+
+- Organizations/Workspaces (tables + UI) — deferred, schema-ready only
+- Test Suite Template forking/lineage (`forked_from_id`), versioning — deferred
+- Notifications (in-app or email) — deferred
+- Visibility on Issues/Attachments independent of parent Project — deferred
+- Public project/suite showcase, contributions, statistics on profile pages —
+  **rejected**, conflicts with the Constitution's "not a social network" stance
 - Go backend (`backend/`) — paused, see `backend/README.md`
+
+Do not schedule any of the deferred items without a fresh scoping pass against
+`PRODUCT_CONSTITUTION.md`'s Feature Acceptance Rule first.

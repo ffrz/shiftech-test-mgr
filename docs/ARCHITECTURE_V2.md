@@ -3,6 +3,11 @@
 Status: **Approved — executing.** See [`docs/ROADMAP_V2.md`](./ROADMAP_V2.md) for the phased rollout and task breakdown.
 Scope: Platform Context redesign only. Testing Context (Project → Module → Test Case → Test Plan → Test Run → Test Result → Issue → Attachment) is preserved as-is; see [Testing Domain](#testing-domain-unchanged) for what stays untouched and why.
 
+> **Governed by [`docs/PRODUCT_CONSTITUTION.md`](./PRODUCT_CONSTITUTION.md).** Every decision
+> in this document must trace back to a Core Feature or the MVP Success Criteria in that file.
+> Testify is explicitly **not** a social network — see the "revised 2026-07-25" note below for
+> the one place that changed as a result of re-checking against the Constitution.
+
 > **Go backend (`backend/`) is PENDING.** This redesign and its MVP are executed entirely on
 > the existing Supabase-backed frontend. The custom Go backend (see [`backend/README.md`](../backend/README.md))
 > is deliberately paused until this Platform Evolution MVP ships — see §8 for why the
@@ -11,8 +16,21 @@ Scope: Platform Context redesign only. Testing Context (Project → Module → T
 Decisions locked in during discussion (2026-07-25):
 - Drop global admin-approval gate (`profiles.role = pending`) — signup becomes self-serve, GitHub-style.
 - Organizations: schema-ready only, not built in this MVP.
-- Test Suites: user-owned + visibility, clone-only (no fork lineage yet).
+- Test Suite Templates: user-owned + visibility, clone-only (no fork lineage yet). Called
+  "Test Suite Templates" per the Constitution's Core Features list, not "marketplace" —
+  the mechanics (owner, visibility, clone) are the same, the framing is deliberately toned down.
 - Membership: full Invite → Pending → Accepted → Member flow, built now (not deferred).
+
+**Revised 2026-07-25 against `PRODUCT_CONSTITUTION.md`:** the original brainstorm framed public
+profiles as a GitHub-style portfolio page (public projects list, public suites list,
+contributions/statistics). The Constitution explicitly rejects "Social Network" as a category
+and frames Community narrowly (register, personal projects, invite collaborators, share Test
+Suite templates) — nothing about showcasing. Public profile is scoped down to **functional
+identity only**: username + display name + avatar, used so collaborators can find/invite each
+other and so names render correctly across the app. A bare `/@username` lookup page (name,
+avatar, bio — no project/suite showcase) is kept for Phase 6 because it doubles as the
+"invite by username" target-picker UI; it is not a portfolio feature. See §9 and ROADMAP_V2
+Phase 6 for the current scope.
 
 ---
 
@@ -26,7 +44,7 @@ Decisions locked in during discussion (2026-07-25):
 | `projects` | **Modify** | Add `owner_id` (nullable-shaped for future org ownership, see §4), `visibility` (`private`\|`unlisted`\|`public`). Stays in Testing Context — visibility is a Platform *concern* expressed as a column, not a reason to move the table. |
 | `project_members` | **Modify** | Add `status` (`invited`\|`accepted`\|`declined`), `invited_by`, `invited_at`, `responded_at`. Move conceptually to **Platform Context** (membership/invitation is platform machinery, not testing logic) but keep the FK to `projects` — see §5 on why it doesn't need to physically move tables. |
 | — (new) `project_invitations` | **Not introduced as a separate table** | Considered splitting invite-state into its own table; rejected — `project_members` with a `status` column is simpler, avoids a two-table dance for one row's lifecycle, and RLS already keys off `project_members`. Revisit only if invitations need their own audit trail independent of membership (e.g. re-inviting after decline). |
-| `test_suites` | **Modify** | Add `owner_id` (references `profiles`), `visibility` (`private`\|`unlisted`\|`public`). Drop the implicit "admin-managed" assumption — any user can create one. Stays clone-only (no `forked_from_id` yet, per your call). |
+| `test_suites` | **Modify** | Add `owner_id` (references `profiles`), `visibility` (`private`\|`unlisted`\|`public`). Drop the implicit "admin-managed" assumption — any user can create one. Stays clone-only (no `forked_from_id` yet, per your call). Constitution calls this domain "Test Suite Templates" — kept as a sharing/reuse mechanic, not framed as a marketplace/store. |
 | `test_suite_items`, `test_suite_item_steps` | **Keep** | No change — still per-suite content, unaffected by ownership change. |
 | `test_case_steps`, `modules`, `tags`, `test_roles` | **Keep** | Pure Testing Context, no coupling to auth beyond `has_project_access()`, which is unaffected. |
 | `test_plans`, `test_plan_cases`, `test_runs`, `test_results`, `test_result_steps` | **Keep** | Testing Context, no changes. |
@@ -351,18 +369,20 @@ No REST API design is proposed yet — premature until the Go backend work resum
 
 **In scope:**
 - Self-serve signup, no admin approval gate
-- Public username + profile (`/@username`), editable display name/avatar/bio
+- Username + minimal public lookup page (`/@username`: display name/avatar/bio only —
+  no project or suite showcase), editable from Settings
 - Project `visibility` (private/unlisted/public) + `owner_id`
 - Project invite → accept/decline flow, replacing direct-add
-- Test Suite ownership (`owner_id`) + `visibility`, still clone-only into projects
+- Test Suite Template ownership (`owner_id`) + `visibility`, still clone-only into projects
 - Schema-ready `owner_type` on projects (no org tables, no org UI)
 
-**Explicitly out of scope (deferred, not forgotten):**
-- Organizations/Workspaces (tables + UI)
-- Test Suite forking/lineage (`forked_from_id`), versioning
-- Notifications (in-app or email)
-- Visibility on Issues/Attachments independent of their parent Project
-- Public contribution/statistics surfaces on profile pages (needs the above first)
+**Explicitly out of scope (deferred, not forgotten — and some rejected outright per Constitution):**
+- Organizations/Workspaces (tables + UI) — deferred
+- Test Suite forking/lineage (`forked_from_id`), versioning — deferred
+- Notifications (in-app or email) — deferred
+- Visibility on Issues/Attachments independent of their parent Project — deferred
+- Public project/suite showcase, contributions, statistics on profile pages — **rejected**,
+  conflicts with Constitution's "not a social network" / "not a portfolio" stance, not merely postponed
 
 ---
 
