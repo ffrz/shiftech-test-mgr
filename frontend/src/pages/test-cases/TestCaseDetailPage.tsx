@@ -102,9 +102,9 @@ export function TestCaseDetailPage() {
       await queryClient.invalidateQueries({ queryKey: queryKeys.modules(testCase.project.id) });
       setEditModuleId(created.id);
       setModuleDialogOpen(false);
-      toast.current?.show({ severity: 'success', summary: 'Module dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Module created' });
     } catch (err) {
-      setModuleError(err instanceof Error ? err.message : 'Gagal menyimpan module');
+      setModuleError(err instanceof Error ? err.message : 'Failed to save module');
     }
   }
 
@@ -128,9 +128,9 @@ export function TestCaseDetailPage() {
       await queryClient.invalidateQueries({ queryKey: queryKeys.tags(testCase.project.id) });
       setEditTags((prev) => [...prev, created.name]);
       setTagDialogOpen(false);
-      toast.current?.show({ severity: 'success', summary: 'Tag dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Tag created' });
     } catch (err) {
-      setTagError(err instanceof Error ? err.message : 'Gagal menyimpan tag');
+      setTagError(err instanceof Error ? err.message : 'Failed to save tag');
     }
   }
 
@@ -187,9 +187,9 @@ export function TestCaseDetailPage() {
       setEditDialogOpen(false);
       await reload();
       await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
-      toast.current?.show({ severity: 'success', summary: 'Test case diperbarui' });
+      toast.current?.show({ severity: 'success', summary: 'Test case updated' });
     } catch (err) {
-      setEditError(err instanceof Error ? err.message : 'Gagal menyimpan test case');
+      setEditError(err instanceof Error ? err.message : 'Failed to save test case');
     }
   }
 
@@ -217,23 +217,23 @@ export function TestCaseDetailPage() {
         : undefined,
     });
     await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
-    toast.current?.show({ severity: 'success', summary: 'Test case diduplikat' });
+    toast.current?.show({ severity: 'success', summary: 'Test case duplicated' });
     navigate(`/test-cases/${created.id}${projectId ? `?projectId=${projectId}` : ''}`);
   }
 
   function handleDelete() {
     if (!testCase) return;
     confirmDialog({
-      header: 'Hapus Test Case',
-      message: `Test case "${testCase.title}" akan dihapus permanen, termasuk seluruh riwayat hasil eksekusinya. Lanjutkan?`,
+      header: 'Delete Test Case',
+      message: `Test case "${testCase.title}" will be permanently deleted, including its entire execution history. Continue?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await testCaseService.remove(testCase.id);
         await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
-        toast.current?.show({ severity: 'success', summary: 'Test case dihapus' });
+        toast.current?.show({ severity: 'success', summary: 'Test case deleted' });
         handleBack();
       },
     });
@@ -246,10 +246,10 @@ export function TestCaseDetailPage() {
           items={[
             { label: 'Projects', path: '/' },
             { label: testCase ? testCase.project.name : '…', path: testCase ? `/projects/${testCase.project.id}` : undefined },
-            { label: loading ? '…' : 'Test case tidak ditemukan' },
+            { label: loading ? '…' : 'Test case not found' },
           ]}
         />
-        {!loading && <p>Test case tidak ditemukan.</p>}
+        {!loading && <p>Test case not found.</p>}
       </div>
     );
   }
@@ -275,8 +275,8 @@ export function TestCaseDetailPage() {
         </div>
         <div className="flex gap-2">
           {canEditContent && <Button label="Edit" icon="pi pi-pencil" size="small" outlined onClick={openEditDialog} />}
-          {canEditContent && <Button label="Duplikat" icon="pi pi-copy" size="small" outlined onClick={handleDuplicate} />}
-          {canDeleteContent && <Button label="Hapus" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleDelete} />}
+          {canEditContent && <Button label="Duplicate" icon="pi pi-copy" size="small" outlined onClick={handleDuplicate} />}
+          {canDeleteContent && <Button label="Delete" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleDelete} />}
         </div>
       </div>
 
@@ -300,11 +300,11 @@ export function TestCaseDetailPage() {
             <p className="mt-0">{testCase.module?.name ?? '-'}</p>
           </div>
           <div className="col-6 md:col-3">
-            <label className="block text-color-secondary text-sm mb-1">Dibuat</label>
+            <label className="block text-color-secondary text-sm mb-1">Created</label>
             <p className="mt-0">{formatDateTime(testCase.createdAt)}</p>
           </div>
           <div className="col-6 md:col-3">
-            <label className="block text-color-secondary text-sm mb-1">Update Terakhir</label>
+            <label className="block text-color-secondary text-sm mb-1">Last Updated</label>
             <p className="mt-0">{formatDateTime(testCase.updatedAt)}</p>
           </div>
         </div>
@@ -319,19 +319,19 @@ export function TestCaseDetailPage() {
       </Card>
 
       {testCase.objective && (
-        <Card title="Tujuan" className="mb-3">
+        <Card title="Objective" className="mb-3">
           <p className="m-0">{testCase.objective}</p>
         </Card>
       )}
 
       {testCase.preconditions && (
-        <Card title="Prasyarat" className="mb-3">
+        <Card title="Preconditions" className="mb-3">
           <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.preconditions}</p>
         </Card>
       )}
 
       {testCase.stepType === 'detailed' ? (
-        <Card title="Langkah Pengujian" className="mb-3">
+        <Card title="Test Steps" className="mb-3">
           <ol className="m-0 pl-3 flex flex-column gap-2">
             {detailedSteps.map((step) => (
               <li key={step.id}>
@@ -347,18 +347,18 @@ export function TestCaseDetailPage() {
         </Card>
       ) : (
         <>
-          <Card title="Langkah Pengujian" className="mb-3">
+          <Card title="Test Steps" className="mb-3">
             <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.steps}</p>
           </Card>
 
-          <Card title="Hasil yang Diharapkan" className="mb-3">
+          <Card title="Expected Result" className="mb-3">
             <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.expectedResult}</p>
           </Card>
         </>
       )}
 
       {testCase.notes && (
-        <Card title="Catatan" className="mb-3">
+        <Card title="Notes" className="mb-3">
           <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.notes}</p>
         </Card>
       )}
@@ -369,7 +369,7 @@ export function TestCaseDetailPage() {
           {editError && <small className="p-error">{editError}</small>}
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-code">Kode</label>
+            <label htmlFor="edit-case-code">Code</label>
             <InputText id="edit-case-code" value={editCode} onChange={(e) => setEditCode(e.target.value)} className="w-10rem" />
           </div>
 
@@ -383,14 +383,14 @@ export function TestCaseDetailPage() {
                   options={moduleOptions}
                   onChange={(e) => setEditModuleId(e.value)}
                   showClear
-                  placeholder="Pilih module"
+                  placeholder="Select module"
                   className="w-full"
                 />
-                <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="Module Baru" onClick={openCreateModuleDialog} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
+                <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="New Module" onClick={openCreateModuleDialog} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
               </div>
             </div>
             <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="edit-case-priority">Prioritas</label>
+              <label htmlFor="edit-case-priority">Priority</label>
               <Dropdown
                 id="edit-case-priority"
                 value={editPriority}
@@ -402,59 +402,59 @@ export function TestCaseDetailPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-title">Judul</label>
+            <label htmlFor="edit-case-title">Title</label>
             <InputText id="edit-case-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} autoFocus />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-objective">Tujuan (opsional)</label>
+            <label htmlFor="edit-case-objective">Objective (optional)</label>
             <InputText id="edit-case-objective" value={editObjective} onChange={(e) => setEditObjective(e.target.value)} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-preconditions">Prasyarat</label>
+            <label htmlFor="edit-case-preconditions">Preconditions</label>
             <InputTextarea id="edit-case-preconditions" value={editPreconditions} onChange={(e) => setEditPreconditions(e.target.value)} rows={2} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-steps">Langkah Pengujian</label>
+            <label htmlFor="edit-case-steps">Test Steps</label>
             <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={4} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-expected">Hasil yang Diharapkan</label>
+            <label htmlFor="edit-case-expected">Expected Result</label>
             <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={3} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-tags">Tag</label>
+            <label htmlFor="edit-case-tags">Tags</label>
             <div className="flex align-items-center gap-1">
               <MultiSelect
                 id="edit-case-tags"
                 value={editTags}
                 options={tags.map((t) => ({ label: t.name, value: t.name }))}
                 onChange={(e) => setEditTags(e.value ?? [])}
-                placeholder="Pilih tag"
+                placeholder="Select tags"
                 display="chip"
                 filter
                 className="w-full"
               />
-              <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="Tag Baru" onClick={openCreateTagDialog} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
+              <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="New Tag" onClick={openCreateTagDialog} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
             </div>
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-notes">Catatan (opsional)</label>
+            <label htmlFor="edit-case-notes">Notes (optional)</label>
             <InputTextarea id="edit-case-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} />
           </div>
 
-          <Button label="Simpan" size="small" onClick={handleSaveEdit} />
+          <Button label="Save" size="small" onClick={handleSaveEdit} />
         </div>
       </Dialog>
 
       {/* --- Module Quick-Add Dialog --- */}
       <Dialog
-        header="Module Baru"
+        header="New Module"
         visible={moduleDialogOpen}
         onHide={() => setModuleDialogOpen(false)}
         onShow={() => moduleNameRef.current?.focus()}
@@ -463,11 +463,11 @@ export function TestCaseDetailPage() {
         <div className="flex flex-column gap-3">
           {moduleError && <small className="p-error">{moduleError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-code">Kode</label>
-            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Otomatis jika dikosongkan" />
+            <label htmlFor="module-code">Code</label>
+            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Automatic if left empty" />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="module-name">Nama Module</label>
+            <label htmlFor="module-name">Module Name</label>
             <InputText
               id="module-name"
               ref={moduleNameRef}
@@ -476,16 +476,16 @@ export function TestCaseDetailPage() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSaveModule();
               }}
-              placeholder="mis. Autentikasi, Dashboard, Pembelian"
+              placeholder="e.g. Authentication, Dashboard, Purchasing"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveModule} />
+          <Button label="Save" size="small" onClick={handleSaveModule} />
         </div>
       </Dialog>
 
       {/* --- Tag Quick-Add Dialog --- */}
       <Dialog
-        header="Tag Baru"
+        header="New Tag"
         visible={tagDialogOpen}
         onHide={() => setTagDialogOpen(false)}
         onShow={() => tagNameRef.current?.focus()}
@@ -494,7 +494,7 @@ export function TestCaseDetailPage() {
         <div className="flex flex-column gap-3">
           {tagError && <small className="p-error">{tagError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="tag-name">Nama Tag</label>
+            <label htmlFor="tag-name">Tag Name</label>
             <InputText
               id="tag-name"
               ref={tagNameRef}
@@ -503,10 +503,10 @@ export function TestCaseDetailPage() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSaveTag();
               }}
-              placeholder="mis. Regression, Smoke, UI"
+              placeholder="e.g. Regression, Smoke, UI"
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSaveTag} />
+          <Button label="Save" size="small" onClick={handleSaveTag} />
         </div>
       </Dialog>
     </div>

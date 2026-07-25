@@ -40,13 +40,13 @@ export const testCaseService = {
     stepType?: TestCase['stepType'];
     detailedSteps?: { action: string; expectedResult?: string }[];
   }): Promise<TestCase> {
-    if (!input.title.trim()) throw new Error('Judul test case tidak boleh kosong');
+    if (!input.title.trim()) throw new Error('Test case title cannot be empty');
     const stepType = input.stepType ?? 'simple';
     if (stepType === 'simple') {
-      if (!input.steps.trim()) throw new Error('Langkah pengujian tidak boleh kosong');
-      if (!input.expectedResult.trim()) throw new Error('Hasil yang diharapkan tidak boleh kosong');
+      if (!input.steps.trim()) throw new Error('Test steps cannot be empty');
+      if (!input.expectedResult.trim()) throw new Error('Expected result cannot be empty');
     } else if (!input.detailedSteps?.length) {
-      throw new Error('Test case detailed harus punya minimal satu langkah');
+      throw new Error('A detailed test case must have at least one step');
     }
 
     const testCase = await testCaseRepository.create({
