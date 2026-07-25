@@ -14,12 +14,12 @@ export function PendingApprovalPage() {
 
   return (
     <div className="flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-      <Card title="Menunggu Persetujuan" className="w-25rem text-center">
+      <Card title="Awaiting Approval" className="w-25rem text-center">
         <p className="text-color-secondary mb-2">
-          Akun <strong>{profile?.email}</strong> berhasil masuk, tapi belum disetujui administrator.
+          Signed in as <strong>{profile?.email}</strong>, but not yet approved by an administrator.
         </p>
-        <p className="text-color-secondary mb-4">Hubungi admin untuk mendapatkan akses.</p>
-        <Button label="Keluar" icon="pi pi-sign-out" severity="secondary" outlined className="w-full" onClick={signOut} />
+        <p className="text-color-secondary mb-4">Contact an admin to get access.</p>
+        <Button label="Sign Out" icon="pi pi-sign-out" severity="secondary" outlined className="w-full" onClick={signOut} />
       </Card>
     </div>
   );
