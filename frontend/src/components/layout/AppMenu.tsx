@@ -45,9 +45,9 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
       await reload();
       onNavigate?.();
       navigate(`/projects/${created.id}`);
-      toast.current?.show({ severity: 'success', summary: 'Project dibuat' });
+      toast.current?.show({ severity: 'success', summary: 'Project created' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menyimpan project');
+      setError(err instanceof Error ? err.message : 'Failed to save project');
     }
   }
 
@@ -63,8 +63,20 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
   const mainItems: MenuItemModel[] = [
     { label: 'Home', icon: 'pi pi-home', url: '/home' },
     { label: 'Projects', icon: 'pi pi-folder', url: '/', end: true },
-    { label: 'Test Case Templates', icon: 'pi pi-copy', url: '/test-case-templates' },
-    ...(isAdmin ? [{ label: 'Users', icon: 'pi pi-users', url: '/users' }] : []),
+    ...(isAdmin
+      ? [
+          {
+            label: 'Library',
+            icon: 'pi pi-book',
+            items: [{ label: 'Test Case', icon: 'pi pi-copy', url: '/test-case-templates' }],
+          },
+          {
+            label: 'Administration',
+            icon: 'pi pi-cog',
+            items: [{ label: 'Users', icon: 'pi pi-users', url: '/users' }],
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -82,8 +94,8 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
           <button
             type="button"
             className="layout-menuitem-add"
-            title="Project Baru"
-            aria-label="Project Baru"
+            title="New Project"
+            aria-label="New Project"
             onClick={openAddDialog}
           >
             <i className="pi pi-plus" />
@@ -96,7 +108,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
             <InputText
               value={projectSearch}
               onChange={(e) => setProjectSearch(e.target.value)}
-              placeholder="Saring project..."
+              placeholder="Filter projects..."
               className="w-full"
             />
           </IconField>
@@ -116,7 +128,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
             <button
               type="button"
               className={`layout-submenu-pin ${isPinned(project.id) ? 'pinned' : ''}`}
-              title={isPinned(project.id) ? 'Lepas pin' : 'Pin project'}
+              title={isPinned(project.id) ? 'Unpin' : 'Pin project'}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -130,13 +142,13 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
 
         {visibleProjects.length === 0 && (
           <li className="layout-menu-empty">
-            <span className="text-color-secondary text-sm">Tidak ada project ditemukan</span>
+            <span className="text-color-secondary text-sm">No projects found</span>
           </li>
         )}
       </ul>
 
       <Dialog
-        header="Project Baru"
+        header="New Project"
         visible={addDialogOpen}
         onHide={() => setAddDialogOpen(false)}
         onShow={() => nameRef.current?.focus()}
@@ -145,7 +157,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex flex-column gap-3">
           {error && <small className="p-error">{error}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="add-project-name">Nama</label>
+            <label htmlFor="add-project-name">Name</label>
             <InputText
               id="add-project-name"
               ref={nameRef}
@@ -157,7 +169,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
             />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="add-project-description">Deskripsi</label>
+            <label htmlFor="add-project-description">Description</label>
             <InputTextarea
               id="add-project-description"
               value={description}
@@ -165,7 +177,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
               rows={3}
             />
           </div>
-          <Button label="Simpan" size="small" onClick={handleSave} />
+          <Button label="Save" size="small" onClick={handleSave} />
         </div>
       </Dialog>
     </>
