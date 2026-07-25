@@ -889,31 +889,6 @@ export function ProjectDetailPage() {
     });
   }
 
-  if (!project) {
-    return (
-      <div className="page-fade-in">
-        <Breadcrumb
-          items={[
-            { label: 'Projects', path: '/' },
-            { label: projectLoading ? '…' : 'Project tidak ditemukan' },
-          ]}
-        />
-        {!projectLoading && <p>Project tidak ditemukan.</p>}
-      </div>
-    );
-  }
-
-  const moduleOptions = modules.map((m) => ({ label: m.name, value: m.id }));
-  const tagOptions = tags.map((t) => ({ label: t.name, value: t.id }));
-  const testRoleOptions = testRoles.map((r) => ({ label: r.name, value: r.id }));
-
-  function sortHandler(setField: (f: string) => void, setOrder: (o: 1 | -1) => void) {
-    return (e: DataTableStateEvent) => {
-      setField(e.sortField);
-      setOrder((e.sortOrder ?? 1) as 1 | -1);
-    };
-  }
-
   const mobilePlanBody = useCallback((row: TestPlan) => (
     <div className="flex flex-column gap-1">
       <div className="font-medium">{row.name}</div>
@@ -969,6 +944,31 @@ export function ProjectDetailPage() {
       </div>
     </div>
   ), []);
+
+  if (!project) {
+    return (
+      <div className="page-fade-in">
+        <Breadcrumb
+          items={[
+            { label: 'Projects', path: '/' },
+            { label: projectLoading ? '…' : 'Project tidak ditemukan' },
+          ]}
+        />
+        {!projectLoading && <p>Project tidak ditemukan.</p>}
+      </div>
+    );
+  }
+
+  const moduleOptions = modules.map((m) => ({ label: m.name, value: m.id }));
+  const tagOptions = tags.map((t) => ({ label: t.name, value: t.id }));
+  const testRoleOptions = testRoles.map((r) => ({ label: r.name, value: r.id }));
+
+  function sortHandler(setField: (f: string) => void, setOrder: (o: 1 | -1) => void) {
+    return (e: DataTableStateEvent) => {
+      setField(e.sortField);
+      setOrder((e.sortOrder ?? 1) as 1 | -1);
+    };
+  }
 
   return (
     <div className="page-fade-in">
