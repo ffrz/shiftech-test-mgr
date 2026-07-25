@@ -10,7 +10,7 @@ function storagePathFromUrl(url: string): string {
   const marker = `/${BUCKET}/`;
   const withoutQuery = url.split('?')[0];
   const index = withoutQuery.indexOf(marker);
-  if (index === -1) throw new Error(`URL tidak dikenali sebagai attachment Supabase Storage: ${url}`);
+  if (index === -1) throw new Error(`URL not recognized as a Supabase Storage attachment: ${url}`);
   return withoutQuery.slice(index + marker.length);
 }
 

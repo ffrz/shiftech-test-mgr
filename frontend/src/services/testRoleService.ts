@@ -6,12 +6,12 @@ export const testRoleService = {
   },
 
   async create(input: { projectId: string; name: string }) {
-    if (!input.name.trim()) throw new Error('Nama role tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Role name cannot be empty');
     return testRoleRepository.create({ projectId: input.projectId, name: input.name.trim() });
   },
 
   async update(id: string, input: { name: string }) {
-    if (!input.name.trim()) throw new Error('Nama role tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Role name cannot be empty');
     return testRoleRepository.update(id, { name: input.name.trim() });
   },
 

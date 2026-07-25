@@ -11,12 +11,12 @@ export const tagService = {
   },
 
   create(projectId: string, name: string) {
-    if (!name.trim()) throw new Error('Nama tag tidak boleh kosong');
+    if (!name.trim()) throw new Error('Tag name cannot be empty');
     return tagRepository.findOrCreate(projectId, name.trim());
   },
 
   rename(id: string, name: string) {
-    if (!name.trim()) throw new Error('Nama tag tidak boleh kosong');
+    if (!name.trim()) throw new Error('Tag name cannot be empty');
     return tagRepository.update(id, name.trim());
   },
 

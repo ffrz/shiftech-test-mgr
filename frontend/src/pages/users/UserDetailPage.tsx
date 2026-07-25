@@ -24,8 +24,8 @@ export function UserDetailPage() {
     });
   }, [id]);
 
-  if (loading) return <p>Memuat...</p>;
-  if (!profile) return <p>User tidak ditemukan.</p>;
+  if (loading) return <p>Loading...</p>;
+  if (!profile) return <p>User not found.</p>;
 
   return (
     <div>
@@ -36,7 +36,7 @@ export function UserDetailPage() {
         ]}
       />
 
-      <Button label="Kembali" icon="pi pi-arrow-left" text onClick={() => navigate('/users')} className="mb-3" />
+      <Button label="Back" icon="pi pi-arrow-left" text onClick={() => navigate('/users')} className="mb-3" />
 
       <Card>
         <div className="flex align-items-center gap-3 mb-4">
@@ -51,11 +51,11 @@ export function UserDetailPage() {
 
         <div className="grid">
           <div className="col-12 md:col-6">
-            <label className="block text-color-secondary text-sm mb-1">Terdaftar</label>
+            <label className="block text-color-secondary text-sm mb-1">Registered</label>
             <p className="mt-0">{formatDateTime(profile.createdAt)}</p>
           </div>
           <div className="col-12 md:col-6">
-            <label className="block text-color-secondary text-sm mb-1">Update Terakhir</label>
+            <label className="block text-color-secondary text-sm mb-1">Last Updated</label>
             <p className="mt-0">{formatDateTime(profile.updatedAt)}</p>
           </div>
           <div className="col-12 md:col-6">

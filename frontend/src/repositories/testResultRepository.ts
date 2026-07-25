@@ -20,11 +20,11 @@ export const testResultRepository = {
     // which is exactly what produced the "test_case_title violates not-null" error — the
     // real bug was test_cases coming back empty/partial (RLS or a stale id), not this insert.
     if (!testCases || testCases.length === 0) {
-      throw new Error('Tidak ada test case yang bisa diambil untuk memulai run — cek akses RLS atau test case yang dihapus.');
+      throw new Error('No test cases could be retrieved to start the run — check RLS access or whether the test cases were deleted.');
     }
     if (testCases.length !== testCaseIds.length) {
       throw new Error(
-        `Hanya ${testCases.length} dari ${testCaseIds.length} test case dalam cakupan plan yang berhasil diambil — kemungkinan sebagian sudah dihapus atau tidak bisa diakses.`,
+        `Only ${testCases.length} of ${testCaseIds.length} test cases in the plan's scope could be retrieved — some may have been deleted or are inaccessible.`,
       );
     }
 
