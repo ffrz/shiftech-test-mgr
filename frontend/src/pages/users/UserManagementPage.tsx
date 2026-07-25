@@ -1,16 +1,20 @@
-import { useRef, useState, useCallback } from 'react';
+import { useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
+import { Dropdown } from 'primereact/dropdown';
 import { Menu } from 'primereact/menu';
+import { IconField } from 'primereact/iconfield';
+import { InputIcon } from 'primereact/inputicon';
+import { InputText } from 'primereact/inputtext';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { userService } from '../../services/userService';
 import { profileService } from '../../services/profileService';
 import { useScreenSize } from '../../hooks/useScreenSize';
-import type { User, Profile } from '../../types/domain';
+import type { User, UserRole } from '../../types/domain';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../hooks/queryKeys';
@@ -18,6 +22,12 @@ import { formatDateTime } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { USER_ROLE_LABEL, USER_ROLE_SEVERITY } from '../../helpers/statusLabels';
+
+const ROLE_OPTIONS: { label: string; value: UserRole | 'all' }[] = [
+  { label: 'All Roles', value: 'all' },
+  { label: 'Admin', value: 'admin' },
+  { label: 'User', value: 'user' },
+];
 
 export function UserManagementPage() {
   const queryClient = useQueryClient();
@@ -35,8 +45,34 @@ export function UserManagementPage() {
       return { users, profiles };
     },
   });
-  const users = data?.users ?? [];
   const { user: currentUser } = useAuthContext();
+
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
+
+  const profileById = useMemo(() => new Map((data?.profiles ?? []).map((p) => [p.id, p])), [data]);
+  const displayNameFor = useCallback((row: User) => profileById.get(row.id)?.displayName ?? '—', [profileById]);
+  const usernameFor = useCallback((row: User) => profileById.get(row.id)?.username ?? '—', [profileById]);
+
+  const users = useMemo(() => {
+    const allUsers = data?.users ?? [];
+    let filtered = allUsers;
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter((u) => u.role === roleFilter);
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      filtered = filtered.filter((u) => {
+        const p = profileById.get(u.id);
+        return (
+          u.email.toLowerCase().includes(q) ||
+          p?.displayName?.toLowerCase().includes(q) ||
+          p?.username?.toLowerCase().includes(q)
+        );
+      });
+    }
+    return filtered;
+  }, [data, roleFilter, search, profileById]);
   const navigate = useNavigate();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
@@ -47,10 +83,6 @@ export function UserManagementPage() {
   function reload() {
     return queryClient.invalidateQueries({ queryKey: queryKeys.users() });
   }
-
-  const profileById = new Map<string, Profile>((data?.profiles ?? []).map((p) => [p.id, p]));
-  const displayNameFor = (row: User) => profileById.get(row.id)?.displayName ?? '—';
-  const usernameFor = (row: User) => profileById.get(row.id)?.username ?? '—';
 
   async function handlePromote(row: User) {
     await userService.promoteToAdmin(row.id);
@@ -93,7 +125,7 @@ export function UserManagementPage() {
       </span>
       <span className="text-sm text-color-secondary">{formatDateTime(row.createdAt)}</span>
     </div>
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   ), [data]);
 
   const isMenuRowSelf = menuRow?.id === currentUser?.id;
@@ -121,9 +153,26 @@ export function UserManagementPage() {
       <ConfirmDialog />
       <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
 
-      <Breadcrumb items={[{ label: 'User Management' }]} />
+      <Breadcrumb items={[{ label: 'Users' }]} />
 
-      <PageHeader title="User Management" />
+      <PageHeader title="Users" />
+      <div className="flex gap-2 mb-3">
+        <IconField iconPosition="left" className="flex-1">
+          <InputIcon className="pi pi-search" />
+          <InputText
+            className="w-full"
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </IconField>
+        <Dropdown
+          value={roleFilter}
+          options={ROLE_OPTIONS}
+          onChange={(e) => setRoleFilter(e.value)}
+          className="w-14rem"
+        />
+      </div>
       <DataTable
         value={users}
         loading={loading}
