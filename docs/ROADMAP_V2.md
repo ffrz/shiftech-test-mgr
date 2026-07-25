@@ -151,9 +151,8 @@ Phase 6 note).
 | V2-P3-T09 | Project list/detail: visibility badge added to `ProjectsPage.tsx` and `ProjectDetailPage.tsx`. Owner *name* display deferred (not blocking) — would need a `profiles` lookup by `ownerId`, revisit if it becomes needed | done |
 
 **Migration file:** `supabase/migrations/20260725000007_project_ownership_and_visibility.sql`.
-Landed after Phase 1/2's staging verification pass — **not yet independently smoke-tested**.
-Low risk (renames an existing verified-working column, adds one new column with a safe
-default) but worth a quick staging apply before merging to main, same as Phase 4 below.
+Applied and verified on staging together with Phases 4/5's migrations — see the combined
+verification report noted at the end of Phase 5 below. Phase fully closed.
 
 **Exit criteria:** creating a project sets an owner and a visibility; existing
 projects all have a valid owner post-migration.
@@ -180,8 +179,10 @@ intervention, so it's the last piece before the golden path is fully self-serve.
 | V2-P4-T10 | Updated `handle_new_project()` trigger — explicitly sets `status='accepted'`, `invited_by=auth.uid()`, `responded_at=now()` for the creator's own membership row (defensive; `has_project_access`/`is_project_manager` also independently check `projects.owner_id` so the owner is never blocked even if this row is somehow missing) | done |
 
 **Migration file:** `supabase/migrations/20260725000009_project_membership_invite_accept.sql`.
-Not yet independently smoke-tested on staging — recommend testing alongside Phase 3's
-migration before merging to main.
+Applied and verified on staging — see combined verification report at the end of Phase 5.
+Phase fully closed at the RLS/code level; the actual two-account accept/decline click-through
+is deferred to Phase 7's golden-path walkthrough (needs two real browser sessions, not
+CLI-verifiable).
 
 **Exit criteria:** inviting a user by username puts them in a pending state; they
 must accept before `has_project_access()` grants them anything.
@@ -203,14 +204,29 @@ storefront/browse UI beyond a simple "mine" vs "public" filter.
 | V2-P5-T04 | `types/domain.ts`: add `ownerId`, `visibility` to `TestSuite` | done |
 | V2-P5-T05 | `testSuiteRepository.ts` / `testSuiteService.ts`: `create`/`update` accept `visibility` (default `'private'`); ownership itself is enforced by RLS (`owner_id` defaults to `auth.uid()`), not duplicated client-side | done |
 | V2-P5-T06 | `TestSuitesPage.tsx`: removed `isAdmin`-only gating on create/edit/delete (now `isOwnerOrAdmin` per-row), added visibility selector, "My Templates" vs "All Visible Templates" `SelectButton` filter. `TestSuiteDetailPage.tsx` got the same per-row ownership check for its item CRUD. Sidebar's "Test Suite" link (`AppMenu.tsx`) was also admin-gated — opened to all users | done |
-| V2-P5-T07 | Regression: `cloneItemsToProject` unchanged — confirmed via `tsc`/lint, needs a staging smoke-test pass like Phases 3/4 | todo |
+| V2-P5-T07 | Regression: `cloneItemsToProject` unchanged — confirmed via `tsc`/lint AND staging verification (below) | done |
 
 **Exit criteria:** any user can create a private Test Suite Template; publishing it
 public makes it visible/cloneable by others, without admin involvement.
 
 **Migration file:** `supabase/migrations/20260725000010_test_suite_ownership_and_visibility.sql`.
-Not yet independently smoke-tested on staging — recommend testing alongside Phase 3/4's
-migrations before merging to main.
+
+**Combined staging verification (Phases 3, 4, 5 + the Phase 1 realtime-publication fix)
+— all clean, no discrepancies.** Applied migrations 007–010 (four total — 008 was the
+realtime-publication fix from Phase 1's verification pass, applied here since
+`supabase db push` runs all pending migrations sequentially) against the same Supabase
+cloud project used for Phase 1. 35 checks passed: `owner_id`/`owner_type`/`visibility`
+backfilled and constrained correctly on both `projects` and `test_suites`; all RLS
+helper functions (`has_project_access`, `is_project_manager`, all four capability
+helpers) correctly require `status='accepted'` with the owner-safety-net intact;
+`project_members` invite/respond RLS policies correct; `test_suite_items`/
+`test_suite_item_steps` correctly derive access from their parent suite via a two-hop
+join; 81 RLS policies total inventoried with no duplicates/conflicts; `tsc`/lint clean.
+One thing **could not** be verified from the CLI: the actual two-account click-through
+of invite → accept → gained-access, and non-member visibility of a public/unlisted
+project, since both need two real authenticated browser sessions. Both are correct by
+code/RLS inspection and are the first two checks in Phase 7's golden-path walkthrough
+below — that's where they get their final confirmation.
 
 ---
 
@@ -237,14 +253,53 @@ now fully done** — all three tasks complete.
 ## Phase 7 — Golden-Path Acceptance Walkthrough + Docs Sync
 
 Mandatory closing phase. Not "polish" — this is the actual MVP acceptance test defined
-by the Constitution.
+by the Constitution. **Prerequisites met:** Phases 1–6 are all `done`, and migrations
+005–010 have all passed staging verification with zero discrepancies (see the
+verification notes under Phase 1 and Phase 5 above). The only thing staging
+verification could *not* confirm from the CLI — the two-account invite/accept
+click-through and public/unlisted project visibility for a non-member — is exactly
+what T01's walkthrough below covers. **Ready to execute T01.**
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P7-T01 | Manual walkthrough as a brand-new user: register → create project → invite a second account → write test cases → build a test plan → execute a run → record results → create an issue from a failed result. Time it — must be achievable well under an hour by someone already familiar with the UI | todo |
+| V2-P7-T01 | Golden-path walkthrough (see step-by-step checklist below) | todo |
 | V2-P7-T02 | Full regression pass across Testing Context (test cases/plans/runs/results/issues) — confirm zero behavior change per ARCHITECTURE_V2 "Testing Domain unchanged" guarantee | todo |
 | V2-P7-T03 | Update `CLAUDE.md`, `docs/PRD.md`, `FEATURES.md` to reflect the shipped V2 model (mark ARCHITECTURE_V2 as the current architecture, fold key parts into ARCHITECTURE.md or cross-link) | todo |
 | V2-P7-T04 | Update `TODO.md` — clear V2 roadmap items, resume normal sprint board | todo |
+| V2-P7-T05 | Merge `feature/platform-foundation` → `master` (only after T01–T04 all pass) | todo |
+
+### V2-P7-T01 — Golden-path walkthrough checklist
+
+Run as two real accounts (Account A = project owner, Account B = invitee) against
+staging, timing from step 1. Check off each as it passes; note any friction even if it
+technically "works" — the Constitution's bar is *simple*, not just functional.
+
+- [ ] **1. Register** — Account A signs in with Google for the first time, lands directly
+      in the app (no admin approval step, no pending screen)
+- [ ] **2. Create a project** — Account A creates a project from `/projects`, sets
+      visibility (try `private`), confirms it appears with correct owner
+- [ ] **3. Invite a team member** — Account A opens Project Settings → Members → Invite,
+      searches Account B by username (via `UsernamePicker`), sends invite
+      - [ ] Account B does **not** yet have access to the project (try navigating to it directly)
+      - [ ] Account B sees the invite on their Home dashboard ("Pending Invitations")
+      - [ ] Account B accepts → gains access immediately (no refresh/relogin needed)
+- [ ] **4. Write test cases** — Account A (or B, once accepted) creates a Module, then a
+      few Test Cases under it
+- [ ] **5. Organize into a test plan** — create a Test Plan, add the test cases to it
+- [ ] **6. Execute testing** — start a Test Run from the plan
+- [ ] **7. Record results** — mark at least one result Pass and one Fail
+- [ ] **8. Create an issue** — from the Fail result, create an Issue, confirm it links back
+      to the test result
+- [ ] **9. Timing** — total elapsed time from step 1 to step 8 is well under one hour for
+      someone already familiar with the UI (this is a sanity check on complexity, not a
+      strict stopwatch requirement for a first-time user)
+
+Bonus checks worth doing in the same pass since the accounts are already set up:
+- [ ] Visit `/@<account-b-username>` — confirm minimal identity card (no project/suite list)
+- [ ] Account A creates a Test Suite Template, publishes it `public`, Account B can see and
+      clone it into their own project
+- [ ] Account B (non-admin) can create their own project and Test Suite Template without
+      any admin involvement anywhere
 
 **Exit criteria:** the 9-step MVP Success Criteria flow works end-to-end for a fresh
 account with no admin intervention anywhere in the flow; docs describe the shipped
