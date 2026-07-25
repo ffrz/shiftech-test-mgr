@@ -143,16 +143,18 @@ export function UserManagementPage() {
           header=""
           style={{ width: '4rem' }}
           body={(row: Profile) => (
-            <Button
-              icon="pi pi-ellipsis-v"
-              text
-              rounded
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                openRowMenu(row, e);
-              }}
-            />
+            <div className="flex align-items-start">
+              <Button
+                icon="pi pi-ellipsis-v"
+                text
+                rounded
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openRowMenu(row, e);
+                }}
+              />
+            </div>
           )}
         />
       </DataTable>

@@ -49,16 +49,18 @@ export function ProjectsPage() {
     <div className="flex flex-column gap-2 py-1">
       <div className="flex align-items-center justify-content-between gap-2">
         <span className="font-bold text-base">{row.name}</span>
-        <Button
-          icon="pi pi-ellipsis-v"
-          text
-          rounded
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation();
-            openRowMenu(row, e);
-          }}
-        />
+        <div className="flex align-items-start">
+          <Button
+            icon="pi pi-ellipsis-v"
+            text
+            rounded
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              openRowMenu(row, e);
+            }}
+          />
+        </div>
       </div>
       <div className="flex align-items-center gap-2 text-sm text-color-secondary">
         <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
@@ -317,16 +319,18 @@ export function ProjectsPage() {
             header=""
             style={{ width: '4rem' }}
             body={(row: Project) => (
-              <Button
-                icon="pi pi-ellipsis-v"
-                text
-                rounded
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openRowMenu(row, e);
-                }}
-              />
+              <div className="flex align-items-start">
+                <Button
+                  icon="pi pi-ellipsis-v"
+                  text
+                  rounded
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openRowMenu(row, e);
+                  }}
+                />
+              </div>
             )}
           />
         )}

@@ -13,7 +13,7 @@ export function RowActionsMenu({ items }: RowActionsMenuProps) {
   const menuRef = useRef<Menu>(null);
 
   return (
-    <>
+    <div className="flex align-items-start">
       <Button
         icon="pi pi-ellipsis-v"
         text
@@ -26,6 +26,6 @@ export function RowActionsMenu({ items }: RowActionsMenuProps) {
         }}
       />
       <Menu ref={menuRef} model={items} popup appendTo={document.body} />
-    </>
+    </div>
   );
 }
