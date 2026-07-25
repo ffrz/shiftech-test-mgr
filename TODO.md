@@ -4,9 +4,17 @@ Titik mulai sesi kerja. Update file ini setiap kali mulai/selesai mengerjakan se
 
 ## Siap Dikerjakan (next up)
 
-- [ ] E02-T05 — Project selector/context global
+**Platform Evolution V2 sedang jadi prioritas utama** — lihat
+[`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md) (desain) dan
+[`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) (fase + task detail). Backend Go
+(`backend/`) **di-pending** selama roadmap ini berjalan — lihat `backend/README.md`.
+
+- [ ] V2-P1-T01 — Backfill `role = 'pending'` → `'user'` (lihat ROADMAP_V2 Phase 1)
+- [ ] V2-P1-T02..T13 — Split `profiles` → `users` + `profiles` (identity split), lihat ROADMAP_V2 Phase 1 untuk detail lengkap
+
+Item lama (non-V2), tetap terbuka tapi bukan prioritas saat ini:
+
 - [ ] E03-T06 — Filter test case by priority/status di list
-- [ ] E06-T14 — Status "rejected" terpisah dari "pending" (jika diperlukan)
 - [ ] Cek ulang: apakah role user lain (selain admin pertama) sudah login ulang & di-set sesuai `backups/restore_roles.sql`? Dibuat saat reset database 2026-07-22, kemungkinan sudah selesai tapi belum dikonfirmasi
 - [ ] Reporting (Dashboard/PDF/HTML/execution mode mobile) — belum diprioritaskan, lihat `docs/PRD.md` §7 Roadmap
 
