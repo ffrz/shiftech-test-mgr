@@ -1,28 +1,32 @@
 #!/usr/bin/env bash
 #
-# Deploy manual TestManager (frontend React/Vite SPA) ke server.
-# Backend adalah Supabase (BaaS) yang
-# diakses langsung dari browser -- tidak ada proses server-side untuk
-# app ini, sehingga .env (VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY) di-bake
-# ke dalam hasil `npm run build` saat build lokal, BUKAN disimpan di server.
+# Deploy Testify (landing + React/Vite SPA + Astro/Starlight docs) ke server.
+# Tiga output statis di-build lokal lalu di-rsync ke SATU release directory di
+# server, baru diaktifkan lewat satu symlink swap atomik:
+#   - landing/          -> root release (domain root, /)
+#   - frontend/dist/     -> release/app/   (React SPA, base: '/app/')
+#   - public-docs/dist/  -> release/docs/  (Astro/Starlight, base: '/docs/')
+#
+# Backend adalah Supabase (BaaS) yang diakses langsung dari browser -- tidak
+# ada proses server-side untuk app ini, sehingga .env
+# (VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY) di-bake ke dalam hasil
+# `npm run build` saat build lokal, BUKAN disimpan di server.
+#
 # Jalankan dari root project ini, dari shell apa saja yang punya
 # bash+ssh+rsync native (WSL, Git Bash, macOS, Linux):
 #
 #   bash deploy/deploy-vps.sh
-#     -> npm ci && npm run build di frontend/, lalu rsync dist/ ke release
-#        baru + symlink current. Idempotent, aman dijalankan berulang.
+#     -> skip npm ci & skip build sama sekali (default) -- langsung rsync
+#        frontend/dist/ dan public-docs/dist/ yang SUDAH ADA hasil build
+#        sebelumnya. landing/ tidak pernah butuh build (statis apa adanya).
 #
-#   bash deploy/deploy-vps.sh --skip-install
-#     -> skip `npm ci`, langsung `npm run build` (dependency sudah ada
-#        lokal dan tidak berubah) -- lebih cepat untuk iterasi cepat.
+#   bash deploy/deploy-vps.sh --build
+#     -> npm run build di frontend/ DAN public-docs/ (tanpa npm ci -- pakai
+#        node_modules lokal yang sudah ada), baru rsync semua.
 #
-#   bash deploy/deploy-vps.sh --skip-build
-#     -> skip build sama sekali, langsung rsync frontend/dist/ yang sudah
-#        ada. Dipakai kalau shell yang menjalankan script ini tidak punya
-#        toolchain Node yang sama dengan yang dipakai build (mis. WSL tanpa
-#        Node terpasang, sementara project di-build native lewat PowerShell/
-#        cmd Windows) -- build dulu manual (`cd frontend && npm run build`),
-#        baru jalankan script ini dengan flag ini untuk rsync + activate.
+#   bash deploy/deploy-vps.sh --install --build
+#     -> npm ci && npm run build di frontend/ DAN public-docs/, baru rsync
+#        semua. Dipakai kalau dependency berubah.
 #
 # Server tidak butuh Node.js/npm sama sekali -- build 100% di lokal/CI,
 # server hanya menerima hasil build statis (mirip arsitektur deploy Laravel
@@ -51,7 +55,7 @@ for arg in "$@"; do
         --install) SKIP_INSTALL=0 ;;
         --build) SKIP_BUILD=0 ;;
         *)
-            echo "Argumen tidak dikenal: $arg (pakai --skip-install / --skip-build)" >&2
+            echo "Argumen tidak dikenal: $arg (pakai --install / --build)" >&2
             exit 1
             ;;
     esac
@@ -60,6 +64,8 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 FRONTEND_DIR="${PROJECT_DIR}/frontend"
+LANDING_DIR="${PROJECT_DIR}/landing"
+DOCS_DIR="${PROJECT_DIR}/public-docs"
 
 CONFIG_FILE="${SCRIPT_DIR}/deploy.conf.local"
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -95,37 +101,69 @@ invoke_ssh() {
 }
 
 if [ "$SKIP_BUILD" -eq 1 ]; then
-    echo "==> [1/4] Skip build (--skip-build) -- pakai frontend/dist/ yang sudah ada"
+    echo "==> [1/4] Skip build (tanpa --build) -- pakai frontend/dist/ dan public-docs/dist/ yang sudah ada"
 else
-    echo "==> [1/4] Build lokal (frontend/)"
+    echo "==> [1/4] Build lokal (frontend/ dan public-docs/)"
     cd "$FRONTEND_DIR"
     if [ "$SKIP_INSTALL" -eq 1 ]; then
-        echo "    Skip npm ci (--skip-install)"
+        echo "    frontend: skip npm ci (tanpa --install)"
     else
-        echo "    npm ci"
+        echo "    frontend: npm ci"
         npm ci
     fi
-    echo "    npm run build"
+    echo "    frontend: npm run build"
+    npm run build
+
+    cd "$DOCS_DIR"
+    if [ "$SKIP_INSTALL" -eq 1 ]; then
+        echo "    public-docs: skip npm ci (tanpa --install)"
+    else
+        echo "    public-docs: npm ci"
+        npm ci
+    fi
+    echo "    public-docs: npm run build"
     npm run build
 fi
 
 if [ ! -f "${FRONTEND_DIR}/dist/index.html" ]; then
-    echo "frontend/dist/index.html tidak ditemukan -- build gagal, atau (dengan --skip-build) belum pernah di-build sama sekali" >&2
+    echo "frontend/dist/index.html tidak ditemukan -- build gagal, atau (tanpa --build) belum pernah di-build sama sekali" >&2
+    exit 1
+fi
+if [ ! -f "${DOCS_DIR}/dist/index.html" ]; then
+    echo "public-docs/dist/index.html tidak ditemukan -- build gagal, atau (tanpa --build) belum pernah di-build sama sekali" >&2
+    exit 1
+fi
+if [ ! -f "${LANDING_DIR}/index.html" ]; then
+    echo "landing/index.html tidak ditemukan -- landing/ hilang atau rusak" >&2
     exit 1
 fi
 
 echo "==> [2/4] Buat direktori release baru di server"
-invoke_ssh "mkdir -p ${APP_DIR}/releases/${RELEASE}"
+invoke_ssh "mkdir -p ${APP_DIR}/releases/${RELEASE}/app ${APP_DIR}/releases/${RELEASE}/docs"
 
 echo "==> [3/4] Rsync hasil build -> release baru"
 # --delete aman di sini -- setiap release adalah folder baru yang belum
 # pernah diisi apa pun sebelumnya (bukan staging persisten yang dipakai
 # ulang tiap deploy seperti app Laravel), jadi tidak ada risiko menghapus
-# sesuatu yang masih dibutuhkan.
-rsync -rlt --delete --no-perms --no-owner --no-group --compress-level=1 --itemize-changes --human-readable \
-    -e "ssh ${SSH_OPTS[*]}" \
-    "${FRONTEND_DIR}/dist/" \
+# sesuatu yang masih dibutuhkan. Tiga rsync terpisah ke subpath berbeda dari
+# release yang sama -- masing-masing --delete hanya berlaku di subpath-nya
+# sendiri, tidak saling menghapus.
+RSYNC_OPTS=(-rlt --delete --no-perms --no-owner --no-group --compress-level=1 --itemize-changes --human-readable -e "ssh ${SSH_OPTS[*]}")
+
+echo "    landing/ -> release root"
+rsync "${RSYNC_OPTS[@]}" \
+    "${LANDING_DIR}/" \
     "root@${SERVER_HOST}:${APP_DIR}/releases/${RELEASE}/"
+
+echo "    frontend/dist/ -> release/app/"
+rsync "${RSYNC_OPTS[@]}" \
+    "${FRONTEND_DIR}/dist/" \
+    "root@${SERVER_HOST}:${APP_DIR}/releases/${RELEASE}/app/"
+
+echo "    public-docs/dist/ -> release/docs/"
+rsync "${RSYNC_OPTS[@]}" \
+    "${DOCS_DIR}/dist/" \
+    "root@${SERVER_HOST}:${APP_DIR}/releases/${RELEASE}/docs/"
 
 echo "==> [4/4] Aktifkan release (symlink current) & bersihkan release lama"
 POST_DEPLOY_SCRIPT="$(cat <<EOF
@@ -139,4 +177,6 @@ EOF
 ssh "${SSH_OPTS[@]}" "root@${SERVER_HOST}" "bash -s" <<< "$POST_DEPLOY_SCRIPT"
 
 echo "==> Selesai. Verifikasi:"
-echo "    https://testify.apps.shiftech.my.id"
+echo "    https://testify.apps.shiftech.my.id/"
+echo "    https://testify.apps.shiftech.my.id/app/"
+echo "    https://testify.apps.shiftech.my.id/docs/"

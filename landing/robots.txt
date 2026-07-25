@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /app/
+
+Sitemap: https://testify.apps.shiftech.my.id/sitemap.xml
+Sitemap: https://testify.apps.shiftech.my.id/docs/sitemap-index.xml
