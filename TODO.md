@@ -20,6 +20,7 @@ roadmap ini berjalan — lihat `backend/README.md`.
 - [ ] Search/browse Test Suite Template berdasarkan kategori
 - [ ] Ganti filter `TestSuitesPage` dari "All Visible Templates" → "Browse Templates" (hanya public milik orang lain, exclude milik sendiri)
 - [ ] Brainstorm: metadata Test Suite Template (category/difficulty/est. time/app type/coverage tags) — masih butuh diskusi taxonomy sebelum di-scope
+- [ ] Open question: apakah `TestPlanCase` butuh snapshot Test Case + mekanisme sync (edit test case setelah masuk plan tapi sebelum run dimulai saat ini silently ikut versi terbaru) — Testing Domain, bukan V2, belum condong ke arah manapun
 
 Item lama (non-V2), tetap terbuka tapi bukan prioritas saat ini:
 

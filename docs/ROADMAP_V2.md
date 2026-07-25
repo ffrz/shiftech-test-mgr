@@ -327,6 +327,24 @@ commitment to build them as described.
   templates from other users**, excluding your own — i.e. a genuine discovery view,
   not just "everything I can see." Small, well-scoped UI change — doesn't need the
   metadata work below to ship.
+- **Open question: does `TestPlanCase` need a Test Case snapshot + sync mechanism?**
+  Raised 2026-07-25 — genuinely undecided, not leaning either way yet. Note this is
+  **Testing Domain**, not Platform Context — out of V2's normal scope (see
+  `ARCHITECTURE_V2.md`'s "Testing Domain unchanged" guarantee), listed here only
+  because there's nowhere more specific yet to put a Testing Domain open question.
+  Confirmed from `types/domain.ts`: `TestPlanCase` is a pure junction (`testPlanId`,
+  `testCaseId`, `order` — no content columns) that always resolves through a live join
+  to `TestCase`. `TestResult` already **does** snapshot Test Case content (title,
+  objective, steps, expectedResult, priority — see the `TestResult` interface comment:
+  "Snapshot ... so a completed run's history stays accurate even if the source test
+  case is edited or archived afterwards"). The gap is the window *before* that: if a
+  Test Case is edited after being added to a Test Plan but before a Test Run is
+  started from it, the Test Plan silently shows the edited version, not the version
+  that was actually planned/reviewed. Whether that's a real problem or a non-issue
+  depends on how "living" a Test Plan is meant to be in practice — needs product
+  discussion, not just a technical call. If snapshotting turns out to be wanted, it
+  implies a sync mechanism too (surfacing "this test case changed since it was added
+  to the plan," and a way to pull the update in deliberately rather than silently).
 
 ### Brainstorm: Test Suite Template metadata (needs discussion before scoping)
 
