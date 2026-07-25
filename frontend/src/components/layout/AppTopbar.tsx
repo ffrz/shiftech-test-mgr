@@ -33,8 +33,10 @@ export function AppTopbar() {
       )}
       <div className="flex-1" />
       <div className="flex align-items-center gap-2">
-        <Avatar image={profile?.avatarUrl ?? undefined} icon={profile?.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="normal" />
-        <span className="text-sm hidden md:inline">{profile?.displayName ?? user?.email}</span>
+        <Link to="/settings" className="flex align-items-center gap-2 no-underline text-color">
+          <Avatar image={profile?.avatarUrl ?? undefined} icon={profile?.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="normal" />
+          <span className="text-sm hidden md:inline">{profile?.displayName ?? user?.email}</span>
+        </Link>
         <ThemeToggle />
         <Button icon="pi pi-sign-out" text rounded aria-label="Keluar" onClick={signOut} />
       </div>

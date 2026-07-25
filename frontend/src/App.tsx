@@ -18,8 +18,10 @@ import { TestSuiteDetailPage } from './pages/test-suites/TestSuiteDetailPage';
 import { TestRunResultDetailPage } from './pages/test-runs/TestRunResultDetailPage';
 import { TestRunIssuesPage } from './pages/test-runs/TestRunIssuesPage';
 import { IssueDetailPage } from './pages/issues/IssueDetailPage';
+import { SettingsPage } from './pages/settings/SettingsPage';
 import { UserManagementPage } from './pages/users/UserManagementPage';
 import { UserDetailPage } from './pages/users/UserDetailPage';
+import { PublicProfilePage } from './pages/profiles/PublicProfilePage';
 
 function App() {
   useDialogResizeFix();
@@ -39,11 +41,13 @@ function App() {
           <Route path="/test-plans/:id" element={<TestPlanDetailPage />} />
           <Route path="/test-cases" element={<TestCasesPage />} />
           <Route path="/test-cases/:id" element={<TestCaseDetailPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/test-suites" element={<TestSuitesPage />} />
           <Route path="/test-suites/:id" element={<TestSuiteDetailPage />} />
           <Route path="/test-runs/:id/issues" element={<TestRunIssuesPage />} />
           <Route path="/test-runs/:id" element={<TestRunResultDetailPage />} />
           <Route path="/issues/:id" element={<IssueDetailPage />} />
+          <Route path="/@:username" element={<PublicProfilePage />} />
 
           <Route element={<AdminRoute />}>
             <Route path="/users" element={<UserManagementPage />} />
