@@ -14,55 +14,17 @@ export const testCaseTemplateService = {
   },
 
   async createTemplate(input: { name: string; description?: string }): Promise<TestCaseTemplate> {
-    if (!input.name.trim()) throw new Error('Nama template tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Template name cannot be empty');
     return testCaseTemplateRepository.create({ name: input.name.trim(), description: input.description?.trim() || null });
   },
 
   async updateTemplate(id: string, input: { name: string; description?: string }): Promise<TestCaseTemplate> {
-    if (!input.name.trim()) throw new Error('Nama template tidak boleh kosong');
+    if (!input.name.trim()) throw new Error('Template name cannot be empty');
     return testCaseTemplateRepository.update(id, { name: input.name.trim(), description: input.description?.trim() || null });
   },
 
   removeTemplate(id: string) {
     return testCaseTemplateRepository.remove(id);
-  },
-
-  async duplicateTemplate(
-    sourceTemplateId: string,
-    input: { name: string; description?: string },
-  ): Promise<TestCaseTemplate> {
-    if (!input.name.trim()) throw new Error('Nama template tidak boleh kosong');
-    const newTemplate = await testCaseTemplateRepository.create({
-      name: input.name.trim(),
-      description: input.description?.trim() || null,
-    });
-
-    const sourceItems = await testCaseTemplateRepository.findItemsByTemplate(sourceTemplateId);
-    for (const item of sourceItems) {
-      const detailedSteps =
-        item.stepType === 'detailed' ? await testCaseTemplateRepository.findStepsByItem(item.id) : [];
-
-      await this.addItem({
-        templateId: newTemplate.id,
-        moduleName: item.moduleName ?? undefined,
-        title: item.title,
-        objective: item.objective ?? undefined,
-        preconditions: item.preconditions ?? undefined,
-        steps: item.steps,
-        expectedResult: item.expectedResult,
-        priority: item.priority,
-        targetRole: item.targetRole ?? undefined,
-        tagNames: item.tagNames,
-        stepType: item.stepType,
-        detailedSteps: detailedSteps.map((s) => ({
-          action: s.action,
-          expectedResult: s.expectedResult ?? undefined,
-        })),
-        orderIndex: item.orderIndex,
-      });
-    }
-
-    return newTemplate;
   },
 
   listItems(templateId: string) {
@@ -89,13 +51,13 @@ export const testCaseTemplateService = {
     detailedSteps?: { action: string; expectedResult?: string }[];
     orderIndex: number;
   }): Promise<TestCaseTemplateItem> {
-    if (!input.title.trim()) throw new Error('Judul test case tidak boleh kosong');
+    if (!input.title.trim()) throw new Error('Test case title cannot be empty');
     const stepType = input.stepType ?? 'simple';
     if (stepType === 'simple') {
-      if (!input.steps.trim()) throw new Error('Langkah pengujian tidak boleh kosong');
-      if (!input.expectedResult.trim()) throw new Error('Hasil yang diharapkan tidak boleh kosong');
+      if (!input.steps.trim()) throw new Error('Test steps cannot be empty');
+      if (!input.expectedResult.trim()) throw new Error('Expected result cannot be empty');
     } else if (!input.detailedSteps?.length) {
-      throw new Error('Test case detailed harus punya minimal satu langkah');
+      throw new Error('A detailed test case must have at least one step');
     }
 
     const item = await testCaseTemplateRepository.createItem({
