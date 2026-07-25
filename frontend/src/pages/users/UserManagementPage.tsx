@@ -9,9 +9,11 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useUsers } from '../../hooks/useUsers';
 import { userService } from '../../services/userService';
+import { profileService } from '../../services/profileService';
 import { useScreenSize } from '../../hooks/useScreenSize';
-import type { User } from '../../types/domain';
+import type { User, Profile } from '../../types/domain';
 import { useAuthContext } from '../../hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
@@ -27,6 +29,14 @@ export function UserManagementPage() {
   const menuRef = useRef<Menu>(null);
   const [menuRow, setMenuRow] = useState<User | null>(null);
 
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles', 'byIds', users.map((u) => u.id).join(',')],
+    queryFn: () => profileService.getByIds(users.map((u) => u.id)),
+    enabled: users.length > 0,
+  });
+  const profileById = new Map<string, Profile>(profiles.map((p) => [p.id, p]));
+  const displayNameFor = (row: User) => profileById.get(row.id)?.displayName ?? profileById.get(row.id)?.username ?? '—';
+
   async function handlePromote(row: User) {
     await userService.promoteToAdmin(row.id);
     await reload();
@@ -40,14 +50,14 @@ export function UserManagementPage() {
   function handleDelete(row: User) {
     confirmDialog({
       header: 'Delete User',
-      message: `User "${row.email}" will be removed from the list. Continue?`,
+      message: `User "${displayNameFor(row)}" will be removed from the list. Continue?`,
       icon: 'pi pi-trash',
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await userService.remove(row.id);
-        toast.current?.show({ severity: 'success', summary: 'User deleted', detail: row.email });
+        toast.current?.show({ severity: 'success', summary: 'User deleted', detail: displayNameFor(row) });
         await reload();
       },
     });
@@ -60,20 +70,23 @@ export function UserManagementPage() {
 
   const mobileBodyTemplate = useCallback((row: User) => (
     <div className="flex flex-column gap-2 py-1">
-      <span className="font-bold">{row.email}</span>
+      <span className="font-bold">{displayNameFor(row)}</span>
       <span className="text-sm text-color-secondary">
         <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />
       </span>
       <span className="text-sm text-color-secondary">{formatDateTime(row.createdAt)}</span>
     </div>
-  ), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [profiles]);
 
   const isMenuRowSelf = menuRow?.id === currentUser?.id;
 
   const menuItems = menuRow
     ? [
       { label: 'View Details', icon: 'pi pi-eye', command: () => navigate(`/users/${menuRow.id}`) },
-      ...(menuRow.role === 'user'
+      // Never let an admin change their own role — no self-promote, no self-demote.
+      // Prevents both accidental self-lockout and unreviewed self-escalation.
+      ...(menuRow.role === 'user' && !isMenuRowSelf
         ? [{ separator: true }, { label: 'Make Admin', icon: 'pi pi-shield', command: () => handlePromote(menuRow) }]
         : []),
       ...(menuRow.role === 'admin' && !isMenuRowSelf
@@ -106,7 +119,7 @@ export function UserManagementPage() {
         className="cursor-pointer"
       >
         {isMobile && <Column body={mobileBodyTemplate} />}
-        {!isMobile && <Column field="email" header="Email" sortable />}
+        {!isMobile && <Column header="Name" body={displayNameFor} />}
         {!isMobile && <Column field="role" header="Role" body={(row: User) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />} sortable />}
         {!isMobile && <Column field="createdAt" header="Registered" body={(row: User) => formatDateTime(row.createdAt)} sortable />}
         <Column
