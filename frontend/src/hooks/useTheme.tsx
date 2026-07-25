@@ -5,8 +5,8 @@ export type ThemeMode = 'system' | 'light' | 'dark';
 const STORAGE_KEY = 'theme-mode.v1';
 const THEME_LINK_ID = 'prime-theme';
 const THEME_HREF: Record<'light' | 'dark', string> = {
-  light: '/prime-themes/lara-light-blue/theme.css',
-  dark: '/prime-themes/lara-dark-blue/theme.css',
+  light: '/prime-themes/soho-light/theme.css',
+  dark: '/prime-themes/soho-dark/theme.css',
 };
 
 interface ThemeContextValue {
