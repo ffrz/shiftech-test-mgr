@@ -7,20 +7,35 @@ import { Button } from 'primereact/button';
 import { Menu } from 'primereact/menu';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
-import { useUsers } from '../../hooks/useUsers';
 import { userService } from '../../services/userService';
 import { profileService } from '../../services/profileService';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import type { User, Profile } from '../../types/domain';
 import { useAuthContext } from '../../hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../hooks/queryKeys';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { USER_ROLE_LABEL, USER_ROLE_SEVERITY } from '../../helpers/statusLabels';
 
 export function UserManagementPage() {
-  const { users, loading, reload } = useUsers();
+  const queryClient = useQueryClient();
+  // Fetched together in one queryFn (rather than two useQuery calls chained via
+  // `enabled`) — the users-then-profiles dependent-query approach raced on first
+  // mount/page refresh: the profiles query's key depended on `users` still being
+  // empty during the very first render, and didn't reliably re-fire once `users`
+  // arrived, leaving name/username blank until something else (e.g. navigating away
+  // and back) forced a remount.
+  const { data, isLoading: loading } = useQuery({
+    queryKey: queryKeys.users(),
+    queryFn: async () => {
+      const users = await userService.listAll();
+      const profiles = await profileService.getByIds(users.map((u) => u.id));
+      return { users, profiles };
+    },
+  });
+  const users = data?.users ?? [];
   const { user: currentUser } = useAuthContext();
   const navigate = useNavigate();
   const { lt } = useScreenSize();
@@ -29,12 +44,11 @@ export function UserManagementPage() {
   const menuRef = useRef<Menu>(null);
   const [menuRow, setMenuRow] = useState<User | null>(null);
 
-  const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles', 'byIds', users.map((u) => u.id).join(',')],
-    queryFn: () => profileService.getByIds(users.map((u) => u.id)),
-    enabled: users.length > 0,
-  });
-  const profileById = new Map<string, Profile>(profiles.map((p) => [p.id, p]));
+  function reload() {
+    return queryClient.invalidateQueries({ queryKey: queryKeys.users() });
+  }
+
+  const profileById = new Map<string, Profile>((data?.profiles ?? []).map((p) => [p.id, p]));
   const displayNameFor = (row: User) => profileById.get(row.id)?.displayName ?? '—';
   const usernameFor = (row: User) => profileById.get(row.id)?.username ?? '—';
 
@@ -80,7 +94,7 @@ export function UserManagementPage() {
       <span className="text-sm text-color-secondary">{formatDateTime(row.createdAt)}</span>
     </div>
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [profiles]);
+  ), [data]);
 
   const isMenuRowSelf = menuRow?.id === currentUser?.id;
 
