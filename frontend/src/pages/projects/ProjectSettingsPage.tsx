@@ -365,7 +365,7 @@ export function ProjectSettingsPage() {
   function handleRemoveMember(row: ProjectMemberWithProfile) {
     confirmDialog({
       header: 'Remove Member',
-      message: `"${row.profile.displayName ?? row.email}" will be removed from this project and lose access. Continue?`,
+      message: `"${row.profile.displayName ?? row.profile.username}" will be removed from this project and lose access. Continue?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
@@ -455,7 +455,7 @@ export function ProjectSettingsPage() {
   const membersMobileBody = useCallback((row: ProjectMemberWithProfile) => (
     <div className="flex flex-column gap-2 py-1">
       <div className="font-medium">{row.profile.displayName ?? '-'}</div>
-      <div className="text-sm text-color-secondary">Email: {row.email}</div>
+      <div className="text-sm text-color-secondary">@{row.profile.username}</div>
       <div className="text-sm text-color-secondary">Role: {PROJECT_MEMBER_ROLE_LABEL[row.role]}</div>
       <div className="text-sm text-color-secondary">
         Status: <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
@@ -674,7 +674,7 @@ export function ProjectSettingsPage() {
               {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
               {isMobile && <Column header="Member" body={membersMobileBody} />}
               {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => row.profile.displayName ?? '-'} />}
-              {!isMobile && <Column header="Email" body={(row: ProjectMemberWithProfile) => row.email} />}
+              {!isMobile && <Column header="Username" body={(row: ProjectMemberWithProfile) => `@${row.profile.username}`} />}
               {!isMobile && (
                 <Column
                   header="Status"
