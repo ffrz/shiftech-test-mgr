@@ -19,13 +19,12 @@ import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
-import { userService } from '../../services/userService';
-import { profileService } from '../../services/profileService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
-import type { Project, Module, Tag as TagEntity, TestRole, User, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
+import { UsernamePicker } from '../../components/ui/UsernamePicker';
+import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
 import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -51,30 +50,23 @@ export function ProjectSettingsPage() {
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [testRoles, setTestRoles] = useState<TestRole[]>([]);
   const [members, setMembers] = useState<ProjectMemberWithProfile[]>([]);
-  const [approvedUsers, setApprovedUsers] = useState<User[]>([]);
-  const [approvedProfiles, setApprovedProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
 
   async function loadAll(showLoading = true) {
     if (!id) return;
     if (showLoading) setLoading(true);
-    const [projectResult, modulesResult, tagsResult, testRolesResult, membersResult, usersResult] = await Promise.all([
+    const [projectResult, modulesResult, tagsResult, testRolesResult, membersResult] = await Promise.all([
       projectService.getById(id),
       moduleService.listByProject(id),
       tagService.listByProject(id),
       testRoleService.listByProject(id),
       projectMemberService.listByProject(id),
-      userService.listAll(),
     ]);
-    const approved = usersResult.filter((u: User) => u.role === 'user' || u.role === 'admin');
-    const profiles = await profileService.getByIds(approved.map((u) => u.id));
     setProject(projectResult);
     setModules(modulesResult);
     setTags(tagsResult);
     setTestRoles(testRolesResult);
     setMembers(membersResult);
-    setApprovedUsers(approved);
-    setApprovedProfiles(Object.fromEntries(profiles.map((p) => [p.id, p])));
     if (showLoading) setLoading(false);
   }
 
@@ -334,20 +326,15 @@ export function ProjectSettingsPage() {
 
   // --- Members ---
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
-  const [memberUserId, setMemberUserId] = useState<string | null>(null);
+  const [memberProfile, setMemberProfile] = useState<Profile | null>(null);
   const [memberRole, setMemberRole] = useState<ProjectMemberRole>('member');
   const [memberError, setMemberError] = useState<string | null>(null);
   const [selectedMembers, setSelectedMembers] = useState<ProjectMemberWithProfile[]>([]);
 
-  const availableUserOptions = useMemo(() => {
-    const memberIds = new Set(members.map((m) => m.userId));
-    return approvedUsers
-      .filter((u) => !memberIds.has(u.id))
-      .map((u) => ({ label: approvedProfiles[u.id]?.displayName ?? u.email, value: u.id }));
-  }, [approvedUsers, approvedProfiles, members]);
+  const existingMemberIds = useMemo(() => members.map((m) => m.userId), [members]);
 
   function openAddMemberDialog() {
-    setMemberUserId(null);
+    setMemberProfile(null);
     setMemberRole('member');
     setMemberError(null);
     setMemberDialogOpen(true);
@@ -356,12 +343,12 @@ export function ProjectSettingsPage() {
   async function handleAddMember() {
     if (!id || !currentUser) return;
     setMemberError(null);
-    if (!memberUserId) {
-      setMemberError('Select a user first');
+    if (!memberProfile) {
+      setMemberError('Search for and select a user first');
       return;
     }
     try {
-      await projectMemberService.invite(id, memberUserId, currentUser.id, memberRole);
+      await projectMemberService.invite(id, memberProfile.id, currentUser.id, memberRole);
       setMemberDialogOpen(false);
       await loadAll(false);
       toast.current?.show({ severity: 'success', summary: 'Invitation sent' });
@@ -867,16 +854,8 @@ export function ProjectSettingsPage() {
         <div className="flex flex-column gap-3">
           {memberError && <small className="p-error">{memberError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="member-user">User</label>
-            <Dropdown
-              id="member-user"
-              value={memberUserId}
-              options={availableUserOptions}
-              onChange={(e) => setMemberUserId(e.value)}
-              filter
-              placeholder="Select user"
-              className="w-full"
-            />
+            <label htmlFor="member-user">Username</label>
+            <UsernamePicker value={memberProfile} onChange={setMemberProfile} excludeIds={existingMemberIds} />
           </div>
           <div className="flex flex-column gap-1">
             <label htmlFor="member-role">Role</label>

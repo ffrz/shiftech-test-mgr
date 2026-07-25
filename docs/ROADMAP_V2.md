@@ -226,10 +226,11 @@ contributions/statistics.
 |---|---|---|
 | V2-P6-T01 | Route `/@:username` → `PublicProfilePage` (display name, avatar, bio — nothing else) | done |
 | V2-P6-T02 | `profileService.getByUsername(username)` — public fields only, no email leak | done |
-| V2-P6-T03 | Username picker/typeahead component reused by Phase 4's invite UI (resolve username → profile id) | todo |
+| V2-P6-T03 | `components/ui/UsernamePicker.tsx` — debounced typeahead over `profileService.search()` (new: partial-match on username/display_name, sanitized against PostgREST `.or()` filter injection). Replaces `ProjectSettingsPage`'s old "load every approved user" dropdown — also deleted that page's now-unused `userService.listAll()` + `profileService.getByIds()` fetch, a nice simplification since search-on-demand doesn't need it | done |
 
 **Exit criteria:** looking up `/@username` shows a minimal identity card; inviting a
-collaborator by username in Phase 4's UI resolves correctly against it.
+collaborator by username in Phase 4's UI resolves correctly against it. **Phase 6 is
+now fully done** — all three tasks complete.
 
 ---
 

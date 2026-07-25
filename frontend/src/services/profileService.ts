@@ -19,6 +19,10 @@ export const profileService = {
     return profileRepository.findByIds(ids);
   },
 
+  search(query: string) {
+    return profileRepository.search(query);
+  },
+
   updateOwnProfile(userId: string, changes: Parameters<typeof profileRepository.update>[1]) {
     return profileRepository.update(userId, changes);
   },
