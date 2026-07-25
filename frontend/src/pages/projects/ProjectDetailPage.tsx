@@ -939,7 +939,7 @@ export function ProjectDetailPage() {
         <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />
       </div>
       <div className="text-sm text-color-secondary flex gap-2">
-        <span>Assignee: {row.assignee?.fullName ?? row.assignedTo ?? '-'}</span>
+        <span>Assignee: {row.assignee?.displayName ?? row.assignedTo ?? '-'}</span>
         <span>{formatDateTime(row.updatedAt)}</span>
       </div>
     </div>
@@ -1455,7 +1455,7 @@ export function ProjectDetailPage() {
                   <div onClick={(e) => e.stopPropagation()}>
                     <Dropdown
                       value={row.assignedTo}
-                      options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
+                      options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
                       onChange={(e) => {
                         issueService.assign(row.id, e.value);
                         patchIssue(row.id, { assignedTo: e.value });

@@ -11,7 +11,7 @@ export function HomePage() {
 
   return (
     <div>
-      <h2 className="m-0 mb-4">Welcome Back{profile?.fullName ? `, ${profile.fullName}` : ''}</h2>
+      <h2 className="m-0 mb-4">Welcome Back{profile?.displayName ? `, ${profile.displayName}` : ''}</h2>
 
       {!loading && continueWorking.length > 0 && (
         <div className="mb-4">

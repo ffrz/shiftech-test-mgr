@@ -139,7 +139,7 @@ export function TestRunIssuesPage() {
         Priority: <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />
       </div>
       <div className="text-sm text-color-secondary">Status: {ISSUE_STATUS_LABEL[row.status]}</div>
-      <div className="text-sm text-color-secondary">Assigned to: {row.assignee?.fullName ?? row.assignee?.email ?? '-'}</div>
+      <div className="text-sm text-color-secondary">Assigned to: {row.assignee?.displayName ?? row.assignee?.username ?? '-'}</div>
     </div>
   ), []);
 
@@ -211,7 +211,7 @@ export function TestRunIssuesPage() {
               <div onClick={(e) => e.stopPropagation()}>
                 <Dropdown
                   value={row.assignedTo}
-                  options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
+                  options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
                   onChange={(e) => handleAssign(row, e.value)}
                   placeholder="Unassigned"
                   showClear

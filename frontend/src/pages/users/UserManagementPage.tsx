@@ -7,10 +7,10 @@ import { Button } from 'primereact/button';
 import { Menu } from 'primereact/menu';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
-import { useProfiles } from '../../hooks/useProfiles';
-import { profileService } from '../../services/profileService';
+import { useUsers } from '../../hooks/useUsers';
+import { userService } from '../../services/userService';
 import { useScreenSize } from '../../hooks/useScreenSize';
-import type { Profile } from '../../types/domain';
+import type { User } from '../../types/domain';
 import { useAuthContext } from '../../hooks/useAuth';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -18,32 +18,32 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { USER_ROLE_LABEL, USER_ROLE_SEVERITY } from '../../helpers/statusLabels';
 
 export function UserManagementPage() {
-  const { profiles, loading, reload } = useProfiles();
-  const { profile: currentProfile } = useAuthContext();
+  const { users, loading, reload } = useUsers();
+  const { user: currentUser } = useAuthContext();
   const navigate = useNavigate();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
   const toast = useRef<Toast>(null);
   const menuRef = useRef<Menu>(null);
-  const [menuRow, setMenuRow] = useState<Profile | null>(null);
+  const [menuRow, setMenuRow] = useState<User | null>(null);
 
-  async function handleApprove(row: Profile) {
-    await profileService.approve(row.id);
+  async function handleApprove(row: User) {
+    await userService.approve(row.id);
     toast.current?.show({ severity: 'success', summary: 'User approved', detail: row.email });
     await reload();
   }
 
-  async function handlePromote(row: Profile) {
-    await profileService.promoteToAdmin(row.id);
+  async function handlePromote(row: User) {
+    await userService.promoteToAdmin(row.id);
     await reload();
   }
 
-  async function handleDemote(row: Profile) {
-    await profileService.demoteToUser(row.id);
+  async function handleDemote(row: User) {
+    await userService.demoteToUser(row.id);
     await reload();
   }
 
-  function handleRevokeAccess(row: Profile) {
+  function handleRevokeAccess(row: User) {
     confirmDialog({
       header: 'Revoke Access',
       message: `Access for "${row.email}" will be revoked and their status will return to pending until re-approved. Continue?`,
@@ -52,14 +52,14 @@ export function UserManagementPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-warning',
       accept: async () => {
-        await profileService.revokeAccess(row.id);
+        await userService.revokeAccess(row.id);
         toast.current?.show({ severity: 'warn', summary: 'Access revoked', detail: row.email });
         await reload();
       },
     });
   }
 
-  function handleDelete(row: Profile) {
+  function handleDelete(row: User) {
     confirmDialog({
       header: 'Delete User',
       message: `User "${row.email}" will be removed from the list. Continue?`,
@@ -68,22 +68,21 @@ export function UserManagementPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await profileService.remove(row.id);
+        await userService.remove(row.id);
         toast.current?.show({ severity: 'success', summary: 'User deleted', detail: row.email });
         await reload();
       },
     });
   }
 
-  function openRowMenu(row: Profile, event: React.MouseEvent) {
+  function openRowMenu(row: User, event: React.MouseEvent) {
     setMenuRow(row);
     menuRef.current?.toggle(event);
   }
 
-  const mobileBodyTemplate = useCallback((row: Profile) => (
+  const mobileBodyTemplate = useCallback((row: User) => (
     <div className="flex flex-column gap-2 py-1">
-      <span className="font-bold">{row.fullName}</span>
-      <span className="text-sm text-color-secondary">{row.email}</span>
+      <span className="font-bold">{row.email}</span>
       <span className="text-sm text-color-secondary">
         <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />
       </span>
@@ -91,7 +90,7 @@ export function UserManagementPage() {
     </div>
   ), []);
 
-  const isMenuRowSelf = menuRow?.id === currentProfile?.id;
+  const isMenuRowSelf = menuRow?.id === currentUser?.id;
 
   const menuItems = menuRow
     ? [
@@ -124,25 +123,24 @@ export function UserManagementPage() {
 
       <PageHeader title="User Management" />
       <DataTable
-        value={profiles}
+        value={users}
         loading={loading}
         paginator
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="No users yet"
         size="small"
-        onRowClick={(e) => navigate(`/users/${(e.data as Profile).id}`)}
+        onRowClick={(e) => navigate(`/users/${(e.data as User).id}`)}
         rowHover
         className="cursor-pointer"
       >
         {isMobile && <Column body={mobileBodyTemplate} />}
         {!isMobile && <Column field="email" header="Email" sortable />}
-        {!isMobile && <Column field="fullName" header="Name" sortable />}
-        {!isMobile && <Column field="role" header="Role" body={(row: Profile) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />} sortable />}
-        {!isMobile && <Column field="createdAt" header="Registered" body={(row: Profile) => formatDateTime(row.createdAt)} sortable />}
+        {!isMobile && <Column field="role" header="Role" body={(row: User) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />} sortable />}
+        {!isMobile && <Column field="createdAt" header="Registered" body={(row: User) => formatDateTime(row.createdAt)} sortable />}
         <Column
           header=""
           style={{ width: '4rem' }}
-          body={(row: Profile) => (
+          body={(row: User) => (
             <div className="flex align-items-start">
               <Button
                 icon="pi pi-ellipsis-v"

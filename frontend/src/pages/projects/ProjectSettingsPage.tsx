@@ -19,11 +19,12 @@ import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
+import { userService } from '../../services/userService';
 import { profileService } from '../../services/profileService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
-import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
+import type { Project, Module, Tag as TagEntity, TestRole, User, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
 import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -48,7 +49,8 @@ export function ProjectSettingsPage() {
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [testRoles, setTestRoles] = useState<TestRole[]>([]);
   const [members, setMembers] = useState<ProjectMemberWithProfile[]>([]);
-  const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
+  const [approvedUsers, setApprovedUsers] = useState<User[]>([]);
+  const [approvedProfiles, setApprovedProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
 
   async function loadAll(showLoading = true) {
@@ -60,14 +62,17 @@ export function ProjectSettingsPage() {
       tagService.listByProject(id),
       testRoleService.listByProject(id),
       projectMemberService.listByProject(id),
-      profileService.listAll(),
+      userService.listAll(),
     ]);
+    const approved = usersResult.filter((u: User) => u.role === 'user' || u.role === 'admin');
+    const profiles = await profileService.getByIds(approved.map((u) => u.id));
     setProject(projectResult);
     setModules(modulesResult);
     setTags(tagsResult);
     setTestRoles(testRolesResult);
     setMembers(membersResult);
-    setApprovedUsers(usersResult.filter((p: Profile) => p.role === 'user' || p.role === 'admin'));
+    setApprovedUsers(approved);
+    setApprovedProfiles(Object.fromEntries(profiles.map((p) => [p.id, p])));
     if (showLoading) setLoading(false);
   }
 
@@ -336,8 +341,8 @@ export function ProjectSettingsPage() {
     const memberIds = new Set(members.map((m) => m.userId));
     return approvedUsers
       .filter((u) => !memberIds.has(u.id))
-      .map((u) => ({ label: u.fullName ?? u.email, value: u.id }));
-  }, [approvedUsers, members]);
+      .map((u) => ({ label: approvedProfiles[u.id]?.displayName ?? u.email, value: u.id }));
+  }, [approvedUsers, approvedProfiles, members]);
 
   function openAddMemberDialog() {
     setMemberUserId(null);
@@ -371,7 +376,7 @@ export function ProjectSettingsPage() {
   function handleRemoveMember(row: ProjectMemberWithProfile) {
     confirmDialog({
       header: 'Remove Member',
-      message: `"${row.profile.fullName ?? row.profile.email}" will be removed from this project and lose access. Continue?`,
+      message: `"${row.profile.displayName ?? row.email}" will be removed from this project and lose access. Continue?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
@@ -460,8 +465,8 @@ export function ProjectSettingsPage() {
 
   const membersMobileBody = useCallback((row: ProjectMemberWithProfile) => (
     <div className="flex flex-column gap-2 py-1">
-      <div className="font-medium">{row.profile.fullName ?? '-'}</div>
-      <div className="text-sm text-color-secondary">Email: {row.profile.email}</div>
+      <div className="font-medium">{row.profile.displayName ?? '-'}</div>
+      <div className="text-sm text-color-secondary">Email: {row.email}</div>
       <div className="text-sm text-color-secondary">Role: {PROJECT_MEMBER_ROLE_LABEL[row.role]}</div>
     </div>
   ), []);
@@ -676,8 +681,8 @@ export function ProjectSettingsPage() {
             >
               {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
               {isMobile && <Column header="Member" body={membersMobileBody} />}
-              {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => row.profile.fullName ?? '-'} />}
-              {!isMobile && <Column header="Email" body={(row: ProjectMemberWithProfile) => row.profile.email} />}
+              {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => row.profile.displayName ?? '-'} />}
+              {!isMobile && <Column header="Email" body={(row: ProjectMemberWithProfile) => row.email} />}
               {!isMobile && (
                 <Column
                   header="Role"

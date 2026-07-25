@@ -3,7 +3,7 @@ import { mapAttachmentRow, mapIssueRow, mapModuleRow, mapProfileRow, mapTagRow }
 import type { Attachment, GithubLink, Issue, IssueStatus, IssueType, IssueWithDetails } from '../types/domain';
 
 const ISSUE_DETAIL_SELECT =
-  '*, assignee:profiles(*), module:modules(*), issue_tags(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
+  '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), issue_tags(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
 
 // Same shape as ISSUE_DETAIL_SELECT but the issue_test_results relation is forced to an
 // inner join — required by findAllByTestRun/findAllByTestResult, which filter on columns
@@ -12,12 +12,12 @@ const ISSUE_DETAIL_SELECT =
 // (Postgres error 42803, aggregate functions not allowed in FROM) — so this is a full
 // separate select string, not ISSUE_DETAIL_SELECT with an extra relation appended.
 const ISSUE_DETAIL_SELECT_INNER_LINK =
-  '*, assignee:profiles(*), module:modules(*), issue_tags(tag:tags(*)), issue_test_results!inner(test_result:test_results!inner(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
+  '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), issue_tags(tag:tags(*)), issue_test_results!inner(test_result:test_results!inner(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
 
 function mapIssueWithDetailsRow(row: any): IssueWithDetails {
   return {
     ...mapIssueRow(row),
-    assignee: row.assignee ? mapProfileRow(row.assignee) : null,
+    assignee: row.assignee?.profile ? mapProfileRow(row.assignee.profile) : null,
     module: row.module ? mapModuleRow(row.module) : null,
     tags: (row.issue_tags ?? []).map((t: any) => mapTagRow(t.tag)),
     linkedTestResults: (row.issue_test_results ?? [])

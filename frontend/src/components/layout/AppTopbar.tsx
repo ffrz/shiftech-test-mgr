@@ -8,7 +8,7 @@ import { BreadcrumbTrail } from '../ui/Breadcrumb';
 import { ThemeToggle } from './ThemeToggle';
 
 export function AppTopbar() {
-  const { profile, signOut } = useAuthContext();
+  const { profile, user, signOut } = useAuthContext();
   const { onMenuToggle } = useLayoutContext();
   const { items } = useBreadcrumbContext();
 
@@ -34,7 +34,7 @@ export function AppTopbar() {
       <div className="flex-1" />
       <div className="flex align-items-center gap-2">
         <Avatar image={profile?.avatarUrl ?? undefined} icon={profile?.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="normal" />
-        <span className="text-sm hidden md:inline">{profile?.fullName ?? profile?.email}</span>
+        <span className="text-sm hidden md:inline">{profile?.displayName ?? user?.email}</span>
         <ThemeToggle />
         <Button icon="pi pi-sign-out" text rounded aria-label="Keluar" onClick={signOut} />
       </div>

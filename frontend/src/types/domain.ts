@@ -1,14 +1,27 @@
 export type UserRole = 'pending' | 'user' | 'admin';
 
-export interface Profile {
+// Auth-bound account — private fields (email, role). Never joined into public-facing
+// views. See Profile below for the public-identity counterpart. Split per
+// docs/ARCHITECTURE_V2.md §1/§3 (email must never be public).
+export interface User {
   id: string;
   email: string;
-  fullName: string | null;
-  avatarUrl: string | null;
   role: UserRole;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+}
+
+// Public identity — safe to join into any display (tester name, assignee, member list,
+// project owner). 1:1 with User via id.
+export interface Profile {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type ProjectStatus = 'active' | 'inactive' | 'archived';
@@ -36,6 +49,10 @@ export interface ProjectMember {
 
 export interface ProjectMemberWithProfile extends ProjectMember {
   profile: Profile;
+  // Admin-facing member management (ProjectSettingsPage) needs email too — fetched via a
+  // separate join to `users` since Profile itself deliberately excludes it (public identity
+  // only, see docs/ARCHITECTURE_V2.md §1).
+  email: string;
 }
 
 export interface Module {

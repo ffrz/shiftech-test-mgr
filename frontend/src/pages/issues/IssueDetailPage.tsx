@@ -363,7 +363,7 @@ export function IssueDetailPage() {
             <label className="text-color-secondary text-sm">Assigned To</label>
             <Dropdown
               value={issue.assignedTo}
-              options={projectMembers.map((m) => ({ label: m.profile.fullName ?? m.profile.email, value: m.userId }))}
+              options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
               onChange={(e) => handleAssign(e.value)}
               placeholder="Unassigned"
               showClear
