@@ -20,6 +20,7 @@ import type {
   Attachment,
   ProjectMember,
   ProjectMemberWithProfile,
+  ProjectMemberInvitation,
 } from '../types/domain';
 
 // Supabase columns are snake_case; domain types are camelCase.
@@ -45,6 +46,10 @@ export function mapProjectMemberRow(row: any): ProjectMember {
     projectId: row.project_id,
     userId: row.user_id,
     role: row.role,
+    status: row.status,
+    invitedBy: row.invited_by,
+    invitedAt: row.invited_at,
+    respondedAt: row.responded_at,
     createdAt: row.created_at,
   };
 }
@@ -54,6 +59,13 @@ export function mapProjectMemberWithProfileRow(row: any): ProjectMemberWithProfi
     ...mapProjectMemberRow(row),
     profile: mapProfileRow(row.member_user?.profile),
     email: row.member_user?.email ?? '',
+  };
+}
+
+export function mapProjectMemberInvitationRow(row: any): ProjectMemberInvitation {
+  return {
+    ...mapProjectMemberWithProfileRow(row),
+    project: row.project ? { id: row.project.id, name: row.project.name } : null,
   };
 }
 

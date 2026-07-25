@@ -46,12 +46,17 @@ export interface Project {
 }
 
 export type ProjectMemberRole = 'manager' | 'supervisor' | 'tester' | 'member';
+export type ProjectMemberStatus = 'invited' | 'accepted' | 'declined';
 
 export interface ProjectMember {
   id: string;
   projectId: string;
   userId: string;
   role: ProjectMemberRole;
+  status: ProjectMemberStatus;
+  invitedBy: string | null;
+  invitedAt: string;
+  respondedAt: string | null;
   createdAt: string;
 }
 
@@ -61,6 +66,12 @@ export interface ProjectMemberWithProfile extends ProjectMember {
   // separate join to `users` since Profile itself deliberately excludes it (public identity
   // only, see docs/ARCHITECTURE_V2.md §1).
   email: string;
+}
+
+// Used by "My Invitations" (own pending invites) — same shape plus the project name,
+// since that list spans multiple projects and needs to say which one each invite is for.
+export interface ProjectMemberInvitation extends ProjectMemberWithProfile {
+  project: { id: string; name: string } | null;
 }
 
 export interface Module {

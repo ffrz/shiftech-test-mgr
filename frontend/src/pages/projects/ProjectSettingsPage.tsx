@@ -22,10 +22,11 @@ import { testRoleService } from '../../services/testRoleService';
 import { userService } from '../../services/userService';
 import { profileService } from '../../services/profileService';
 import { projectMemberService } from '../../services/projectMemberService';
+import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import type { Project, Module, Tag as TagEntity, TestRole, User, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
-import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
+import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
 
@@ -40,6 +41,7 @@ export function ProjectSettingsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
+  const { user: currentUser } = useAuthContext();
   const { loading: roleLoading, canManageSettings, canArchiveProject, canDeleteProject } = useProjectRole(id);
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
@@ -352,19 +354,19 @@ export function ProjectSettingsPage() {
   }
 
   async function handleAddMember() {
-    if (!id) return;
+    if (!id || !currentUser) return;
     setMemberError(null);
     if (!memberUserId) {
       setMemberError('Select a user first');
       return;
     }
     try {
-      await projectMemberService.add(id, memberUserId, memberRole);
+      await projectMemberService.invite(id, memberUserId, currentUser.id, memberRole);
       setMemberDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: 'Member added' });
+      toast.current?.show({ severity: 'success', summary: 'Invitation sent' });
     } catch (err) {
-      setMemberError(err instanceof Error ? err.message : 'Failed to add member');
+      setMemberError(err instanceof Error ? err.message : 'Failed to invite member');
     }
   }
 
@@ -468,6 +470,9 @@ export function ProjectSettingsPage() {
       <div className="font-medium">{row.profile.displayName ?? '-'}</div>
       <div className="text-sm text-color-secondary">Email: {row.email}</div>
       <div className="text-sm text-color-secondary">Role: {PROJECT_MEMBER_ROLE_LABEL[row.role]}</div>
+      <div className="text-sm text-color-secondary">
+        Status: <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
+      </div>
     </div>
   ), []);
 
@@ -657,11 +662,11 @@ export function ProjectSettingsPage() {
 
           <TabPanel header="Project Members">
             <p className="text-color-secondary text-sm mb-3">
-              Only users listed here (or admins) can access this project. Managers can manage other members.
+              Only accepted members (or the owner) can access this project. Invited users must accept before they gain access. Managers can manage other members.
             </p>
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <span />
-              <Button label="Add Member" icon="pi pi-plus" size="small" onClick={openAddMemberDialog} />
+              <Button label="Invite Member" icon="pi pi-plus" size="small" onClick={openAddMemberDialog} />
             </div>
             <BulkActionsBar
               selectedCount={selectedMembers.length}
@@ -683,6 +688,14 @@ export function ProjectSettingsPage() {
               {isMobile && <Column header="Member" body={membersMobileBody} />}
               {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => row.profile.displayName ?? '-'} />}
               {!isMobile && <Column header="Email" body={(row: ProjectMemberWithProfile) => row.email} />}
+              {!isMobile && (
+                <Column
+                  header="Status"
+                  body={(row: ProjectMemberWithProfile) => (
+                    <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
+                  )}
+                />
+              )}
               {!isMobile && (
                 <Column
                   header="Role"
@@ -846,7 +859,7 @@ export function ProjectSettingsPage() {
 
       {/* --- Member Dialog --- */}
       <Dialog
-        header="Add Member"
+        header="Invite Member"
         visible={memberDialogOpen}
         onHide={() => setMemberDialogOpen(false)}
         style={{ width: '25rem' }}
@@ -875,7 +888,7 @@ export function ProjectSettingsPage() {
               className="w-full"
             />
           </div>
-          <Button label="Add" size="small" onClick={handleAddMember} />
+          <Button label="Send Invite" size="small" onClick={handleAddMember} />
         </div>
       </Dialog>
     </div>

@@ -168,16 +168,20 @@ intervention, so it's the last piece before the golden path is fully self-serve.
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P4-T01 | Migration: `project_members.status` (`invited`\|`accepted`\|`declined`, default `'accepted'` for existing rows), `invited_by`, `invited_at`, `responded_at` | todo |
-| V2-P4-T02 | Migration: rewrite `has_project_access()` to require `status = 'accepted'` (or project owner) | todo |
-| V2-P4-T03 | Migration: add RLS policy so an invitee can see + respond to their own `invited` row (`user_id = auth.uid()`) even without project access | todo |
-| V2-P4-T04 | `types/domain.ts`: add `status`, `invitedBy`, `invitedAt`, `respondedAt` to `ProjectMember` | todo |
-| V2-P4-T05 | `projectMemberRepository.ts`: `invite(projectId, username, role)` (resolve username → profile id), `accept(memberId)`, `decline(memberId)`, `listPendingInvitationsForCurrentUser()` | todo |
-| V2-P4-T06 | `projectMemberService.ts`: validation — can't invite an existing accepted member twice, only manager/owner can invite | todo |
-| V2-P4-T07 | New hook `useProjectInvitations` (current user's pending invites) | todo |
-| V2-P4-T08 | Project Members tab: invite-by-username input, pending/accepted sections, revoke pending invite | todo |
-| V2-P4-T09 | New UI surface for "My Invitations" (e.g. a badge/list on the dashboard) — accept/decline actions. Keep this a simple list, not a notification system — notifications are explicitly deferred per ARCHITECTURE_V2 §9 | todo |
-| V2-P4-T10 | Update `handle_new_project()` trigger — creator becomes owner (not just first `manager` member); decide if creator still also gets an auto `accepted` `project_members` row for role purposes | todo |
+| V2-P4-T01 | Migration: `project_members.status` (`invited`\|`accepted`\|`declined`, default `'accepted'` for existing rows), `invited_by`, `invited_at`, `responded_at` | done |
+| V2-P4-T02 | Migration: rewrite `has_project_access()` / `is_project_manager()` / all four capability helpers (`can_edit_project_content`, `can_delete_project_content`, `can_run_tests`, `can_manage_issues`) to require `status = 'accepted'` (or project owner) | done |
+| V2-P4-T03 | Migration: add RLS policy so an invitee can see + respond to their own `invited` row (`user_id = auth.uid()`) even without project access | done |
+| V2-P4-T04 | `types/domain.ts`: add `status`, `invitedBy`, `invitedAt`, `respondedAt` to `ProjectMember`; new `ProjectMemberInvitation` type (adds `project: {id, name}`) for the cross-project "My Invitations" list | done |
+| V2-P4-T05 | `projectMemberRepository.ts`: replaced `add()` with `invite(projectId, userId, role, invitedBy)`, added `respond()` (accept/decline), `listPendingInvitationsForUser()` | done |
+| V2-P4-T06 | `projectMemberService.ts`: `invite`/`accept`/`decline`/`listOwnPendingInvitations` — validation that write access requires acceptance now lives in RLS (capability helpers), not duplicated client-side | done |
+| V2-P4-T07 | New hook `useProjectInvitations` (current user's pending invites, wraps accept/decline + cache invalidation) | done |
+| V2-P4-T08 | Project Members tab (`ProjectSettingsPage.tsx`): renamed Add→Invite throughout, added a Status column/badge (Invited/Accepted/Declined) | done |
+| V2-P4-T09 | "Pending Invitations" card on `HomePage.tsx` — accept/decline buttons. Kept as a simple list, not a notification system — notifications are explicitly deferred per ARCHITECTURE_V2 §9 | done |
+| V2-P4-T10 | Updated `handle_new_project()` trigger — explicitly sets `status='accepted'`, `invited_by=auth.uid()`, `responded_at=now()` for the creator's own membership row (defensive; `has_project_access`/`is_project_manager` also independently check `projects.owner_id` so the owner is never blocked even if this row is somehow missing) | done |
+
+**Migration file:** `supabase/migrations/20260725000009_project_membership_invite_accept.sql`.
+Not yet independently smoke-tested on staging — recommend testing alongside Phase 3's
+migration before merging to main.
 
 **Exit criteria:** inviting a user by username puts them in a pending state; they
 must accept before `has_project_access()` grants them anything.
