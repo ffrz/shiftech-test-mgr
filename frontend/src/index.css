@@ -785,6 +785,11 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   font-size: 0.8rem;
 }
 
+.p-tooltip .p-tooltip-text {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
 .p-toast .p-toast-message .p-toast-detail {
   font-size: 0.75rem;
 }

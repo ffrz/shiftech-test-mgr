@@ -161,6 +161,7 @@ export function UserManagementPage() {
             severity={filterVisible ? "warning" : "secondary"}
             onClick={() => setFilterVisible(!filterVisible)}
             tooltip={filterVisible ? "Hide filters" : "Show filters"}
+            tooltipOptions={{ position: 'bottom' }}
           />
         }
       />
