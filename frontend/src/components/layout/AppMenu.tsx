@@ -1,17 +1,14 @@
 import { useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Button } from 'primereact/button';
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
+import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { AppMenuitem, AppMenuSeparator, type MenuItemModel } from './AppMenuitem';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjects } from '../../hooks/useProjects';
 import { useProjectPins } from '../../hooks/useProjectPins';
-import { projectService } from '../../services/projectService';
+import { CreateProjectDialog } from '../../pages/projects/components/CreateProjectDialog';
 
 const MAX_VISIBLE_PROJECTS = 10;
 
@@ -25,30 +22,9 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
   const [projectSearch, setProjectSearch] = useState('');
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const nameRef = useRef<HTMLInputElement>(null);
 
   function openAddDialog() {
-    setName('');
-    setDescription('');
-    setError(null);
     setAddDialogOpen(true);
-  }
-
-  async function handleSave() {
-    setError(null);
-    try {
-      const created = await projectService.create({ name, description });
-      setAddDialogOpen(false);
-      await reload();
-      onNavigate?.();
-      navigate(`/projects/${created.id}`);
-      toast.current?.show({ severity: 'success', summary: 'Project created' });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save project');
-    }
   }
 
   const q = projectSearch.trim().toLowerCase();
@@ -148,39 +124,12 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </ul>
 
-      <Dialog
-        header="New Project"
+      <CreateProjectDialog
         visible={addDialogOpen}
         onHide={() => setAddDialogOpen(false)}
-        onShow={() => nameRef.current?.focus()}
-        style={{ width: '30rem' }}
-      >
-        <div className="flex flex-column gap-3">
-          {error && <small className="p-error">{error}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="add-project-name">Name</label>
-            <InputText
-              id="add-project-name"
-              ref={nameRef}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSave();
-              }}
-            />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="add-project-description">Description</label>
-            <InputTextarea
-              id="add-project-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
-          <Button label="Save" size="small" onClick={handleSave} />
-        </div>
-      </Dialog>
+        onSaved={() => { reload(); onNavigate?.(); }}
+        onCreated={(id) => { navigate(`/projects/${id}`); toast.current?.show({ severity: 'success', summary: 'Project created' }); }}
+      />
     </>
   );
 }

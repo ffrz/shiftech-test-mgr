@@ -1,13 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { useScreenSize } from '../../hooks/useScreenSize';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { DataTable, type DataTableSortEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
 import { Dropdown } from 'primereact/dropdown';
@@ -17,15 +14,15 @@ import { Checkbox } from 'primereact/checkbox';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useProjects } from '../../hooks/useProjects';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
-import { testSuiteService } from '../../services/testSuiteService';
 import { testPlanService } from '../../services/testPlanService';
 import { testCaseService } from '../../services/testCaseService';
 import { issueService } from '../../services/issueService';
 import { projectDuplicateService } from '../../services/projectDuplicateService';
-import { queryKeys } from '../../hooks/queryKeys';
-import type { IssueWithDetails, Project, ProjectSortField, ProjectStatus, ProjectVisibility, TestCaseWithDetails, TestPlan } from '../../types/domain';
+import { CreateProjectDialog } from './components/CreateProjectDialog';
+import type { IssueWithDetails, Project, ProjectSortField, ProjectStatus, TestCaseWithDetails, TestPlan } from '../../types/domain';
 import type { ProjectQuery } from '../../repositories/projectRepository';
 import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -36,12 +33,6 @@ const STATUS_OPTIONS: { label: string; value: ProjectStatus | 'all' }[] = [
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' },
   { label: 'Archived', value: 'archived' },
-];
-
-const VISIBILITY_OPTIONS: { label: string; value: ProjectVisibility }[] = [
-  { label: 'Private — only invited members', value: 'private' },
-  { label: 'Unlisted — anyone with the link can view', value: 'unlisted' },
-  { label: 'Public — visible to everyone', value: 'public' },
 ];
 
 export function ProjectsPage() {
@@ -97,56 +88,16 @@ export function ProjectsPage() {
   const { projects, loading, reload } = useProjects(query);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState<ProjectVisibility>('private');
-  const [templateId, setTemplateId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const { data: templates = [] } = useQuery({
-    queryKey: queryKeys.testSuites(),
-    queryFn: () => testSuiteService.listSuites(),
-    enabled: dialogOpen && !editingId,
-  });
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
 
   function openCreateDialog() {
-    setEditingId(null);
-    setName('');
-    setDescription('');
-    setVisibility('private');
-    setTemplateId(null);
-    setError(null);
+    setEditingProject(null);
     setDialogOpen(true);
   }
 
   function openEditDialog(row: Project) {
-    setEditingId(row.id);
-    setName(row.name);
-    setDescription(row.description ?? '');
-    setVisibility(row.visibility);
-    setError(null);
+    setEditingProject(row);
     setDialogOpen(true);
-  }
-
-  async function handleSave() {
-    setError(null);
-    try {
-      if (editingId) {
-        await projectService.update(editingId, { name, description, visibility });
-      } else {
-        const created = await projectService.create({ name, description, visibility });
-        if (templateId) {
-          const items = await testSuiteService.listItems(templateId);
-          await testSuiteService.cloneItemsToProject(created.id, items.map((i) => i.id));
-        }
-      }
-      setDialogOpen(false);
-      await reload();
-      toast.current?.show({ severity: 'success', summary: editingId ? 'Project updated' : 'Project created' });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save project');
-    }
   }
 
   // --- Duplicate Project: checklist picker (Test Plans / Test Cases / Issues), Test
@@ -357,44 +308,12 @@ export function ProjectsPage() {
         )}
       </DataTable>
 
-      <Dialog header={editingId ? 'Edit Project' : 'New Project'} visible={dialogOpen} onHide={() => setDialogOpen(false)} style={{ width: '30rem' }}>
-        <div className="flex flex-column gap-3">
-          {error && <small className="p-error">{error}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="name">Name</label>
-            <InputText id="name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="description">Description</label>
-            <InputTextarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="visibility">Visibility</label>
-            <Dropdown
-              id="visibility"
-              value={visibility}
-              options={VISIBILITY_OPTIONS}
-              onChange={(e) => setVisibility(e.value)}
-              className="w-full"
-            />
-          </div>
-          {!editingId && (
-            <div className="flex flex-column gap-1">
-              <label htmlFor="project-template">Start from Template (optional)</label>
-              <Dropdown
-                id="project-template"
-                value={templateId}
-                options={templates.map((t) => ({ label: t.name, value: t.id }))}
-                onChange={(e) => setTemplateId(e.value)}
-                placeholder="No template"
-                showClear
-                className="w-full"
-              />
-            </div>
-          )}
-          <Button label="Save" size="small" onClick={handleSave} />
-        </div>
-      </Dialog>
+      <CreateProjectDialog
+        visible={dialogOpen}
+        editingProject={editingProject}
+        onHide={() => setDialogOpen(false)}
+        onSaved={() => { reload(); toast.current?.show({ severity: 'success', summary: editingProject ? 'Project updated' : 'Project created' }); }}
+      />
 
       <Dialog
         header="Duplicate Project"
