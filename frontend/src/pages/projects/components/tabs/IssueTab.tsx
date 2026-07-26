@@ -326,7 +326,7 @@ export function IssueTab({
               );
             }
             return (
-              <div onClick={() => canManageIssues && startEdit(row.id, 'status', row.status)} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'status', row.status); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
                 <Tag value={ISSUE_STATUS_LABEL[row.status]} severity={ISSUE_STATUS_SEVERITY[row.status]} />
               </div>
             );
@@ -351,7 +351,7 @@ export function IssueTab({
             }
             const display = row.assignee?.displayName ?? row.assignedTo ?? '-';
             return (
-              <div onClick={() => canManageIssues && startEdit(row.id, 'assignedTo', row.assignedTo)} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'assignedTo', row.assignedTo); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
                 {display}
               </div>
             );
