@@ -5,10 +5,6 @@ import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { MultiSelect } from 'primereact/multiselect';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
@@ -21,8 +17,9 @@ import { tagService } from '../../services/tagService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import type { BreadcrumbItem } from '../../components/ui/Breadcrumb';
-import type { Attachment, GithubLink, IssuePriority, IssueStatus, IssueType } from '../../types/domain';
+import type { Attachment, IssueStatus } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import {
   ISSUE_PRIORITY_LABEL,
@@ -35,14 +32,6 @@ import {
 const STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
   ['open', 'in_progress', 'resolved', 'verified', 'closed'] as const
 ).map((v) => ({ label: ISSUE_STATUS_LABEL[v], value: v }));
-
-const PRIORITY_OPTIONS: { label: string; value: IssuePriority }[] = (
-  ['low', 'medium', 'high', 'critical'] as const
-).map((v) => ({ label: ISSUE_PRIORITY_LABEL[v], value: v }));
-
-const TYPE_OPTIONS: { label: string; value: IssueType }[] = (
-  ['bug', 'feature', 'improvement', 'task'] as const
-).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }));
 
 export function IssueDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -102,60 +91,38 @@ export function IssueDetailPage() {
     }
   }
 
-  // --- Edit dialog ---
+  // --- Edit via shared IssueEditor ---
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editType, setEditType] = useState<IssueType>('bug');
-  const [editModuleId, setEditModuleId] = useState<string | null>(null);
-  const [editDescription, setEditDescription] = useState('');
-  const [editActual, setEditActual] = useState('');
-  const [editExpected, setEditExpected] = useState('');
-  const [editPriority, setEditPriority] = useState<IssuePriority>('medium');
-  const [editTags, setEditTags] = useState<string[]>([]);
-  const [editGithubLinks, setEditGithubLinks] = useState<GithubLink[]>([]);
-  const [editError, setEditError] = useState<string | null>(null);
 
   function openEditDialog() {
-    if (!issue) return;
-    setEditTitle(issue.title);
-    setEditType(issue.type);
-    setEditModuleId(issue.moduleId);
-    setEditDescription(issue.description ?? '');
-    setEditActual(issue.actualResult ?? '');
-    setEditExpected(issue.expectedResult ?? '');
-    setEditPriority(issue.priority);
-    setEditTags(issue.tags.map((t) => t.name));
-    setEditGithubLinks(issue.githubLinks.length ? issue.githubLinks : []);
-    setEditError(null);
     setEditDialogOpen(true);
   }
 
-  async function handleSaveEdit() {
+  function handleIssueEditorSave(data: IssueFormData) {
+    if (!issue) throw new Error('Issue not loaded');
+    return issueService.update(
+      issue.id,
+      issue.projectId,
+      {
+        title: data.title,
+        description: data.description,
+        actualResult: data.actualResult,
+        expectedResult: data.expectedResult,
+        priority: data.priority,
+        type: data.type,
+        moduleId: data.moduleId,
+        githubLinks: data.githubLinks.filter((l) => l.url.trim()),
+      },
+      data.tagNames,
+    );
+  }
+
+  async function handleIssueEditorAfterSave() {
     if (!issue) return;
-    setEditError(null);
-    try {
-      await issueService.update(
-        issue.id,
-        issue.projectId,
-        {
-          title: editTitle,
-          description: editDescription,
-          actualResult: editActual,
-          expectedResult: editExpected,
-          priority: editPriority,
-          type: editType,
-          moduleId: editModuleId,
-          githubLinks: editGithubLinks.filter((l) => l.url.trim()),
-        },
-        editTags,
-      );
-      setEditDialogOpen(false);
-      await reload();
-      await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-      toast.current?.show({ severity: 'success', summary: 'Issue updated' });
-    } catch (err) {
-      setEditError(err instanceof Error ? err.message : 'Failed to save issue');
-    }
+    setEditDialogOpen(false);
+    await reload();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
+    toast.current?.show({ severity: 'success', summary: 'Issue updated' });
   }
 
   async function handleChangeStatus(status: IssueStatus) {
@@ -412,91 +379,36 @@ export function IssueDetailPage() {
         </div>
       </Card>
 
-      {/* --- Edit Dialog --- */}
-      <Dialog header="Edit Issue" visible={editDialogOpen} onHide={() => setEditDialogOpen(false)} style={{ width: '34rem' }}>
-        <div className="flex flex-column gap-3">
-          {editError && <small className="p-error">{editError}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-title">Title</label>
-            <InputText id="issue-edit-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} autoFocus />
-          </div>
-          <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-edit-type">Type</label>
-              <Dropdown id="issue-edit-type" value={editType} options={TYPE_OPTIONS} onChange={(e) => setEditType(e.value)} className="w-full" />
-            </div>
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-edit-priority">Priority</label>
-              <Dropdown id="issue-edit-priority" value={editPriority} options={PRIORITY_OPTIONS} onChange={(e) => setEditPriority(e.value)} className="w-full" />
-            </div>
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-module">Module (optional)</label>
-            <Dropdown
-              id="issue-edit-module"
-              value={editModuleId}
-              options={modules.map((m) => ({ label: m.name, value: m.id }))}
-              onChange={(e) => setEditModuleId(e.value)}
-              showClear
-              placeholder="Not tied to a module"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-tags">Tags</label>
-            <MultiSelect
-              id="issue-edit-tags"
-              value={editTags}
-              options={projectTags.map((t) => ({ label: t.name, value: t.name }))}
-              onChange={(e) => setEditTags(e.value ?? [])}
-              placeholder="Select tags"
-              display="chip"
-              filter
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-description">Description</label>
-            <InputTextarea id="issue-edit-description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={2} />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-actual">Actual Result</label>
-            <InputTextarea id="issue-edit-actual" value={editActual} onChange={(e) => setEditActual(e.target.value)} rows={2} />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-edit-expected">Expected Result</label>
-            <InputTextarea id="issue-edit-expected" value={editExpected} onChange={(e) => setEditExpected(e.target.value)} rows={2} />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label>GitHub Links</label>
-            {editGithubLinks.map((link, i) => (
-              <div key={i} className="flex gap-2">
-                <InputText
-                  placeholder="URL"
-                  value={link.url}
-                  onChange={(e) => setEditGithubLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)))}
-                  className="w-full"
-                />
-                <InputText
-                  placeholder="Label (optional)"
-                  value={link.label ?? ''}
-                  onChange={(e) => setEditGithubLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, label: e.target.value } : l)))}
-                  className="w-full"
-                />
-                <Button icon="pi pi-times" text size="small" onClick={() => setEditGithubLinks((prev) => prev.filter((_, idx) => idx !== i))} />
-              </div>
-            ))}
-            <Button
-              label="Add Link"
-              icon="pi pi-plus"
-              text
-              size="small"
-              onClick={() => setEditGithubLinks((prev) => [...prev, { url: '', label: '' }])}
-            />
-          </div>
-          <Button label="Save" size="small" onClick={handleSaveEdit} />
-        </div>
-      </Dialog>
+      {issue && (
+        <IssueEditor
+          visible={editDialogOpen}
+          onHide={() => setEditDialogOpen(false)}
+          onSave={async (data) => {
+            await handleIssueEditorSave(data);
+            await handleIssueEditorAfterSave();
+          }}
+          projectId={issue.projectId}
+          mode="edit"
+          issueId={issue.id}
+          initialData={{
+            title: issue.title,
+            type: issue.type,
+            priority: issue.priority,
+            moduleId: issue.moduleId,
+            description: issue.description ?? '',
+            actualResult: issue.actualResult ?? '',
+            expectedResult: issue.expectedResult ?? '',
+            tagNames: issue.tags.map((t) => t.name),
+            githubLinks: issue.githubLinks.length ? issue.githubLinks : [],
+          }}
+          modules={modules}
+          tags={projectTags}
+          onModulesChange={() => queryClient.invalidateQueries({ queryKey: queryKeys.modules(issue.projectId) })}
+          onTagsChange={() => queryClient.invalidateQueries({ queryKey: queryKeys.tags(issue.projectId) })}
+          attachments={attachments}
+          onAttachmentsChange={() => queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) })}
+        />
+      )}
     </div>
   );
 }
