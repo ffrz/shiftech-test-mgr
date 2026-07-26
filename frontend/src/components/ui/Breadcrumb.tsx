@@ -60,7 +60,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(items)]);
 
-  return <BreadcrumbTrail items={items} className="flex align-items-center flex-wrap gap-2 mb-3 text-sm" />;
+  return <BreadcrumbTrail items={items} className="flex lg:hidden align-items-center flex-wrap gap-2 mb-3 text-sm" />;
 }
 
 export { BreadcrumbTrail };
