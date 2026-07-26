@@ -76,6 +76,7 @@ export function TestRunTab({
   onPlanLinkClick,
 }: TestRunTabProps) {
   const navigate = useNavigate();
+  const [filterVisible, setFilterVisible] = useState(true);
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const editNameRef = useRef<HTMLInputElement>(null);
@@ -119,8 +120,27 @@ export function TestRunTab({
 
   return (
     <>
+      <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <div />
+        {canRunTests && (
+          <div className="flex gap-2">
+            <Button
+              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
+              text
+              rounded
+              size="small"
+              severity={filterVisible ? "warning" : "secondary"}
+              onClick={() => setFilterVisible(!filterVisible)}
+              tooltip={filterVisible ? "Hide filters" : "Show filters"}
+              tooltipOptions={{ position: 'bottom' }}
+            />
+            <Button label="Create Test Run" icon="pi pi-plus" size="small" onClick={onCreate} />
+          </div>
+        )}
+      </div>
+      {filterVisible && (
       <div className="grid mb-2">
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={statusFilter}
             options={TEST_RUN_STATUS_OPTIONS}
@@ -131,11 +151,11 @@ export function TestRunTab({
             selectAllLabel="All"
           />
         </div>
-        <div className="col-12 md:col">
+        <div className="col-12 md:col p-1">
           <div className="flex gap-2">
             <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." className="flex-1" />
             <Button
-              icon="pi pi-filter-slash"
+              icon="pi pi-refresh"
               outlined
               severity="secondary"
               size="small"
@@ -146,12 +166,8 @@ export function TestRunTab({
             />
           </div>
         </div>
-        {canRunTests && (
-          <div className="col-12 md:col-fixed">
-            <Button label="Create Test Run" icon="pi pi-plus" size="small" className="w-full md:w-auto" onClick={onCreate} />
-          </div>
-        )}
       </div>
+      )}
       {canDeleteContent && (
         <BulkActionsBar
           selectedCount={selected.length}

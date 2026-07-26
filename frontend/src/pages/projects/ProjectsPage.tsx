@@ -271,64 +271,64 @@ export function ProjectsPage() {
       />
 
       {filterVisible && (
-      <div className="grid mb-3">
-        <div className="col-12 md:col-3 p-1">
-          <Dropdown
-            value={ownerFilter}
-            options={[
-              { label: 'All Projects', value: 'all' },
-              { label: 'My Projects', value: 'mine' },
-              { label: 'Shared with Me', value: 'shared' },
-            ]}
-            onChange={(e) => setOwnerFilter(e.value)}
-            className="w-full"
-          />
-        </div>
-        <div className="col-12 md:col-3 p-1">
-          <MultiSelect
-            value={visibilityFilter}
-            options={[
-              { label: 'Private', value: 'private' },
-              { label: 'Unlisted', value: 'unlisted' },
-              { label: 'Public', value: 'public' },
-            ]}
-            onChange={(e) => setVisibilityFilter(e.value)}
-            placeholder="All Visibility"
-            className="w-full"
-            selectAll
-            selectAllLabel="All"
-          />
-        </div>
-        <div className="col-12 md:col-3 p-1">
-          <MultiSelect
-            value={statusFilter}
-            options={[
-              { label: 'Active', value: 'active' },
-              { label: 'Inactive', value: 'inactive' },
-              { label: 'Archived', value: 'archived' },
-            ]}
-            onChange={(e) => setStatusFilter(e.value)}
-            placeholder="All Statuses"
-            className="w-full"
-            selectAll
-            selectAllLabel="All"
-          />
-        </div>
-        <div className="col-12 md:col-3 p-1">
-          <div className="flex gap-2">
-            <SearchInput value={search} onChange={setSearch} placeholder="Search projects..." className="flex-1" />
-            <Button
-              icon="pi pi-refresh"
-              outlined
-              severity="secondary"
-              disabled={!hasActiveFilters}
-              onClick={resetFilters}
-              tooltip="Reset filters"
-              tooltipOptions={{ position: 'bottom' }}
+        <div className="grid mb-3 p-1">
+          <div className="col-12 md:col-2 p-1">
+            <Dropdown
+              value={ownerFilter}
+              options={[
+                { label: 'All Projects', value: 'all' },
+                { label: 'My Projects', value: 'mine' },
+                { label: 'Shared with Me', value: 'shared' },
+              ]}
+              onChange={(e) => setOwnerFilter(e.value)}
+              className="w-full"
             />
           </div>
+          <div className="col-12 md:col-2 p-1">
+            <MultiSelect
+              value={visibilityFilter}
+              options={[
+                { label: 'Private', value: 'private' },
+                { label: 'Unlisted', value: 'unlisted' },
+                { label: 'Public', value: 'public' },
+              ]}
+              onChange={(e) => setVisibilityFilter(e.value)}
+              placeholder="All Visibility"
+              className="w-full"
+              selectAll
+              selectAllLabel="All"
+            />
+          </div>
+          <div className="col-12 md:col-2 p-1">
+            <MultiSelect
+              value={statusFilter}
+              options={[
+                { label: 'Active', value: 'active' },
+                { label: 'Inactive', value: 'inactive' },
+                { label: 'Archived', value: 'archived' },
+              ]}
+              onChange={(e) => setStatusFilter(e.value)}
+              placeholder="All Statuses"
+              className="w-full"
+              selectAll
+              selectAllLabel="All"
+            />
+          </div>
+          <div className="col-12 md:col-6 p-1">
+            <div className="flex gap-2">
+              <SearchInput value={search} onChange={setSearch} placeholder="Search projects..." className="flex-1" />
+              <Button
+                icon="pi pi-refresh"
+                outlined
+                severity="secondary"
+                disabled={!hasActiveFilters}
+                onClick={resetFilters}
+                tooltip="Reset filters"
+                tooltipOptions={{ position: 'bottom' }}
+              />
+            </div>
+          </div>
         </div>
-      </div>
       )}
 
       <DataTable

@@ -166,7 +166,7 @@ export function UserManagementPage() {
         }
       />
       {filterVisible && (
-        <div className="grid mb-3">
+        <div className="grid mb-3 p-1">
           <div className="col-12 md:col-2 p-1">
             <MultiSelect
               value={roleFilter}

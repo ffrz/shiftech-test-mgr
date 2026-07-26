@@ -119,6 +119,7 @@ export function IssueTab({
   onPage,
 }: IssueTabProps) {
   const navigate = useNavigate();
+  const [filterVisible, setFilterVisible] = useState(true);
   const [editingCell, setEditingCell] = useState<{ issueId: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState<string | null>(null);
   const editRef = useRef<HTMLDivElement>(null);
@@ -245,8 +246,27 @@ export function IssueTab({
   return (
     <>
       <Toast ref={undoToast} position="bottom-center" />
+      <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <div />
+        {canManageIssues && (
+          <div className="flex gap-2">
+            <Button
+              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
+              text
+              rounded
+              size="small"
+              severity={filterVisible ? "warning" : "secondary"}
+              onClick={() => setFilterVisible(!filterVisible)}
+              tooltip={filterVisible ? "Hide filters" : "Show filters"}
+              tooltipOptions={{ position: 'bottom' }}
+            />
+            <Button label="New Issue" icon="pi pi-plus" size="small" onClick={onCreate} />
+          </div>
+        )}
+      </div>
+      {filterVisible && (
       <div className="grid mb-2">
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={statusFilter}
             options={ISSUE_STATUS_OPTIONS}
@@ -257,7 +277,7 @@ export function IssueTab({
             selectAllLabel="All"
           />
         </div>
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={priorityFilter}
             options={ISSUE_PRIORITY_OPTIONS}
@@ -268,7 +288,7 @@ export function IssueTab({
             selectAllLabel="All"
           />
         </div>
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={moduleFilter}
             options={moduleOptions}
@@ -279,7 +299,7 @@ export function IssueTab({
             selectAllLabel="All"
           />
         </div>
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={tagFilter}
             options={tagOptions}
@@ -290,7 +310,7 @@ export function IssueTab({
             selectAllLabel="All"
           />
         </div>
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={typeFilter}
             options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
@@ -301,11 +321,11 @@ export function IssueTab({
             selectAllLabel="All"
           />
         </div>
-        <div className="col-12 md:col">
+        <div className="col-12 md:col p-1">
           <div className="flex gap-2">
             <SearchInput value={search} onChange={onSearchChange} placeholder="Search title..." className="flex-1" />
             <Button
-              icon="pi pi-filter-slash"
+              icon="pi pi-refresh"
               outlined
               severity="secondary"
               size="small"
@@ -316,12 +336,8 @@ export function IssueTab({
             />
           </div>
         </div>
-        {canManageIssues && (
-          <div className="col-12 md:col-fixed">
-            <Button label="New Issue" icon="pi pi-plus" size="small" className="w-full md:w-auto" onClick={onCreate} />
-          </div>
-        )}
       </div>
+      )}
       {canDeleteContent && (
         <BulkActionsBar
           selectedCount={selected.length}

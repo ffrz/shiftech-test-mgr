@@ -406,48 +406,48 @@ export function TestPlanDetailPage() {
             )}
           </div>
           {caseFilterVisible && (
-          <div className="grid mb-2">
-            <div className="col-12 md:col-4 p-1">
-              <MultiSelect
-                value={casePriorityFilters}
-                options={PRIORITY_OPTIONS}
-                onChange={(e) => { setCasePriorityFilters(e.value); resetCasePage(); }}
-                placeholder="All Priorities"
-                className="w-full"
-                display="chip"
-              />
-            </div>
-            <div className="col-12 md:col-4 p-1">
-              <MultiSelect
-                value={caseModuleFilters}
-                options={modules.map((m) => ({ label: m.name, value: m.id }))}
-                onChange={(e) => { setCaseModuleFilters(e.value); resetCasePage(); }}
-                placeholder="All Modules"
-                className="w-full"
-                display="chip"
-                filter
-              />
-            </div>
-            <div className="col-12 md:col-4 p-1">
-              <MultiSelect
-                value={caseTagFilters}
-                options={tags.map((t) => ({ label: t.name, value: t.id }))}
-                onChange={(e) => { setCaseTagFilters(e.value); resetCasePage(); }}
-                placeholder="All Tags"
-                className="w-full"
-                display="chip"
-                filter
-              />
-            </div>
-            <div className="col-12 md:col p-1">
-              <div className="flex gap-2">
-                <SearchInput value={caseSearch} onChange={(v) => { setCaseSearch(v); resetCasePage(); }} placeholder="Search title/code..." className="flex-1" />
-                <Button icon="pi pi-refresh" text size="small" severity="secondary"
-                  onClick={() => { setCaseSearch(''); setCasePriorityFilters([]); setCaseModuleFilters([]); setCaseTagFilters([]); resetCasePage(); setSelectedCases([]); }}
-                  tooltip="Reset filters" />
+            <div className="grid mb-2 p-1">
+              <div className="col-12 md:col-2 p-1">
+                <MultiSelect
+                  value={casePriorityFilters}
+                  options={PRIORITY_OPTIONS}
+                  onChange={(e) => { setCasePriorityFilters(e.value); resetCasePage(); }}
+                  placeholder="All Priorities"
+                  className="w-full"
+                  display="chip"
+                />
+              </div>
+              <div className="col-12 md:col-2 p-1">
+                <MultiSelect
+                  value={caseModuleFilters}
+                  options={modules.map((m) => ({ label: m.name, value: m.id }))}
+                  onChange={(e) => { setCaseModuleFilters(e.value); resetCasePage(); }}
+                  placeholder="All Modules"
+                  className="w-full"
+                  display="chip"
+                  filter
+                />
+              </div>
+              <div className="col-12 md:col-2 p-1">
+                <MultiSelect
+                  value={caseTagFilters}
+                  options={tags.map((t) => ({ label: t.name, value: t.id }))}
+                  onChange={(e) => { setCaseTagFilters(e.value); resetCasePage(); }}
+                  placeholder="All Tags"
+                  className="w-full"
+                  display="chip"
+                  filter
+                />
+              </div>
+              <div className="col-12 md:col p-1">
+                <div className="flex gap-2">
+                  <SearchInput value={caseSearch} onChange={(v) => { setCaseSearch(v); resetCasePage(); }} placeholder="Search title/code..." className="flex-1" />
+                  <Button icon="pi pi-refresh" size="small" severity="secondary" outlined
+                    onClick={() => { setCaseSearch(''); setCasePriorityFilters([]); setCaseModuleFilters([]); setCaseTagFilters([]); resetCasePage(); setSelectedCases([]); }}
+                    tooltip="Reset filters" />
+                </div>
               </div>
             </div>
-          </div>
           )}
           {canEditContent && (
             <BulkActionsBar
@@ -455,12 +455,6 @@ export function TestPlanDetailPage() {
               onClear={() => setSelectedCases([])}
               actions={<Button label="Remove Selected" icon="pi pi-times" size="small" severity="danger" outlined onClick={handleBulkRemoveCases} />}
             />
-          )}
-          {canEditContent && !isCaseFilterActive && cases.length > 1 && (
-            <p className="text-color-secondary text-sm mb-2">
-              <i className="pi pi-info-circle mr-1" />
-              Drag rows (⠿ icon) to change the execution order — new Test Runs inherit this order, but testers may still test out of order.
-            </p>
           )}
           {canEditContent && isCaseFilterActive && (
             <p className="text-color-secondary text-sm mb-2">
@@ -570,26 +564,26 @@ export function TestPlanDetailPage() {
             )}
           </div>
           {runFilterVisible && (
-          <div className="grid mb-2">
-            <div className="col-12 md:col-3 p-1">
-              <MultiSelect
-                value={runStatusFilters}
-                options={TEST_RUN_STATUS_OPTIONS}
-                onChange={(e) => { setRunStatusFilters(e.value); setRunFirst(0); }}
-                placeholder="All Statuses"
-                className="w-full"
-                display="chip"
-              />
-            </div>
-            <div className="col-12 md:col p-1">
-              <div className="flex gap-2">
-                <SearchInput value={runSearch} onChange={(v) => { setRunSearch(v); setRunFirst(0); }} placeholder="Search name/code..." className="flex-1" />
-                <Button icon="pi pi-refresh" text size="small" severity="secondary"
-                  onClick={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
-                  tooltip="Reset filters" />
+            <div className="grid mb-2 p-1">
+              <div className="col-12 md:col-2 p-1">
+                <MultiSelect
+                  value={runStatusFilters}
+                  options={TEST_RUN_STATUS_OPTIONS}
+                  onChange={(e) => { setRunStatusFilters(e.value); setRunFirst(0); }}
+                  placeholder="All Statuses"
+                  className="w-full"
+                  display="chip"
+                />
+              </div>
+              <div className="col-12 md:col p-1">
+                <div className="flex gap-2">
+                  <SearchInput value={runSearch} onChange={(v) => { setRunSearch(v); setRunFirst(0); }} placeholder="Search name/code..." className="flex-1" />
+                  <Button icon="pi pi-refresh" outlined size="small" severity="secondary"
+                    onClick={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
+                    tooltip="Reset filters" />
+                </div>
               </div>
             </div>
-          </div>
           )}
           <DataTable
             value={testRuns}

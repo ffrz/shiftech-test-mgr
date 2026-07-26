@@ -196,48 +196,48 @@ export function TestSuitesPage() {
       </p>
 
       {filterVisible && (
-      <div className="grid mb-3">
-        <div className="col-12 md:col-4 p-1">
-          <SelectButton
-            value={ownershipFilter}
-            onChange={(e) => e.value && setOwnershipFilter(e.value)}
-            options={[
-              { label: 'My Templates', value: 'mine' },
-              { label: 'All Visible Templates', value: 'all' },
-            ]}
-            className="w-full"
-          />
-        </div>
-        <div className="col-12 md:col-4 p-1">
-          <MultiSelect
-            value={visibilityFilter}
-            options={[
-              { label: 'Private', value: 'private' },
-              { label: 'Unlisted', value: 'unlisted' },
-              { label: 'Public', value: 'public' },
-            ]}
-            onChange={(e) => setVisibilityFilter(e.value)}
-            placeholder="All Visibility"
-            className="w-full"
-            selectAll
-            selectAllLabel="All"
-          />
-        </div>
-        <div className="col-12 md:col-4 p-1">
-          <div className="flex gap-2">
-            <SearchInput value={search} onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }} placeholder="Search suites..." className="flex-1" />
-            <Button
-              icon="pi pi-refresh"
-              outlined
-              severity="secondary"
-              disabled={!hasActiveFilters}
-              onClick={resetFilters}
-              tooltip="Reset filters"
-              tooltipOptions={{ position: 'bottom' }}
+        <div className="grid mb-3 p-1">
+          <div className="col-12 md:col-8 p-1">
+            <SelectButton
+              value={ownershipFilter}
+              onChange={(e) => e.value && setOwnershipFilter(e.value)}
+              options={[
+                { label: 'My Templates', value: 'mine' },
+                { label: 'All Visible Templates', value: 'all' },
+              ]}
+              className="w-full"
             />
           </div>
+          <div className="col-12 md:col-2 p-1">
+            <MultiSelect
+              value={visibilityFilter}
+              options={[
+                { label: 'Private', value: 'private' },
+                { label: 'Unlisted', value: 'unlisted' },
+                { label: 'Public', value: 'public' },
+              ]}
+              onChange={(e) => setVisibilityFilter(e.value)}
+              placeholder="All Visibility"
+              className="w-full"
+              selectAll
+              selectAllLabel="All"
+            />
+          </div>
+          <div className="col-12 md:col-2 p-1">
+            <div className="flex gap-2">
+              <SearchInput value={search} onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }} placeholder="Search suites..." className="flex-1" />
+              <Button
+                icon="pi pi-refresh"
+                outlined
+                severity="secondary"
+                disabled={!hasActiveFilters}
+                onClick={resetFilters}
+                tooltip="Reset filters"
+                tooltipOptions={{ position: 'bottom' }}
+              />
+            </div>
+          </div>
         </div>
-      </div>
       )}
 
       <DataTable
