@@ -2,10 +2,8 @@ import { Button } from 'primereact/button';
 import { DataTable, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
-import { InputText } from 'primereact/inputtext';
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
 import { Tag } from 'primereact/tag';
+import SearchInput from '../../../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import type { TestCase, TestCaseWithDetails, TestCasePriority, TestCaseStatus } from '../../../../types/domain';
@@ -116,10 +114,7 @@ export function TestCaseTab({
     <>
       <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div className="flex align-items-center gap-2 flex-wrap">
-          <IconField iconPosition="left">
-            <InputIcon className="pi pi-search" />
-            <InputText value={search} onChange={(e) => onSearchChange(e.target.value)} placeholder="Search title/code..." />
-          </IconField>
+          <SearchInput value={search} onChange={onSearchChange} placeholder="Search title/code..." />
           <Dropdown
             value={statusFilter}
             options={TEST_CASE_STATUS_OPTIONS}
