@@ -22,7 +22,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
-import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY } from '../../helpers/statusLabels';
+import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY, TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 
 const UNDO_TIMEOUT_MS = 9000;
 
@@ -318,7 +318,10 @@ export function TestSuiteDetailPage() {
       <Card className="mb-3">
         <div className="flex align-items-center justify-content-between gap-2">
           <div>
-            <h2 className="m-0">{suite?.name ?? '…'}</h2>
+            <div className="flex align-items-center gap-2 mb-1">
+              <h2 className="m-0">{suite?.name ?? '…'}</h2>
+              {suite && <Tag value={TEST_SUITE_VISIBILITY_LABEL[suite.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[suite.visibility]} />}
+            </div>
             <p className="text-color-secondary text-sm m-0">{suite?.description || 'No description'}</p>
           </div>
           {canEdit && (
