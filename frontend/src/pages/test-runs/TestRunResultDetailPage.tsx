@@ -96,6 +96,7 @@ export function TestRunResultDetailPage() {
   const projectId = testRun?.projectId;
 
   const { canRunTests, canManageIssues } = useProjectRole(projectId);
+  const isCompleted = testRun?.status === 'completed';
 
   const { data: projectMembers = [] } = useQuery({
     queryKey: queryKeys.projectMembers(projectId ?? ''),
@@ -647,6 +648,7 @@ export function TestRunResultDetailPage() {
                           size="small"
                           aria-label="Edit notes"
                           onClick={openNotesDialog}
+                          disabled={isCompleted}
                           style={{ width: '1.5rem', height: '1.5rem' }}
                         />
                       </div>
@@ -674,6 +676,7 @@ export function TestRunResultDetailPage() {
                               saveResult({ status: e.value });
                             }}
                             className="w-full"
+                            disabled={isCompleted}
                           />
                         </div>
                         <div className="col-12 md:col-6 flex flex-column gap-1">
@@ -687,6 +690,7 @@ export function TestRunResultDetailPage() {
                               saveResult({ testerId: e.value });
                             }}
                             className="w-full"
+                            disabled={isCompleted}
                           />
                         </div>
                       </div>
@@ -726,6 +730,7 @@ export function TestRunResultDetailPage() {
                                   await reload();
                                 }}
                                 className="w-8rem"
+                                disabled={isCompleted}
                               />
                             </div>
                           ))}
@@ -768,7 +773,7 @@ export function TestRunResultDetailPage() {
                       {linkedIssues.map((issue) => (
                         <div key={issue.id} className="flex align-items-center justify-content-between gap-2 p-2 border-round surface-100">
                           <a
-                            href={`/issues/${issue.id}`}
+                            href={`/app/issues/${issue.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm text-color entity-link no-underline flex-grow-1"

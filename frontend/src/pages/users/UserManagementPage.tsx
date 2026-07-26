@@ -150,20 +150,20 @@ export function UserManagementPage() {
 
       <PageHeader title="Users" />
       <div className="flex gap-2 mb-3">
-        <SearchInput
-          value={search}
-          onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
-          placeholder="Search users..."
-          className="flex-1"
-        />
         <MultiSelect
           value={roleFilter}
           options={ROLE_OPTIONS}
           onChange={(e) => setRoleFilter(e.value)}
           placeholder="All Roles"
-          className="w-14rem"
+          className="w-10rem"
           selectAll
           selectAllLabel="All"
+        />
+        <SearchInput
+          value={search}
+          onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
+          placeholder="Search users..."
+          className="flex-1"
         />
         <Button
           icon="pi pi-filter-slash"

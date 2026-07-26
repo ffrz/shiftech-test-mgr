@@ -784,6 +784,7 @@ h6,
     justify-content: center;
     gap: 0.25rem;
   }
+
   .p-datatable .p-paginator-bottom .p-paginator-current,
   .p-datatable .p-paginator-bottom .p-paginator-rpp-options {
     width: 100%;
