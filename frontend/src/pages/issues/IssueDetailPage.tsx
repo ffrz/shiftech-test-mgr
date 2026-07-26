@@ -385,6 +385,44 @@ export function IssueDetailPage() {
         </div>
       </Card>
 
+      {issue.description && (
+        <Card title="Description" className="mb-3">
+          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.description}</p>
+        </Card>
+      )}
+
+      {issue.actualResult && (
+        <Card title="Actual Result" className="mb-3">
+          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.actualResult}</p>
+        </Card>
+      )}
+
+      {issue.expectedResult && (
+        <Card title="Expected Result" className="mb-3">
+          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.expectedResult}</p>
+        </Card>
+      )}
+
+      <Card title="Attachment" className="mb-3">
+        <div className="flex flex-column gap-2">
+          {attachments.map((a) => (
+            <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
+              <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
+                <i className="pi pi-paperclip mr-2" />
+                {a.fileName}
+              </a>
+              {canManageIssues && (
+                <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
+              )}
+            </div>
+          ))}
+          {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
+          {canManageIssues && (
+            <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
+          )}
+        </div>
+      </Card>
+
       <Card title="GitHub Links" className="mb-3">
         <div className="flex flex-column gap-2">
           {issue.githubLinks.map((link, i) => (
@@ -428,44 +466,6 @@ export function IssueDetailPage() {
                 <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit" onClick={() => setGithubAdding(true)} />
               )}
             </>
-          )}
-        </div>
-      </Card>
-
-      {issue.description && (
-        <Card title="Description" className="mb-3">
-          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.description}</p>
-        </Card>
-      )}
-
-      {issue.actualResult && (
-        <Card title="Actual Result" className="mb-3">
-          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.actualResult}</p>
-        </Card>
-      )}
-
-      {issue.expectedResult && (
-        <Card title="Expected Result" className="mb-3">
-          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.expectedResult}</p>
-        </Card>
-      )}
-
-      <Card title="Attachment" className="mb-3">
-        <div className="flex flex-column gap-2">
-          {attachments.map((a) => (
-            <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
-              <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-                <i className="pi pi-paperclip mr-2" />
-                {a.fileName}
-              </a>
-              {canManageIssues && (
-                <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
-              )}
-            </div>
-          ))}
-          {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
-          {canManageIssues && (
-            <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
           )}
         </div>
       </Card>

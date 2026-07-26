@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
@@ -147,6 +147,14 @@ export function TestCaseDetailPage() {
   const [editNotes, setEditNotes] = useState('');
   const [editTags, setEditTags] = useState<string[]>([]);
   const [editError, setEditError] = useState<string | null>(null);
+  const editTitleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editError && editTitleRef.current) {
+      editTitleRef.current.focus();
+      editTitleRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [editError]);
 
   function openEditDialog() {
     if (!testCase) return;
@@ -401,7 +409,7 @@ export function TestCaseDetailPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-title" className={editError ? 'p-error' : ''}>Title</label>
-            <InputText id="edit-case-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className={editError ? 'p-invalid' : ''} autoFocus />
+            <InputText id="edit-case-title" ref={editTitleRef} value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className={editError ? 'p-invalid' : ''} autoFocus />
           </div>
 
           <div className="flex flex-column gap-1">

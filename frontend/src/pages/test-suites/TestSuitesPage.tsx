@@ -110,6 +110,14 @@ export function TestSuitesPage() {
   const [description, setDescription] = useState('');
   const [visibility, setVisibility] = useState<TestSuiteVisibility>('private');
   const [error, setError] = useState<string | null>(null);
+  const suiteNameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (error && suiteNameRef.current) {
+      suiteNameRef.current.focus();
+      suiteNameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
 
   function openCreateDialog() {
     setDialogMode('create');
@@ -309,7 +317,8 @@ export function TestSuitesPage() {
         <div className="flex flex-column gap-3">
           <div className="flex flex-column gap-1">
             <label htmlFor="suite-name" className={error ? 'p-error' : ''}>Name</label>
-            <InputText id="suite-name" value={name} onChange={(e) => setName(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+            <InputText id="suite-name" ref={suiteNameRef} value={name} onChange={(e) => setName(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+            {error && <small className="p-error">{error}</small>}
           </div>
           <div className="flex flex-column gap-1">
             <label htmlFor="suite-description">Description</label>
@@ -327,7 +336,6 @@ export function TestSuitesPage() {
               />
             </div>
           )}
-          {error && <small className="p-error">{error}</small>}
           <Button label="Save" size="small" onClick={handleSave} />
         </div>
       </Dialog>

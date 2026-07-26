@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Button } from 'primereact/button';
@@ -14,6 +14,14 @@ export function SettingsPage() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bio, setBio] = useState('');
   const [success, setSuccess] = useState(false);
+  const usernameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (error && usernameRef.current) {
+      usernameRef.current.focus();
+      usernameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
 
   useEffect(() => {
     if (profile) {
@@ -60,7 +68,7 @@ export function SettingsPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="username" className={error ? 'p-error' : ''}>Username *</label>
-            <InputText id="username" value={username} onChange={(e) => { setUsername(e.target.value); setSuccess(false); }} className={error ? 'p-invalid' : ''} />
+            <InputText id="username" ref={usernameRef} value={username} onChange={(e) => { setUsername(e.target.value); setSuccess(false); }} className={error ? 'p-invalid' : ''} />
           </div>
 
           <div className="flex flex-column gap-1">

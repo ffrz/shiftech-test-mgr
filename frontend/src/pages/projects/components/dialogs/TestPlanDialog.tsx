@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -30,6 +31,15 @@ export function TestPlanDialog({
   onHide,
   onSave,
 }: TestPlanDialogProps) {
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (error && nameRef.current) {
+      nameRef.current.focus();
+      nameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
+
   return (
     <Dialog header={editing ? 'Edit Test Plan' : 'New Test Plan'} visible={visible} onHide={onHide} style={{ width: '30rem' }}>
       <div className="flex flex-column gap-3">
@@ -39,13 +49,13 @@ export function TestPlanDialog({
         </div>
         <div className="flex flex-column gap-1">
           <label htmlFor="plan-name" className={error ? 'p-error' : ''}>Name</label>
-          <InputText id="plan-name" value={name} onChange={(e) => onNameChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          <InputText id="plan-name" ref={nameRef} value={name} onChange={(e) => onNameChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          {error && <small className="p-error">{error}</small>}
         </div>
         <div className="flex flex-column gap-1">
           <label htmlFor="plan-description">Description</label>
           <InputTextarea id="plan-description" value={description} onChange={(e) => onDescriptionChange(e.target.value)} rows={3} />
         </div>
-        {error && <small className="p-error">{error}</small>}
         <Button label="Save" size="small" onClick={onSave} />
       </div>
     </Dialog>

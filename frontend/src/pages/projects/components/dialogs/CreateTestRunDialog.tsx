@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
@@ -39,6 +40,15 @@ export function CreateTestRunDialog({
   onHide,
   onCreate,
 }: CreateTestRunDialogProps) {
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (error && nameRef.current) {
+      nameRef.current.focus();
+      nameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
+
   return (
     <Dialog header="Create Test Run" visible={visible} onHide={onHide} style={{ width: '32rem' }}>
       <div className="flex flex-column gap-3">
@@ -52,7 +62,8 @@ export function CreateTestRunDialog({
         />
         <div className="flex flex-column gap-1">
           <label htmlFor="run-name" className={error ? 'p-error' : ''}>Name</label>
-          <InputText id="run-name" value={name} onChange={(e) => onNameChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          <InputText id="run-name" ref={nameRef} value={name} onChange={(e) => onNameChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          {error && <small className="p-error">{error}</small>}
         </div>
         {mode === 'plan' ? (
           <div className="flex flex-column gap-1">
@@ -82,7 +93,6 @@ export function CreateTestRunDialog({
             />
           </div>
         )}
-        {error && <small className="p-error">{error}</small>}
         <Button label="Create" size="small" onClick={onCreate} />
       </div>
     </Dialog>

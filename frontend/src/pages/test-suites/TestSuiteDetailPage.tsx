@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
@@ -71,6 +71,14 @@ export function TestSuiteDetailPage() {
   const [itemStepType, setItemStepType] = useState<TestCaseStepType>('simple');
   const [itemDetailedSteps, setItemDetailedSteps] = useState<{ action: string; expectedResult: string }[]>([]);
   const [itemError, setItemError] = useState<string | null>(null);
+  const itemTitleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (itemError && itemTitleRef.current) {
+      itemTitleRef.current.focus();
+      itemTitleRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [itemError]);
 
   function openCreateItemDialog() {
     setItemDialogMode('create');
@@ -290,7 +298,8 @@ export function TestSuiteDetailPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="item-title" className={itemError ? 'p-error' : ''}>Title</label>
-            <InputText id="item-title" value={itemTitle} onChange={(e) => setItemTitle(e.target.value)} className={itemError ? 'p-invalid' : ''} autoFocus />
+            <InputText id="item-title" ref={itemTitleRef} value={itemTitle} onChange={(e) => setItemTitle(e.target.value)} className={itemError ? 'p-invalid' : ''} autoFocus />
+            {itemError && <small className="p-error">{itemError}</small>}
           </div>
 
           <div className="flex flex-column gap-1">
@@ -367,7 +376,6 @@ export function TestSuiteDetailPage() {
             <InputText id="item-tags" value={itemTagNames} onChange={(e) => setItemTagNames(e.target.value)} placeholder="e.g. Regression, Smoke" />
           </div>
 
-          {itemError && <small className="p-error">{itemError}</small>}
           <Button label="Save" size="small" onClick={handleSaveItem} />
         </div>
       </Dialog>

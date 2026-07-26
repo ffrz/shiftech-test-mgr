@@ -54,6 +54,13 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
     setError(null);
   }, [visible, editingProject]);
 
+  useEffect(() => {
+    if (error && nameRef.current) {
+      nameRef.current.focus();
+      nameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
+
   async function handleSave() {
     if (saving.current) return;
     saving.current = true;
@@ -97,6 +104,7 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
             className={error ? 'p-invalid' : ''}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
           />
+          {error && <small className="p-error">{error}</small>}
         </div>
         <div className="flex flex-column gap-1">
           <label htmlFor="create-project-description">Description</label>
@@ -128,7 +136,6 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
             />
           </div>
         )}
-        {error && <small className="p-error">{error}</small>}
         <Button label="Save" size="small" onClick={handleSave} />
       </div>
     </Dialog>

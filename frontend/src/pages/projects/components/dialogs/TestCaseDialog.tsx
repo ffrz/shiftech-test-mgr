@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -96,6 +97,15 @@ export function TestCaseDialog({
   onHide,
   onSave,
 }: TestCaseDialogProps) {
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (error && titleRef.current) {
+      titleRef.current.focus();
+      titleRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
+
   return (
     <Dialog header={editing ? 'Edit Test Case' : 'New Test Case'} visible={visible} onHide={onHide} style={{ width: '40rem' }}>
       <div className="flex flex-column gap-3">
@@ -169,7 +179,8 @@ export function TestCaseDialog({
 
         <div className="flex flex-column gap-1">
           <label htmlFor="case-title" className={error ? 'p-error' : ''}>Title</label>
-          <InputText id="case-title" value={title} onChange={(e) => onTitleChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          <InputText id="case-title" ref={titleRef} value={title} onChange={(e) => onTitleChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          {error && <small className="p-error">{error}</small>}
         </div>
 
         <div className="flex flex-column gap-1">
@@ -263,7 +274,6 @@ export function TestCaseDialog({
           <InputTextarea id="case-notes" value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={2} />
         </div>
 
-        {error && <small className="p-error">{error}</small>}
         <Button label="Save" size="small" onClick={onSave} />
       </div>
     </Dialog>

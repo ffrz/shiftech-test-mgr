@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -197,6 +197,14 @@ export function TestPlanDetailPage() {
   const [runDialogOpen, setRunDialogOpen] = useState(false);
   const [runName, setRunName] = useState('');
   const [runError, setRunError] = useState<string | null>(null);
+  const runNameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (runError && runNameRef.current) {
+      runNameRef.current.focus();
+      runNameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [runError]);
 
   function openStartRunDialog() {
     setRunName(`Run ${new Date().toLocaleDateString('id-ID')}`);
@@ -229,6 +237,14 @@ export function TestPlanDetailPage() {
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
   const [duplicateName, setDuplicateName] = useState('');
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const duplicateNameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (duplicateError && duplicateNameRef.current) {
+      duplicateNameRef.current.focus();
+      duplicateNameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [duplicateError]);
 
   function openDuplicateDialog() {
     if (!testPlan) return;
@@ -345,9 +361,9 @@ export function TestPlanDetailPage() {
         <div className="flex flex-column gap-3">
           <div className="flex flex-column gap-1">
             <label htmlFor="duplicate-plan-name" className={duplicateError ? 'p-error' : ''}>New Test Plan Name</label>
-            <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} className={duplicateError ? 'p-invalid' : ''} autoFocus />
+            <InputText id="duplicate-plan-name" ref={duplicateNameRef} value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} className={duplicateError ? 'p-invalid' : ''} autoFocus />
+            {duplicateError && <small className="p-error">{duplicateError}</small>}
           </div>
-          {duplicateError && <small className="p-error">{duplicateError}</small>}
           <Button label="Duplicate" size="small" onClick={handleDuplicate} />
         </div>
       </Dialog>
@@ -594,9 +610,9 @@ export function TestPlanDetailPage() {
         <div className="flex flex-column gap-3">
           <div className="flex flex-column gap-1">
             <label htmlFor="run-name" className={runError ? 'p-error' : ''}>Test Run Name</label>
-            <InputText id="run-name" value={runName} onChange={(e) => setRunName(e.target.value)} className={runError ? 'p-invalid' : ''} autoFocus />
+            <InputText id="run-name" ref={runNameRef} value={runName} onChange={(e) => setRunName(e.target.value)} className={runError ? 'p-invalid' : ''} autoFocus />
+            {runError && <small className="p-error">{runError}</small>}
           </div>
-          {runError && <small className="p-error">{runError}</small>}
           <Button label="Start" size="small" onClick={handleStartRun} />
         </div>
       </Dialog>

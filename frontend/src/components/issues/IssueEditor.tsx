@@ -74,6 +74,15 @@ export function IssueEditor({
   const [titleError, setTitleError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (titleError && titleRef.current) {
+      titleRef.current.focus();
+      titleRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [titleError]);
+
   const [newTagName, setNewTagName] = useState('');
   const [newModuleName, setNewModuleName] = useState('');
   const [quickAddTagVisible, setQuickAddTagVisible] = useState(false);
@@ -191,7 +200,7 @@ export function IssueEditor({
         <div className="flex flex-column gap-3">
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-title" className={titleError ? 'p-error' : ''}>Title *</label>
-            <InputText id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setTitleError(null); }} className={titleError ? 'p-invalid' : ''} autoFocus />
+            <InputText id="issue-title" ref={titleRef} value={title} onChange={(e) => { setTitle(e.target.value); setTitleError(null); }} className={titleError ? 'p-invalid' : ''} autoFocus />
             {titleError && <small className="p-error">{titleError}</small>}
           </div>
 

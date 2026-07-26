@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
@@ -18,9 +18,6 @@ type QuickAddDialogProps = {
   onSave: () => void;
 };
 
-// Reusable single-field "quick add" dialog — used by Module, Tag, and Test Role quick-add
-// flows triggered from inside Test Case / Issue dialogs. Parent owns all state and the
-// actual create+select+reload handler; this component is purely presentational.
 export function QuickAddDialog({
   visible,
   title,
@@ -36,6 +33,13 @@ export function QuickAddDialog({
   onSave,
 }: QuickAddDialogProps) {
   const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (error && nameRef.current) {
+      nameRef.current.focus();
+      nameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
 
   return (
     <Dialog header={title} visible={visible} onHide={onHide} onShow={() => nameRef.current?.focus()} style={{ width: '25rem' }}>
@@ -64,8 +68,8 @@ export function QuickAddDialog({
             }}
             placeholder={placeholder}
           />
+          {error && <small className="p-error">{error}</small>}
         </div>
-        {error && <small className="p-error">{error}</small>}
         <Button label="Save" size="small" onClick={onSave} />
       </div>
     </Dialog>

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -50,6 +50,14 @@ export function TestPlansPage() {
   const [duplicateRow, setDuplicateRow] = useState<TestPlan | null>(null);
   const [duplicateName, setDuplicateName] = useState('');
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const duplicatePlanNameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (duplicateError && duplicatePlanNameRef.current) {
+      duplicatePlanNameRef.current.focus();
+      duplicatePlanNameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+  }, [duplicateError]);
 
   function openDuplicateDialog(row: TestPlan) {
     setDuplicateRow(row);
@@ -133,9 +141,9 @@ export function TestPlansPage() {
         <div className="flex flex-column gap-3">
           <div className="flex flex-column gap-1">
             <label htmlFor="duplicate-plan-name" className={duplicateError ? 'p-error' : ''}>New Test Plan Name</label>
-            <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} className={duplicateError ? 'p-invalid' : ''} autoFocus />
+            <InputText id="duplicate-plan-name" ref={duplicatePlanNameRef} value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} className={duplicateError ? 'p-invalid' : ''} autoFocus />
+            {duplicateError && <small className="p-error">{duplicateError}</small>}
           </div>
-          {duplicateError && <small className="p-error">{duplicateError}</small>}
           <Button label="Duplicate" size="small" onClick={handleDuplicate} />
         </div>
       </Dialog>
