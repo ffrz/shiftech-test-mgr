@@ -149,18 +149,19 @@ export function UserManagementPage() {
 
       <PageHeader title="Users" />
       <div className="flex gap-2 mb-3">
-        <span className="p-input-icon-left p-input-icon-right flex-1">
+        <span className="p-input-icon-left flex-1">
           <i className="pi pi-search" />
           <InputText
             className="w-full"
             placeholder="Search users..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            style={search ? { paddingRight: '2.5rem' } : undefined}
           />
           {search && (
             <i
               className="pi pi-times"
-              style={{ cursor: 'pointer' }}
+              style={{ position: 'absolute', right: '0.75rem', top: '50%', marginTop: '-0.5rem', cursor: 'pointer', zIndex: 1, color: 'var(--text-color-secondary)' }}
               onClick={() => { setSearch(''); setDebouncedSearch(''); }}
             />
           )}
