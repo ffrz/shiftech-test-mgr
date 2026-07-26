@@ -21,7 +21,7 @@ import { QuickAddDialog } from './components/dialogs/QuickAddDialog';
 import { TestCaseDialog } from './components/dialogs/TestCaseDialog';
 import { ImportTemplateDialog } from './components/dialogs/ImportTemplateDialog';
 import { ImportExcelDialog } from './components/dialogs/ImportExcelDialog';
-import { IssueDialog } from './components/dialogs/IssueDialog';
+import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import { projectService } from '../../services/projectService';
 import { testPlanService } from '../../services/testPlanService';
 import { testCaseService } from '../../services/testCaseService';
@@ -37,6 +37,8 @@ import { useTabQueryParam } from '../../hooks/useTabQueryParam';
 import { useStoredState } from '../../hooks/useStoredState';
 import { queryKeys } from '../../hooks/queryKeys';
 import type {
+  Module,
+  Tag as DomainTag,
   TestPlan,
   TestPlanStatus,
   TestCase,
@@ -48,7 +50,6 @@ import type {
   IssueWithDetails,
   IssueStatus,
   IssuePriority,
-  IssueType,
 } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import {
@@ -72,9 +73,6 @@ const TAB_DEPENDENCIES: (typeof TAB_QUERY_NAMES[number])[][] = [
   ['issues', 'projectMembers'],
 ];
 
-// Which state field a quick-add-created entity gets applied to — either the Test Case dialog's
-// field or the Issue dialog's field, depending on which dialog opened the quick-add.
-type QuickAddTagTarget = 'case' | 'issue';
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -424,24 +422,14 @@ export function ProjectDetailPage() {
     }
   }
 
-  // --- Tag quick-add — shared by Test Case dialog and Issue dialog, target field decided by
-  // quickAddTagTarget so the created tag lands in whichever dialog opened it. ---
+  // --- Tag quick-add for Test Case dialog ---
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [tagError, setTagError] = useState<string | null>(null);
-  const [quickAddTagTarget, setQuickAddTagTarget] = useState<QuickAddTagTarget>('case');
 
   function openCreateTagDialogFromCase() {
     setNewTagName('');
     setTagError(null);
-    setQuickAddTagTarget('case');
-    setTagDialogOpen(true);
-  }
-
-  function openCreateTagDialogFromIssue() {
-    setNewTagName('');
-    setTagError(null);
-    setQuickAddTagTarget('issue');
     setTagDialogOpen(true);
   }
 
@@ -450,11 +438,7 @@ export function ProjectDetailPage() {
     setTagError(null);
     try {
       const created = await tagService.create(id, newTagName);
-      if (quickAddTagTarget === 'case') {
-        setCaseTags((prev) => [...prev, created.name]);
-      } else {
-        setIssueTagNames((prev) => [...prev, created.name]);
-      }
+      setCaseTags((prev) => [...prev, created.name]);
       setTagDialogOpen(false);
       await loadAll();
       toastSuccess('Tag created');
@@ -773,102 +757,87 @@ export function ProjectDetailPage() {
     });
   }
 
-  // --- Issue create/edit dialog ---
-  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
-  const [editingIssueId, setEditingIssueId] = useState<string | null>(null);
-  const [issueTitle, setIssueTitle] = useState('');
-  const [issueType, setIssueType] = useState<IssueType>('bug');
-  const [issueModuleId, setIssueModuleId] = useState<string | null>(null);
-  const [issueDescription, setIssueDescription] = useState('');
-  const [issueActualResult, setIssueActualResult] = useState('');
-  const [issueExpectedResult, setIssueExpectedResult] = useState('');
-  const [issuePriorityValue, setIssuePriorityValue] = useState<IssuePriority>('medium');
-  const [issueTagNames, setIssueTagNames] = useState<string[]>([]);
-  const [issueFormError, setIssueFormError] = useState<string | null>(null);
+  // --- Issue Editor (shared IssueEditor component for create/edit/duplicate) ---
+  const [issueEditor, setIssueEditor] = useState<{
+    mode: 'create' | 'edit';
+    issueId?: string;
+    initialData?: IssueFormData;
+  } | null>(null);
 
   function openCreateIssueDialog() {
-    setEditingIssueId(null);
-    setIssueTitle('');
-    setIssueType('bug');
-    setIssueModuleId(null);
-    setIssueDescription('');
-    setIssueActualResult('');
-    setIssueExpectedResult('');
-    setIssuePriorityValue('medium');
-    setIssueTagNames([]);
-    setIssueFormError(null);
-    setIssueDialogOpen(true);
+    setIssueEditor({ mode: 'create' });
   }
 
   function openEditIssueDialog(row: IssueWithDetails) {
-    setEditingIssueId(row.id);
-    setIssueTitle(row.title);
-    setIssueType(row.type);
-    setIssueModuleId(row.moduleId);
-    setIssueDescription(row.description ?? '');
-    setIssueActualResult(row.actualResult ?? '');
-    setIssueExpectedResult(row.expectedResult ?? '');
-    setIssuePriorityValue(row.priority);
-    setIssueTagNames(row.tags.map((t) => t.name));
-    setIssueFormError(null);
-    setIssueDialogOpen(true);
+    setIssueEditor({
+      mode: 'edit',
+      issueId: row.id,
+      initialData: {
+        title: row.title,
+        type: row.type,
+        priority: row.priority,
+        moduleId: row.moduleId,
+        description: row.description ?? '',
+        actualResult: row.actualResult ?? '',
+        expectedResult: row.expectedResult ?? '',
+        tagNames: row.tags.map((t) => t.name),
+        githubLinks: row.githubLinks,
+      },
+    });
   }
 
-  // Prefills the same "New Issue" dialog from an existing row instead of opening a blank
-  // one — submitting always creates a new issue (this dialog has no edit mode), so no
-  // separate editingId bookkeeping is needed here unlike the Test Case dialog.
   function openDuplicateIssueDialog(row: IssueWithDetails) {
-    setEditingIssueId(null);
-    setIssueTitle(`${row.title} (Copy)`);
-    setIssueType(row.type);
-    setIssueModuleId(row.moduleId);
-    setIssueDescription(row.description ?? '');
-    setIssueActualResult('');
-    setIssueExpectedResult('');
-    setIssuePriorityValue(row.priority);
-    setIssueTagNames(row.tags.map((t) => t.name));
-    setIssueFormError(null);
-    setIssueDialogOpen(true);
+    setIssueEditor({
+      mode: 'create',
+      initialData: {
+        title: `${row.title} (Copy)`,
+        type: row.type,
+        priority: row.priority,
+        moduleId: row.moduleId,
+        description: row.description ?? '',
+        actualResult: '',
+        expectedResult: '',
+        tagNames: row.tags.map((t) => t.name),
+        githubLinks: [],
+      },
+    });
   }
 
-  async function handleSaveIssue() {
+  async function handleIssueEditorSave(data: IssueFormData) {
     if (!id) return;
-    setIssueFormError(null);
-    try {
-      if (editingIssueId) {
-        await issueService.update(
-          editingIssueId,
-          id,
-          {
-            title: issueTitle,
-            description: issueDescription,
-            actualResult: issueActualResult,
-            expectedResult: issueExpectedResult,
-            priority: issuePriorityValue,
-            type: issueType,
-            moduleId: issueModuleId,
-            githubLinks: [],
-          },
-          issueTagNames,
-        );
-      } else {
-        await issueService.create({
-          projectId: id,
-          moduleId: issueModuleId,
-          type: issueType,
-          title: issueTitle,
-          description: issueDescription,
-          priority: issuePriorityValue,
-          tagNames: issueTagNames,
-        });
-      }
-      setIssueDialogOpen(false);
-      await loadAll();
-      toastSuccess(editingIssueId ? 'Issue updated' : 'Issue created');
-    } catch (err) {
-      setIssueFormError(err instanceof Error ? err.message : `Failed to ${editingIssueId ? 'update' : 'create'} issue`);
+    if (issueEditor?.mode === 'edit' && issueEditor.issueId) {
+      await issueService.update(issueEditor.issueId, id, {
+        title: data.title,
+        description: data.description,
+        actualResult: data.actualResult,
+        expectedResult: data.expectedResult,
+        priority: data.priority,
+        type: data.type,
+        moduleId: data.moduleId,
+        githubLinks: data.githubLinks,
+      }, data.tagNames);
+      toastSuccess('Issue updated');
+    } else {
+      await issueService.create({
+        projectId: id,
+        moduleId: data.moduleId,
+        type: data.type,
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        tagNames: data.tagNames,
+      });
+      toastSuccess('Issue created');
     }
+    setIssueEditor(null);
+    await loadAll();
   }
+
+  // Mutable copies so IssueEditor's quick-add can extend them without cache invalidation.
+  const [editableModules, setEditableModules] = useState<Module[]>([]);
+  const [editableTags, setEditableTags] = useState<DomainTag[]>([]);
+  if (editableModules.length === 0 && modules.length > 0) setEditableModules(modules);
+  if (editableTags.length === 0 && tags.length > 0) setEditableTags(tags);
 
   function handleBulkDeleteIssues() {
     confirmDialog({
@@ -1221,32 +1190,21 @@ export function ProjectDetailPage() {
         onImported={loadAll}
       />
 
-      <IssueDialog
-        visible={issueDialogOpen}
-        editing={!!editingIssueId}
-        title={issueTitle}
-        onTitleChange={setIssueTitle}
-        type={issueType}
-        onTypeChange={setIssueType}
-        priority={issuePriorityValue}
-        onPriorityChange={setIssuePriorityValue}
-        moduleId={issueModuleId}
-        onModuleIdChange={setIssueModuleId}
-        moduleOptions={moduleOptions}
-        tagNames={issueTagNames}
-        onTagNamesChange={setIssueTagNames}
-        tagOptions={caseTagOptions}
-        description={issueDescription}
-        onDescriptionChange={setIssueDescription}
-        actualResult={issueActualResult}
-        onActualResultChange={setIssueActualResult}
-        expectedResult={issueExpectedResult}
-        onExpectedResultChange={setIssueExpectedResult}
-        error={issueFormError}
-        onHide={() => setIssueDialogOpen(false)}
-        onSave={handleSaveIssue}
-        onQuickAddTag={openCreateTagDialogFromIssue}
-      />
+      {issueEditor && (
+        <IssueEditor
+          visible
+          onHide={() => setIssueEditor(null)}
+          onSave={handleIssueEditorSave}
+          projectId={id ?? ''}
+          mode={issueEditor.mode}
+          issueId={issueEditor.issueId}
+          initialData={issueEditor.initialData ?? null}
+          modules={editableModules}
+          tags={editableTags}
+          onModulesChange={setEditableModules}
+          onTagsChange={setEditableTags}
+        />
+      )}
     </div>
   );
 }
