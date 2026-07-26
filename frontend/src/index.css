@@ -777,11 +777,16 @@ h6,
   border-width: 0;
 }
 
-/* Mobile: paginator stacks into 2 rows, center-aligned */
+/* Mobile: paginator — row 1: info + rows-per-page, row 2: nav buttons */
 @media (max-width: 768px) {
   .p-datatable .p-paginator-bottom {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+  .p-datatable .p-paginator-bottom .p-paginator-current,
+  .p-datatable .p-paginator-bottom .p-paginator-rpp-options {
+    width: 100%;
+    text-align: center;
   }
 }
