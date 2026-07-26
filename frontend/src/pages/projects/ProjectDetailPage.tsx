@@ -1062,14 +1062,14 @@ export function ProjectDetailPage() {
                 hidden={isMobile}
                 body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />}
               />
-              <Column field="updatedAt" header="Update Terakhir" sortable hidden={isMobile} body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
+              <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
               <Column
                 header=""
                 style={{ width: '3.5rem' }}
                 body={(row: TestPlan) => (
                   <RowActionsMenu
                     items={[
-                      ...(canEditContent ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicatePlanDialog(row) }] : []),
+                      ...(canEditContent ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicatePlanDialog(row) }] : []),
                       ...(canEditContent ? [{ label: 'Edit', icon: 'pi pi-pencil', command: () => openEditPlanDialog(row) }] : []),
                       ...(canDeleteContent
                         ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeletePlan(row) }]
@@ -1184,7 +1184,7 @@ export function ProjectDetailPage() {
               />
               <Column
                 field="targetRole.name"
-                header="Role Target"
+                header="Target Role"
                 sortable
                 hidden={isMobile}
                 body={(row: TestCaseWithDetails) => (row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-')}
@@ -1210,9 +1210,9 @@ export function ProjectDetailPage() {
                       ...(canEditContent
                         ? [
                           { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditCaseDialog(row) },
-                          { label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateCaseDialog(row) },
+                          { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateCaseDialog(row) },
                           {
-                            label: row.status === 'active' ? 'Arsipkan' : 'Aktifkan',
+                            label: row.status === 'active' ? 'Archive' : 'Activate',
                             icon: row.status === 'active' ? 'pi pi-inbox' : 'pi pi-refresh',
                             command: () => handleArchiveCase(row),
                           },
@@ -1297,7 +1297,7 @@ export function ProjectDetailPage() {
               />
               <Column field="status" header="Status" sortable hidden={isMobile} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
               <Column
-                header="Hasil"
+                header="Result"
                 hidden={isMobile}
                 body={(row: TestRunWithSummary) => (
                   <div className="flex gap-1 align-items-center">
@@ -1319,7 +1319,7 @@ export function ProjectDetailPage() {
                 body={(row: TestRunWithSummary) => (
                   <RowActionsMenu
                     items={[
-                      { label: 'Lihat Detail', icon: 'pi pi-eye', command: () => navigate(`/test-runs/${row.id}`) },
+                      { label: 'Detail', icon: 'pi pi-eye', command: () => navigate(`/test-runs/${row.id}`) },
                       ...(canDeleteContent
                         ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteRun(row) }]
                         : []),
@@ -1477,21 +1477,21 @@ export function ProjectDetailPage() {
                 body={(row: IssueWithDetails) => (
                   <RowActionsMenu
                     items={[
-                      { label: 'Buka Detail', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}`) },
+                      { label: 'Detail', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}`) },
                       ...(canManageIssues
-                        ? [{ label: 'Duplikat', icon: 'pi pi-copy', command: () => openDuplicateIssueDialog(row) }]
+                        ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateIssueDialog(row) }]
                         : []),
                       ...(canManageIssues && row.status !== 'closed'
                         ? [
                           {
-                            label: 'Arsipkan',
+                            label: 'Archive',
                             icon: 'pi pi-inbox',
                             command: () => {
                               confirmDialog({
-                                header: 'Arsipkan Issue',
+                                header: 'Archive Issue',
                                 message: `Issue "${row.title}" will be archived (closed). Continue?`,
                                 icon: 'pi pi-info-circle',
-                                acceptLabel: 'Arsipkan',
+                                acceptLabel: 'Archive',
                                 rejectLabel: 'Cancel',
                                 accept: async () => {
                                   await issueService.changeStatus(row.id, 'closed');
@@ -1563,7 +1563,7 @@ export function ProjectDetailPage() {
 
       {/* --- Duplicate Test Plan Dialog --- */}
       <Dialog
-        header="Duplikat Test Plan"
+        header="Duplicate Test Plan"
         visible={duplicatePlanDialogOpen}
         onHide={() => setDuplicatePlanDialogOpen(false)}
         style={{ width: '28rem' }}
@@ -1574,7 +1574,7 @@ export function ProjectDetailPage() {
             <label htmlFor="duplicate-plan-name">Test Plan Name</label>
             <InputText id="duplicate-plan-name" value={duplicatePlanName} onChange={(e) => setDuplicatePlanName(e.target.value)} autoFocus />
           </div>
-          <Button label="Duplikat" size="small" onClick={handleDuplicatePlan} />
+          <Button label="Duplicate" size="small" onClick={handleDuplicatePlan} />
         </div>
       </Dialog>
 
