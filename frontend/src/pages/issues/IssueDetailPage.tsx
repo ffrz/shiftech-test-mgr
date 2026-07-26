@@ -308,19 +308,6 @@ export function IssueDetailPage() {
           </div>
         )}
 
-        {issue.githubLinks.length > 0 && (
-          <div className="mt-2 text-sm">
-            <span className="text-color-secondary">GitHub: </span>
-            <span className="flex flex-wrap gap-2 mt-1">
-              {issue.githubLinks.map((link, i) => (
-                <a key={i} className="entity-link" href={link.url} target="_blank" rel="noreferrer">
-                  {link.label || link.url}
-                </a>
-              ))}
-            </span>
-          </div>
-        )}
-
         <div className="grid mt-3">
           <div className="col-12 md:col-6 flex flex-column gap-1">
             <label className="text-color-secondary text-sm">Status</label>
@@ -340,6 +327,24 @@ export function IssueDetailPage() {
           </div>
         </div>
       </Card>
+
+      {issue.githubLinks.length > 0 && (
+        <Card title="GitHub Links" className="mb-3">
+          <div className="flex flex-column gap-2">
+            {issue.githubLinks.map((link, i) => (
+              <div key={i} className="flex align-items-center gap-2">
+                <i className="pi pi-external-link" style={{ fontSize: '1rem' }} />
+                <a className="entity-link" href={link.url} target="_blank" rel="noreferrer">
+                  {link.label || link.url}
+                </a>
+                {link.label && link.url && (
+                  <span className="text-color-secondary text-sm">{link.url}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {issue.description && (
         <Card title="Description" className="mb-3">
