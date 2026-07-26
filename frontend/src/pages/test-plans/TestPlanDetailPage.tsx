@@ -381,6 +381,7 @@ export function TestPlanDetailPage() {
             value={testRuns}
             loading={runsLoading}
             lazy
+            paginator
             totalRecords={totalRuns}
             first={runFirst}
             rows={runRows}
@@ -530,7 +531,6 @@ export function TestPlanDetailPage() {
               <Column
                 field="testCase.code"
                 header="Code"
-                sortable
                 style={{ width: '7rem' }}
                 body={(row: TestPlanCaseWithDetails) => (
                   <a
@@ -545,8 +545,8 @@ export function TestPlanDetailPage() {
                 )}
               />
             )}
-            <Column field="testCase.title" header="Test Case" sortable body={isMobile ? mobileCaseTitleBody : undefined} />
-            {!isMobile && <Column field="testCase.module.name" header="Module" sortable body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
+            <Column field="testCase.title" header="Test Case" body={isMobile ? mobileCaseTitleBody : undefined} />
+            {!isMobile && <Column field="testCase.module.name" header="Module" body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
             {!isMobile && (
               <Column
                 header="Tag"
@@ -563,7 +563,6 @@ export function TestPlanDetailPage() {
               <Column
                 field="testCase.priority"
                 header="Priority"
-                sortable
                 body={(row: TestPlanCaseWithDetails) => (
                   <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
                 )}
