@@ -226,7 +226,7 @@ export function IssueEditor({
                 placeholder="Not tied to a module"
                 className="w-full"
               />
-              <Button icon="pi pi-plus" size="small" text onClick={() => setQuickAddModuleVisible(true)} tooltip="Add Module" />
+              <Button rounded icon="pi pi-plus" size="small" text onClick={() => setQuickAddModuleVisible(true)} tooltip="Add Module" />
             </div>
             {quickAddModuleVisible && (
               <div className="flex gap-2 mt-1">
@@ -256,7 +256,7 @@ export function IssueEditor({
                 filter
                 className="w-full"
               />
-              <Button icon="pi pi-plus" size="small" text onClick={() => setQuickAddTagVisible(true)} tooltip="Add Tag" />
+              <Button rounded icon="pi pi-plus" size="small" text onClick={() => setQuickAddTagVisible(true)} tooltip="Add Tag" />
             </div>
             {quickAddTagVisible && (
               <div className="flex gap-2 mt-1">
