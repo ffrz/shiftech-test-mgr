@@ -51,6 +51,7 @@ import type {
   IssueWithDetails,
   IssueStatus,
   IssuePriority,
+  IssueType,
 } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import {
@@ -174,20 +175,22 @@ export function ProjectDetailPage() {
   const [selectedIssues, setSelectedIssues] = useState<IssueWithDetails[]>([]);
   const [issueModuleFilter, setIssueModuleFilter] = useStoredState<string[]>(`project-${pfx}:issueModuleFilter:v2`, []);
   const [issueTagFilter, setIssueTagFilter] = useStoredState<string[]>(`project-${pfx}:issueTagFilter:v2`, []);
+  const [issueTypeFilter, setIssueTypeFilter] = useStoredState<IssueType[]>(`project-${pfx}:issueTypeFilter:v2`, []);
   const [issuePage, setIssuePage] = useState(1);
   const [issueRowsPerPage, setIssueRowsPerPage] = useState(10);
 
-  const issueFilterDeps = [issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter];
+  const issueFilterDeps = [issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issueTypeFilter];
   useEffect(() => { setIssuePage(1); }, issueFilterDeps); // eslint-disable-line react-hooks/exhaustive-deps
 
   const issuesQuery = useQuery({
-    queryKey: [...queryKeys.issuesByProject(id ?? ''), issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issuePage, issueRowsPerPage],
+    queryKey: [...queryKeys.issuesByProject(id ?? ''), issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issueTypeFilter, issuePage, issueRowsPerPage],
     queryFn: () => issueService.listByProjectPaginated(id!, {
       search: issueDebouncedSearch || undefined,
       statuses: issueStatusFilter.length ? issueStatusFilter : undefined,
       priorities: issuePriorityFilter.length ? issuePriorityFilter : undefined,
       moduleIds: issueModuleFilter.length ? issueModuleFilter : undefined,
       tagIds: issueTagFilter.length ? issueTagFilter : undefined,
+      types: issueTypeFilter.length ? issueTypeFilter : undefined,
       page: issuePage,
       pageSize: issueRowsPerPage,
       sortField: issueSortField,
@@ -929,6 +932,9 @@ export function ProjectDetailPage() {
           <span className="text-color-secondary">Last Updated: <span className="text-color">{formatDateTime(project.updatedAt)}</span></span>
           <span className="text-color-secondary">Test Plan: <span className="text-color">{testPlans.length}</span></span>
           <span className="text-color-secondary">Test Case: <span className="text-color">{testCases.length}</span></span>
+          <span className="text-color-secondary">Issue: <span className="text-color">{totalIssues}</span></span>
+          <span className="text-color-secondary">Test Run: <span className="text-color">{testRuns.length}</span></span>
+          <span className="text-color-secondary">Member: <span className="text-color">{projectMembers.length}</span></span>
         </div>
       </Card>
 
@@ -1042,8 +1048,10 @@ export function ProjectDetailPage() {
               onModuleFilterChange={setIssueModuleFilter}
               tagFilter={issueTagFilter}
               onTagFilterChange={setIssueTagFilter}
-              hasActiveFilters={!!issueSearch || issueStatusFilter.length > 0 || issuePriorityFilter.length > 0 || issueModuleFilter.length > 0 || issueTagFilter.length > 0}
-              onClearFilters={() => { setIssueSearch(''); setIssueStatusFilter([]); setIssuePriorityFilter([]); setIssueModuleFilter([]); setIssueTagFilter([]); }}
+              typeFilter={issueTypeFilter}
+              onTypeFilterChange={setIssueTypeFilter}
+              hasActiveFilters={!!issueSearch || issueStatusFilter.length > 0 || issuePriorityFilter.length > 0 || issueModuleFilter.length > 0 || issueTagFilter.length > 0 || issueTypeFilter.length > 0}
+              onClearFilters={() => { setIssueSearch(''); setIssueStatusFilter([]); setIssuePriorityFilter([]); setIssueModuleFilter([]); setIssueTagFilter([]); setIssueTypeFilter([]); }}
               moduleOptions={moduleOptions}
               tagOptions={tagOptions}
               sortField={issueSortField}

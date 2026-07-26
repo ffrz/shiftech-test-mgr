@@ -47,6 +47,7 @@ export const issueRepository = {
       priorities?: Issue['priority'][];
       moduleIds?: string[];
       tagIds?: string[];
+      types?: IssueType[];
       page: number;
       pageSize: number;
       sortField?: string;
@@ -74,6 +75,9 @@ export const issueRepository = {
     }
     if (options.tagIds?.length) {
       query = query.in('issue_tags.tag_id', options.tagIds);
+    }
+    if (options.types?.length) {
+      query = query.in('type', options.types);
     }
 
     const sortColumn: Record<string, string> = { title: 'title', priority: 'priority', status: 'status', createdAt: 'created_at', updatedAt: 'updated_at' };

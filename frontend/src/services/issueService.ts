@@ -22,6 +22,7 @@ export const issueService = {
       priorities?: Issue['priority'][];
       moduleIds?: string[];
       tagIds?: string[];
+      types?: IssueType[];
       page: number;
       pageSize: number;
       sortField?: string;

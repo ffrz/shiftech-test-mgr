@@ -8,7 +8,7 @@ import SearchInput from '../../../../components/ui/SearchInput';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
-import type { IssueWithDetails, IssueStatus, IssuePriority, ProjectMemberWithProfile } from '../../../../types/domain';
+import type { IssueWithDetails, IssueStatus, IssuePriority, IssueType, ProjectMemberWithProfile } from '../../../../types/domain';
 import { issueService } from '../../../../services/issueService';
 import {
   ISSUE_PRIORITY_LABEL,
@@ -41,6 +41,8 @@ type IssueTabProps = {
   onModuleFilterChange: (value: string[]) => void;
   tagFilter: string[];
   onTagFilterChange: (value: string[]) => void;
+  typeFilter: IssueType[];
+  onTypeFilterChange: (value: IssueType[]) => void;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
   moduleOptions: { label: string; value: string }[];
@@ -81,6 +83,8 @@ export function IssueTab({
   onModuleFilterChange,
   tagFilter,
   onTagFilterChange,
+  typeFilter,
+  onTypeFilterChange,
   hasActiveFilters,
   onClearFilters,
   moduleOptions,
@@ -158,6 +162,15 @@ export function IssueTab({
             options={tagOptions}
             onChange={(e) => onTagFilterChange(e.value)}
             placeholder="All Tags"
+            className="w-11rem"
+            selectAll
+            selectAllLabel="All"
+          />
+          <MultiSelect
+            value={typeFilter}
+            options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
+            onChange={(e) => onTypeFilterChange(e.value)}
+            placeholder="All Types"
             className="w-11rem"
             selectAll
             selectAllLabel="All"
