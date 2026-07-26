@@ -208,7 +208,7 @@ export function ProjectsPage() {
     <div className="flex flex-column gap-2 py-1">
       <div className="flex align-items-center justify-content-between gap-2">
         <span className="font-bold text-base">{row.name}</span>
-        <div className="flex justify-content-end">
+        <div className="flex w-full justify-content-end">
           <Button
             icon="pi pi-ellipsis-v"
             text
@@ -340,7 +340,7 @@ export function ProjectsPage() {
             header=""
             style={{ width: '4rem' }}
             body={(row: Project) => (
-              <div className="flex justify-content-end">
+              <div className="flex w-full justify-content-end">
                 <Button
                   icon="pi pi-ellipsis-v"
                   text

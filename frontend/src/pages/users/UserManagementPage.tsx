@@ -216,7 +216,7 @@ export function UserManagementPage() {
           header=""
           style={{ width: '4rem' }}
           body={(row: EnrichedUser) => (
-            <div className="flex justify-content-end">
+            <div className="flex w-full justify-content-end">
               <Button
                 icon="pi pi-ellipsis-v"
                 text
