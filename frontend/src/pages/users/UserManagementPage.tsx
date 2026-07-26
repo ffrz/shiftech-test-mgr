@@ -196,7 +196,7 @@ export function UserManagementPage() {
         rowHover
         className="cursor-pointer"
       >
-        {isMobile && <Column body={(row: EnrichedUser) => (
+        {isMobile && <Column header="User" body={(row: EnrichedUser) => (
           <div className="flex flex-column gap-2 py-1">
             <span className="font-bold">{row._displayName}</span>
             <span className="text-sm text-color-secondary">@{row._username}</span>
