@@ -116,7 +116,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
         </li>
 
         {visibleProjects.map((project) => (
-          <li key={project.id} className="layout-submenu-item">
+          <li key={project.id} className="layout-submenu-item  top-project-items">
             <NavLink
               to={`/projects/${project.id}`}
               onClick={onNavigate}
