@@ -1,17 +1,24 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { Dropdown } from 'primereact/dropdown';
+import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
+import { InputTextarea } from 'primereact/inputtextarea';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { Toast } from 'primereact/toast';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { issueService } from '../../services/issueService';
 import { projectMemberService } from '../../services/projectMemberService';
-import type { IssueStatus, IssueWithDetails } from '../../types/domain';
+import { moduleService } from '../../services/moduleService';
+import { tagService } from '../../services/tagService';
+import type { GithubLink, IssuePriority, IssueStatus, IssueType, IssueWithDetails } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
@@ -66,6 +73,80 @@ export function TestRunIssuesPage() {
     queryFn: () => projectMemberService.listByProject(projectId!),
     enabled: !!projectId,
   });
+
+  const { data: modules = [] } = useQuery({
+    queryKey: queryKeys.modules(projectId ?? ''),
+    queryFn: () => moduleService.listByProject(projectId!),
+    enabled: !!projectId,
+  });
+
+  const { data: allTags = [] } = useQuery({
+    queryKey: queryKeys.tags(projectId ?? ''),
+    queryFn: () => tagService.listByProject(projectId!),
+    enabled: !!projectId,
+  });
+
+  // --- Edit dialog ---
+  const toast = useRef<Toast>(null);
+  const [editIssue, setEditIssue] = useState<IssueWithDetails | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editType, setEditType] = useState<IssueType>('bug');
+  const [editModuleId, setEditModuleId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState('');
+  const [editActual, setEditActual] = useState('');
+  const [editExpected, setEditExpected] = useState('');
+  const [editPriority, setEditPriority] = useState<IssuePriority>('medium');
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [editGithubLinks, setEditGithubLinks] = useState<GithubLink[]>([]);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  function openEdit(row: IssueWithDetails) {
+    setEditIssue(row);
+    setEditTitle(row.title);
+    setEditType(row.type);
+    setEditModuleId(row.moduleId);
+    setEditDescription(row.description ?? '');
+    setEditActual(row.actualResult ?? '');
+    setEditExpected(row.expectedResult ?? '');
+    setEditPriority(row.priority);
+    setEditTags(row.tags.map((t) => t.name));
+    setEditGithubLinks(row.githubLinks.length ? row.githubLinks : []);
+    setEditError(null);
+  }
+
+  function closeEdit() {
+    setEditIssue(null);
+    setEditError(null);
+  }
+
+  async function handleSaveEdit() {
+    const issue = editIssue;
+    if (!issue) return;
+    setEditError(null);
+    try {
+      await issueService.update(
+        issue.id,
+        issue.projectId,
+        {
+          title: editTitle,
+          description: editDescription,
+          actualResult: editActual,
+          expectedResult: editExpected,
+          priority: editPriority,
+          type: editType,
+          moduleId: editModuleId,
+          githubLinks: editGithubLinks.filter((l) => l.url.trim()),
+        },
+        editTags,
+      );
+      closeEdit();
+      await reload();
+      await invalidateProjectIssues();
+      toast.current?.show({ severity: 'success', summary: 'Issue updated' });
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Failed to save issue');
+    }
+  }
 
   async function invalidateProjectIssues() {
     if (projectId) await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(projectId) });
@@ -145,6 +226,7 @@ export function TestRunIssuesPage() {
 
   return (
     <div>
+      <Toast ref={toast} />
       <ConfirmDialog />
 
       <Breadcrumb
@@ -229,6 +311,7 @@ export function TestRunIssuesPage() {
             <RowActionsMenu
               items={[
                 { label: 'View Details', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}?testRunId=${id}`) },
+                ...(canManageIssues ? [{ label: 'Edit', icon: 'pi pi-pencil', command: () => openEdit(row) }] : []),
                 ...(canManageIssues ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => handleDuplicate(row) }] : []),
                 ...(canDeleteContent
                   ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) }]
@@ -240,6 +323,97 @@ export function TestRunIssuesPage() {
           )}
         />
       </DataTable>
+
+      {/* --- Edit Issue Dialog --- */}
+      <Dialog
+        header="Edit Issue"
+        visible={!!editIssue}
+        onHide={closeEdit}
+        style={{ width: '34rem' }}
+      >
+        <div className="flex flex-column gap-3">
+          {editError && <small className="p-error">{editError}</small>}
+          <div className="flex flex-column gap-1">
+            <label htmlFor="edit-title">Title</label>
+            <InputText id="edit-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} autoFocus />
+          </div>
+          <div className="flex gap-2">
+            <div className="flex flex-column gap-1 flex-1">
+              <label htmlFor="edit-type">Type</label>
+              <Dropdown
+                id="edit-type"
+                value={editType}
+                options={[
+                  { label: 'Bug', value: 'bug' },
+                  { label: 'Feature', value: 'feature' },
+                  { label: 'Improvement', value: 'improvement' },
+                  { label: 'Task', value: 'task' },
+                ]}
+                onChange={(e) => setEditType(e.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="flex flex-column gap-1 flex-1">
+              <label htmlFor="edit-priority">Priority</label>
+              <Dropdown
+                id="edit-priority"
+                value={editPriority}
+                options={[
+                  { label: 'Low', value: 'low' },
+                  { label: 'Medium', value: 'medium' },
+                  { label: 'High', value: 'high' },
+                  { label: 'Critical', value: 'critical' },
+                ]}
+                onChange={(e) => setEditPriority(e.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          {projectId && (
+            <div className="flex gap-2">
+              <div className="flex flex-column gap-1 flex-1">
+                <label htmlFor="edit-module">Module</label>
+                <Dropdown
+                  id="edit-module"
+                  value={editModuleId}
+                  options={modules.map((m) => ({ label: m.name, value: m.id }))}
+                  onChange={(e) => setEditModuleId(e.value)}
+                  placeholder="No module"
+                  showClear
+                  className="w-full"
+                />
+              </div>
+              <div className="flex flex-column gap-1 flex-1">
+                <label htmlFor="edit-tags">Tags</label>
+                <MultiSelect
+                  id="edit-tags"
+                  value={editTags}
+                  options={allTags.map((t) => ({ label: t.name, value: t.name }))}
+                  onChange={(e) => setEditTags(e.value ?? [])}
+                  placeholder="Select tags"
+                  className="w-full"
+                  showClear
+                />
+              </div>
+            </div>
+          )}
+          <div className="flex flex-column gap-1">
+            <label htmlFor="edit-description">Description</label>
+            <InputTextarea id="edit-description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={2} />
+          </div>
+          <div className="flex gap-2">
+            <div className="flex flex-column gap-1 flex-1">
+              <label htmlFor="edit-actual">Actual Result</label>
+              <InputTextarea id="edit-actual" value={editActual} onChange={(e) => setEditActual(e.target.value)} rows={2} />
+            </div>
+            <div className="flex flex-column gap-1 flex-1">
+              <label htmlFor="edit-expected">Expected Result</label>
+              <InputTextarea id="edit-expected" value={editExpected} onChange={(e) => setEditExpected(e.target.value)} rows={2} />
+            </div>
+          </div>
+          <Button label="Save" size="small" onClick={handleSaveEdit} />
+        </div>
+      </Dialog>
     </div>
   );
 }

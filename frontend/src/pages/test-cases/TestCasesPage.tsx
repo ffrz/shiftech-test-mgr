@@ -11,6 +11,7 @@ import { projectService } from '../../services/projectService';
 import { queryKeys } from '../../hooks/queryKeys';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import type { TestCaseWithDetails } from '../../types/domain';
+import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import {
   TEST_CASE_PRIORITY_LABEL,
@@ -65,6 +66,7 @@ export function TestCasesPage() {
 
   return (
     <div>
+      <Breadcrumb items={[{ label: 'Test Cases' }]} />
       <PageHeader
         title="Test Cases"
         actions={

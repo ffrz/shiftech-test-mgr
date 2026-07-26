@@ -1,156 +1,107 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { useScreenSize } from '../../hooks/useScreenSize';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { DataTable, type DataTableSortEvent } from 'primereact/datatable';
+import { DataTable, type DataTablePageEvent, type DataTableSortEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
 import { Dropdown } from 'primereact/dropdown';
+import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import { Menu } from 'primereact/menu';
 import { Checkbox } from 'primereact/checkbox';
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
-import { useProjects } from '../../hooks/useProjects';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useScreenSize } from '../../hooks/useScreenSize';
+import { useAuthContext } from '../../hooks/useAuth';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
-import { testSuiteService } from '../../services/testSuiteService';
 import { testPlanService } from '../../services/testPlanService';
 import { testCaseService } from '../../services/testCaseService';
 import { issueService } from '../../services/issueService';
 import { projectDuplicateService } from '../../services/projectDuplicateService';
-import { queryKeys } from '../../hooks/queryKeys';
-import type { IssueWithDetails, Project, ProjectSortField, ProjectStatus, ProjectVisibility, TestCaseWithDetails, TestPlan } from '../../types/domain';
-import type { ProjectQuery } from '../../repositories/projectRepository';
+import { CreateProjectDialog } from './components/CreateProjectDialog';
+import type { IssueWithDetails, Project, ProjectStatus, ProjectVisibility, TestCaseWithDetails, TestPlan } from '../../types/domain';
+import type { ProjectOwnerFilter } from '../../repositories/projectRepository';
 import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY, PROJECT_VISIBILITY_LABEL, PROJECT_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 
-const STATUS_OPTIONS: { label: string; value: ProjectStatus | 'all' }[] = [
-  { label: 'All Statuses', value: 'all' },
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' },
-  { label: 'Archived', value: 'archived' },
-];
-
-const VISIBILITY_OPTIONS: { label: string; value: ProjectVisibility }[] = [
-  { label: 'Private — only invited members', value: 'private' },
-  { label: 'Unlisted — anyone with the link can view', value: 'unlisted' },
-  { label: 'Public — visible to everyone', value: 'public' },
-];
-
 export function ProjectsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user: currentUser } = useAuthContext();
   const toast = useRef<Toast>(null);
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
   const menuRef = useRef<Menu>(null);
 
-  const mobileBody = useCallback((row: Project) => (
-    <div className="flex flex-column gap-2 py-1">
-      <div className="flex align-items-center justify-content-between gap-2">
-        <span className="font-bold text-base">{row.name}</span>
-        <div className="flex align-items-start">
-          <Button
-            icon="pi pi-ellipsis-v"
-            text
-            rounded
-            plain
-            size="small"
-            className="text-color-secondary"
-            onClick={(e) => {
-              e.stopPropagation();
-              openRowMenu(row, e);
-            }}
-          />
-        </div>
-      </div>
-      <div className="flex align-items-center gap-2 text-sm text-color-secondary">
-        <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
-        <Tag value={PROJECT_VISIBILITY_LABEL[row.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[row.visibility]} />
-      </div>
-      {row.description && (
-        <div className="text-sm text-color-secondary line-height-3">{row.description}</div>
-      )}
-      <div className="text-xs text-color-secondary">
-        <i className="pi pi-calendar mr-1" />
-        Created {formatDate(row.createdAt)}
-      </div>
-    </div>
-  ), []);
-  const [menuRow, setMenuRow] = useState<Project | null>(null);
-
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('all');
-  const [sortField, setSortField] = useState<ProjectSortField>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const query: ProjectQuery = useMemo(
-    () => ({ search, status: statusFilter, sortField, sortDirection }),
-    [search, statusFilter, sortField, sortDirection],
-  );
-  const { projects, loading, reload } = useProjects(query);
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState<ProjectVisibility>('private');
-  const [templateId, setTemplateId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<ProjectStatus[]>([]);
+  const [ownerFilter, setOwnerFilter] = useState<ProjectOwnerFilter>('all');
+  const [visibilityFilter, setVisibilityFilter] = useState<ProjectVisibility[]>([]);
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortField, setSortField] = useState('name');
+  const [sortOrder, setSortOrder] = useState<-1 | 1>(1);
 
-  const { data: templates = [] } = useQuery({
-    queryKey: queryKeys.testSuites(),
-    queryFn: () => testSuiteService.listSuites(),
-    enabled: dialogOpen && !editingId,
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['projects-paginated', debouncedSearch, statusFilter, ownerFilter, visibilityFilter, page, rowsPerPage, sortField, sortOrder],
+    queryFn: () => projectService.listPaginated({
+      search: debouncedSearch || undefined,
+      statuses: statusFilter.length ? statusFilter : undefined,
+      ownerFilter,
+      currentUserId: currentUser?.id,
+      visibilities: visibilityFilter.length ? visibilityFilter : undefined,
+      page,
+      pageSize: rowsPerPage,
+      sortField,
+      sortOrder: sortOrder === 1 ? 'asc' : 'desc',
+    }),
   });
 
+  const projects = data?.data ?? [];
+  const totalRecords = data?.total ?? 0;
+
+  function reload() {
+    return queryClient.invalidateQueries({ queryKey: ['projects-paginated'] });
+  }
+
+  function onPage(e: DataTablePageEvent) {
+    setPage((e.page ?? 0) + 1);
+    if (e.rows) setRowsPerPage(e.rows);
+  }
+
+  function onSort(e: DataTableSortEvent) {
+    setSortField(e.sortField ?? 'name');
+    setSortOrder(e.sortOrder as -1 | 1);
+  }
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+
   function openCreateDialog() {
-    setEditingId(null);
-    setName('');
-    setDescription('');
-    setVisibility('private');
-    setTemplateId(null);
-    setError(null);
+    setEditingProject(null);
     setDialogOpen(true);
   }
 
   function openEditDialog(row: Project) {
-    setEditingId(row.id);
-    setName(row.name);
-    setDescription(row.description ?? '');
-    setVisibility(row.visibility);
-    setError(null);
+    setEditingProject(row);
     setDialogOpen(true);
   }
 
-  async function handleSave() {
-    setError(null);
-    try {
-      if (editingId) {
-        await projectService.update(editingId, { name, description, visibility });
-      } else {
-        const created = await projectService.create({ name, description, visibility });
-        if (templateId) {
-          const items = await testSuiteService.listItems(templateId);
-          await testSuiteService.cloneItemsToProject(created.id, items.map((i) => i.id));
-        }
-      }
-      setDialogOpen(false);
-      await reload();
-      toast.current?.show({ severity: 'success', summary: editingId ? 'Project updated' : 'Project created' });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save project');
-    }
-  }
-
-  // --- Duplicate Project: checklist picker (Test Plans / Test Cases / Issues), Test
-  // Runs/Results are execution history and are never copied ---
+  // --- Duplicate Project ---
   const [duplicateSourceProject, setDuplicateSourceProject] = useState<Project | null>(null);
   const [duplicateName, setDuplicateName] = useState('');
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
@@ -174,7 +125,6 @@ export function ProjectsPage() {
     setSourceTestPlans(plans);
     setSourceTestCases(cases);
     setSourceIssues(issues);
-    // Everything checked by default — user unchecks what they don't want to bring along.
     setSelectedTestPlanIds(new Set(plans.map((p) => p.id)));
     setSelectedTestCaseIds(new Set(cases.map((c) => c.id)));
     setSelectedIssueIds(new Set(issues.map((i) => i.id)));
@@ -218,36 +168,12 @@ export function ProjectsPage() {
     toast.current?.show({ severity: 'success', summary: 'Status updated', detail: row.name });
   }
 
-  function handleDeletePermanently(row: Project) {
-    confirmDialog({
-      header: 'Delete Permanently',
-      message: (
-        <span>
-          Project <strong>"{row.name}"</strong> and all its test plans and test cases will be{' '}
-          <strong>permanently deleted and cannot be recovered</strong>. Continue?
-        </span>
-      ),
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Delete Permanently',
-      rejectLabel: 'Cancel',
-      acceptClassName: 'p-button-danger',
-      accept: async () => {
-        await projectService.deletePermanently(row.id);
-        await reload();
-        toast.current?.show({ severity: 'success', summary: 'Project permanently deleted', detail: row.name });
-      },
-    });
-  }
-
-  function onSort(e: DataTableSortEvent) {
-    setSortField((e.sortField as ProjectSortField) ?? 'name');
-    setSortDirection(e.sortOrder === 1 ? 'asc' : 'desc');
-  }
-
   function openRowMenu(row: Project, event: React.MouseEvent) {
     setMenuRow(row);
     menuRef.current?.toggle(event);
   }
+
+  const [menuRow, setMenuRow] = useState<Project | null>(null);
 
   const menuItems = menuRow
     ? [
@@ -264,23 +190,50 @@ export function ProjectsPage() {
       ...(menuRow.status !== 'archived'
         ? [{ label: 'Archive', icon: 'pi pi-inbox', command: () => handleChangeStatus(menuRow, 'archived') }]
         : []),
-      { separator: true },
-      { label: 'Delete Permanently', icon: 'pi pi-trash', command: () => handleDeletePermanently(menuRow) },
     ]
     : [];
+
+  const mobileBody = useCallback((row: Project) => (
+    <div className="flex flex-column gap-2 py-1">
+      <div className="flex align-items-center justify-content-between gap-2">
+        <span className="font-bold text-base">{row.name}</span>
+        <div className="flex align-items-start">
+          <Button
+            icon="pi pi-ellipsis-v"
+            text
+            rounded
+            plain
+            size="small"
+            className="text-color-secondary"
+            onClick={(e) => { e.stopPropagation(); openRowMenu(row, e); }}
+          />
+        </div>
+      </div>
+      <div className="flex align-items-center gap-2 text-sm text-color-secondary">
+        <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
+        <Tag value={PROJECT_VISIBILITY_LABEL[row.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[row.visibility]} />
+      </div>
+      {row.description && (
+        <div className="text-sm text-color-secondary line-height-3">{row.description}</div>
+      )}
+      <div className="text-xs text-color-secondary">
+        <i className="pi pi-calendar mr-1" />
+        Created {formatDate(row.createdAt)}
+      </div>
+    </div>
+  ), []);
 
   return (
     <div>
       <Toast ref={toast} />
-      <ConfirmDialog />
       <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
 
       <Breadcrumb items={[{ label: 'Projects' }]} />
 
       <PageHeader title="Projects" actions={<Button label="New Project" icon="pi pi-plus" size="small" onClick={openCreateDialog} />} />
 
-      <div className="flex gap-2 mb-3">
-        <IconField iconPosition="left" className="flex-1">
+      <div className="flex flex-wrap gap-2 mb-3">
+        <IconField iconPosition="left" className="flex-1" style={{ minWidth: '12rem' }}>
           <InputIcon className="pi pi-search" />
           <InputText
             className="w-full"
@@ -290,30 +243,63 @@ export function ProjectsPage() {
           />
         </IconField>
         <Dropdown
-          value={statusFilter}
-          options={STATUS_OPTIONS}
-          onChange={(e) => setStatusFilter(e.value)}
+          value={ownerFilter}
+          options={[
+            { label: 'All Projects', value: 'all' },
+            { label: 'My Projects', value: 'mine' },
+            { label: 'Shared with Me', value: 'shared' },
+          ]}
+          onChange={(e) => setOwnerFilter(e.value)}
+          className="w-12rem"
+        />
+        <MultiSelect
+          value={visibilityFilter}
+          options={[
+            { label: 'Private', value: 'private' },
+            { label: 'Unlisted', value: 'unlisted' },
+            { label: 'Public', value: 'public' },
+          ]}
+          onChange={(e) => setVisibilityFilter(e.value)}
+          placeholder="All Visibility"
           className="w-14rem"
+          selectAll
+          selectAllLabel="All"
+        />
+        <MultiSelect
+          value={statusFilter}
+          options={[
+            { label: 'Active', value: 'active' },
+            { label: 'Inactive', value: 'inactive' },
+            { label: 'Archived', value: 'archived' },
+          ]}
+          onChange={(e) => setStatusFilter(e.value)}
+          placeholder="All Statuses"
+          className="w-14rem"
+          selectAll
+          selectAllLabel="All"
         />
       </div>
 
       <DataTable
         value={projects}
         loading={loading}
+        lazy
+        totalRecords={totalRecords}
         paginator
-        rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
+        rows={rowsPerPage}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        first={(page - 1) * rowsPerPage}
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onPage={onPage}
+        onSort={onSort}
         size="small"
         emptyMessage="No projects yet"
-        sortField={isMobile ? undefined : sortField}
-        sortOrder={isMobile ? undefined : (sortDirection === 'asc' ? 1 : -1)}
-        onSort={isMobile ? undefined : onSort}
         onRowClick={(e) => navigate(`/projects/${(e.data as Project).id}`)}
         rowHover
         className="cursor-pointer"
       >
-        {isMobile && (
-          <Column field="name" header="Project" body={mobileBody} />
-        )}
+        {isMobile && <Column field="name" header="Project" body={mobileBody} />}
         {!isMobile && <Column field="name" header="Name" sortable />}
         {!isMobile && <Column field="description" header="Description" />}
         {!isMobile && (
@@ -346,10 +332,7 @@ export function ProjectsPage() {
                   plain
                   size="small"
                   className="text-color-secondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openRowMenu(row, e);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); openRowMenu(row, e); }}
                 />
               </div>
             )}
@@ -357,44 +340,12 @@ export function ProjectsPage() {
         )}
       </DataTable>
 
-      <Dialog header={editingId ? 'Edit Project' : 'New Project'} visible={dialogOpen} onHide={() => setDialogOpen(false)} style={{ width: '30rem' }}>
-        <div className="flex flex-column gap-3">
-          {error && <small className="p-error">{error}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="name">Name</label>
-            <InputText id="name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="description">Description</label>
-            <InputTextarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="visibility">Visibility</label>
-            <Dropdown
-              id="visibility"
-              value={visibility}
-              options={VISIBILITY_OPTIONS}
-              onChange={(e) => setVisibility(e.value)}
-              className="w-full"
-            />
-          </div>
-          {!editingId && (
-            <div className="flex flex-column gap-1">
-              <label htmlFor="project-template">Start from Template (optional)</label>
-              <Dropdown
-                id="project-template"
-                value={templateId}
-                options={templates.map((t) => ({ label: t.name, value: t.id }))}
-                onChange={(e) => setTemplateId(e.value)}
-                placeholder="No template"
-                showClear
-                className="w-full"
-              />
-            </div>
-          )}
-          <Button label="Save" size="small" onClick={handleSave} />
-        </div>
-      </Dialog>
+      <CreateProjectDialog
+        visible={dialogOpen}
+        editingProject={editingProject}
+        onHide={() => setDialogOpen(false)}
+        onSaved={() => { reload(); toast.current?.show({ severity: 'success', summary: editingProject ? 'Project updated' : 'Project created' }); }}
+      />
 
       <Dialog
         header="Duplicate Project"

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
+import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useDashboard } from '../../hooks/useDashboard';
 import { useProjectInvitations } from '../../hooks/useProjectInvitations';
@@ -13,6 +14,7 @@ export function HomePage() {
 
   return (
     <div>
+      <Breadcrumb items={[{ label: 'Home' }]} />
       <h2 className="m-0 mb-4">Welcome Back{profile?.displayName ? `, ${profile.displayName}` : ''}</h2>
 
       {invitations.length > 0 && (

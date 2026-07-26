@@ -1,9 +1,13 @@
-import { projectRepository, type ProjectQuery } from '../repositories/projectRepository';
+import { projectRepository, type ProjectPaginatedQuery, type ProjectQuery } from '../repositories/projectRepository';
 import type { ProjectStatus, ProjectVisibility } from '../types/domain';
 
 export const projectService = {
   list(query?: ProjectQuery) {
     return projectRepository.findAll(query);
+  },
+
+  listPaginated(query: ProjectPaginatedQuery) {
+    return projectRepository.findAllPaginated(query);
   },
 
   getById(id: string) {
