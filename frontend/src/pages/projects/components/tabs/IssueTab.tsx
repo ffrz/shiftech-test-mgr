@@ -2,6 +2,7 @@ import { Button } from 'primereact/button';
 import { DataTable, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
+import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { confirmDialog } from 'primereact/confirmdialog';
@@ -32,14 +33,16 @@ type IssueTabProps = {
   isMobile: boolean;
   search: string;
   onSearchChange: (value: string) => void;
-  statusFilter: IssueStatus | null;
-  onStatusFilterChange: (value: IssueStatus | null) => void;
-  priorityFilter: IssuePriority | null;
-  onPriorityFilterChange: (value: IssuePriority | null) => void;
-  moduleFilter: string | null;
-  onModuleFilterChange: (value: string | null) => void;
-  tagFilter: string | null;
-  onTagFilterChange: (value: string | null) => void;
+  statusFilter: IssueStatus[];
+  onStatusFilterChange: (value: IssueStatus[]) => void;
+  priorityFilter: IssuePriority[];
+  onPriorityFilterChange: (value: IssuePriority[]) => void;
+  moduleFilter: string[];
+  onModuleFilterChange: (value: string[]) => void;
+  tagFilter: string[];
+  onTagFilterChange: (value: string[]) => void;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
   moduleOptions: { label: string; value: string }[];
   tagOptions: { label: string; value: string }[];
   sortField: string;
@@ -74,6 +77,8 @@ export function IssueTab({
   onModuleFilterChange,
   tagFilter,
   onTagFilterChange,
+  hasActiveFilters,
+  onClearFilters,
   moduleOptions,
   tagOptions,
   sortField,
@@ -113,37 +118,51 @@ export function IssueTab({
       <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div className="flex align-items-center gap-2 flex-wrap">
           <SearchInput value={search} onChange={onSearchChange} placeholder="Search title..." />
-          <Dropdown
+          <MultiSelect
             value={statusFilter}
             options={ISSUE_STATUS_OPTIONS}
             onChange={(e) => onStatusFilterChange(e.value)}
             placeholder="All Statuses"
-            showClear
-            className="w-11rem"
+            className="w-12rem"
+            selectAll
+            selectAllLabel="All"
           />
-          <Dropdown
+          <MultiSelect
             value={priorityFilter}
             options={ISSUE_PRIORITY_OPTIONS}
             onChange={(e) => onPriorityFilterChange(e.value)}
             placeholder="All Priorities"
-            showClear
-            className="w-11rem"
+            className="w-12rem"
+            selectAll
+            selectAllLabel="All"
           />
-          <Dropdown
+          <MultiSelect
             value={moduleFilter}
             options={moduleOptions}
             onChange={(e) => onModuleFilterChange(e.value)}
             placeholder="All Modules"
-            showClear
-            className="w-10rem"
+            className="w-11rem"
+            selectAll
+            selectAllLabel="All"
           />
-          <Dropdown
+          <MultiSelect
             value={tagFilter}
             options={tagOptions}
             onChange={(e) => onTagFilterChange(e.value)}
             placeholder="All Tags"
-            showClear
-            className="w-10rem"
+            className="w-11rem"
+            selectAll
+            selectAllLabel="All"
+          />
+          <Button
+            icon="pi pi-filter-slash"
+            outlined
+            severity="secondary"
+            size="small"
+            disabled={!hasActiveFilters}
+            onClick={onClearFilters}
+            tooltip="Reset filters"
+            tooltipOptions={{ position: 'bottom' }}
           />
         </div>
         {canManageIssues && <Button label="New Issue" icon="pi pi-plus" size="small" onClick={onCreate} />}

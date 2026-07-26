@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -94,16 +94,98 @@ export function ProjectDetailPage() {
   const project = projectQuery.data ?? null;
   const projectLoading = projectQuery.isLoading;
 
+  // --- Debounced search for each tab ---
+  function useDebouncedSearch(immediate: string, setter: (v: string) => void) {
+    const ref = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    useEffect(() => {
+      const id = setTimeout(() => setter(immediate), 300);
+      ref.current = id;
+      return () => clearTimeout(id);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [immediate]);
+  }
+
+  const pfx = id ?? '__unknown__';
+
+  // Test Plans — search/filter/server-side
+  const [planSearch, setPlanSearch] = useStoredState(`project-${pfx}:planSearch`, '');
+  const [planDebouncedSearch, setPlanDebouncedSearch] = useState(planSearch);
+  useDebouncedSearch(planSearch, setPlanDebouncedSearch);
+  const [planStatusFilter, setPlanStatusFilter] = useStoredState<TestPlanStatus[]>(`project-${pfx}:planStatusFilter`, []);
+  const [planSortField, setPlanSortField] = useStoredState(`project-${pfx}:planSortField`, 'code');
+  const [planSortOrder, setPlanSortOrder] = useStoredState<1 | -1>(`project-${pfx}:planSortOrder`, 1);
+  const [selectedPlans, setSelectedPlans] = useState<TestPlan[]>([]);
+
   const testPlansQuery = useQuery({
-    queryKey: queryKeys.testPlans(id ?? ''),
-    queryFn: () => testPlanService.listByProject(id!),
+    queryKey: [...queryKeys.testPlans(id ?? ''), planDebouncedSearch, planStatusFilter],
+    queryFn: () => testPlanService.listByProject(id!, { search: planDebouncedSearch || undefined, statuses: planStatusFilter.length ? planStatusFilter : undefined }),
     enabled: !!id,
   });
+
+  // Test Cases — search/filter/server-side
+  const [caseSearch, setCaseSearch] = useStoredState(`project-${pfx}:caseSearch`, '');
+  const [caseDebouncedSearch, setCaseDebouncedSearch] = useState(caseSearch);
+  useDebouncedSearch(caseSearch, setCaseDebouncedSearch);
+  const [caseStatusFilter, setCaseStatusFilter] = useStoredState<TestCaseStatus[]>(`project-${pfx}:caseStatusFilter`, []);
+  const [casePriorityFilter, setCasePriorityFilter] = useStoredState<TestCasePriority[]>(`project-${pfx}:casePriorityFilter`, []);
+  const [caseModuleFilter, setCaseModuleFilter] = useStoredState<string[]>(`project-${pfx}:caseModuleFilter`, []);
+  const [caseTagFilter, setCaseTagFilter] = useStoredState<string[]>(`project-${pfx}:caseTagFilter`, []);
+  const [caseTestRoleFilter, setCaseTestRoleFilter] = useStoredState<string[]>(`project-${pfx}:caseTestRoleFilter`, []);
+  const [caseSortField, setCaseSortField] = useStoredState(`project-${pfx}:caseSortField`, 'code');
+  const [caseSortOrder, setCaseSortOrder] = useStoredState<1 | -1>(`project-${pfx}:caseSortOrder`, 1);
+  const [selectedCases, setSelectedCases] = useState<TestCaseWithDetails[]>([]);
+
   const testCasesQuery = useQuery({
-    queryKey: queryKeys.testCasesWithDetails(id ?? ''),
-    queryFn: () => testCaseService.listByProjectWithDetails(id!),
+    queryKey: [...queryKeys.testCasesWithDetails(id ?? ''), caseDebouncedSearch, caseStatusFilter, casePriorityFilter, caseModuleFilter, caseTagFilter, caseTestRoleFilter],
+    queryFn: () => testCaseService.listByProjectWithDetails(id!, {
+      search: caseDebouncedSearch || undefined,
+      statuses: caseStatusFilter.length ? caseStatusFilter : undefined,
+      priorities: casePriorityFilter.length ? casePriorityFilter : undefined,
+      moduleIds: caseModuleFilter.length ? caseModuleFilter : undefined,
+      tagIds: caseTagFilter.length ? caseTagFilter : undefined,
+      testRoleIds: caseTestRoleFilter.length ? caseTestRoleFilter : undefined,
+    }),
     enabled: !!id,
   });
+
+  // Test Runs — search/filter/server-side
+  const [runSearch, setRunSearch] = useStoredState(`project-${pfx}:runSearch`, '');
+  const [runDebouncedSearch, setRunDebouncedSearch] = useState(runSearch);
+  useDebouncedSearch(runSearch, setRunDebouncedSearch);
+  const [runStatusFilter, setRunStatusFilter] = useStoredState<TestRunStatus[]>(`project-${pfx}:runStatusFilter`, []);
+  const [runSortField, setRunSortField] = useStoredState(`project-${pfx}:runSortField`, 'code');
+  const [runSortOrder, setRunSortOrder] = useStoredState<1 | -1>(`project-${pfx}:runSortOrder`, 1);
+  const [selectedRuns, setSelectedRuns] = useState<TestRunWithSummary[]>([]);
+
+  const testRunsQuery = useQuery({
+    queryKey: [...queryKeys.testRunsByProject(id ?? ''), runDebouncedSearch, runStatusFilter],
+    queryFn: () => testRunService.listByProjectWithSummary(id!, { search: runDebouncedSearch || undefined, statuses: runStatusFilter.length ? runStatusFilter : undefined }),
+    enabled: !!id,
+  });
+
+  // Issues — search/filter/server-side
+  const [issueSearch, setIssueSearch] = useStoredState(`project-${pfx}:issueSearch`, '');
+  const [issueDebouncedSearch, setIssueDebouncedSearch] = useState(issueSearch);
+  useDebouncedSearch(issueSearch, setIssueDebouncedSearch);
+  const [issueStatusFilter, setIssueStatusFilter] = useStoredState<IssueStatus[]>(`project-${pfx}:issueStatusFilter`, []);
+  const [issuePriorityFilter, setIssuePriorityFilter] = useStoredState<IssuePriority[]>(`project-${pfx}:issuePriorityFilter`, []);
+  const [issueSortField, setIssueSortField] = useStoredState(`project-${pfx}:issueSortField`, 'title');
+  const [issueSortOrder, setIssueSortOrder] = useStoredState<1 | -1>(`project-${pfx}:issueSortOrder`, 1);
+  const [selectedIssues, setSelectedIssues] = useState<IssueWithDetails[]>([]);
+  const [issueModuleFilter, setIssueModuleFilter] = useStoredState<string[]>(`project-${pfx}:issueModuleFilter`, []);
+  const [issueTagFilter, setIssueTagFilter] = useStoredState<string[]>(`project-${pfx}:issueTagFilter`, []);
+
+  const issuesQuery = useQuery({
+    queryKey: [...queryKeys.issuesByProject(id ?? ''), issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter],
+    queryFn: () => issueService.listByProject(id!, {
+      search: issueDebouncedSearch || undefined,
+      statuses: issueStatusFilter.length ? issueStatusFilter : undefined,
+      priorities: issuePriorityFilter.length ? issuePriorityFilter : undefined,
+      moduleIds: issueModuleFilter.length ? issueModuleFilter : undefined,
+    }),
+    enabled: !!id,
+  });
+
   const modulesQuery = useQuery({
     queryKey: queryKeys.modules(id ?? ''),
     queryFn: () => moduleService.listByProject(id!),
@@ -117,16 +199,6 @@ export function ProjectDetailPage() {
   const testRolesQuery = useQuery({
     queryKey: queryKeys.testRoles(id ?? ''),
     queryFn: () => testRoleService.listByProject(id!),
-    enabled: !!id,
-  });
-  const testRunsQuery = useQuery({
-    queryKey: queryKeys.testRunsByProject(id ?? ''),
-    queryFn: () => testRunService.listByProjectWithSummary(id!),
-    enabled: !!id,
-  });
-  const issuesQuery = useQuery({
-    queryKey: queryKeys.issuesByProject(id ?? ''),
-    queryFn: () => issueService.listByProject(id!),
     enabled: !!id,
   });
   const projectMembersQuery = useQuery({
@@ -209,24 +281,6 @@ export function ProjectDetailPage() {
   const [duplicatePlanSource, setDuplicatePlanSource] = useState<TestPlan | null>(null);
   const [duplicatePlanName, setDuplicatePlanName] = useState('');
   const [duplicatePlanError, setDuplicatePlanError] = useState<string | null>(null);
-
-  const pfx = id ?? '__unknown__';
-
-  // Test Plans: search/filter/sort/selection
-  const [planSearch, setPlanSearch] = useStoredState(`project-${pfx}:planSearch`, '');
-  const [planStatusFilter, setPlanStatusFilter] = useStoredState<TestPlanStatus | null>(`project-${pfx}:planStatusFilter`, null);
-  const [planSortField, setPlanSortField] = useStoredState(`project-${pfx}:planSortField`, 'code');
-  const [planSortOrder, setPlanSortOrder] = useStoredState<1 | -1>(`project-${pfx}:planSortOrder`, 1);
-  const [selectedPlans, setSelectedPlans] = useState<TestPlan[]>([]);
-
-  const filteredPlans = useMemo(() => {
-    const q = planSearch.trim().toLowerCase();
-    return testPlans.filter((p) => {
-      if (planStatusFilter && p.status !== planStatusFilter) return false;
-      if (q && !p.name.toLowerCase().includes(q) && !p.code.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [testPlans, planSearch, planStatusFilter]);
 
   function openCreatePlanDialog() {
     setEditingPlanId(null);
@@ -426,30 +480,6 @@ export function ProjectDetailPage() {
   const [caseError, setCaseError] = useState<string | null>(null);
   const [caseStepType, setCaseStepType] = useState<TestCase['stepType']>('simple');
   const [caseDetailedSteps, setCaseDetailedSteps] = useState<{ action: string; expectedResult: string }[]>([]);
-
-  // Test Cases: search/filter/sort/selection
-  const [caseSearch, setCaseSearch] = useStoredState(`project-${pfx}:caseSearch`, '');
-  const [caseStatusFilter, setCaseStatusFilter] = useStoredState<TestCaseStatus | null>(`project-${pfx}:caseStatusFilter`, null);
-  const [casePriorityFilter, setCasePriorityFilter] = useStoredState<TestCasePriority | null>(`project-${pfx}:casePriorityFilter`, null);
-  const [caseModuleFilter, setCaseModuleFilter] = useStoredState<string | null>(`project-${pfx}:caseModuleFilter`, null);
-  const [caseTagFilter, setCaseTagFilter] = useStoredState<string | null>(`project-${pfx}:caseTagFilter`, null);
-  const [caseTestRoleFilter, setCaseTestRoleFilter] = useStoredState<string | null>(`project-${pfx}:caseTestRoleFilter`, null);
-  const [caseSortField, setCaseSortField] = useStoredState(`project-${pfx}:caseSortField`, 'code');
-  const [caseSortOrder, setCaseSortOrder] = useStoredState<1 | -1>(`project-${pfx}:caseSortOrder`, 1);
-  const [selectedCases, setSelectedCases] = useState<TestCaseWithDetails[]>([]);
-
-  const filteredCases = useMemo(() => {
-    const q = caseSearch.trim().toLowerCase();
-    return testCases.filter((c) => {
-      if (caseStatusFilter && c.status !== caseStatusFilter) return false;
-      if (casePriorityFilter && c.priority !== casePriorityFilter) return false;
-      if (caseModuleFilter && c.moduleId !== caseModuleFilter) return false;
-      if (caseTagFilter && !c.tags.some((t) => t.id === caseTagFilter)) return false;
-      if (caseTestRoleFilter && c.targetRoleId !== caseTestRoleFilter) return false;
-      if (q && !c.title.toLowerCase().includes(q) && !c.code.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [testCases, caseSearch, caseStatusFilter, casePriorityFilter, caseModuleFilter, caseTagFilter, caseTestRoleFilter]);
 
   function openCreateCaseDialog() {
     setEditingCaseId(null);
@@ -673,13 +703,6 @@ export function ProjectDetailPage() {
     });
   }
 
-  // --- Test Runs: search/filter/sort/selection ---
-  const [runSearch, setRunSearch] = useStoredState(`project-${pfx}:runSearch`, '');
-  const [runStatusFilter, setRunStatusFilter] = useStoredState<TestRunStatus | null>(`project-${pfx}:runStatusFilter`, null);
-  const [runSortField, setRunSortField] = useStoredState(`project-${pfx}:runSortField`, 'code');
-  const [runSortOrder, setRunSortOrder] = useStoredState<1 | -1>(`project-${pfx}:runSortOrder`, 1);
-  const [selectedRuns, setSelectedRuns] = useState<TestRunWithSummary[]>([]);
-
   // --- Create Test Run dialog: "from plan" (existing flow) or "unplanned/custom" ---
   const [runDialogOpen, setRunDialogOpen] = useState(false);
   const [runMode, setRunMode] = useState<'plan' | 'custom'>('plan');
@@ -717,15 +740,6 @@ export function ProjectDetailPage() {
     }
   }
 
-  const filteredRuns = useMemo(() => {
-    const q = runSearch.trim().toLowerCase();
-    return testRuns.filter((r) => {
-      if (runStatusFilter && r.status !== runStatusFilter) return false;
-      if (q && !r.name.toLowerCase().includes(q) && !r.code.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [testRuns, runSearch, runStatusFilter]);
-
   function handleDeleteRun(row: TestRunWithSummary) {
     confirmDialog({
       header: 'Delete Test Run',
@@ -758,28 +772,6 @@ export function ProjectDetailPage() {
       },
     });
   }
-
-  // --- Issues: search/filter/sort/selection ---
-  const [issueSearch, setIssueSearch] = useStoredState(`project-${pfx}:issueSearch`, '');
-  const [issueStatusFilter, setIssueStatusFilter] = useStoredState<IssueStatus | null>(`project-${pfx}:issueStatusFilter`, null);
-  const [issuePriorityFilter, setIssuePriorityFilter] = useStoredState<IssuePriority | null>(`project-${pfx}:issuePriorityFilter`, null);
-  const [issueSortField, setIssueSortField] = useStoredState(`project-${pfx}:issueSortField`, 'title');
-  const [issueSortOrder, setIssueSortOrder] = useStoredState<1 | -1>(`project-${pfx}:issueSortOrder`, 1);
-  const [selectedIssues, setSelectedIssues] = useState<IssueWithDetails[]>([]);
-  const [issueModuleFilter, setIssueModuleFilter] = useStoredState<string | null>(`project-${pfx}:issueModuleFilter`, null);
-  const [issueTagFilter, setIssueTagFilter] = useStoredState<string | null>(`project-${pfx}:issueTagFilter`, null);
-
-  const filteredIssues = useMemo(() => {
-    const q = issueSearch.trim().toLowerCase();
-    return issues.filter((i) => {
-      if (issueStatusFilter && i.status !== issueStatusFilter) return false;
-      if (issuePriorityFilter && i.priority !== issuePriorityFilter) return false;
-      if (issueModuleFilter && i.moduleId !== issueModuleFilter) return false;
-      if (issueTagFilter && !i.tags.some((t) => t.id === issueTagFilter)) return false;
-      if (q && !i.title.toLowerCase().includes(q) && !i.code.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [issues, issueSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter]);
 
   // --- Issue create/edit dialog ---
   const [issueDialogOpen, setIssueDialogOpen] = useState(false);
@@ -959,13 +951,15 @@ export function ProjectDetailPage() {
       <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
           <TabPanel header="Test Plans">
             <TestPlanTab
-              plans={filteredPlans}
+              plans={testPlans}
               loading={tabLoading[0]}
               isMobile={isMobile}
               search={planSearch}
               onSearchChange={setPlanSearch}
               statusFilter={planStatusFilter}
               onStatusFilterChange={setPlanStatusFilter}
+              hasActiveFilters={!!planSearch || planStatusFilter.length > 0}
+              onClearFilters={() => { setPlanSearch(''); setPlanStatusFilter([]); }}
               sortField={planSortField}
               sortOrder={planSortOrder}
               onSort={sortHandler(setPlanSortField, setPlanSortOrder)}
@@ -984,7 +978,7 @@ export function ProjectDetailPage() {
 
           <TabPanel header="Test Cases">
             <TestCaseTab
-              cases={filteredCases}
+              cases={testCases}
               loading={tabLoading[1]}
               isMobile={isMobile}
               search={caseSearch}
@@ -999,6 +993,8 @@ export function ProjectDetailPage() {
               onTagFilterChange={setCaseTagFilter}
               testRoleFilter={caseTestRoleFilter}
               onTestRoleFilterChange={setCaseTestRoleFilter}
+              hasActiveFilters={!!caseSearch || caseStatusFilter.length > 0 || casePriorityFilter.length > 0 || caseModuleFilter.length > 0 || caseTagFilter.length > 0 || caseTestRoleFilter.length > 0}
+              onClearFilters={() => { setCaseSearch(''); setCaseStatusFilter([]); setCasePriorityFilter([]); setCaseModuleFilter([]); setCaseTagFilter([]); setCaseTestRoleFilter([]); }}
               moduleOptions={moduleOptions}
               tagOptions={tagOptions}
               testRoleOptions={testRoleOptions}
@@ -1023,13 +1019,15 @@ export function ProjectDetailPage() {
 
           <TabPanel header="Test Runs">
             <TestRunTab
-              runs={filteredRuns}
+              runs={testRuns}
               loading={tabLoading[2]}
               isMobile={isMobile}
               search={runSearch}
               onSearchChange={setRunSearch}
               statusFilter={runStatusFilter}
               onStatusFilterChange={setRunStatusFilter}
+              hasActiveFilters={!!runSearch || runStatusFilter.length > 0}
+              onClearFilters={() => { setRunSearch(''); setRunStatusFilter([]); }}
               sortField={runSortField}
               sortOrder={runSortOrder}
               onSort={sortHandler(setRunSortField, setRunSortOrder)}
@@ -1047,7 +1045,7 @@ export function ProjectDetailPage() {
 
           <TabPanel header="Issues">
             <IssueTab
-              issues={filteredIssues}
+              issues={issues}
               loading={tabLoading[3]}
               isMobile={isMobile}
               search={issueSearch}
@@ -1060,6 +1058,8 @@ export function ProjectDetailPage() {
               onModuleFilterChange={setIssueModuleFilter}
               tagFilter={issueTagFilter}
               onTagFilterChange={setIssueTagFilter}
+              hasActiveFilters={!!issueSearch || issueStatusFilter.length > 0 || issuePriorityFilter.length > 0 || issueModuleFilter.length > 0 || issueTagFilter.length > 0}
+              onClearFilters={() => { setIssueSearch(''); setIssueStatusFilter([]); setIssuePriorityFilter([]); setIssueModuleFilter([]); setIssueTagFilter([]); }}
               moduleOptions={moduleOptions}
               tagOptions={tagOptions}
               sortField={issueSortField}

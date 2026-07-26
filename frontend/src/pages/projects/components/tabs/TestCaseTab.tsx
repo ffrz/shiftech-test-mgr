@@ -1,7 +1,7 @@
 import { Button } from 'primereact/button';
 import { DataTable, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { Dropdown } from 'primereact/dropdown';
+import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
@@ -31,16 +31,18 @@ type TestCaseTabProps = {
   isMobile: boolean;
   search: string;
   onSearchChange: (value: string) => void;
-  statusFilter: TestCaseStatus | null;
-  onStatusFilterChange: (value: TestCaseStatus | null) => void;
-  priorityFilter: TestCasePriority | null;
-  onPriorityFilterChange: (value: TestCasePriority | null) => void;
-  moduleFilter: string | null;
-  onModuleFilterChange: (value: string | null) => void;
-  tagFilter: string | null;
-  onTagFilterChange: (value: string | null) => void;
-  testRoleFilter: string | null;
-  onTestRoleFilterChange: (value: string | null) => void;
+  statusFilter: TestCaseStatus[];
+  onStatusFilterChange: (value: TestCaseStatus[]) => void;
+  priorityFilter: TestCasePriority[];
+  onPriorityFilterChange: (value: TestCasePriority[]) => void;
+  moduleFilter: string[];
+  onModuleFilterChange: (value: string[]) => void;
+  tagFilter: string[];
+  onTagFilterChange: (value: string[]) => void;
+  testRoleFilter: string[];
+  onTestRoleFilterChange: (value: string[]) => void;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
   moduleOptions: { label: string; value: string }[];
   tagOptions: { label: string; value: string }[];
   testRoleOptions: { label: string; value: string }[];
@@ -78,6 +80,8 @@ export function TestCaseTab({
   onTagFilterChange,
   testRoleFilter,
   onTestRoleFilterChange,
+  hasActiveFilters,
+  onClearFilters,
   moduleOptions,
   tagOptions,
   testRoleOptions,
@@ -115,45 +119,60 @@ export function TestCaseTab({
       <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div className="flex align-items-center gap-2 flex-wrap">
           <SearchInput value={search} onChange={onSearchChange} placeholder="Search title/code..." />
-          <Dropdown
+          <MultiSelect
             value={statusFilter}
             options={TEST_CASE_STATUS_OPTIONS}
             onChange={(e) => onStatusFilterChange(e.value)}
             placeholder="All Statuses"
-            showClear
-            className="w-10rem"
+            className="w-11rem"
+            selectAll
+            selectAllLabel="All"
           />
-          <Dropdown
+          <MultiSelect
             value={priorityFilter}
             options={PRIORITY_OPTIONS}
             onChange={(e) => onPriorityFilterChange(e.value)}
             placeholder="All Priorities"
-            showClear
-            className="w-10rem"
+            className="w-11rem"
+            selectAll
+            selectAllLabel="All"
           />
-          <Dropdown
+          <MultiSelect
             value={moduleFilter}
             options={moduleOptions}
             onChange={(e) => onModuleFilterChange(e.value)}
             placeholder="All Modules"
-            showClear
-            className="w-10rem"
+            className="w-11rem"
+            selectAll
+            selectAllLabel="All"
           />
-          <Dropdown
+          <MultiSelect
             value={tagFilter}
             options={tagOptions}
             onChange={(e) => onTagFilterChange(e.value)}
             placeholder="All Tags"
-            showClear
-            className="w-10rem"
+            className="w-11rem"
+            selectAll
+            selectAllLabel="All"
           />
-          <Dropdown
+          <MultiSelect
             value={testRoleFilter}
             options={testRoleOptions}
             onChange={(e) => onTestRoleFilterChange(e.value)}
             placeholder="All Roles"
-            showClear
-            className="w-10rem"
+            className="w-11rem"
+            selectAll
+            selectAllLabel="All"
+          />
+          <Button
+            icon="pi pi-filter-slash"
+            outlined
+            severity="secondary"
+            size="small"
+            disabled={!hasActiveFilters}
+            onClick={onClearFilters}
+            tooltip="Reset filters"
+            tooltipOptions={{ position: 'bottom' }}
           />
         </div>
         {canEditContent && (

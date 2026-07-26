@@ -7,7 +7,10 @@ export const issueService = {
     return issueRepository.findById(id);
   },
 
-  listByProject(projectId: string, options?: { search?: string; limit?: number }) {
+  listByProject(
+    projectId: string,
+    options?: { search?: string; statuses?: Issue['status'][]; priorities?: Issue['priority'][]; moduleIds?: string[]; limit?: number },
+  ) {
     return issueRepository.findAllByProject(projectId, options);
   },
 

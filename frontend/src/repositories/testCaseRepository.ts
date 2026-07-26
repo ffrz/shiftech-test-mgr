@@ -16,12 +16,52 @@ export const testCaseRepository = {
 
   // Includes module + tags in one round trip — used by the list page so the
   // Module column and tag chips don't need N+1 queries.
-  async findAllByProjectWithDetails(projectId: string): Promise<TestCaseWithDetails[]> {
-    const { data, error } = await supabase
+  async findAllByProjectWithDetails(
+    projectId: string,
+    options?: {
+      search?: string;
+      statuses?: TestCase['status'][];
+      priorities?: TestCase['priority'][];
+      moduleIds?: string[];
+      tagIds?: string[];
+      testRoleIds?: string[];
+    },
+  ): Promise<TestCaseWithDetails[]> {
+    let query = supabase
       .from('test_cases')
       .select('*, module:modules(*), target_role:test_roles(*), test_case_tags(tag:tags(*))')
-      .eq('project_id', projectId)
-      .order('code');
+      .eq('project_id', projectId);
+
+    if (options?.search?.trim()) {
+      const q = options.search.trim();
+      query = query.or(`title.ilike.%${q}%,code.ilike.%${q}%`);
+    }
+    if (options?.statuses?.length) {
+      query = query.in('status', options.statuses);
+    }
+    if (options?.priorities?.length) {
+      query = query.in('priority', options.priorities);
+    }
+    if (options?.moduleIds?.length) {
+      query = query.in('module_id', options.moduleIds);
+    }
+    if (options?.testRoleIds?.length) {
+      query = query.in('target_role_id', options.testRoleIds);
+    }
+    if (options?.tagIds?.length) {
+      const { data: linked } = await supabase
+        .from('test_case_tags')
+        .select('test_case_id')
+        .in('tag_id', options.tagIds);
+      const caseIds = [...new Set((linked ?? []).map((r: any) => r.test_case_id))];
+      if (caseIds.length) {
+        query = query.in('id', caseIds);
+      } else {
+        return [];
+      }
+    }
+
+    const { data, error } = await query.order('code');
 
     if (error) throw error;
     return (data ?? []).map((row: any) => ({

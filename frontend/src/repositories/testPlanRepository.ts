@@ -6,12 +6,21 @@ import type { TestPlan, TestPlanStatus } from '../types/domain';
 // No business rules here — that belongs in the service layer.
 
 export const testPlanRepository = {
-  async findAllByProject(projectId: string): Promise<TestPlan[]> {
-    const { data, error } = await supabase
+  async findAllByProject(projectId: string, options?: { search?: string; statuses?: TestPlanStatus[] }): Promise<TestPlan[]> {
+    let query = supabase
       .from('test_plans')
       .select('*')
-      .eq('project_id', projectId)
-      .order('code');
+      .eq('project_id', projectId);
+
+    if (options?.search?.trim()) {
+      const q = options.search.trim();
+      query = query.or(`name.ilike.%${q}%,code.ilike.%${q}%`);
+    }
+    if (options?.statuses?.length) {
+      query = query.in('status', options.statuses);
+    }
+
+    const { data, error } = await query.order('code');
 
     if (error) throw error;
     return (data ?? []).map(mapTestPlanRow);

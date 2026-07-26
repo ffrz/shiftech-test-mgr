@@ -8,8 +8,18 @@ export const testCaseService = {
     return testCaseRepository.findAllByProject(projectId);
   },
 
-  listByProjectWithDetails(projectId: string) {
-    return testCaseRepository.findAllByProjectWithDetails(projectId);
+  listByProjectWithDetails(
+    projectId: string,
+    options?: {
+      search?: string;
+      statuses?: TestCase['status'][];
+      priorities?: TestCase['priority'][];
+      moduleIds?: string[];
+      tagIds?: string[];
+      testRoleIds?: string[];
+    },
+  ) {
+    return testCaseRepository.findAllByProjectWithDetails(projectId, options);
   },
 
   getById(id: string) {

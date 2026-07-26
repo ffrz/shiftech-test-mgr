@@ -39,22 +39,33 @@ export const issueRepository = {
     return data ? mapIssueWithDetailsRow(data) : null;
   },
 
-  async findAllByProject(projectId: string, options?: { search?: string; limit?: number }): Promise<IssueWithDetails[]> {
+  async findAllByProject(
+    projectId: string,
+    options?: { search?: string; statuses?: IssueStatus[]; priorities?: Issue['priority'][]; moduleIds?: string[]; limit?: number },
+  ): Promise<IssueWithDetails[]> {
     let query = supabase
       .from('issues')
       .select(ISSUE_DETAIL_SELECT)
-      .eq('project_id', projectId)
-      .order('created_at', { ascending: false });
+      .eq('project_id', projectId);
 
     if (options?.search?.trim()) {
       const q = options.search.trim();
       query = query.or(`title.ilike.%${q}%,code.ilike.%${q}%`);
     }
+    if (options?.statuses?.length) {
+      query = query.in('status', options.statuses);
+    }
+    if (options?.priorities?.length) {
+      query = query.in('priority', options.priorities);
+    }
+    if (options?.moduleIds?.length) {
+      query = query.in('module_id', options.moduleIds);
+    }
     if (options?.limit) {
       query = query.limit(options.limit);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.order('created_at', { ascending: false });
     if (error) throw error;
     return (data ?? []).map(mapIssueWithDetailsRow);
   },

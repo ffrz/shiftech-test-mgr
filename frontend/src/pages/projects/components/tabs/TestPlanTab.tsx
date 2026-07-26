@@ -1,7 +1,7 @@
 import { Button } from 'primereact/button';
 import { DataTable, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { Dropdown } from 'primereact/dropdown';
+import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
@@ -20,8 +20,10 @@ type TestPlanTabProps = {
   isMobile: boolean;
   search: string;
   onSearchChange: (value: string) => void;
-  statusFilter: TestPlanStatus | null;
-  onStatusFilterChange: (value: TestPlanStatus | null) => void;
+  statusFilter: TestPlanStatus[];
+  onStatusFilterChange: (value: TestPlanStatus[]) => void;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
   sortField: string;
   sortOrder: 1 | -1;
   onSort: (e: DataTableStateEvent) => void;
@@ -45,6 +47,8 @@ export function TestPlanTab({
   onSearchChange,
   statusFilter,
   onStatusFilterChange,
+  hasActiveFilters,
+  onClearFilters,
   sortField,
   sortOrder,
   onSort,
@@ -75,13 +79,24 @@ export function TestPlanTab({
       <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div className="flex align-items-center gap-2 flex-wrap">
           <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." />
-          <Dropdown
+          <MultiSelect
             value={statusFilter}
             options={TEST_PLAN_STATUS_OPTIONS}
             onChange={(e) => onStatusFilterChange(e.value)}
             placeholder="All Statuses"
-            showClear
-            className="w-12rem"
+            className="w-13rem"
+            selectAll
+            selectAllLabel="All"
+          />
+          <Button
+            icon="pi pi-filter-slash"
+            outlined
+            severity="secondary"
+            size="small"
+            disabled={!hasActiveFilters}
+            onClick={onClearFilters}
+            tooltip="Reset filters"
+            tooltipOptions={{ position: 'bottom' }}
           />
         </div>
         {canEditContent && <Button label="New Test Plan" icon="pi pi-plus" size="small" onClick={onCreate} />}

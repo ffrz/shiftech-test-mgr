@@ -6,8 +6,8 @@ import type { TestPlan } from '../types/domain';
 // Pages/components call services — never repositories directly.
 
 export const testPlanService = {
-  listByProject(projectId: string) {
-    return testPlanRepository.findAllByProject(projectId);
+  listByProject(projectId: string, options?: { search?: string; statuses?: TestPlan['status'][] }) {
+    return testPlanRepository.findAllByProject(projectId, options);
   },
 
   getById(id: string) {

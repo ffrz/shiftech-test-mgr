@@ -16,12 +16,24 @@ export const testRunRepository = {
 
   // Cross-plan listing for a whole project — includes custom/unplanned runs
   // (test_plan_id null), so the join to test_plans must be a left join.
-  async findAllByProject(projectId: string): Promise<(TestRun & { testPlanName: string | null })[]> {
-    const { data, error } = await supabase
+  async findAllByProject(
+    projectId: string,
+    options?: { search?: string; statuses?: TestRunStatus[] },
+  ): Promise<(TestRun & { testPlanName: string | null })[]> {
+    let query = supabase
       .from('test_runs')
       .select('*, test_plan:test_plans(name)')
-      .eq('project_id', projectId)
-      .order('started_at', { ascending: false });
+      .eq('project_id', projectId);
+
+    if (options?.search?.trim()) {
+      const q = options.search.trim();
+      query = query.or(`name.ilike.%${q}%,code.ilike.%${q}%`);
+    }
+    if (options?.statuses?.length) {
+      query = query.in('status', options.statuses);
+    }
+
+    const { data, error } = await query.order('started_at', { ascending: false });
 
     if (error) throw error;
     return (data ?? []).map((row: any) => ({

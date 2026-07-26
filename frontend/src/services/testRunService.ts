@@ -2,19 +2,19 @@ import { testRunRepository } from '../repositories/testRunRepository';
 import { testResultRepository } from '../repositories/testResultRepository';
 import { testCaseRepository } from '../repositories/testCaseRepository';
 import { testPlanRepository } from '../repositories/testPlanRepository';
-import type { TestResultStatus } from '../types/domain';
+import type { TestResultStatus, TestRun } from '../types/domain';
 
 export const testRunService = {
   listByPlan(testPlanId: string) {
     return testRunRepository.findAllByPlan(testPlanId);
   },
 
-  listByProject(projectId: string) {
-    return testRunRepository.findAllByProject(projectId);
+  listByProject(projectId: string, options?: { search?: string; statuses?: TestRun['status'][] }) {
+    return testRunRepository.findAllByProject(projectId, options);
   },
 
-  async listByProjectWithSummary(projectId: string) {
-    const runs = await testRunRepository.findAllByProject(projectId);
+  async listByProjectWithSummary(projectId: string, options?: { search?: string; statuses?: TestRun['status'][] }) {
+    const runs = await testRunRepository.findAllByProject(projectId, options);
     const runIds = runs.map((r) => r.id);
     const [summary, testers] = await Promise.all([
       testResultRepository.getSummaryByRunIds(runIds),
