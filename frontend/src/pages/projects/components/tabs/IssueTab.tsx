@@ -1,3 +1,5 @@
+import { useCallback, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { DataTable, type DataTablePageEvent, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -110,6 +112,40 @@ export function IssueTab({
   first,
   onPage,
 }: IssueTabProps) {
+  const navigate = useNavigate();
+  const [editingCell, setEditingCell] = useState<{ issueId: string; field: string } | null>(null);
+  const [editValue, setEditValue] = useState<string | null>(null);
+  const editRef = useRef<HTMLDivElement>(null);
+
+  const startEdit = useCallback((issueId: string, field: string, currentValue: string | null) => {
+    setEditingCell({ issueId, field });
+    setEditValue(currentValue);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingCell(null);
+    setEditValue(null);
+  }, []);
+
+  const confirmEdit = useCallback(async (row: IssueWithDetails, field: string) => {
+    if (!editingCell || editValue === null) return;
+    try {
+      if (field === 'status') {
+        await issueService.changeStatus(row.id, editValue as IssueStatus);
+        onPatchIssue(row.id, { status: editValue as IssueStatus });
+      } else if (field === 'assignedTo') {
+        await issueService.assign(row.id, editValue || null);
+        onPatchIssue(row.id, { assignedTo: editValue || null });
+      }
+    } catch { /* parent will refetch */ }
+    cancelEdit();
+  }, [editingCell, editValue, onPatchIssue, cancelEdit]);
+
+  const handleCellKeyDown = useCallback((e: React.KeyboardEvent, row: IssueWithDetails, field: string) => {
+    if (e.key === 'Enter') { confirmEdit(row, field); }
+    else if (e.key === 'Escape') { cancelEdit(); }
+  }, [confirmEdit, cancelEdit]);
+
   const mobileIssueBody = (row: IssueWithDetails) => (
     <div className="flex flex-column gap-1">
       <div className="font-medium">{row.title}</div>
@@ -216,9 +252,7 @@ export function IssueTab({
         loading={loading}
         size="small"
         emptyMessage="No issues yet"
-        onRowClick={(e) => onRowClick(e.data as IssueWithDetails)}
         rowHover
-        className="cursor-pointer"
         lazy={lazy}
         totalRecords={lazy ? totalRecords : undefined}
         first={lazy ? first : undefined}
@@ -236,7 +270,8 @@ export function IssueTab({
         selectionMode={isMobile ? null : 'checkbox'}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
+        <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
+          body={(row: IssueWithDetails) => <a className="entity-link" href={`/issues/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/issues/${row.id}`); }}>{row.code}</a>} />
         <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileIssueBody : undefined} />
         <Column
           field="type"
@@ -278,42 +313,49 @@ export function IssueTab({
           header="Status"
           sortable
           hidden={isMobile}
-          body={(row: IssueWithDetails) => (
-            <div onClick={(e) => e.stopPropagation()}>
-              <Dropdown
-                value={row.status}
-                options={ISSUE_STATUS_OPTIONS}
-                onChange={(e) => {
-                  issueService.changeStatus(row.id, e.value);
-                  onPatchIssue(row.id, { status: e.value });
-                }}
-                disabled={!canManageIssues}
-                className="w-11rem"
-              />
-            </div>
-          )}
+          body={(row: IssueWithDetails) => {
+            const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'status';
+            if (isEditing && canManageIssues) {
+              return (
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'status')}>
+                  <Dropdown value={editValue as IssueStatus} options={ISSUE_STATUS_OPTIONS}
+                    onChange={(e) => { setEditValue(e.value); }}
+                    onHide={() => confirmEdit(row, 'status')}
+                    autoFocus className="w-10rem" />
+                </div>
+              );
+            }
+            return (
+              <span onDoubleClick={() => canManageIssues && startEdit(row.id, 'status', row.status)} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+                <Tag value={ISSUE_STATUS_LABEL[row.status]} severity={ISSUE_STATUS_SEVERITY[row.status]} />
+              </span>
+            );
+          }}
         />
         <Column
           field="assignedTo"
           header="Assigned To"
           sortable
           hidden={isMobile}
-          body={(row: IssueWithDetails) => (
-            <div onClick={(e) => e.stopPropagation()}>
-              <Dropdown
-                value={row.assignedTo}
-                options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
-                onChange={(e) => {
-                  issueService.assign(row.id, e.value);
-                  onPatchIssue(row.id, { assignedTo: e.value });
-                }}
-                placeholder="Unassigned"
-                showClear
-                disabled={!canManageIssues}
-                className="w-11rem"
-              />
-            </div>
-          )}
+          body={(row: IssueWithDetails) => {
+            const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'assignedTo';
+            if (isEditing && canManageIssues) {
+              return (
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'assignedTo')}>
+                  <Dropdown value={editValue} options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                    onChange={(e) => { setEditValue(e.value ?? null); }}
+                    onHide={() => confirmEdit(row, 'assignedTo')}
+                    placeholder="Unassigned" showClear autoFocus className="w-10rem" />
+                </div>
+              );
+            }
+            const display = row.assignee?.displayName ?? row.assignedTo ?? '-';
+            return (
+              <span onDoubleClick={() => canManageIssues && startEdit(row.id, 'assignedTo', row.assignedTo)} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+                {display}
+              </span>
+            );
+          }}
         />
         <Column
           header=""
