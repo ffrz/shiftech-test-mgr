@@ -839,7 +839,7 @@ export function ProjectDetailPage() {
     setIssueDialogOpen(true);
   }
 
-  // Prefills the same "Issue Baru" dialog from an existing row instead of opening a blank
+  // Prefills the same "New Issue" dialog from an existing row instead of opening a blank
   // one — submitting always creates a new issue (this dialog has no edit mode), so no
   // separate editingId bookkeeping is needed here unlike the Test Case dialog.
   function openDuplicateIssueDialog(row: IssueWithDetails) {
@@ -1025,7 +1025,7 @@ export function ProjectDetailPage() {
                   className="w-12rem"
                 />
               </div>
-              {canEditContent && <Button label="Test Plan Baru" icon="pi pi-plus" size="small" onClick={openCreatePlanDialog} />}
+              {canEditContent && <Button label="New Test Plan" icon="pi pi-plus" size="small" onClick={openCreatePlanDialog} />}
             </div>
             {canDeleteContent && (
               <BulkActionsBar
@@ -1054,7 +1054,7 @@ export function ProjectDetailPage() {
             >
               <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
               <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
-              <Column field="name" header="Nama" sortable={!isMobile} body={isMobile ? mobilePlanBody : undefined} />
+              <Column field="name" header="Name" sortable={!isMobile} body={isMobile ? mobilePlanBody : undefined} />
               <Column
                 field="status"
                 header="Status"
@@ -1130,9 +1130,9 @@ export function ProjectDetailPage() {
                 />
               </div>
               {canEditContent && (
-                <div className="flex gap-2">
-                  <Button label="Import from Template" icon="pi pi-copy" size="small" outlined onClick={openImportTemplateDialog} />
-                  <Button label="Import from Excel" icon="pi pi-file-excel" size="small" outlined onClick={openImportExcelDialog} />
+                <div className="flex gap-1">
+                  <Button icon="pi pi-copy" size="small" text onClick={openImportTemplateDialog} />
+                  <Button icon="pi pi-file-excel" size="small" text onClick={openImportExcelDialog} />
                   <Button label="New Test Case" icon="pi pi-plus" size="small" onClick={openCreateCaseDialog} />
                 </div>
               )}
@@ -1244,7 +1244,7 @@ export function ProjectDetailPage() {
                   className="w-12rem"
                 />
               </div>
-              {canRunTests && <Button label="Buat Test Run" icon="pi pi-plus" size="small" onClick={openCreateRunDialog} />}
+              {canRunTests && <Button label="Create Test Run" icon="pi pi-plus" size="small" onClick={openCreateRunDialog} />}
             </div>
             {canDeleteContent && (
               <BulkActionsBar
@@ -1273,7 +1273,7 @@ export function ProjectDetailPage() {
             >
               <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
               <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
-              <Column field="name" header="Nama Run" sortable={!isMobile} body={isMobile ? mobileRunBody : undefined} />
+              <Column field="name" header="Name" sortable={!isMobile} body={isMobile ? mobileRunBody : undefined} />
               <Column
                 header="Test Plan"
                 field="testPlanName"
@@ -1370,7 +1370,7 @@ export function ProjectDetailPage() {
                   className="w-10rem"
                 />
               </div>
-              {canManageIssues && <Button label="Issue Baru" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />}
+              {canManageIssues && <Button label="New Issue" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />}
             </div>
             {canDeleteContent && (
               <BulkActionsBar
@@ -1538,7 +1538,7 @@ export function ProjectDetailPage() {
 
       {/* --- Test Plan Dialog --- */}
       <Dialog
-        header={editingPlanId ? 'Edit Test Plan' : 'Test Plan Baru'}
+        header={editingPlanId ? 'Edit Test Plan' : 'New Test Plan'}
         visible={planDialogOpen}
         onHide={() => setPlanDialogOpen(false)}
         style={{ width: '30rem' }}
@@ -1550,7 +1550,7 @@ export function ProjectDetailPage() {
             <InputText id="plan-code" value={planCode} onChange={(e) => setPlanCode(e.target.value)} placeholder="Automatic if left empty" />
           </div>
           <div className="flex flex-column gap-1">
-            <label htmlFor="plan-name">Nama</label>
+            <label htmlFor="plan-name">Name</label>
             <InputText id="plan-name" value={planName} onChange={(e) => setPlanName(e.target.value)} autoFocus />
           </div>
           <div className="flex flex-column gap-1">
@@ -1571,7 +1571,7 @@ export function ProjectDetailPage() {
         <div className="flex flex-column gap-3">
           {duplicatePlanError && <small className="p-error">{duplicatePlanError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-plan-name">Nama Test Plan Baru</label>
+            <label htmlFor="duplicate-plan-name">Test Plan Name</label>
             <InputText id="duplicate-plan-name" value={duplicatePlanName} onChange={(e) => setDuplicatePlanName(e.target.value)} autoFocus />
           </div>
           <Button label="Duplikat" size="small" onClick={handleDuplicatePlan} />
@@ -1579,7 +1579,7 @@ export function ProjectDetailPage() {
       </Dialog>
 
       {/* --- Create Test Run Dialog --- */}
-      <Dialog header="Buat Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '32rem' }}>
+      <Dialog header="Create Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '32rem' }}>
         <div className="flex flex-column gap-3">
           {runFormError && <small className="p-error">{runFormError}</small>}
           <SelectButton
@@ -1591,7 +1591,7 @@ export function ProjectDetailPage() {
             ]}
           />
           <div className="flex flex-column gap-1">
-            <label htmlFor="run-name">Nama Run</label>
+            <label htmlFor="run-name">Name</label>
             <InputText id="run-name" value={runFormName} onChange={(e) => setRunFormName(e.target.value)} autoFocus />
           </div>
           {runMode === 'plan' ? (
@@ -1622,7 +1622,7 @@ export function ProjectDetailPage() {
               />
             </div>
           )}
-          <Button label="Buat" size="small" onClick={handleCreateRun} />
+          <Button label="Create" size="small" onClick={handleCreateRun} />
         </div>
       </Dialog>
 
@@ -1746,7 +1746,7 @@ export function ProjectDetailPage() {
                   text
                   rounded
                   size="small"
-                  aria-label="Module Baru"
+                  aria-label="Add Module"
                   onClick={openCreateModuleDialogFromCase}
                   style={{ width: '2rem', height: '2rem', flexShrink: 0 }}
                 />
@@ -1781,7 +1781,7 @@ export function ProjectDetailPage() {
                   text
                   rounded
                   size="small"
-                  aria-label="Role Baru"
+                  aria-label="Add Role"
                   onClick={openCreateTestRoleDialogFromCase}
                   style={{ width: '2rem', height: '2rem', flexShrink: 0 }}
                 />
@@ -1935,7 +1935,7 @@ export function ProjectDetailPage() {
       </Dialog>
 
       {/* --- Issue Dialog (standalone, project-level) --- */}
-      <Dialog header="Issue Baru" visible={issueDialogOpen} onHide={() => setIssueDialogOpen(false)} style={{ width: '32rem' }}>
+      <Dialog header="Create Issue" visible={issueDialogOpen} onHide={() => setIssueDialogOpen(false)} style={{ width: '32rem' }}>
         <div className="flex flex-column gap-3">
           {issueFormError && <small className="p-error">{issueFormError}</small>}
           <div className="flex flex-column gap-1">
