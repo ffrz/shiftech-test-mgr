@@ -860,8 +860,7 @@ export function TestRunResultDetailPage() {
         }
         visible={mobileListOpen}
         onHide={() => setMobileListOpen(false)}
-        style={{ width: '100vw', height: '100vh', maxHeight: '100vh' }}
-        maximizable
+        maximized
         blockScroll
       >
         <div className="flex flex-column gap-1" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 8rem)' }}>
