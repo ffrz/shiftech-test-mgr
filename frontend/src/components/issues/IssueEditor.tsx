@@ -215,7 +215,7 @@ export function IssueEditor({
                 placeholder="Not tied to a module"
                 className="w-full"
               />
-              <Button icon="pi pi-plus" size="small" text severity="secondary" onClick={() => setQuickAddModuleVisible(true)} tooltip="Add Module" />
+              <Button icon="pi pi-plus" size="small" text onClick={() => setQuickAddModuleVisible(true)} tooltip="Add Module" />
             </div>
             {quickAddModuleVisible && (
               <div className="flex gap-2 mt-1">
@@ -235,33 +235,32 @@ export function IssueEditor({
 
           <div className="flex flex-column gap-1">
             <label>Tags</label>
-            <MultiSelect
-              value={tagNames}
-              options={tags.map((t) => ({ label: t.name, value: t.name }))}
-              onChange={(e) => setTagNames(e.value ?? [])}
-              placeholder="Select tags"
-              display="chip"
-              filter
-              className="w-full"
-            />
-            <div className="flex align-items-center gap-1 mt-1">
-              {quickAddTagVisible ? (
-                <>
-                  <InputText
-                    value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
-                    placeholder="New tag name"
-                    className="w-full"
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleQuickAddTag(); }}
-                    autoFocus
-                  />
-                  <Button icon="pi pi-check" size="small" onClick={handleQuickAddTag} />
-                  <Button icon="pi pi-times" size="small" text severity="secondary" onClick={() => setQuickAddTagVisible(false)} />
-                </>
-              ) : (
-                <Button label="Add Tag" icon="pi pi-plus" size="small" text onClick={() => setQuickAddTagVisible(true)} />
-              )}
+            <div className="flex gap-2">
+              <MultiSelect
+                value={tagNames}
+                options={tags.map((t) => ({ label: t.name, value: t.name }))}
+                onChange={(e) => setTagNames(e.value ?? [])}
+                placeholder="Select tags"
+                display="chip"
+                filter
+                className="w-full"
+              />
+              <Button icon="pi pi-plus" size="small" text onClick={() => setQuickAddTagVisible(true)} tooltip="Add Tag" />
             </div>
+            {quickAddTagVisible && (
+              <div className="flex gap-2 mt-1">
+                <InputText
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  placeholder="New tag name"
+                  className="w-full"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleQuickAddTag(); }}
+                  autoFocus
+                />
+                <Button icon="pi pi-check" size="small" onClick={handleQuickAddTag} />
+                <Button icon="pi pi-times" size="small" text severity="secondary" onClick={() => setQuickAddTagVisible(false)} />
+              </div>
+            )}
           </div>
 
           <div className="flex flex-column gap-1">
@@ -269,15 +268,14 @@ export function IssueEditor({
             <InputTextarea id="issue-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
           </div>
 
-          <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-actual">Actual Result</label>
-              <InputTextarea id="issue-actual" value={actualResult} onChange={(e) => setActualResult(e.target.value)} rows={2} />
-            </div>
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-expected">Expected Result</label>
-              <InputTextarea id="issue-expected" value={expectedResult} onChange={(e) => setExpectedResult(e.target.value)} rows={2} />
-            </div>
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-actual">Actual Result</label>
+            <InputTextarea id="issue-actual" value={actualResult} onChange={(e) => setActualResult(e.target.value)} rows={2} />
+          </div>
+
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-expected">Expected Result</label>
+            <InputTextarea id="issue-expected" value={expectedResult} onChange={(e) => setExpectedResult(e.target.value)} rows={2} />
           </div>
 
           <div className="flex flex-column gap-1">
@@ -309,7 +307,7 @@ export function IssueEditor({
           </div>
 
           {mode === 'edit' && issueId && (
-            <div className="flex flex-column gap-1">
+            <div className="flex flex-column gap-2">
               <label>Attachments</label>
               {(attachments ?? []).map((a) => (
                 <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
@@ -320,7 +318,7 @@ export function IssueEditor({
                   <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
                 </div>
               ))}
-              {attachments?.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
+              {(attachments?.length ?? 0) === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
               <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
             </div>
           )}
