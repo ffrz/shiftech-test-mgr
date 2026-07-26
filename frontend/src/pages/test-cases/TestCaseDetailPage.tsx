@@ -273,10 +273,10 @@ export function TestCaseDetailPage() {
         <div>
           <h2>Test Case Detail</h2>
         </div>
-        <div className="flex gap-2">
-          {canEditContent && <Button label="Edit" icon="pi pi-pencil" size="small" outlined onClick={openEditDialog} />}
-          {canEditContent && <Button label="Duplicate" icon="pi pi-copy" size="small" outlined onClick={handleDuplicate} />}
-          {canDeleteContent && <Button label="Delete" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleDelete} />}
+        <div className="flex">
+          {canEditContent && <Button icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
+          {canEditContent && <Button icon="pi pi-copy" size="small" text severity="secondary" onClick={handleDuplicate} />}
+          {canDeleteContent && <Button icon="pi pi-trash" size="small" severity="danger" text onClick={handleDelete} />}
         </div>
       </div>
 

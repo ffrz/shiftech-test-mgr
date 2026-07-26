@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
@@ -40,6 +41,7 @@ export function ProjectSettingsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
+  const queryClient = useQueryClient();
   const { user: currentUser } = useAuthContext();
   const { loading: roleLoading, canManageSettings, canArchiveProject, canDeleteProject } = useProjectRole(id);
   const { lt } = useScreenSize();
@@ -447,6 +449,7 @@ export function ProjectSettingsPage() {
       accept: async () => {
         await projectService.deletePermanently(project.id);
         toast.current?.show({ severity: 'success', summary: 'Project permanently deleted' });
+        queryClient.invalidateQueries({ queryKey: ['projects-paginated'] });
         navigate('/projects');
       },
     });
@@ -502,7 +505,7 @@ export function ProjectSettingsPage() {
       <Card className="mb-3">
         <div className="flex align-items-center justify-content-between flex-wrap gap-2">
           <div className="flex align-items-center gap-2">
-            <Button icon="pi pi-arrow-left" text rounded aria-label="Back" onClick={() => navigate(`/projects/${id}`)} />
+            <Button icon="pi pi-arrow-left" text rounded aria-label="Back" severity="secondary" onClick={() => navigate(`/projects/${id}`)} />
             <div>
               <h2 className="m-0">Settings - {project.name}</h2>
               {project.description && <p className="m-0 mt-1 text-color-secondary text-sm">{project.description}</p>}
@@ -512,7 +515,7 @@ export function ProjectSettingsPage() {
               </div>
             </div>
           </div>
-          <Button label="Edit" icon="pi pi-pencil" size="small" outlined onClick={() => setEditDialogOpen(true)} />
+          <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={() => setEditDialogOpen(true)} />
         </div>
       </Card>
 
