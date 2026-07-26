@@ -236,6 +236,8 @@ export function TestRunIssuesPage() {
         value={issues}
         loading={loading}
         paginator
+        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+        currentPageReportTemplate="{totalRecords} records"
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="No issues yet"
         size="small"

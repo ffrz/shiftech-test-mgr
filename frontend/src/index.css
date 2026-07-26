@@ -772,3 +772,12 @@ h6,
 .p-datatable .p-paginator-bottom {
   border-width: 0;
 }
+
+/* Mobile: paginator stacks into 2 rows, center-aligned */
+@media (max-width: 768px) {
+  .p-datatable .p-paginator-bottom {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}

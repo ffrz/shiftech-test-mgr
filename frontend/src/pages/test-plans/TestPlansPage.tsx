@@ -103,7 +103,7 @@ export function TestPlansPage() {
         </p>
       )}
 
-      <DataTable value={testPlans} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
+      <DataTable value={testPlans} loading={loading} paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
         selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
         <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : '7rem' }}
           body={isMobile ? mobileCodeBody : undefined} />

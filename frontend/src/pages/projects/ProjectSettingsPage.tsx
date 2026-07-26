@@ -503,6 +503,8 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="No modules yet"
               paginator
+              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              currentPageReportTemplate="{totalRecords} records"
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={moduleSortField}
               sortOrder={moduleSortOrder}
@@ -554,6 +556,8 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="No tags yet"
               paginator
+              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              currentPageReportTemplate="{totalRecords} records"
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={tagSortField}
               sortOrder={tagSortOrder}
@@ -605,6 +609,8 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="No roles yet"
               paginator
+              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              currentPageReportTemplate="{totalRecords} records"
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={testRoleSortField}
               sortOrder={testRoleSortOrder}
@@ -655,6 +661,8 @@ export function ProjectSettingsPage() {
               size="small"
               emptyMessage="No members yet"
               paginator
+              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              currentPageReportTemplate="{totalRecords} records"
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               selection={selectedMembers}
               onSelectionChange={(e: any) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}

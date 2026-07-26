@@ -87,7 +87,7 @@ export function TestCasesPage() {
         </p>
       )}
 
-      <DataTable value={testCases} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small">
+      <DataTable value={testCases} loading={loading} paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small">
         {isMobile && <Column body={mobileBodyTemplate} />}
         {!isMobile && <Column field="code" header="Code" sortable style={{ width: '7rem' }} />}
         {!isMobile && <Column field="title" header="Title" sortable />}

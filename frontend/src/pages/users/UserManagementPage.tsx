@@ -181,6 +181,8 @@ export function UserManagementPage() {
         lazy
         totalRecords={totalRecords}
         paginator
+        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+        currentPageReportTemplate="{totalRecords} records"
         rows={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25, 50]}
         first={(page - 1) * rowsPerPage}

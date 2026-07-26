@@ -367,6 +367,8 @@ export function TestPlanDetailPage() {
             value={filteredRuns}
             loading={runsLoading}
             paginator
+            paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            currentPageReportTemplate="{totalRecords} records"
             rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="No test runs yet"
             onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
@@ -480,6 +482,8 @@ export function TestPlanDetailPage() {
             value={filteredCases}
             loading={casesLoading}
             paginator={isCaseFilterActive}
+            paginatorTemplate={isCaseFilterActive ? "CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" : undefined}
+            currentPageReportTemplate={isCaseFilterActive ? "{totalRecords} records" : undefined}
             rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="No test cases in this plan yet"
             size="small"

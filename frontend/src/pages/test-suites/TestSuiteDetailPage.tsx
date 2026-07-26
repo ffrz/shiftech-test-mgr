@@ -241,7 +241,7 @@ export function TestSuiteDetailPage() {
         actions={canEdit ? <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} /> : undefined}
       />
 
-      <DataTable value={items} loading={loading} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small">
+      <DataTable value={items} loading={loading} paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small">
         {isMobile
           ? <Column header="Title" body={mobileBodyTemplate} />
           : <Column field="title" header="Title" sortable />

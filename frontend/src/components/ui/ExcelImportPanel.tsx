@@ -69,13 +69,13 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
           </div>
 
           {invalidRows.length > 0 && (
-            <DataTable value={invalidRows} size="small" paginator rows={5} className="mb-2">
+            <DataTable value={invalidRows} size="small" paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={5} className="mb-2">
               <Column field="rowNumber" header="Row" style={{ width: '5rem' }} />
               <Column field="reason" header="Failure Reason" body={(row: InvalidRow) => <span className="text-red-500">{row.reason}</span>} />
             </DataTable>
           )}
 
-          <DataTable value={validRows} size="small" paginator rows={5} emptyMessage="No valid rows to import.">
+          <DataTable value={validRows} size="small" paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={5} emptyMessage="No valid rows to import.">
             <Column field="rowNumber" header="Row" style={{ width: '5rem' }} />
             <Column field="title" header="Title" />
             <Column field="moduleName" header="Module" body={(row: ParsedTestCaseRow) => row.moduleName ?? '-'} />
