@@ -239,12 +239,16 @@ export function IssueTab({
         <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
         <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileIssueBody : undefined} />
         <Column
+          field="type"
           header="Type"
+          sortable
           hidden={isMobile}
           body={(row: IssueWithDetails) => <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />}
         />
         <Column
+          field="moduleName"
           header="Module"
+          sortable
           hidden={isMobile}
           body={(row: IssueWithDetails) => row.module?.name ?? '-'}
         />
@@ -272,6 +276,7 @@ export function IssueTab({
         <Column
           field="status"
           header="Status"
+          sortable
           hidden={isMobile}
           body={(row: IssueWithDetails) => (
             <div onClick={(e) => e.stopPropagation()}>
@@ -291,6 +296,7 @@ export function IssueTab({
         <Column
           field="assignedTo"
           header="Assigned To"
+          sortable
           hidden={isMobile}
           body={(row: IssueWithDetails) => (
             <div onClick={(e) => e.stopPropagation()}>

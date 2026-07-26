@@ -80,9 +80,13 @@ export const issueRepository = {
       query = query.in('type', options.types);
     }
 
-    const sortColumn: Record<string, string> = { title: 'title', priority: 'priority', status: 'status', createdAt: 'created_at', updatedAt: 'updated_at' };
-    const sortCol = sortColumn[options.sortField ?? ''] ?? 'created_at';
-    query = query.order(sortCol, { ascending: (options.sortOrder ?? 'desc') === 'asc' });
+    const sortColumn: Record<string, string> = { code: 'code', title: 'title', priority: 'priority', status: 'status', type: 'type', assignedTo: 'assigned_to', createdAt: 'created_at', updatedAt: 'updated_at' };
+    const sortCol = sortColumn[options.sortField ?? ''];
+    if (options.sortField === 'moduleName') {
+      query = query.order('module(name)', { ascending: (options.sortOrder ?? 'desc') === 'asc' });
+    } else {
+      query = query.order(sortCol ?? 'created_at', { ascending: (options.sortOrder ?? 'desc') === 'asc' });
+    }
 
     const from = (options.page - 1) * options.pageSize;
     query = query.range(from, from + options.pageSize - 1);
