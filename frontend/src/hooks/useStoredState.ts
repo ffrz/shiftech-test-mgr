@@ -4,7 +4,11 @@ function readFromStorage<T>(key: string, defaultValue: T): T {
   try {
     const stored = localStorage.getItem(key);
     if (stored !== null) {
-      return JSON.parse(stored) as T;
+      const parsed = JSON.parse(stored) as T;
+      if (parsed === null || parsed === undefined) return defaultValue;
+      if (Array.isArray(defaultValue) !== Array.isArray(parsed)) return defaultValue;
+      if (typeof defaultValue !== typeof parsed) return defaultValue;
+      return parsed;
     }
   } catch {
     // ignore
