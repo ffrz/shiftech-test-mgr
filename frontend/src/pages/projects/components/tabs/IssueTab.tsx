@@ -243,7 +243,7 @@ export function IssueTab({
 
   return (
     <>
-      <Toast ref={undoToast} position="bottom-left" />
+      <Toast ref={undoToast} position="bottom-center" />
       <div className="grid mb-2">
         <div className="col-12 md:col-3">
           <MultiSelect
