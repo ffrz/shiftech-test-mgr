@@ -15,6 +15,15 @@ export interface ProjectQuery {
   sortDirection?: SortDirection;
 }
 
+export interface ProjectPaginatedQuery {
+  search?: string;
+  statuses?: string[];
+  page: number;
+  pageSize: number;
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export const projectRepository = {
   async findAll(query: ProjectQuery = {}): Promise<Project[]> {
     let builder = supabase.from('projects').select('*');
@@ -33,6 +42,27 @@ export const projectRepository = {
 
     if (error) throw error;
     return (data ?? []).map(mapProjectRow);
+  },
+
+  async findAllPaginated(query: ProjectPaginatedQuery): Promise<{ data: Project[]; total: number }> {
+    const sortCol = SORT_COLUMN[query.sortField as ProjectSortField] ?? 'name';
+    let builder = supabase.from('projects').select('*', { count: 'exact' });
+
+    if (query.search?.trim()) {
+      builder = builder.ilike('name', `%${query.search.trim()}%`);
+    }
+    if (query.statuses?.length) {
+      builder = builder.in('status', query.statuses);
+    }
+
+    builder = builder.order(sortCol, { ascending: (query.sortOrder ?? 'asc') === 'asc' });
+
+    const from = (query.page - 1) * query.pageSize;
+    builder = builder.range(from, from + query.pageSize - 1);
+
+    const { data, error, count } = await builder;
+    if (error) throw error;
+    return { data: (data ?? []).map(mapProjectRow), total: count ?? 0 };
   },
 
   async findById(id: string): Promise<Project | null> {
