@@ -16,6 +16,7 @@ import { Toast } from 'primereact/toast';
 import { useTestRunDetail } from '../../hooks/useTestRunDetail';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
 import { useAuthContext } from '../../hooks/useAuth';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { testRunService } from '../../services/testRunService';
 import { projectMemberService } from '../../services/projectMemberService';
@@ -68,10 +69,8 @@ const PRIORITY_FILTER_OPTIONS: { label: string; value: TestCasePriority }[] = (
   ['low', 'medium', 'high', 'critical'] as const
 ).map((v) => ({ label: TEST_CASE_PRIORITY_LABEL[v], value: v }));
 
-// Max height for the test case list (left panel) and the right panel — each scrolls
-// independently if its content exceeds this, but isn't forced to this height if its
-// content is shorter (e.g. the Filter panel is collapsed, or the list has few items).
-const MAX_PANEL_HEIGHT = 'calc(100vh - 14rem)';
+const PANEL_HEIGHT_OFFSET = 14;
+const PANEL_HEIGHT_OFFSET_MOBILE = 10;
 
 export function TestRunResultDetailPage() {
   const { id: runId = null } = useParams<{ id: string }>();
@@ -95,6 +94,8 @@ export function TestRunResultDetailPage() {
   // testPlan, since a custom/unplanned run has no test_plan_id and therefore no testPlan.
   const projectId = testRun?.projectId;
 
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
   const { canRunTests, canManageIssues } = useProjectRole(projectId);
   const isCompleted = testRun?.status === 'completed';
 
@@ -465,8 +466,8 @@ export function TestRunResultDetailPage() {
         <div className="col-12 md:col-4 test-run-detail-filter">
           <Panel
             header={
-              <div className="flex align-items-center justify-content-between w-full">
-                <span>Test Cases</span>
+              <div className="flex align-items-center w-full" style={{ marginLeft: '-0.5rem' }}>
+                <span style={{ flex: 1 }}>Test Cases</span>
                 <Button
                   icon={isFilterActive ? "pi pi-filter-fill" : "pi pi-filter"}
                   text
@@ -485,7 +486,7 @@ export function TestRunResultDetailPage() {
             <div
               className="flex flex-column gap-1"
               style={{
-                maxHeight: MAX_PANEL_HEIGHT,
+                maxHeight: `calc(100vh - ${isMobile ? PANEL_HEIGHT_OFFSET_MOBILE : PANEL_HEIGHT_OFFSET}rem)`,
                 overflowY: 'auto',
               }}
             >
@@ -531,7 +532,7 @@ export function TestRunResultDetailPage() {
         </div>
 
         {/* --- Right panel: summary (default) or selected test case detail (scrolls independently) --- */}
-        <div className="col-12 md:col-8 flex flex-column" style={{ height: MAX_PANEL_HEIGHT }}>
+        <div className="col-12 md:col-8 flex flex-column" style={{ height: `calc(100vh - ${isMobile ? PANEL_HEIGHT_OFFSET_MOBILE : PANEL_HEIGHT_OFFSET}rem)` }}>
           {activeResult && (
             <div
               className="flex align-items-center justify-content-between gap-2 mb-3 p-2 flex-shrink-0"
