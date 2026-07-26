@@ -54,6 +54,15 @@ export function UserManagementPage() {
   const [sortField, setSortField] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<-1 | 1>(-1);
 
+  const hasActiveFilters = debouncedSearch !== '' || roleFilter.length > 0;
+
+  function resetFilters() {
+    setSearch('');
+    setDebouncedSearch('');
+    setRoleFilter([]);
+    setPage(1);
+  }
+
   const { data, isLoading: loading } = useQuery({
     queryKey: ['users-paginated', debouncedSearch, roleFilter, page, rowsPerPage, sortField, sortOrder],
     queryFn: async () => userService.listPaginated({
@@ -158,6 +167,15 @@ export function UserManagementPage() {
           className="w-14rem"
           selectAll
           selectAllLabel="All"
+        />
+        <Button
+          icon="pi pi-filter-slash"
+          outlined
+          severity="secondary"
+          disabled={!hasActiveFilters}
+          onClick={resetFilters}
+          tooltip="Reset filters"
+          tooltipOptions={{ position: 'bottom' }}
         />
       </div>
       <DataTable
