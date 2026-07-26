@@ -23,7 +23,7 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { UsernamePicker } from '../../components/ui/UsernamePicker';
-import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole } from '../../types/domain';
+import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole, ProjectVisibility } from '../../types/domain';
 import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -52,6 +52,7 @@ export function ProjectSettingsPage() {
   const [members, setMembers] = useState<ProjectMemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [projectVisibility, setProjectVisibility] = useState<ProjectVisibility>('private');
 
   async function loadAll(showLoading = true) {
     if (!id) return;
@@ -64,6 +65,7 @@ export function ProjectSettingsPage() {
       projectMemberService.listByProject(id),
     ]);
     setProject(projectResult);
+    if (projectResult) setProjectVisibility(projectResult.visibility);
     setModules(modulesResult);
     setTags(tagsResult);
     setTestRoles(testRolesResult);
@@ -396,6 +398,22 @@ export function ProjectSettingsPage() {
     });
   }
 
+  async function handleChangeVisibility(value: ProjectVisibility) {
+    if (!project) return;
+    setProjectVisibility(value);
+    await projectService.update(project.id, { name: project.name, visibility: value });
+    setProject({ ...project, visibility: value });
+    toast.current?.show({ severity: 'success', summary: 'Visibility updated' });
+  }
+
+  async function handleToggleActive() {
+    if (!project) return;
+    const newStatus = project.status === 'active' ? 'inactive' : 'active';
+    await projectService.changeStatus(project.id, newStatus);
+    setProject({ ...project, status: newStatus });
+    toast.current?.show({ severity: 'success', summary: `Project ${newStatus === 'active' ? 'activated' : 'deactivated'}` });
+  }
+
   function handleArchiveProject() {
     if (!project) return;
     confirmDialog({
@@ -721,6 +739,47 @@ export function ProjectSettingsPage() {
           {(canArchiveProject || canDeleteProject) && (
             <TabPanel header="Danger Zone">
               <div className="flex flex-column gap-3" style={{ maxWidth: '40rem' }}>
+                <div
+                  className="flex align-items-center justify-content-between gap-4 p-3 border-round-md"
+                  style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
+                >
+                  <div>
+                    <div className="font-medium text-color">Project Visibility</div>
+                    <div className="text-color-secondary text-sm mt-1">
+                      Controls who can see this project. Changing visibility does not affect existing members.
+                    </div>
+                  </div>
+                  <Dropdown
+                    value={projectVisibility}
+                    options={[
+                      { label: 'Private — only invited members', value: 'private' },
+                      { label: 'Unlisted — anyone with the link can view', value: 'unlisted' },
+                      { label: 'Public — visible to everyone', value: 'public' },
+                    ]}
+                    onChange={(e) => handleChangeVisibility(e.value)}
+                    className="w-14rem flex-shrink-0"
+                  />
+                </div>
+                <div
+                  className="flex align-items-center justify-content-between gap-4 p-3 border-round-md"
+                  style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
+                >
+                  <div>
+                    <div className="font-medium text-color">Project Status</div>
+                    <div className="text-color-secondary text-sm mt-1">
+                      Current status: <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />.
+                      {project.status === 'active' ? ' Deactivate to hide from active lists.' : ' Activate to make it visible again.'}
+                    </div>
+                  </div>
+                  <Button
+                    label={project.status === 'active' ? 'Set Inactive' : 'Set Active'}
+                    icon={project.status === 'active' ? 'pi pi-pause' : 'pi pi-play'}
+                    severity="warning"
+                    outlined
+                    className="flex-shrink-0 white-space-nowrap"
+                    onClick={handleToggleActive}
+                  />
+                </div>
                 {canArchiveProject && project.status !== 'archived' && (
                   <div
                     className="flex align-items-center justify-content-between gap-4 p-3 border-round-md"
@@ -729,7 +788,6 @@ export function ProjectSettingsPage() {
                     <div>
                       <div className="font-medium text-color">Archive Project</div>
                       <div className="text-color-secondary text-sm mt-1">
-                        Project ini status: <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />.
                         Archived projects do not appear in the active list.
                       </div>
                     </div>

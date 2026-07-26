@@ -102,16 +102,18 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
           <label htmlFor="create-project-description">Description</label>
           <InputTextarea id="create-project-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
         </div>
-        <div className="flex flex-column gap-1">
-          <label htmlFor="create-project-visibility">Visibility</label>
-          <Dropdown
-            id="create-project-visibility"
-            value={visibility}
-            options={VISIBILITY_OPTIONS}
-            onChange={(e) => setVisibility(e.value)}
-            className="w-full"
-          />
-        </div>
+        {!editingProject && (
+          <div className="flex flex-column gap-1">
+            <label htmlFor="create-project-visibility">Visibility</label>
+            <Dropdown
+              id="create-project-visibility"
+              value={visibility}
+              options={VISIBILITY_OPTIONS}
+              onChange={(e) => setVisibility(e.value)}
+              className="w-full"
+            />
+          </div>
+        )}
         {!editingProject && (
           <div className="flex flex-column gap-1">
             <label htmlFor="create-project-template">Start from Template (optional)</label>
