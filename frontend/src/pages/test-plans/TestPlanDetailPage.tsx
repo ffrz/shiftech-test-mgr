@@ -383,100 +383,6 @@ export function TestPlanDetailPage() {
       </Dialog>
 
       <TabView>
-        <TabPanel header="Test Runs">
-          <div className="grid mb-2">
-            <div className="col-12 md:col-3">
-              <MultiSelect
-                value={runStatusFilters}
-                options={TEST_RUN_STATUS_OPTIONS}
-                onChange={(e) => { setRunStatusFilters(e.value); setRunFirst(0); }}
-                placeholder="All Statuses"
-                className="w-full"
-                display="chip"
-              />
-            </div>
-            <div className="col-12 md:col">
-              <div className="flex gap-2">
-                <SearchInput value={runSearch} onChange={(v) => { setRunSearch(v); setRunFirst(0); }} placeholder="Search name/code..." className="flex-1" />
-                <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
-                  onClick={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
-                  tooltip="Clear filters" />
-              </div>
-            </div>
-            {canRunTests && (
-              <div className="col-12 md:col-fixed">
-                <Button label="Start Test Run" icon="pi pi-play" size="small" className="w-full md:w-auto" onClick={openStartRunDialog} />
-              </div>
-            )}
-          </div>
-          <DataTable
-            value={testRuns}
-            loading={runsLoading}
-            lazy
-            paginator
-            totalRecords={totalRuns}
-            first={runFirst}
-            rows={runRows}
-            onPage={(e) => { setRunFirst(e.first); setRunRows(e.rows); }}
-            paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-            currentPageReportTemplate="{totalRecords} records"
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            emptyMessage="No test runs yet"
-            onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
-            rowHover
-            className="cursor-pointer"
-            size="small"
-          >
-            {!isMobile && <Column field="code" header="Code" style={{ width: '7rem' }} />}
-            <Column field="name" header="Run Name" body={isMobile ? mobileRunNameBody : undefined} />
-            {!isMobile && <Column field="status" header="Status" body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
-            {!isMobile && (
-              <Column
-                header="Results"
-                body={(row: TestRunWithSummary) => (
-                  <div className="flex gap-1 align-items-center">
-                    <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
-                    <Tag value={String(row.fail)} severity={TEST_RESULT_STATUS_SEVERITY.fail} />
-                    <span className="text-color-secondary text-sm">/{row.total}</span>
-                  </div>
-                )}
-                sortable
-                sortField="pass"
-              />
-            )}
-            {!isMobile && (
-              <Column
-                header="Tester"
-                body={(row: TestRunWithSummary) =>
-                  row.testers.length > 0
-                    ? row.testers.map((t) => t.fullName ?? t.id).join(', ')
-                    : '-'
-                }
-              />
-            )}
-            {!isMobile && <Column field="completedAt" header="Completed" body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
-            {canDeleteContent && (
-              <Column
-                header=""
-                style={{ width: '4rem' }}
-                body={(row: TestRun) => (
-                  <Button
-                    icon="pi pi-trash"
-                    text
-                    rounded
-                    size="small"
-                    severity="danger"
-                    aria-label="Delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteRun(row);
-                    }}
-                  />
-                )}
-              />
-            )}
-          </DataTable>
-        </TabPanel>
         <TabPanel header="Test Cases">
           <div className="grid mb-2">
             <div className="col-12 md:col-4">
@@ -623,6 +529,100 @@ export function TestPlanDetailPage() {
                     </div>
                   );
                 }}
+              />
+            )}
+          </DataTable>
+        </TabPanel>
+        <TabPanel header="Test Runs">
+          <div className="grid mb-2">
+            <div className="col-12 md:col-3">
+              <MultiSelect
+                value={runStatusFilters}
+                options={TEST_RUN_STATUS_OPTIONS}
+                onChange={(e) => { setRunStatusFilters(e.value); setRunFirst(0); }}
+                placeholder="All Statuses"
+                className="w-full"
+                display="chip"
+              />
+            </div>
+            <div className="col-12 md:col">
+              <div className="flex gap-2">
+                <SearchInput value={runSearch} onChange={(v) => { setRunSearch(v); setRunFirst(0); }} placeholder="Search name/code..." className="flex-1" />
+                <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
+                  onClick={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
+                  tooltip="Clear filters" />
+              </div>
+            </div>
+            {canRunTests && (
+              <div className="col-12 md:col-fixed">
+                <Button label="Start Test Run" icon="pi pi-play" size="small" className="w-full md:w-auto" onClick={openStartRunDialog} />
+              </div>
+            )}
+          </div>
+          <DataTable
+            value={testRuns}
+            loading={runsLoading}
+            lazy
+            paginator
+            totalRecords={totalRuns}
+            first={runFirst}
+            rows={runRows}
+            onPage={(e) => { setRunFirst(e.first); setRunRows(e.rows); }}
+            paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            currentPageReportTemplate="{totalRecords} records"
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            emptyMessage="No test runs yet"
+            onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
+            rowHover
+            className="cursor-pointer"
+            size="small"
+          >
+            {!isMobile && <Column field="code" header="Code" style={{ width: '7rem' }} />}
+            <Column field="name" header="Run Name" body={isMobile ? mobileRunNameBody : undefined} />
+            {!isMobile && <Column field="status" header="Status" body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
+            {!isMobile && (
+              <Column
+                header="Results"
+                body={(row: TestRunWithSummary) => (
+                  <div className="flex gap-1 align-items-center">
+                    <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
+                    <Tag value={String(row.fail)} severity={TEST_RESULT_STATUS_SEVERITY.fail} />
+                    <span className="text-color-secondary text-sm">/{row.total}</span>
+                  </div>
+                )}
+                sortable
+                sortField="pass"
+              />
+            )}
+            {!isMobile && (
+              <Column
+                header="Tester"
+                body={(row: TestRunWithSummary) =>
+                  row.testers.length > 0
+                    ? row.testers.map((t) => t.fullName ?? t.id).join(', ')
+                    : '-'
+                }
+              />
+            )}
+            {!isMobile && <Column field="completedAt" header="Completed" body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
+            {canDeleteContent && (
+              <Column
+                header=""
+                style={{ width: '4rem' }}
+                body={(row: TestRun) => (
+                  <Button
+                    icon="pi pi-trash"
+                    text
+                    rounded
+                    size="small"
+                    severity="danger"
+                    aria-label="Delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteRun(row);
+                    }}
+                  />
+                )}
               />
             )}
           </DataTable>
