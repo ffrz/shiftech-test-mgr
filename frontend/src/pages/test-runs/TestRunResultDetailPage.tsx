@@ -354,21 +354,11 @@ export function TestRunResultDetailPage() {
   }
 
   // --- Complete run dialog ---
-  // Shadow below the Prev/Next toolbar only appears once the content below it has scrolled —
-  // a visual cue that "there's more content above", not permanent decoration. On mobile the
-  // right panel no longer scrolls independently (see the sticky-toolbar comment below), so
-  // the page's own scroll position drives this instead of the panel's onScroll.
+  // Shadow below the Prev/Next toolbar (desktop only — on mobile it's a fixed bottom bar
+  // with a static border instead) only appears once the panel has scrolled, as a visual cue
+  // that "there's more content above" rather than permanent decoration.
   const [rightPanelScrolled, setRightPanelScrolled] = useState(false);
   const rightPanelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isMobile) return;
-    function handleWindowScroll() {
-      setRightPanelScrolled(window.scrollY > 0);
-    }
-    window.addEventListener('scroll', handleWindowScroll);
-    return () => window.removeEventListener('scroll', handleWindowScroll);
-  }, [isMobile]);
 
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [completeNotes, setCompleteNotes] = useState('');
@@ -498,6 +488,8 @@ export function TestRunResultDetailPage() {
             }
             toggleable
             collapsed={false}
+            expandIcon="pi pi-chevron-down"
+            collapseIcon="pi pi-chevron-up"
           >
             <div
               className="flex flex-column gap-1"
@@ -548,24 +540,23 @@ export function TestRunResultDetailPage() {
         </div>
 
         {/* --- Right panel: summary (default) or selected test case detail.
-            Desktop: independent scroll area, fixed to viewport height.
-            Mobile: flows in the page's own scroll instead — the Prev/Next
-            toolbar below is sticky, so scrolling past the Test Cases panel
-            pins the toolbar to the top of the viewport and the detail card
-            gets the full screen to read, instead of being capped to a
-            viewport-height box stacked below the (already tall) list panel. */}
+            Desktop: independent scroll area, fixed to viewport height, with
+            the Prev/Next toolbar docked above it.
+            Mobile: flows in the page's own scroll instead, and the toolbar
+            is pulled out of flow entirely — fixed to the bottom of the
+            viewport — so it's always reachable without depending on sticky
+            positioning (which needs a clean chain of non-transformed,
+            non-overflow-clipped ancestors up to the scroll container, easy
+            to accidentally break elsewhere in the page). The content area
+            gets bottom padding so the fixed bar never covers its last card. */}
         <div
-          className="col-12 md:col-8 flex flex-column"
+          className={isMobile ? 'col-12 md:col-8' : 'col-12 md:col-8 flex flex-column'}
           style={isMobile ? undefined : { height: `calc(100vh - ${PANEL_HEIGHT_OFFSET}rem)` }}
         >
-          {activeResult && (
+          {activeResult && !isMobile && (
             <div
               className="flex align-items-center justify-content-between gap-2 mb-3 p-2 flex-shrink-0"
               style={{
-                position: isMobile ? 'sticky' : undefined,
-                top: isMobile ? 0 : undefined,
-                zIndex: isMobile ? 1 : undefined,
-                background: isMobile ? 'var(--surface-ground)' : undefined,
                 boxShadow: rightPanelScrolled ? '0 2px 4px -2px rgba(0, 0, 0, 0.15)' : 'none',
                 transition: 'box-shadow 0.15s ease',
               }}
@@ -593,8 +584,8 @@ export function TestRunResultDetailPage() {
 
           <div
             ref={rightPanelRef}
-            className="flex-grow-1"
-            style={isMobile ? undefined : { overflowY: 'auto' }}
+            className={isMobile ? undefined : 'flex-grow-1'}
+            style={isMobile ? { paddingBottom: activeResult ? '4rem' : undefined } : { overflowY: 'auto' }}
             onScroll={isMobile ? undefined : (e) => setRightPanelScrolled(e.currentTarget.scrollTop > 0)}
           >
             {!activeResult ? (
@@ -824,6 +815,43 @@ export function TestRunResultDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* --- Mobile Prev/Next toolbar: fixed to the bottom of the viewport instead of
+          scrolling with the page, so it's always reachable regardless of how far the
+          user has scrolled into the test case detail. --- */}
+      {isMobile && activeResult && (
+        <div
+          className="flex align-items-center justify-content-between gap-2 p-2"
+          style={{
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+            background: 'var(--surface-card)',
+            borderTop: '1px solid var(--surface-border)',
+          }}
+        >
+          <Button
+            icon="pi pi-chevron-left"
+            size="small"
+            outlined
+            disabled={!prevResult}
+            onClick={() => prevResult && selectResult(prevResult.id)}
+          />
+          <span className="text-color-secondary text-sm">
+            {activeIndex + 1} / {filteredResults.length}
+          </span>
+          <Button
+            icon="pi pi-chevron-right"
+            iconPos="right"
+            size="small"
+            outlined
+            disabled={!nextResult}
+            onClick={() => nextResult && selectResult(nextResult.id)}
+          />
+        </div>
+      )}
 
       {/* --- Create Issue via shared IssueEditor, auto-links to activeResult --- */}
       {issueEditorOpen && (
