@@ -166,8 +166,8 @@ export function UserManagementPage() {
         }
       />
       {filterVisible && (
-      <div className="flex flex-column md:flex-row gap-1 mb-3">
-        <div className="md:col-3">
+      <div className="grid gap-1 mb-3">
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={roleFilter}
             options={ROLE_OPTIONS}
@@ -178,7 +178,7 @@ export function UserManagementPage() {
             selectAllLabel="All"
           />
         </div>
-        <div className="flex-1">
+        <div className="col-12 md:col">
           <div className="flex gap-1">
             <SearchInput
               value={search}
