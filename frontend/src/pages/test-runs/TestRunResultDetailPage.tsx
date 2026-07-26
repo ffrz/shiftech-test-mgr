@@ -481,66 +481,53 @@ export function TestRunResultDetailPage() {
             }
             toggleable
             collapsed={false}
-            style={{
-              borderBottom: 'none',
-              borderBottomLeftRadius: 0,
-              borderBottomRightRadius: 0,
-            }}
           >
-            <div />
-          </Panel>
-
-          <div
-            className="flex flex-column gap-1"
-            style={{
-              maxHeight: MAX_PANEL_HEIGHT,
-              overflowY: 'auto',
-              border: '1px solid var(--surface-border)',
-              borderTop: 'none',
-              borderTopLeftRadius: 0,
-              borderTopRightRadius: 0,
-              borderBottomLeftRadius: 'var(--border-radius, 6px)',
-              borderBottomRightRadius: 'var(--border-radius, 6px)',
-            }}
-          >
-            {!loading && filteredResults.length === 0 && <p className="text-color-secondary text-sm px-2">No matching test cases.</p>}
-            {filteredResults.map((r, index) => (
-              <div
-                key={r.id}
-                onClick={() => selectResult(r.id)}
-                className="p-2 border-round cursor-pointer flex align-items-start gap-2"
-                style={{
-                  backgroundColor: r.id === resultId ? 'var(--primary-color)' : undefined,
-                  color: r.id === resultId ? 'var(--primary-color-text)' : undefined,
-                }}
-              >
-                <span
-                  className={`text-sm flex-shrink-0 ${r.id === resultId ? '' : 'text-color-secondary'}`}
-                  style={{ minWidth: '1.5rem' }}
+            <div
+              className="flex flex-column gap-1"
+              style={{
+                maxHeight: MAX_PANEL_HEIGHT,
+                overflowY: 'auto',
+              }}
+            >
+              {!loading && filteredResults.length === 0 && <p className="text-color-secondary text-sm px-2">No matching test cases.</p>}
+              {filteredResults.map((r, index) => (
+                <div
+                  key={r.id}
+                  onClick={() => selectResult(r.id)}
+                  className="p-2 border-round cursor-pointer flex align-items-start gap-2"
+                  style={{
+                    backgroundColor: r.id === resultId ? 'var(--primary-color)' : undefined,
+                    color: r.id === resultId ? 'var(--primary-color-text)' : undefined,
+                  }}
                 >
-                  {index + 1}.
-                </span>
-                <div className="flex flex-column gap-1 flex-grow-1">
-                  <div className="flex align-items-center justify-content-between gap-2">
-                    <span className="text-sm font-medium">{r.testCaseCode}</span>
-                    {loading && r.id === resultId ? (
-                      <i className="pi pi-spin pi-spinner text-sm" />
-                    ) : (
-                      <Tag value={TEST_RESULT_STATUS_LABEL[r.status]} severity={TEST_RESULT_STATUS_SEVERITY[r.status]} />
+                  <span
+                    className={`text-sm flex-shrink-0 ${r.id === resultId ? '' : 'text-color-secondary'}`}
+                    style={{ minWidth: '1.5rem' }}
+                  >
+                    {index + 1}.
+                  </span>
+                  <div className="flex flex-column gap-1 flex-grow-1">
+                    <div className="flex align-items-center justify-content-between gap-2">
+                      <span className="text-sm font-medium">{r.testCaseCode}</span>
+                      {loading && r.id === resultId ? (
+                        <i className="pi pi-spin pi-spinner text-sm" />
+                      ) : (
+                        <Tag value={TEST_RESULT_STATUS_LABEL[r.status]} severity={TEST_RESULT_STATUS_SEVERITY[r.status]} />
+                      )}
+                    </div>
+                    <span className="text-sm">{r.testCaseTitle}</span>
+                    {r.testCase && r.testCase.tags.length > 0 && (
+                      <span className="flex flex-wrap gap-1">
+                        {r.testCase.tags.map((tag) => (
+                          <Tag key={tag.id} value={tag.name} severity="info" />
+                        ))}
+                      </span>
                     )}
                   </div>
-                  <span className="text-sm">{r.testCaseTitle}</span>
-                  {r.testCase && r.testCase.tags.length > 0 && (
-                    <span className="flex flex-wrap gap-1">
-                      {r.testCase.tags.map((tag) => (
-                        <Tag key={tag.id} value={tag.name} severity="info" />
-                      ))}
-                    </span>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </Panel>
         </div>
 
         {/* --- Right panel: summary (default) or selected test case detail (scrolls independently) --- */}
