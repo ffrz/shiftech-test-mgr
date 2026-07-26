@@ -41,6 +41,10 @@ html.dark .p-tabview .p-tabview-panels {
   background: inherit !important;
 }
 
+html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
+  background: var(--surface-100);
+}
+
 /* ===== Compact / dense control sizing across PrimeReact components ===== */
 
 .p-inputtext,

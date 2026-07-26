@@ -486,7 +486,7 @@ export function ProjectSettingsPage() {
           <div className="flex align-items-center gap-2">
             <Button icon="pi pi-arrow-left" text rounded aria-label="Back" onClick={() => navigate(`/projects/${id}`)} />
             <div>
-              <h2 className="m-0">{project.name}</h2>
+              <h2 className="m-0">Settings - {project.name}</h2>
               {project.description && <p className="m-0 mt-1 text-color-secondary text-sm">{project.description}</p>}
               <div className="flex gap-2 mt-1">
                 <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
