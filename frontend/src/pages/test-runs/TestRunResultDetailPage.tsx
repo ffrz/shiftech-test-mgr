@@ -8,9 +8,7 @@ import { Button } from 'primereact/button';
 import { ProgressBar } from 'primereact/progressbar';
 import { Dropdown } from 'primereact/dropdown';
 import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
-import { MultiSelect } from 'primereact/multiselect';
 import { AutoComplete, type AutoCompleteCompleteEvent } from 'primereact/autocomplete';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import SearchInput from '../../components/ui/SearchInput';
@@ -26,13 +24,14 @@ import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { testPlanService } from '../../services/testPlanService';
 import { projectService } from '../../services/projectService';
+import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { queryKeys } from '../../hooks/queryKeys';
 import type {
-  IssuePriority,
-  IssueType,
   IssueWithDetails,
+  Module,
+  Tag as DomainTag,
   TestCasePriority,
   TestResultStatus,
 } from '../../types/domain';
@@ -299,54 +298,50 @@ export function TestRunResultDetailPage() {
     });
   }
 
-  // --- Create Issue dialog — full form, auto-links to activeResult on save ---
-  const [createIssueDialogOpen, setCreateIssueDialogOpen] = useState(false);
-  const [issueTitle, setIssueTitle] = useState('');
-  const [issueType, setIssueType] = useState<IssueType>('bug');
-  const [issueModuleId, setIssueModuleId] = useState<string | null>(null);
-  const [issueTagNames, setIssueTagNames] = useState<string[]>([]);
-  const [issueDescription, setIssueDescription] = useState('');
-  const [issueActual, setIssueActual] = useState('');
-  const [issueExpected, setIssueExpected] = useState('');
-  const [issuePriority, setIssuePriority] = useState<IssuePriority>('medium');
-  const [issueError, setIssueError] = useState<string | null>(null);
+  // --- Create Issue via shared IssueEditor, auto-links to activeResult on save ---
+  const [issueEditorOpen, setIssueEditorOpen] = useState(false);
+  const [issueEditorInitialData, setIssueEditorInitialData] = useState<IssueFormData | null>(null);
+
+  // Mutable copies so IssueEditor's quick-add can extend them without cache invalidation.
+  const [editableModules, setEditableModules] = useState<Module[]>([]);
+  const [editableTags, setEditableTags] = useState<DomainTag[]>([]);
+  if (editableModules.length === 0 && modules.length > 0) setEditableModules(modules);
+  if (editableTags.length === 0 && projectTags.length > 0) setEditableTags(projectTags);
 
   function openCreateIssueDialog() {
     if (!activeResult) return;
-    setIssueTitle(activeResult.status === 'fail' ? `${activeResult.testCaseTitle} failed` : '');
-    setIssueType('bug');
-    setIssueModuleId(null);
-    setIssueTagNames([]);
-    setIssueDescription('');
-    setIssueActual('');
-    setIssueExpected(activeResult.testCaseExpectedResult);
-    setIssuePriority('medium');
-    setIssueError(null);
-    setCreateIssueDialogOpen(true);
+    setIssueEditorInitialData({
+      title: activeResult.status === 'fail' ? `${activeResult.testCaseTitle} failed` : '',
+      type: 'bug',
+      priority: 'medium',
+      moduleId: null,
+      description: '',
+      actualResult: '',
+      expectedResult: activeResult.testCaseExpectedResult,
+      tagNames: [],
+      githubLinks: [],
+    });
+    setIssueEditorOpen(true);
   }
 
-  async function handleCreateAndLinkIssue() {
+  async function handleIssueEditorSave(data: IssueFormData) {
     if (!activeResult || !projectId) return;
-    setIssueError(null);
-    try {
-      await issueService.create({
-        projectId,
-        linkToTestResultId: activeResult.id,
-        moduleId: issueModuleId,
-        type: issueType,
-        tagNames: issueTagNames,
-        title: issueTitle,
-        description: issueDescription,
-        actualResult: issueActual,
-        expectedResult: issueExpected,
-        priority: issuePriority,
-      });
-      setCreateIssueDialogOpen(false);
-      await refreshLinkedIssues();
-      toast.current?.show({ severity: 'success', summary: 'Issue created and linked' });
-    } catch (err) {
-      setIssueError(err instanceof Error ? err.message : 'Failed to create issue');
-    }
+    await issueService.create({
+      projectId,
+      linkToTestResultId: activeResult.id,
+      moduleId: data.moduleId,
+      type: data.type,
+      tagNames: data.tagNames,
+      title: data.title,
+      description: data.description,
+      actualResult: data.actualResult,
+      expectedResult: data.expectedResult,
+      priority: data.priority,
+    });
+    setIssueEditorOpen(false);
+    setIssueEditorInitialData(null);
+    await refreshLinkedIssues();
+    toast.current?.show({ severity: 'success', summary: 'Issue created and linked' });
   }
 
   // --- Complete run dialog ---
@@ -801,76 +796,21 @@ export function TestRunResultDetailPage() {
         </div>
       </div>
 
-      {/* --- Create Issue Dialog: saving auto-links to activeResult --- */}
-      <Dialog header="Add Issue" visible={createIssueDialogOpen} onHide={() => setCreateIssueDialogOpen(false)} style={{ width: '32rem' }}>
-        <div className="flex flex-column gap-3">
-          {issueError && <small className="p-error">{issueError}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-title">Title</label>
-            <InputText id="issue-title" value={issueTitle} onChange={(e) => setIssueTitle(e.target.value)} autoFocus />
-          </div>
-          <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-type">Type</label>
-              <Dropdown
-                id="issue-type"
-                value={issueType}
-                options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
-                onChange={(e) => setIssueType(e.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-priority">Priority</label>
-              <Dropdown
-                id="issue-priority"
-                value={issuePriority}
-                options={(['low', 'medium', 'high', 'critical'] as const).map((v) => ({ label: ISSUE_PRIORITY_LABEL[v], value: v }))}
-                onChange={(e) => setIssuePriority(e.value)}
-                className="w-full"
-              />
-            </div>
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-module">Module (optional)</label>
-            <Dropdown
-              id="issue-module"
-              value={issueModuleId}
-              options={modules.map((m) => ({ label: m.name, value: m.id }))}
-              onChange={(e) => setIssueModuleId(e.value)}
-              showClear
-              placeholder="Not tied to a module"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-tags">Tags</label>
-            <MultiSelect
-              id="issue-tags"
-              value={issueTagNames}
-              options={projectTags.map((t) => ({ label: t.name, value: t.name }))}
-              onChange={(e) => setIssueTagNames(e.value ?? [])}
-              placeholder="Select tags"
-              display="chip"
-              filter
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-description">Description</label>
-            <InputTextarea id="issue-description" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} rows={2} />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-actual">Actual Result</label>
-            <InputTextarea id="issue-actual" value={issueActual} onChange={(e) => setIssueActual(e.target.value)} rows={2} />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="issue-expected">Expected Result</label>
-            <InputTextarea id="issue-expected" value={issueExpected} onChange={(e) => setIssueExpected(e.target.value)} rows={2} />
-          </div>
-          <Button label="Create & Link" size="small" onClick={handleCreateAndLinkIssue} />
-        </div>
-      </Dialog>
+      {/* --- Create Issue via shared IssueEditor, auto-links to activeResult --- */}
+      {issueEditorOpen && (
+        <IssueEditor
+          visible
+          onHide={() => { setIssueEditorOpen(false); setIssueEditorInitialData(null); }}
+          onSave={handleIssueEditorSave}
+          projectId={projectId ?? ''}
+          mode="create"
+          initialData={issueEditorInitialData}
+          modules={editableModules}
+          tags={editableTags}
+          onModulesChange={setEditableModules}
+          onTagsChange={setEditableTags}
+        />
+      )}
 
       {/* --- Notes Dialog: execution result notes, autosaved on save --- */}
       <Dialog header="Add notes" visible={notesDialogOpen} onHide={() => setNotesDialogOpen(false)} style={{ width: '28rem' }}>
