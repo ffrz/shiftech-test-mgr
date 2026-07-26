@@ -116,70 +116,84 @@ export function TestCaseTab({
 
   return (
     <>
-      <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <div className="flex align-items-center gap-2 flex-wrap">
-          <SearchInput value={search} onChange={onSearchChange} placeholder="Search title/code..." />
+      <div className="grid mb-2">
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={statusFilter}
             options={TEST_CASE_STATUS_OPTIONS}
             onChange={(e) => onStatusFilterChange(e.value)}
             placeholder="All Statuses"
-            className="w-11rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
+        </div>
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={priorityFilter}
             options={PRIORITY_OPTIONS}
             onChange={(e) => onPriorityFilterChange(e.value)}
             placeholder="All Priorities"
-            className="w-11rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
+        </div>
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={moduleFilter}
             options={moduleOptions}
             onChange={(e) => onModuleFilterChange(e.value)}
             placeholder="All Modules"
-            className="w-11rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
+        </div>
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={tagFilter}
             options={tagOptions}
             onChange={(e) => onTagFilterChange(e.value)}
             placeholder="All Tags"
-            className="w-11rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
+        </div>
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={testRoleFilter}
             options={testRoleOptions}
             onChange={(e) => onTestRoleFilterChange(e.value)}
             placeholder="All Roles"
-            className="w-11rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
-          <Button
-            icon="pi pi-filter-slash"
-            outlined
-            severity="secondary"
-            size="small"
-            disabled={!hasActiveFilters}
-            onClick={onClearFilters}
-            tooltip="Reset filters"
-            tooltipOptions={{ position: 'bottom' }}
-          />
+        </div>
+        <div className="col-12 md:col">
+          <div className="flex gap-2">
+            <SearchInput value={search} onChange={onSearchChange} placeholder="Search title/code..." className="flex-1" />
+            <Button
+              icon="pi pi-filter-slash"
+              outlined
+              severity="secondary"
+              size="small"
+              disabled={!hasActiveFilters}
+              onClick={onClearFilters}
+              tooltip="Reset filters"
+              tooltipOptions={{ position: 'bottom' }}
+            />
+          </div>
         </div>
         {canEditContent && (
-          <div className="flex gap-1">
-            <Button icon="pi pi-copy" size="small" text onClick={onImportTemplate} />
-            <Button icon="pi pi-file-excel" size="small" text onClick={onImportExcel} />
-            <Button label="New Test Case" icon="pi pi-plus" size="small" onClick={onCreate} />
+          <div className="col-12 md:col-fixed">
+            <div className="flex gap-1">
+              <Button icon="pi pi-copy" size="small" text onClick={onImportTemplate} />
+              <Button icon="pi pi-file-excel" size="small" text onClick={onImportExcel} />
+              <Button label="New Test Case" icon="pi pi-plus" size="small" onClick={onCreate} />
+            </div>
           </div>
         )}
       </div>

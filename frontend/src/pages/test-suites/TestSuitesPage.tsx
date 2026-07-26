@@ -218,41 +218,47 @@ export function TestSuitesPage() {
         Reusable test case templates you can clone into any project. Publish yours so others can clone them too.
       </p>
 
-      <div className="mb-3">
-        <SelectButton
-          value={ownershipFilter}
-          onChange={(e) => e.value && setOwnershipFilter(e.value)}
-          options={[
-            { label: 'My Templates', value: 'mine' },
-            { label: 'All Visible Templates', value: 'all' },
-          ]}
-        />
-      </div>
-
-      <div className="flex gap-2 mb-3">
-        <SearchInput value={search} onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }} placeholder="Search suites..." className="flex-1" />
-        <MultiSelect
-          value={visibilityFilter}
-          options={[
-            { label: 'Private', value: 'private' },
-            { label: 'Unlisted', value: 'unlisted' },
-            { label: 'Public', value: 'public' },
-          ]}
-          onChange={(e) => setVisibilityFilter(e.value)}
-          placeholder="All Visibility"
-          className="w-14rem"
-          selectAll
-          selectAllLabel="All"
-        />
-        <Button
-          icon="pi pi-filter-slash"
-          outlined
-          severity="secondary"
-          disabled={!hasActiveFilters}
-          onClick={resetFilters}
-          tooltip="Reset filters"
-          tooltipOptions={{ position: 'bottom' }}
-        />
+      <div className="grid mb-3">
+        <div className="col-12 md:col-4">
+          <SelectButton
+            value={ownershipFilter}
+            onChange={(e) => e.value && setOwnershipFilter(e.value)}
+            options={[
+              { label: 'My Templates', value: 'mine' },
+              { label: 'All Visible Templates', value: 'all' },
+            ]}
+            className="w-full"
+          />
+        </div>
+        <div className="col-12 md:col-4">
+          <MultiSelect
+            value={visibilityFilter}
+            options={[
+              { label: 'Private', value: 'private' },
+              { label: 'Unlisted', value: 'unlisted' },
+              { label: 'Public', value: 'public' },
+            ]}
+            onChange={(e) => setVisibilityFilter(e.value)}
+            placeholder="All Visibility"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+          />
+        </div>
+        <div className="col-12 md:col-4">
+          <div className="flex gap-2">
+            <SearchInput value={search} onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }} placeholder="Search suites..." className="flex-1" />
+            <Button
+              icon="pi pi-filter-slash"
+              outlined
+              severity="secondary"
+              disabled={!hasActiveFilters}
+              onClick={resetFilters}
+              tooltip="Reset filters"
+              tooltipOptions={{ position: 'bottom' }}
+            />
+          </div>
+        </div>
       </div>
 
       <DataTable

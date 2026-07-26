@@ -127,66 +127,82 @@ export function IssueTab({
 
   return (
     <>
-      <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <div className="flex align-items-center gap-2 flex-wrap">
-          <SearchInput value={search} onChange={onSearchChange} placeholder="Search title..." />
+      <div className="grid mb-2">
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={statusFilter}
             options={ISSUE_STATUS_OPTIONS}
             onChange={(e) => onStatusFilterChange(e.value)}
             placeholder="All Statuses"
-            className="w-12rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
+        </div>
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={priorityFilter}
             options={ISSUE_PRIORITY_OPTIONS}
             onChange={(e) => onPriorityFilterChange(e.value)}
             placeholder="All Priorities"
-            className="w-12rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
+        </div>
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={moduleFilter}
             options={moduleOptions}
             onChange={(e) => onModuleFilterChange(e.value)}
             placeholder="All Modules"
-            className="w-11rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
+        </div>
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={tagFilter}
             options={tagOptions}
             onChange={(e) => onTagFilterChange(e.value)}
             placeholder="All Tags"
-            className="w-11rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
+        </div>
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={typeFilter}
             options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
             onChange={(e) => onTypeFilterChange(e.value)}
             placeholder="All Types"
-            className="w-11rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
-          <Button
-            icon="pi pi-filter-slash"
-            outlined
-            severity="secondary"
-            size="small"
-            disabled={!hasActiveFilters}
-            onClick={onClearFilters}
-            tooltip="Reset filters"
-            tooltipOptions={{ position: 'bottom' }}
-          />
         </div>
-        {canManageIssues && <Button label="New Issue" icon="pi pi-plus" size="small" onClick={onCreate} />}
+        <div className="col-12 md:col">
+          <div className="flex gap-2">
+            <SearchInput value={search} onChange={onSearchChange} placeholder="Search title..." className="flex-1" />
+            <Button
+              icon="pi pi-filter-slash"
+              outlined
+              severity="secondary"
+              size="small"
+              disabled={!hasActiveFilters}
+              onClick={onClearFilters}
+              tooltip="Reset filters"
+              tooltipOptions={{ position: 'bottom' }}
+            />
+          </div>
+        </div>
+        {canManageIssues && (
+          <div className="col-12 md:col-fixed">
+            <Button label="New Issue" icon="pi pi-plus" size="small" className="w-full md:w-auto" onClick={onCreate} />
+          </div>
+        )}
       </div>
       {canDeleteContent && (
         <BulkActionsBar

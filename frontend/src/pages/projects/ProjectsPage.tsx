@@ -251,55 +251,63 @@ export function ProjectsPage() {
 
       <PageHeader title="Projects" actions={<Button label="New Project" icon="pi pi-plus" size="small" onClick={openCreateDialog} />} />
 
-      <div className="flex flex-wrap gap-2 mb-3">
-        <div className="flex-1" style={{ minWidth: '12rem' }}>
-          <SearchInput value={search} onChange={setSearch} placeholder="Search projects..." />
+      <div className="grid mb-3">
+        <div className="col-12 md:col-3">
+          <Dropdown
+            value={ownerFilter}
+            options={[
+              { label: 'All Projects', value: 'all' },
+              { label: 'My Projects', value: 'mine' },
+              { label: 'Shared with Me', value: 'shared' },
+            ]}
+            onChange={(e) => setOwnerFilter(e.value)}
+            className="w-full"
+          />
         </div>
-        <Dropdown
-          value={ownerFilter}
-          options={[
-            { label: 'All Projects', value: 'all' },
-            { label: 'My Projects', value: 'mine' },
-            { label: 'Shared with Me', value: 'shared' },
-          ]}
-          onChange={(e) => setOwnerFilter(e.value)}
-          className="w-12rem"
-        />
-        <MultiSelect
-          value={visibilityFilter}
-          options={[
-            { label: 'Private', value: 'private' },
-            { label: 'Unlisted', value: 'unlisted' },
-            { label: 'Public', value: 'public' },
-          ]}
-          onChange={(e) => setVisibilityFilter(e.value)}
-          placeholder="All Visibility"
-          className="w-14rem"
-          selectAll
-          selectAllLabel="All"
-        />
-        <MultiSelect
-          value={statusFilter}
-          options={[
-            { label: 'Active', value: 'active' },
-            { label: 'Inactive', value: 'inactive' },
-            { label: 'Archived', value: 'archived' },
-          ]}
-          onChange={(e) => setStatusFilter(e.value)}
-          placeholder="All Statuses"
-          className="w-14rem"
-          selectAll
-          selectAllLabel="All"
-        />
-        <Button
-          icon="pi pi-filter-slash"
-          outlined
-          severity="secondary"
-          disabled={!hasActiveFilters}
-          onClick={resetFilters}
-          tooltip="Reset filters"
-          tooltipOptions={{ position: 'bottom' }}
-        />
+        <div className="col-12 md:col-3">
+          <MultiSelect
+            value={visibilityFilter}
+            options={[
+              { label: 'Private', value: 'private' },
+              { label: 'Unlisted', value: 'unlisted' },
+              { label: 'Public', value: 'public' },
+            ]}
+            onChange={(e) => setVisibilityFilter(e.value)}
+            placeholder="All Visibility"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+          />
+        </div>
+        <div className="col-12 md:col-3">
+          <MultiSelect
+            value={statusFilter}
+            options={[
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
+              { label: 'Archived', value: 'archived' },
+            ]}
+            onChange={(e) => setStatusFilter(e.value)}
+            placeholder="All Statuses"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+          />
+        </div>
+        <div className="col-12 md:col-3">
+          <div className="flex gap-2">
+            <SearchInput value={search} onChange={setSearch} placeholder="Search projects..." className="flex-1" />
+            <Button
+              icon="pi pi-filter-slash"
+              outlined
+              severity="secondary"
+              disabled={!hasActiveFilters}
+              onClick={resetFilters}
+              tooltip="Reset filters"
+              tooltipOptions={{ position: 'bottom' }}
+            />
+          </div>
+        </div>
       </div>
 
       <DataTable

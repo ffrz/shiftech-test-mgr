@@ -88,30 +88,38 @@ export function TestRunTab({
 
   return (
     <>
-      <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <div className="flex align-items-center gap-2 flex-wrap">
-          <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." />
+      <div className="grid mb-2">
+        <div className="col-12 md:col-3">
           <MultiSelect
             value={statusFilter}
             options={TEST_RUN_STATUS_OPTIONS}
             onChange={(e) => onStatusFilterChange(e.value)}
             placeholder="All Statuses"
-            className="w-13rem"
+            className="w-full"
             selectAll
             selectAllLabel="All"
           />
-          <Button
-            icon="pi pi-filter-slash"
-            outlined
-            severity="secondary"
-            size="small"
-            disabled={!hasActiveFilters}
-            onClick={onClearFilters}
-            tooltip="Reset filters"
-            tooltipOptions={{ position: 'bottom' }}
-          />
         </div>
-        {canRunTests && <Button label="Create Test Run" icon="pi pi-plus" size="small" onClick={onCreate} />}
+        <div className="col-12 md:col">
+          <div className="flex gap-2">
+            <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." className="flex-1" />
+            <Button
+              icon="pi pi-filter-slash"
+              outlined
+              severity="secondary"
+              size="small"
+              disabled={!hasActiveFilters}
+              onClick={onClearFilters}
+              tooltip="Reset filters"
+              tooltipOptions={{ position: 'bottom' }}
+            />
+          </div>
+        </div>
+        {canRunTests && (
+          <div className="col-12 md:col-fixed">
+            <Button label="Create Test Run" icon="pi pi-plus" size="small" className="w-full md:w-auto" onClick={onCreate} />
+          </div>
+        )}
       </div>
       {canDeleteContent && (
         <BulkActionsBar

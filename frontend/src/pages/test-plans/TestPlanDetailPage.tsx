@@ -370,23 +370,29 @@ export function TestPlanDetailPage() {
 
       <TabView>
         <TabPanel header="Test Runs">
-          <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <div className="flex align-items-center gap-2 flex-wrap">
-              <SearchInput value={runSearch} onChange={(v) => { setRunSearch(v); setRunFirst(0); }} placeholder="Search name/code..." />
+          <div className="grid mb-2">
+            <div className="col-12 md:col-3">
               <MultiSelect
                 value={runStatusFilters}
                 options={TEST_RUN_STATUS_OPTIONS}
                 onChange={(e) => { setRunStatusFilters(e.value); setRunFirst(0); }}
                 placeholder="All Statuses"
-                className="w-12rem"
+                className="w-full"
                 display="chip"
               />
-              <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
-                onClick={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
-                tooltip="Clear filters" />
+            </div>
+            <div className="col-12 md:col">
+              <div className="flex gap-2">
+                <SearchInput value={runSearch} onChange={(v) => { setRunSearch(v); setRunFirst(0); }} placeholder="Search name/code..." className="flex-1" />
+                <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
+                  onClick={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
+                  tooltip="Clear filters" />
+              </div>
             </div>
             {canRunTests && (
-              <Button label="Start Test Run" icon="pi pi-play" size="small" onClick={openStartRunDialog} />
+              <div className="col-12 md:col-fixed">
+                <Button label="Start Test Run" icon="pi pi-play" size="small" className="w-full md:w-auto" onClick={openStartRunDialog} />
+              </div>
             )}
           </div>
           <DataTable
@@ -458,41 +464,51 @@ export function TestPlanDetailPage() {
           </DataTable>
         </TabPanel>
         <TabPanel header="Test Cases">
-          <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <div className="flex align-items-center gap-2 flex-wrap">
-              <SearchInput value={caseSearch} onChange={(v) => { setCaseSearch(v); resetCasePage(); }} placeholder="Search title/code..." />
+          <div className="grid mb-2">
+            <div className="col-12 md:col-4">
               <MultiSelect
                 value={casePriorityFilters}
                 options={PRIORITY_OPTIONS}
                 onChange={(e) => { setCasePriorityFilters(e.value); resetCasePage(); }}
                 placeholder="All Priorities"
-                className="w-12rem"
+                className="w-full"
                 display="chip"
               />
+            </div>
+            <div className="col-12 md:col-4">
               <MultiSelect
                 value={caseModuleFilters}
                 options={modules.map((m) => ({ label: m.name, value: m.id }))}
                 onChange={(e) => { setCaseModuleFilters(e.value); resetCasePage(); }}
                 placeholder="All Modules"
-                className="w-12rem"
+                className="w-full"
                 display="chip"
                 filter
               />
+            </div>
+            <div className="col-12 md:col-4">
               <MultiSelect
                 value={caseTagFilters}
                 options={tags.map((t) => ({ label: t.name, value: t.id }))}
                 onChange={(e) => { setCaseTagFilters(e.value); resetCasePage(); }}
                 placeholder="All Tags"
-                className="w-12rem"
+                className="w-full"
                 display="chip"
                 filter
               />
-              <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
-                onClick={() => { setCaseSearch(''); setCasePriorityFilters([]); setCaseModuleFilters([]); setCaseTagFilters([]); resetCasePage(); setSelectedCases([]); }}
-                tooltip="Clear filters" />
+            </div>
+            <div className="col-12 md:col">
+              <div className="flex gap-2">
+                <SearchInput value={caseSearch} onChange={(v) => { setCaseSearch(v); resetCasePage(); }} placeholder="Search title/code..." className="flex-1" />
+                <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
+                  onClick={() => { setCaseSearch(''); setCasePriorityFilters([]); setCaseModuleFilters([]); setCaseTagFilters([]); resetCasePage(); setSelectedCases([]); }}
+                  tooltip="Clear filters" />
+              </div>
             </div>
             {canEditContent && (
-              <Button label="Add Test Case" icon="pi pi-plus" size="small" onClick={openAddCaseDialog} />
+              <div className="col-12 md:col-fixed">
+                <Button label="Add Test Case" icon="pi pi-plus" size="small" className="w-full md:w-auto" onClick={openAddCaseDialog} />
+              </div>
             )}
           </div>
           {canEditContent && (
