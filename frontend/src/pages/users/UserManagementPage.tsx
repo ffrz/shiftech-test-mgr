@@ -149,31 +149,38 @@ export function UserManagementPage() {
       <Breadcrumb items={[{ label: 'Users' }]} />
 
       <PageHeader title="Users" />
-      <div className="flex gap-2 mb-3">
-        <MultiSelect
-          value={roleFilter}
-          options={ROLE_OPTIONS}
-          onChange={(e) => setRoleFilter(e.value)}
-          placeholder="All Roles"
-          className="w-10rem"
-          selectAll
-          selectAllLabel="All"
-        />
-        <SearchInput
-          value={search}
-          onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
-          placeholder="Search users..."
-          className="flex-1"
-        />
-        <Button
-          icon="pi pi-filter-slash"
-          outlined
-          severity="secondary"
-          disabled={!hasActiveFilters}
-          onClick={resetFilters}
-          tooltip="Reset filters"
-          tooltipOptions={{ position: 'bottom' }}
-        />
+      <div className="grid mb-3">
+        <div className="col-12 md:col-3">
+          <MultiSelect
+            value={roleFilter}
+            options={ROLE_OPTIONS}
+            onChange={(e) => setRoleFilter(e.value)}
+            placeholder="All Roles"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+          />
+        </div>
+        <div className="col-12 md:col">
+          <SearchInput
+            value={search}
+            onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
+            placeholder="Search users..."
+            className="w-full"
+          />
+        </div>
+        <div className="col-12 md:col-fixed">
+          <Button
+            icon="pi pi-filter-slash"
+            outlined
+            severity="secondary"
+            className="w-full md:w-auto"
+            disabled={!hasActiveFilters}
+            onClick={resetFilters}
+            tooltip="Reset filters"
+            tooltipOptions={{ position: 'bottom' }}
+          />
+        </div>
       </div>
       <DataTable
         value={users}
