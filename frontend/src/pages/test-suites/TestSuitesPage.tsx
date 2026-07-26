@@ -54,6 +54,7 @@ export function TestSuitesPage() {
   const [sortField, setSortField] = useStoredState('testSuitesPage:sortField', 'name');
   const [sortOrder, setSortOrder] = useStoredState<-1 | 1>('testSuitesPage:sortOrder', 1);
 
+  const [filterVisible, setFilterVisible] = useState(true);
   const hasActiveFilters = debouncedSearch !== '' || visibilityFilter.length > 0;
 
   function resetFilters() {
@@ -173,15 +174,30 @@ export function TestSuitesPage() {
       <Breadcrumb items={[{ label: 'Test Suite' }]} />
       <PageHeader
         title="Test Suite"
-        actions={<Button label="New Suite" icon="pi pi-plus" size="small" onClick={openCreateDialog} />}
+        actions={
+          <div className="flex gap-2">
+            <Button
+              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
+              text
+              rounded
+              size="small"
+              severity={filterVisible ? "warning" : "secondary"}
+              onClick={() => setFilterVisible(!filterVisible)}
+              tooltip={filterVisible ? "Hide filters" : "Show filters"}
+              tooltipOptions={{ position: 'bottom' }}
+            />
+            <Button label="New Suite" icon="pi pi-plus" size="small" onClick={openCreateDialog} />
+          </div>
+        }
       />
 
       <p className="text-color-secondary text-sm">
         Reusable test case templates you can clone into any project. Publish yours so others can clone them too.
       </p>
 
+      {filterVisible && (
       <div className="grid mb-3">
-        <div className="col-12 md:col-4">
+        <div className="col-12 md:col-4 p-1">
           <SelectButton
             value={ownershipFilter}
             onChange={(e) => e.value && setOwnershipFilter(e.value)}
@@ -192,7 +208,7 @@ export function TestSuitesPage() {
             className="w-full"
           />
         </div>
-        <div className="col-12 md:col-4">
+        <div className="col-12 md:col-4 p-1">
           <MultiSelect
             value={visibilityFilter}
             options={[
@@ -207,11 +223,11 @@ export function TestSuitesPage() {
             selectAllLabel="All"
           />
         </div>
-        <div className="col-12 md:col-4">
+        <div className="col-12 md:col-4 p-1">
           <div className="flex gap-2">
             <SearchInput value={search} onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }} placeholder="Search suites..." className="flex-1" />
             <Button
-              icon="pi pi-filter-slash"
+              icon="pi pi-refresh"
               outlined
               severity="secondary"
               disabled={!hasActiveFilters}
@@ -222,6 +238,7 @@ export function TestSuitesPage() {
           </div>
         </div>
       </div>
+      )}
 
       <DataTable
         value={suites}

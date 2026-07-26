@@ -129,6 +129,7 @@ export function ProjectsPage() {
   const [sourceTestPlans, setSourceTestPlans] = useState<TestPlan[]>([]);
   const [sourceTestCases, setSourceTestCases] = useState<TestCaseWithDetails[]>([]);
   const [sourceIssues, setSourceIssues] = useState<IssueWithDetails[]>([]);
+  const [filterVisible, setFilterVisible] = useState(true);
   const [selectedTestPlanIds, setSelectedTestPlanIds] = useState<Set<string>>(new Set());
   const [selectedTestCaseIds, setSelectedTestCaseIds] = useState<Set<string>>(new Set());
   const [selectedIssueIds, setSelectedIssueIds] = useState<Set<string>>(new Set());
@@ -250,10 +251,28 @@ export function ProjectsPage() {
 
       <Breadcrumb items={[{ label: 'Projects' }]} />
 
-      <PageHeader title="Projects" actions={<Button label="New Project" icon="pi pi-plus" size="small" onClick={openCreateDialog} />} />
+      <PageHeader
+        title="Projects"
+        actions={
+          <div className="flex gap-2">
+            <Button
+              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
+              text
+              rounded
+              size="small"
+              severity={filterVisible ? "warning" : "secondary"}
+              onClick={() => setFilterVisible(!filterVisible)}
+              tooltip={filterVisible ? "Hide filters" : "Show filters"}
+              tooltipOptions={{ position: 'bottom' }}
+            />
+            <Button label="New Project" icon="pi pi-plus" size="small" onClick={openCreateDialog} />
+          </div>
+        }
+      />
 
+      {filterVisible && (
       <div className="grid mb-3">
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <Dropdown
             value={ownerFilter}
             options={[
@@ -265,7 +284,7 @@ export function ProjectsPage() {
             className="w-full"
           />
         </div>
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={visibilityFilter}
             options={[
@@ -280,7 +299,7 @@ export function ProjectsPage() {
             selectAllLabel="All"
           />
         </div>
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={statusFilter}
             options={[
@@ -295,11 +314,11 @@ export function ProjectsPage() {
             selectAllLabel="All"
           />
         </div>
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 p-1">
           <div className="flex gap-2">
             <SearchInput value={search} onChange={setSearch} placeholder="Search projects..." className="flex-1" />
             <Button
-              icon="pi pi-filter-slash"
+              icon="pi pi-refresh"
               outlined
               severity="secondary"
               disabled={!hasActiveFilters}
@@ -310,6 +329,7 @@ export function ProjectsPage() {
           </div>
         </div>
       </div>
+      )}
 
       <DataTable
         value={projects}
