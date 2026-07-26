@@ -12,6 +12,7 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { userService } from '../../services/userService';
 import { useScreenSize } from '../../hooks/useScreenSize';
+import { useStoredState } from '../../hooks/useStoredState';
 import type { User, UserRole } from '../../types/domain';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -37,8 +38,8 @@ export function UserManagementPage() {
   const menuRef = useRef<Menu>(null);
   const [menuRow, setMenuRow] = useState<EnrichedUser | null>(null);
 
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [search, setSearch] = useStoredState('usersPage:search', '');
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
@@ -47,11 +48,11 @@ export function UserManagementPage() {
     return () => clearTimeout(debounceRef.current);
   }, [search]);
 
-  const [roleFilter, setRoleFilter] = useState<UserRole[]>([]);
-  const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [sortField, setSortField] = useState<string>('createdAt');
-  const [sortOrder, setSortOrder] = useState<-1 | 1>(-1);
+  const [roleFilter, setRoleFilter] = useStoredState<UserRole[]>('usersPage:roleFilter', []);
+  const [page, setPage] = useStoredState('usersPage:page', 1);
+  const [rowsPerPage, setRowsPerPage] = useStoredState('usersPage:rowsPerPage', 10);
+  const [sortField, setSortField] = useStoredState('usersPage:sortField', 'createdAt');
+  const [sortOrder, setSortOrder] = useStoredState<-1 | 1>('usersPage:sortOrder', -1);
 
   const hasActiveFilters = debouncedSearch !== '' || roleFilter.length > 0;
 

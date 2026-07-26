@@ -16,6 +16,7 @@ import { Toast } from 'primereact/toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { useAuthContext } from '../../hooks/useAuth';
+import { useStoredState } from '../../hooks/useStoredState';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { testPlanService } from '../../services/testPlanService';
@@ -38,8 +39,8 @@ export function ProjectsPage() {
   const isMobile = lt.sm;
   const menuRef = useRef<Menu>(null);
 
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [search, setSearch] = useStoredState('projectsPage:search', '');
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
@@ -48,13 +49,13 @@ export function ProjectsPage() {
     return () => clearTimeout(debounceRef.current);
   }, [search]);
 
-  const [statusFilter, setStatusFilter] = useState<ProjectStatus[]>([]);
-  const [ownerFilter, setOwnerFilter] = useState<ProjectOwnerFilter>('all');
-  const [visibilityFilter, setVisibilityFilter] = useState<ProjectVisibility[]>([]);
-  const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [sortField, setSortField] = useState('name');
-  const [sortOrder, setSortOrder] = useState<-1 | 1>(1);
+  const [statusFilter, setStatusFilter] = useStoredState<ProjectStatus[]>('projectsPage:statusFilter', []);
+  const [ownerFilter, setOwnerFilter] = useStoredState<ProjectOwnerFilter>('projectsPage:ownerFilter', 'all');
+  const [visibilityFilter, setVisibilityFilter] = useStoredState<ProjectVisibility[]>('projectsPage:visibilityFilter', []);
+  const [page, setPage] = useStoredState('projectsPage:page', 1);
+  const [rowsPerPage, setRowsPerPage] = useStoredState('projectsPage:rowsPerPage', 10);
+  const [sortField, setSortField] = useStoredState('projectsPage:sortField', 'name');
+  const [sortOrder, setSortOrder] = useStoredState<-1 | 1>('projectsPage:sortOrder', 1);
 
   const { data, isLoading: loading } = useQuery({
     queryKey: ['projects-paginated', debouncedSearch, statusFilter, ownerFilter, visibilityFilter, page, rowsPerPage, sortField, sortOrder],
