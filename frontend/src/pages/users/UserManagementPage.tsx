@@ -166,7 +166,7 @@ export function UserManagementPage() {
         }
       />
       {filterVisible && (
-      <div className="grid mb-3">
+      <div className="grid gap-1 mb-3">
         <div className="col-12 md:col-3">
           <MultiSelect
             value={roleFilter}
@@ -179,7 +179,7 @@ export function UserManagementPage() {
           />
         </div>
         <div className="col-12 md:col">
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <SearchInput
               value={search}
               onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
