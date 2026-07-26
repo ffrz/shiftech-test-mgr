@@ -56,12 +56,11 @@ export function SettingsPage() {
       <PageHeader title="Settings" />
       <div className="card">
         <div className="flex flex-column gap-3" style={{ maxWidth: '32rem' }}>
-          {error && <small className="p-error">{error}</small>}
           {success && <small className="p-text-secondary" style={{ color: 'var(--green-600)' }}>Profile updated successfully.</small>}
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="username">Username *</label>
-            <InputText id="username" value={username} onChange={(e) => { setUsername(e.target.value); setSuccess(false); }} />
+            <label htmlFor="username" className={error ? 'p-error' : ''}>Username *</label>
+            <InputText id="username" value={username} onChange={(e) => { setUsername(e.target.value); setSuccess(false); }} className={error ? 'p-invalid' : ''} />
           </div>
 
           <div className="flex flex-column gap-1">
@@ -79,6 +78,7 @@ export function SettingsPage() {
             <InputTextarea id="bio" value={bio} onChange={(e) => { setBio(e.target.value); setSuccess(false); }} rows={4} />
           </div>
 
+          {error && <small className="p-error">{error}</small>}
           <Button label="Save" icon="pi pi-check" loading={saving} onClick={handleSave} className="align-self-start" />
         </div>
       </div>

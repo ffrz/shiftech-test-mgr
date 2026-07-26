@@ -40,7 +40,6 @@ export function QuickAddDialog({
   return (
     <Dialog header={title} visible={visible} onHide={onHide} onShow={() => nameRef.current?.focus()} style={{ width: '25rem' }}>
       <div className="flex flex-column gap-3">
-        {error && <small className="p-error">{error}</small>}
         {showCode && (
           <div className="flex flex-column gap-1">
             <label htmlFor="quick-add-code">Code</label>
@@ -53,18 +52,20 @@ export function QuickAddDialog({
           </div>
         )}
         <div className="flex flex-column gap-1">
-          <label htmlFor="quick-add-name">{label}</label>
+          <label htmlFor="quick-add-name" className={error ? 'p-error' : ''}>{label}</label>
           <InputText
             id="quick-add-name"
             ref={nameRef}
             value={name}
             onChange={(e) => onNameChange(e.target.value)}
+            className={error ? 'p-invalid' : ''}
             onKeyDown={(e) => {
               if (e.key === 'Enter') onSave();
             }}
             placeholder={placeholder}
           />
         </div>
+        {error && <small className="p-error">{error}</small>}
         <Button label="Save" size="small" onClick={onSave} />
       </div>
     </Dialog>

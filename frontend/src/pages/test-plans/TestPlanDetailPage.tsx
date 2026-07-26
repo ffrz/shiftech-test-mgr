@@ -343,11 +343,11 @@ export function TestPlanDetailPage() {
 
       <Dialog header="Duplicate Test Plan" visible={duplicateDialogOpen} onHide={() => setDuplicateDialogOpen(false)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">
-          {duplicateError && <small className="p-error">{duplicateError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-plan-name">New Test Plan Name</label>
-            <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} autoFocus />
+            <label htmlFor="duplicate-plan-name" className={duplicateError ? 'p-error' : ''}>New Test Plan Name</label>
+            <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} className={duplicateError ? 'p-invalid' : ''} autoFocus />
           </div>
+          {duplicateError && <small className="p-error">{duplicateError}</small>}
           <Button label="Duplicate" size="small" onClick={handleDuplicate} />
         </div>
       </Dialog>
@@ -592,11 +592,11 @@ export function TestPlanDetailPage() {
 
       <Dialog header="Start Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '25rem' }}>
         <div className="flex flex-column gap-3">
-          {runError && <small className="p-error">{runError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="run-name">Test Run Name</label>
-            <InputText id="run-name" value={runName} onChange={(e) => setRunName(e.target.value)} autoFocus />
+            <label htmlFor="run-name" className={runError ? 'p-error' : ''}>Test Run Name</label>
+            <InputText id="run-name" value={runName} onChange={(e) => setRunName(e.target.value)} className={runError ? 'p-invalid' : ''} autoFocus />
           </div>
+          {runError && <small className="p-error">{runError}</small>}
           <Button label="Start" size="small" onClick={handleStartRun} />
         </div>
       </Dialog>

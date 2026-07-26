@@ -307,10 +307,9 @@ export function TestSuitesPage() {
         style={{ width: '30rem' }}
       >
         <div className="flex flex-column gap-3">
-          {error && <small className="p-error">{error}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="suite-name">Name</label>
-            <InputText id="suite-name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+            <label htmlFor="suite-name" className={error ? 'p-error' : ''}>Name</label>
+            <InputText id="suite-name" value={name} onChange={(e) => setName(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
           </div>
           <div className="flex flex-column gap-1">
             <label htmlFor="suite-description">Description</label>
@@ -328,6 +327,7 @@ export function TestSuitesPage() {
               />
             </div>
           )}
+          {error && <small className="p-error">{error}</small>}
           <Button label="Save" size="small" onClick={handleSave} />
         </div>
       </Dialog>

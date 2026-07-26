@@ -99,8 +99,6 @@ export function TestCaseDialog({
   return (
     <Dialog header={editing ? 'Edit Test Case' : 'New Test Case'} visible={visible} onHide={onHide} style={{ width: '40rem' }}>
       <div className="flex flex-column gap-3">
-        {error && <small className="p-error">{error}</small>}
-
         <div className="flex flex-column gap-1">
           <label htmlFor="case-code">Code</label>
           <InputText id="case-code" value={code} onChange={(e) => onCodeChange(e.target.value)} placeholder="Automatic if left empty" className="w-10rem" />
@@ -170,8 +168,8 @@ export function TestCaseDialog({
         </div>
 
         <div className="flex flex-column gap-1">
-          <label htmlFor="case-title">Title</label>
-          <InputText id="case-title" value={title} onChange={(e) => onTitleChange(e.target.value)} autoFocus />
+          <label htmlFor="case-title" className={error ? 'p-error' : ''}>Title</label>
+          <InputText id="case-title" value={title} onChange={(e) => onTitleChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
         </div>
 
         <div className="flex flex-column gap-1">
@@ -265,6 +263,7 @@ export function TestCaseDialog({
           <InputTextarea id="case-notes" value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={2} />
         </div>
 
+        {error && <small className="p-error">{error}</small>}
         <Button label="Save" size="small" onClick={onSave} />
       </div>
     </Dialog>

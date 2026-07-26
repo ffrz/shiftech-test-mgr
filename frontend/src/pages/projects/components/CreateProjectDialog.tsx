@@ -87,14 +87,14 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
       style={{ width: '30rem' }}
     >
       <div className="flex flex-column gap-3">
-        {error && <small className="p-error">{error}</small>}
         <div className="flex flex-column gap-1">
-          <label htmlFor="create-project-name">Name</label>
+          <label htmlFor="create-project-name" className={error ? 'p-error' : ''}>Name</label>
           <InputText
             id="create-project-name"
             ref={nameRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className={error ? 'p-invalid' : ''}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
           />
         </div>
@@ -128,6 +128,7 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
             />
           </div>
         )}
+        {error && <small className="p-error">{error}</small>}
         <Button label="Save" size="small" onClick={handleSave} />
       </div>
     </Dialog>

@@ -370,10 +370,9 @@ export function ProjectsPage() {
         style={{ width: '40rem' }}
       >
         <div className="flex flex-column gap-3">
-          {duplicateError && <small className="p-error">{duplicateError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-project-name">New Project Name</label>
-            <InputText id="duplicate-project-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} autoFocus />
+            <label htmlFor="duplicate-project-name" className={duplicateError ? 'p-error' : ''}>New Project Name</label>
+            <InputText id="duplicate-project-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} className={duplicateError ? 'p-invalid' : ''} autoFocus />
           </div>
 
           <div className="flex flex-column gap-1">
@@ -454,6 +453,7 @@ export function ProjectsPage() {
             </div>
           </div>
 
+          {duplicateError && <small className="p-error">{duplicateError}</small>}
           <Button label="Duplicate Project" size="small" loading={duplicateLoading} onClick={handleDuplicateProject} />
         </div>
       </Dialog>

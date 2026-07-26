@@ -277,8 +277,6 @@ export function TestSuiteDetailPage() {
         style={{ width: '40rem' }}
       >
         <div className="flex flex-column gap-3">
-          {itemError && <small className="p-error">{itemError}</small>}
-
           <div className="grid">
             <div className="col-12 md:col-6 flex flex-column gap-1">
               <label htmlFor="item-module">Module (optional)</label>
@@ -291,8 +289,8 @@ export function TestSuiteDetailPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="item-title">Title</label>
-            <InputText id="item-title" value={itemTitle} onChange={(e) => setItemTitle(e.target.value)} autoFocus />
+            <label htmlFor="item-title" className={itemError ? 'p-error' : ''}>Title</label>
+            <InputText id="item-title" value={itemTitle} onChange={(e) => setItemTitle(e.target.value)} className={itemError ? 'p-invalid' : ''} autoFocus />
           </div>
 
           <div className="flex flex-column gap-1">
@@ -369,6 +367,7 @@ export function TestSuiteDetailPage() {
             <InputText id="item-tags" value={itemTagNames} onChange={(e) => setItemTagNames(e.target.value)} placeholder="e.g. Regression, Smoke" />
           </div>
 
+          {itemError && <small className="p-error">{itemError}</small>}
           <Button label="Save" size="small" onClick={handleSaveItem} />
         </div>
       </Dialog>

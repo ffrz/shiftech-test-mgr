@@ -131,11 +131,11 @@ export function TestPlansPage() {
 
       <Dialog header="Duplicate Test Plan" visible={!!duplicateRow} onHide={() => setDuplicateRow(null)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">
-          {duplicateError && <small className="p-error">{duplicateError}</small>}
           <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-plan-name">New Test Plan Name</label>
-            <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} autoFocus />
+            <label htmlFor="duplicate-plan-name" className={duplicateError ? 'p-error' : ''}>New Test Plan Name</label>
+            <InputText id="duplicate-plan-name" value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} className={duplicateError ? 'p-invalid' : ''} autoFocus />
           </div>
+          {duplicateError && <small className="p-error">{duplicateError}</small>}
           <Button label="Duplicate" size="small" onClick={handleDuplicate} />
         </div>
       </Dialog>

@@ -366,8 +366,6 @@ export function TestCaseDetailPage() {
       {/* --- Edit Dialog --- */}
       <Dialog header="Edit Test Case" visible={editDialogOpen} onHide={() => setEditDialogOpen(false)} style={{ width: '40rem' }}>
         <div className="flex flex-column gap-3">
-          {editError && <small className="p-error">{editError}</small>}
-
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-code">Code</label>
             <InputText id="edit-case-code" value={editCode} onChange={(e) => setEditCode(e.target.value)} className="w-10rem" />
@@ -402,8 +400,8 @@ export function TestCaseDetailPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-title">Title</label>
-            <InputText id="edit-case-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} autoFocus />
+            <label htmlFor="edit-case-title" className={editError ? 'p-error' : ''}>Title</label>
+            <InputText id="edit-case-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className={editError ? 'p-invalid' : ''} autoFocus />
           </div>
 
           <div className="flex flex-column gap-1">
@@ -448,6 +446,7 @@ export function TestCaseDetailPage() {
             <InputTextarea id="edit-case-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} />
           </div>
 
+          {editError && <small className="p-error">{editError}</small>}
           <Button label="Save" size="small" onClick={handleSaveEdit} />
         </div>
       </Dialog>

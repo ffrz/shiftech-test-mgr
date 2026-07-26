@@ -71,6 +71,7 @@ export function IssueEditor({
   const [tagNames, setTagNames] = useState<string[]>([]);
   const [githubLinks, setGithubLinks] = useState<GithubLink[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [titleError, setTitleError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [newTagName, setNewTagName] = useState('');
@@ -90,6 +91,7 @@ export function IssueEditor({
     setTagNames(initialData?.tagNames ?? []);
     setGithubLinks(initialData?.githubLinks?.length ? initialData.githubLinks : []);
     setError(null);
+    setTitleError(null);
     setSaving(false);
     setNewTagName('');
     setNewModuleName('');
@@ -98,8 +100,9 @@ export function IssueEditor({
   }, [visible, initialData]);
 
   async function handleSave() {
+    setTitleError(null);
     if (!title.trim()) {
-      setError('Title cannot be empty');
+      setTitleError('Title cannot be empty');
       return;
     }
     setError(null);
@@ -186,11 +189,10 @@ export function IssueEditor({
         style={{ width: '36rem' }}
       >
         <div className="flex flex-column gap-3">
-          {error && <small className="p-error">{error}</small>}
-
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-title">Title *</label>
-            <InputText id="issue-title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+            <label htmlFor="issue-title" className={titleError ? 'p-error' : ''}>Title *</label>
+            <InputText id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setTitleError(null); }} className={titleError ? 'p-invalid' : ''} autoFocus />
+            {titleError && <small className="p-error">{titleError}</small>}
           </div>
 
           <div className="grid">
@@ -327,6 +329,7 @@ export function IssueEditor({
             )}
           </div>
 
+          {error && <small className="p-error">{error}</small>}
           <Button label={mode === 'create' ? 'Create' : 'Save'} size="small" onClick={handleSave} loading={saving} />
         </div>
       </Dialog>
