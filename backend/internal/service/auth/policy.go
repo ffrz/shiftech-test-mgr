@@ -15,7 +15,7 @@ import (
 
 func CanEditProject(member project.Member) error {
 	if member.Role != project.MemberRoleManager && member.Role != project.MemberRoleSupervisor {
-		return apperror.Forbidden("insufficient project role: requires manager or supervisor")
+		return apperror.Forbidden("insufficient project role: requires manager or owner")
 	}
 	return nil
 }
@@ -25,21 +25,21 @@ func CanEditProject(member project.Member) error {
 // source RLS.
 func CanDeleteProject(member project.Member) error {
 	if member.Role != project.MemberRoleManager {
-		return apperror.Forbidden("insufficient project role: requires manager")
+		return apperror.Forbidden("insufficient project role: requires owner")
 	}
 	return nil
 }
 
 func CanManageTests(member project.Member) error {
 	if member.Role != project.MemberRoleManager && member.Role != project.MemberRoleTester {
-		return apperror.Forbidden("insufficient project role: requires manager or tester")
+		return apperror.Forbidden("insufficient project role: requires owner or tester")
 	}
 	return nil
 }
 
 func CanManageIssues(member project.Member) error {
 	if member.Role != project.MemberRoleManager && member.Role != project.MemberRoleTester {
-		return apperror.Forbidden("insufficient project role: requires manager or tester")
+		return apperror.Forbidden("insufficient project role: requires owner or tester")
 	}
 	return nil
 }
