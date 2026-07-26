@@ -466,8 +466,9 @@ export function TestRunResultDetailPage() {
         <div className="col-12 md:col-4 test-run-detail-filter">
           <Panel
             header={
-              <div className="flex align-items-center w-full" style={{ marginLeft: '-0.5rem' }}>
-                <span style={{ flex: 1 }}>Test Cases</span>
+              <div className="flex align-items-center w-full">
+                <span>Test Cases</span>
+                <span className="flex-1" />
                 <Button
                   icon={isFilterActive ? "pi pi-filter-fill" : "pi pi-filter"}
                   text
