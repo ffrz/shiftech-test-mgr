@@ -559,20 +559,20 @@ html.dark .layout-menuitem-link.active-route {
 }
 
 /* Lightweight fade-in used when route/page content swaps in, so navigation
-   doesn't feel like an abrupt pop-in (or a blocking "Loading..." flash). */
-/* End state is `transform: none` (not translateY(0)) — a lingering non-`none`
-   transform makes this element a containing block for descendant
-   `position: fixed` / `sticky`, which silently breaks any sticky toolbar
-   nested inside a page even after the animation has long finished. */
+   doesn't feel like an abrupt pop-in (or a blocking "Loading..." flash).
+   Opacity-only — no transform. Any element with a `transform`-animating
+   `animation` declared becomes a containing block for descendant
+   `position: fixed` / `sticky` for as long as the animation is "in effect",
+   which with `forwards` fill-mode means permanently, even once it's finished
+   interpolating. That silently breaks fixed/sticky toolbars nested in the
+   page, so this must never animate transform. */
 @keyframes page-fade-in {
   from {
     opacity: 0;
-    transform: translateY(2px);
   }
 
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
