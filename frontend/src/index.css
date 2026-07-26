@@ -560,6 +560,10 @@ html.dark .layout-menuitem-link.active-route {
 
 /* Lightweight fade-in used when route/page content swaps in, so navigation
    doesn't feel like an abrupt pop-in (or a blocking "Loading..." flash). */
+/* End state is `transform: none` (not translateY(0)) — a lingering non-`none`
+   transform makes this element a containing block for descendant
+   `position: fixed` / `sticky`, which silently breaks any sticky toolbar
+   nested inside a page even after the animation has long finished. */
 @keyframes page-fade-in {
   from {
     opacity: 0;
@@ -568,12 +572,12 @@ html.dark .layout-menuitem-link.active-route {
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
 .page-fade-in {
-  animation: page-fade-in 0.15s ease-out;
+  animation: page-fade-in 0.15s ease-out forwards;
 }
 
 .layout-mask {
@@ -596,6 +600,14 @@ html.dark .layout-menuitem-link.active-route {
 .test-run-detail-filter .p-panel-content {
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
+}
+
+/* The custom header node PrimeReact wraps in .p-panel-title doesn't stretch by
+   default, so a flex-1 spacer inside it (used to push the filter button next
+   to the collapse toggler) has nothing to grow into. Let the title fill the
+   header's remaining width instead. */
+.test-run-detail-filter .p-panel-title {
+  flex: 1;
 }
 
 .p-card .p-card-title {
@@ -664,7 +676,6 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
 }
 
 .p-paginator .p-dropdown {
-  order: -1;
   margin-left: 0;
   margin-right: 0.5rem;
   height: 1.75rem;
@@ -680,6 +691,69 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
 
 .p-paginator .p-dropdown .p-dropdown-trigger {
   width: 1.75rem;
+}
+
+/* Custom paginator layout (dataTablePaginator.tsx): rows-per-page dropdown +
+   current-page-report grouped on the left, page-link buttons pushed to the
+   right (empty middle) — on wide screens. Below 576px there's not enough room
+   for one row, so it collapses to two centered rows: dropdown+report on top,
+   page links below. */
+.p-paginator .p-paginator-first {
+  margin-left: auto;
+}
+
+@media (max-width: 576px) {
+  .p-paginator {
+    justify-content: center;
+  }
+
+  .p-paginator .dt-paginator-rows {
+    margin-right: 0;
+  }
+
+  .p-paginator .p-paginator-first {
+    margin-left: 0;
+  }
+
+  /* Zero-height full-width flex item, inserted as a sibling of the page-link
+     buttons via the paginator's own ::before, forces everything from
+     FirstPageLink onward onto its own wrapped line — without stretching
+     FirstPageLink's own button box (which previously pushed its siblings
+     down to a third line instead of sharing the second one with it). */
+  .p-paginator::before {
+    content: '';
+    flex-basis: 100%;
+    height: 0;
+    order: 2;
+  }
+
+  .p-paginator .dt-paginator-rows {
+    order: 0;
+  }
+
+  .p-paginator .dt-paginator-report {
+    order: 1;
+  }
+
+  .p-paginator .p-paginator-first {
+    order: 3;
+  }
+
+  .p-paginator .p-paginator-prev {
+    order: 4;
+  }
+
+  .p-paginator .p-paginator-pages {
+    order: 5;
+  }
+
+  .p-paginator .p-paginator-next {
+    order: 6;
+  }
+
+  .p-paginator .p-paginator-last {
+    order: 7;
+  }
 }
 
 .p-tag-icon,
