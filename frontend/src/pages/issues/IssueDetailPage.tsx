@@ -5,6 +5,7 @@ import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
+import { InputText } from 'primereact/inputtext';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
@@ -89,6 +90,62 @@ export function IssueDetailPage() {
     } else {
       navigate('/projects');
     }
+  }
+
+  // --- Inline GitHub link management ---
+  const [newGithubUrl, setNewGithubUrl] = useState('');
+  const [newGithubLabel, setNewGithubLabel] = useState('');
+  const [githubAdding, setGithubAdding] = useState(false);
+
+  function resetGithubForm() {
+    setNewGithubUrl('');
+    setNewGithubLabel('');
+    setGithubAdding(false);
+  }
+
+  async function handleAddGithubLink() {
+    if (!issue || !newGithubUrl.trim()) return;
+    const updatedLinks = [...issue.githubLinks, { url: newGithubUrl.trim(), label: newGithubLabel.trim() || undefined }];
+    await issueService.update(
+      issue.id,
+      issue.projectId,
+      {
+        title: issue.title,
+        description: issue.description ?? undefined,
+        actualResult: issue.actualResult ?? undefined,
+        expectedResult: issue.expectedResult ?? undefined,
+        priority: issue.priority,
+        type: issue.type,
+        moduleId: issue.moduleId,
+        githubLinks: updatedLinks,
+      },
+      undefined,
+    );
+    resetGithubForm();
+    await reload();
+    toast.current?.show({ severity: 'success', summary: 'GitHub link added' });
+  }
+
+  async function handleRemoveGithubLink(index: number) {
+    if (!issue) return;
+    const updatedLinks = issue.githubLinks.filter((_, i) => i !== index);
+    await issueService.update(
+      issue.id,
+      issue.projectId,
+      {
+        title: issue.title,
+        description: issue.description ?? undefined,
+        actualResult: issue.actualResult ?? undefined,
+        expectedResult: issue.expectedResult ?? undefined,
+        priority: issue.priority,
+        type: issue.type,
+        moduleId: issue.moduleId,
+        githubLinks: updatedLinks,
+      },
+      undefined,
+    );
+    await reload();
+    toast.current?.show({ severity: 'success', summary: 'GitHub link removed' });
   }
 
   // --- Edit via shared IssueEditor ---
@@ -328,23 +385,52 @@ export function IssueDetailPage() {
         </div>
       </Card>
 
-      {issue.githubLinks.length > 0 && (
-        <Card title="GitHub Links" className="mb-3">
-          <div className="flex flex-column gap-2">
-            {issue.githubLinks.map((link, i) => (
-              <div key={i} className="flex align-items-center gap-2">
+      <Card title="GitHub Links" className="mb-3">
+        <div className="flex flex-column gap-2">
+          {issue.githubLinks.map((link, i) => (
+            <div key={i} className="flex align-items-center justify-content-between p-2 border-round surface-100">
+              <div className="flex align-items-center gap-2">
                 <i className="pi pi-external-link" style={{ fontSize: '1rem' }} />
                 <a className="entity-link" href={link.url} target="_blank" rel="noreferrer">
                   {link.label || link.url}
                 </a>
                 {link.label && link.url && (
-                  <span className="text-color-secondary text-sm">{link.url}</span>
+                  <span className="text-color-secondary text-sm ml-2">{link.url}</span>
                 )}
               </div>
-            ))}
-          </div>
-        </Card>
-      )}
+              {canManageIssues && (
+                <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveGithubLink(i)} />
+              )}
+            </div>
+          ))}
+          {issue.githubLinks.length === 0 && <p className="text-color-secondary text-sm m-0">No GitHub links yet.</p>}
+          {canManageIssues && (
+            <>
+              {githubAdding ? (
+                <div className="flex flex-column gap-2 p-2 border-round surface-100">
+                  <InputText
+                    placeholder="URL"
+                    value={newGithubUrl}
+                    onChange={(e) => setNewGithubUrl(e.target.value)}
+                    autoFocus
+                  />
+                  <InputText
+                    placeholder="Label (optional)"
+                    value={newGithubLabel}
+                    onChange={(e) => setNewGithubLabel(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button label="Add" size="small" onClick={handleAddGithubLink} disabled={!newGithubUrl.trim()} />
+                    <Button label="Cancel" size="small" text severity="secondary" onClick={resetGithubForm} />
+                  </div>
+                </div>
+              ) : (
+                <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit" onClick={() => setGithubAdding(true)} />
+              )}
+            </>
+          )}
+        </div>
+      </Card>
 
       {issue.description && (
         <Card title="Description" className="mb-3">
