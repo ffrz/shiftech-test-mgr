@@ -962,7 +962,7 @@ export function ProjectDetailPage() {
             onDuplicate={openDuplicatePlanDialog}
             onDelete={handleDeletePlan}
             onBulkDelete={handleBulkDeletePlans}
-            onRowClick={(row) => navigate(`/test-plans/${row.id}`)}
+            onPatchPlan={() => queryClient.invalidateQueries({ queryKey: queryKeys.testPlans(id ?? '') })}
           />
         </TabPanel>
 
