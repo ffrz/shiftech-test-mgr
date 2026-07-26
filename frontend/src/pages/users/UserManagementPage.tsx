@@ -166,38 +166,38 @@ export function UserManagementPage() {
         }
       />
       {filterVisible && (
-      <div className="grid mb-3">
-        <div className="col-12 md:col-3">
-          <MultiSelect
-            value={roleFilter}
-            options={ROLE_OPTIONS}
-            onChange={(e) => setRoleFilter(e.value)}
-            placeholder="All Roles"
-            className="w-full"
-            selectAll
-            selectAllLabel="All"
-          />
-        </div>
-        <div className="col-12 md:col">
-          <div className="flex gap-2">
-            <SearchInput
-              value={search}
-              onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
-              placeholder="Search users..."
-              className="flex-1"
-            />
-            <Button
-              icon="pi pi-refresh"
-              outlined
-              severity="secondary"
-              disabled={!hasActiveFilters}
-              onClick={resetFilters}
-              tooltip="Reset filters"
-              tooltipOptions={{ position: 'bottom' }}
+        <div className="grid mb-3">
+          <div className="col-12 md:col-2 p-1">
+            <MultiSelect
+              value={roleFilter}
+              options={ROLE_OPTIONS}
+              onChange={(e) => setRoleFilter(e.value)}
+              placeholder="All Roles"
+              className="w-full"
+              selectAll
+              selectAllLabel="All"
             />
           </div>
+          <div className="col-12 md:col p-1">
+            <div className="flex gap-2">
+              <SearchInput
+                value={search}
+                onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
+                placeholder="Search users..."
+                className="flex-1"
+              />
+              <Button
+                icon="pi pi-refresh"
+                outlined
+                severity="secondary"
+                disabled={!hasActiveFilters}
+                onClick={resetFilters}
+                tooltip="Reset filters"
+                tooltipOptions={{ position: 'bottom' }}
+              />
+            </div>
+          </div>
         </div>
-      </div>
       )}
       <DataTable
         value={users}
