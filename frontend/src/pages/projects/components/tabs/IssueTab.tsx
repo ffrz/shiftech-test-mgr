@@ -239,12 +239,12 @@ export function IssueTab({
         <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
         <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileIssueBody : undefined} />
         <Column
-          header="Tipe"
+          header="Type"
           hidden={isMobile}
           body={(row: IssueWithDetails) => <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />}
         />
         <Column
-          header="Modul"
+          header="Module"
           hidden={isMobile}
           body={(row: IssueWithDetails) => row.module?.name ?? '-'}
         />
