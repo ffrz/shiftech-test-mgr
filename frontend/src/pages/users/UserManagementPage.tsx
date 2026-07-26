@@ -71,7 +71,11 @@ export function UserManagementPage() {
         );
       });
     }
-    return filtered;
+    return filtered.map((u) => ({
+      ...u,
+      _displayName: profileById.get(u.id)?.displayName ?? '—',
+      _username: profileById.get(u.id)?.username ?? '—',
+    }));
   }, [data, roleFilter, search, profileById]);
   const navigate = useNavigate();
   const { lt } = useScreenSize();
@@ -185,8 +189,8 @@ export function UserManagementPage() {
         className="cursor-pointer"
       >
         {isMobile && <Column body={mobileBodyTemplate} />}
-        {!isMobile && <Column header="Name" body={displayNameFor} />}
-        {!isMobile && <Column header="Username" body={usernameFor} />}
+        {!isMobile && <Column field="_displayName" header="Name" body={displayNameFor} sortable />}
+        {!isMobile && <Column field="_username" header="Username" body={usernameFor} sortable />}
         {!isMobile && <Column field="email" header="Email" sortable />}
         {!isMobile && <Column field="role" header="Role" body={(row: User) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />} sortable />}
         {!isMobile && <Column field="createdAt" header="Registered" body={(row: User) => formatDateTime(row.createdAt)} sortable />}
