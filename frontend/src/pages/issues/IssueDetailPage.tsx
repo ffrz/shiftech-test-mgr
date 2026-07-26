@@ -289,15 +289,15 @@ export function IssueDetailPage() {
         <div>
           <h2>Issue Detail</h2>
         </div>
-        <div className="flex gap-2">
-          {canManageIssues && <Button label="Edit" icon="pi pi-pencil" size="small" outlined onClick={openEditDialog} />}
-          {canManageIssues && <Button label="Duplicate" icon="pi pi-copy" size="small" outlined onClick={handleDuplicate} />}
+        <div className="flex gap-0">
+          {canManageIssues && <Button icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
+          {canManageIssues && <Button icon="pi pi-copy" size="small" text severity="secondary" onClick={handleDuplicate} />}
           {canDeleteContent ? (
-            <Button label="Delete" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleDelete} />
+            <Button icon="pi pi-trash" size="small" text severity="danger" onClick={handleDelete} />
           ) : (
             canManageIssues &&
             issue.status !== 'closed' && (
-              <Button label="Archive" icon="pi pi-inbox" size="small" outlined onClick={handleArchive} />
+              <Button icon="pi pi-inbox" size="small" text severity="secondary" onClick={handleArchive} />
             )
           )}
         </div>
