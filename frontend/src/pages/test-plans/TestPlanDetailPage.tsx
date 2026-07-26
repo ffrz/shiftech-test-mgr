@@ -117,6 +117,8 @@ export function TestPlanDetailPage() {
     caseSearch.trim() || casePriorityFilters.length > 0 || caseModuleFilters.length > 0 || caseTagFilters.length > 0,
   );
 
+  const isRunFilterActive = Boolean(runSearch.trim() || runStatusFilters.length > 0);
+
   // When no filters are active, fetch all rows for reorder; otherwise paginate
   const caseRowsPerPage = isCaseFilterActive ? caseRows : 0;
   const casePage = isCaseFilterActive ? Math.floor(caseFirst / caseRows) + 1 : 1;
@@ -365,6 +367,11 @@ export function TestPlanDetailPage() {
                 className="w-12rem"
                 display="chip"
               />
+              {isRunFilterActive && (
+                <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
+                  onClick={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
+                  tooltip="Clear filters" />
+              )}
             </div>
             {canRunTests && (
               <Button label="Start Test Run" icon="pi pi-play" size="small" onClick={openStartRunDialog} />
@@ -467,6 +474,11 @@ export function TestPlanDetailPage() {
                 display="chip"
                 filter
               />
+              {isCaseFilterActive && (
+                <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
+                  onClick={() => { setCaseSearch(''); setCasePriorityFilters([]); setCaseModuleFilters([]); setCaseTagFilters([]); resetCasePage(); setSelectedCases([]); }}
+                  tooltip="Clear filters" />
+              )}
             </div>
             {canEditContent && (
               <Button label="Add Test Case" icon="pi pi-plus" size="small" onClick={openAddCaseDialog} />
