@@ -36,6 +36,11 @@ html.dark .breadcrumb-link:hover {
   background: rgba(96, 165, 250, 0.16);
 }
 
+html.dark .p-tabview .p-tabview-nav li .p-tabview-nav-link,
+html.dark .p-tabview .p-tabview-panels {
+  background: inherit !important;
+}
+
 /* ===== Compact / dense control sizing across PrimeReact components ===== */
 
 .p-inputtext,
