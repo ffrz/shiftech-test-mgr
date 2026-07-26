@@ -163,6 +163,7 @@ export function TestRunTab({
         loading={loading}
         size="small"
         emptyMessage="No test runs yet"
+        onRowClick={isMobile ? (e) => onRowClick(e.data as TestRunWithSummary) : undefined}
         rowHover
         paginator
         paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"

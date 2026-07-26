@@ -44,6 +44,7 @@ type TestPlanTabProps = {
   onDuplicate: (row: TestPlan) => void;
   onDelete: (row: TestPlan) => void;
   onBulkDelete: () => void;
+  onRowClick: (row: TestPlan) => void;
   onPatchPlan?: (_planId: string, _changes: Partial<TestPlan>) => void;
 };
 
@@ -69,6 +70,7 @@ export function TestPlanTab({
   onDuplicate,
   onDelete,
   onBulkDelete,
+  onRowClick,
   onPatchPlan,
 }: TestPlanTabProps) {
   const navigate = useNavigate();
@@ -214,6 +216,7 @@ export function TestPlanTab({
         loading={loading}
         size="small"
         emptyMessage="No test plans yet"
+        onRowClick={isMobile ? (e) => onRowClick(e.data as TestPlan) : undefined}
         rowHover
         paginator
         paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"

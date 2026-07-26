@@ -333,6 +333,7 @@ export function IssueTab({
         loading={loading}
         size="small"
         emptyMessage="No issues yet"
+        onRowClick={isMobile ? (e) => onRowClick(e.data as IssueWithDetails) : undefined}
         rowHover
         lazy={lazy}
         totalRecords={lazy ? totalRecords : undefined}

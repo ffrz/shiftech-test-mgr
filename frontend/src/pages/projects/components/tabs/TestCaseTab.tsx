@@ -70,6 +70,7 @@ type TestCaseTabProps = {
   onArchive: (row: TestCase) => void;
   onDelete: (row: TestCase) => void;
   onBulkDelete: () => void;
+  onRowClick: (row: TestCaseWithDetails) => void;
   onPatchCase?: (_caseId: string, _changes: Partial<TestCaseWithDetails>) => void;
 };
 
@@ -111,6 +112,7 @@ export function TestCaseTab({
   onArchive,
   onDelete,
   onBulkDelete,
+  onRowClick,
   onPatchCase,
 }: TestCaseTabProps) {
   const navigate = useNavigate();
@@ -329,6 +331,7 @@ export function TestCaseTab({
         loading={loading}
         size="small"
         emptyMessage="No test cases yet"
+        onRowClick={isMobile ? (e) => onRowClick(e.data as TestCaseWithDetails) : undefined}
         rowHover
         paginator
         paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"

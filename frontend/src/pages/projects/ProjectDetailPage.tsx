@@ -963,6 +963,7 @@ export function ProjectDetailPage() {
             onDelete={handleDeletePlan}
             onBulkDelete={handleBulkDeletePlans}
             onPatchPlan={() => queryClient.invalidateQueries({ queryKey: queryKeys.testPlans(id ?? '') })}
+            onRowClick={(row) => navigate(`/test-plans/${row.id}`)}
           />
         </TabPanel>
 
@@ -1004,6 +1005,7 @@ export function ProjectDetailPage() {
             onDelete={handleDeleteCase}
             onBulkDelete={handleBulkDeleteCases}
             onPatchCase={() => queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(id ?? '') })}
+            onRowClick={(row) => navigate(`/test-cases/${row.id}?projectId=${id}`)}
           />
         </TabPanel>
 
