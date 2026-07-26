@@ -739,3 +739,7 @@ h6,
 .font-medium {
   font-weight: 400 !important;
 }
+
+.p-datatable .p-paginator-bottom {
+  border-width: 0;
+}
