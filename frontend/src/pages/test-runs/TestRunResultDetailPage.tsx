@@ -154,6 +154,9 @@ export function TestRunResultDetailPage() {
   const [moduleFilter, setModuleFilter] = useState<string | null>(null);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<TestCasePriority | null>(null);
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+
+  const isFilterActive = statusFilter || priorityFilter || moduleFilter || tagFilter || search.trim();
 
   const filteredResults = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -458,27 +461,33 @@ export function TestRunResultDetailPage() {
       </div>
 
       <div className="grid">
-        {/* --- Panel kiri: daftar test case + filter (scroll independen) --- */}
+        {/* --- Panel kiri: daftar test case collapsible, filter via dialog --- */}
         <div className="col-12 md:col-4 test-run-detail-filter">
           <Panel
-            header="Test Cases"
+            header={
+              <div className="flex align-items-center justify-content-between w-full">
+                <span>Test Cases</span>
+                <Button
+                  icon={isFilterActive ? "pi pi-filter-fill" : "pi pi-filter"}
+                  text
+                  rounded
+                  size="small"
+                  severity={isFilterActive ? "warning" : "secondary"}
+                  onClick={(e) => { e.stopPropagation(); setFilterDialogOpen(true); }}
+                  tooltip={isFilterActive ? "Filters active" : "Filter"}
+                  tooltipOptions={{ position: 'left' }}
+                />
+              </div>
+            }
             toggleable
-            collapsed
-            expandIcon="pi pi-filter"
-            collapseIcon="pi pi-filter"
+            collapsed={false}
             style={{
               borderBottom: 'none',
               borderBottomLeftRadius: 0,
               borderBottomRightRadius: 0,
             }}
           >
-            <div className="flex flex-column gap-1">
-              <SearchInput value={search} onChange={setSearch} placeholder="Search title/code..." />
-              <Dropdown value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(e) => setStatusFilter(e.value)} placeholder="All Statuses" showClear className="w-full" />
-              <Dropdown value={priorityFilter} options={PRIORITY_FILTER_OPTIONS} onChange={(e) => setPriorityFilter(e.value)} placeholder="All Priorities" showClear className="w-full" />
-              <Dropdown value={moduleFilter} options={moduleOptions} onChange={(e) => setModuleFilter(e.value)} placeholder="All Modules" showClear className="w-full" />
-              <Dropdown value={tagFilter} options={tagOptions} onChange={(e) => setTagFilter(e.value)} placeholder="All Tags" showClear className="w-full" />
-            </div>
+            <div />
           </Panel>
 
           <div
@@ -848,6 +857,36 @@ export function TestRunResultDetailPage() {
             />
           </div>
           <Button label="Complete" icon="pi pi-check" size="small" onClick={handleCompleteRun} />
+        </div>
+      </Dialog>
+
+      {/* --- Filter Dialog --- */}
+      <Dialog header="Filter Test Cases" visible={filterDialogOpen} onHide={() => setFilterDialogOpen(false)} style={{ width: '28rem' }}>
+        <div className="flex flex-column gap-3">
+          <div className="flex flex-column gap-1">
+            <label className="text-sm">Search</label>
+            <SearchInput value={search} onChange={(v) => { setSearch(v); }} placeholder="Search title/code..." />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label className="text-sm">Status</label>
+            <Dropdown value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(e) => setStatusFilter(e.value)} placeholder="All Statuses" showClear className="w-full" />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label className="text-sm">Priority</label>
+            <Dropdown value={priorityFilter} options={PRIORITY_FILTER_OPTIONS} onChange={(e) => setPriorityFilter(e.value)} placeholder="All Priorities" showClear className="w-full" />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label className="text-sm">Module</label>
+            <Dropdown value={moduleFilter} options={moduleOptions} onChange={(e) => setModuleFilter(e.value)} placeholder="All Modules" showClear className="w-full" />
+          </div>
+          <div className="flex flex-column gap-1">
+            <label className="text-sm">Tag</label>
+            <Dropdown value={tagFilter} options={tagOptions} onChange={(e) => setTagFilter(e.value)} placeholder="All Tags" showClear className="w-full" />
+          </div>
+          {isFilterActive && (
+            <Button label="Clear Filters" icon="pi pi-filter-slash" size="small" outlined severity="secondary"
+              onClick={() => { setSearch(''); setStatusFilter(null); setPriorityFilter(null); setModuleFilter(null); setTagFilter(null); }} />
+          )}
         </div>
       </Dialog>
     </div>
