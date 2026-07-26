@@ -317,7 +317,7 @@ export function TestPlanDetailPage() {
           testPlan && (
             <div className="flex align-items-center gap-2">
               {canEditContent && (
-                <Button label="Duplicate" icon="pi pi-copy" size="small" outlined onClick={openDuplicateDialog} />
+                <Button text icon="pi pi-copy" size="small" outlined onClick={openDuplicateDialog} />
               )}
               {canEditContent ? (
                 <Dropdown
@@ -360,7 +360,7 @@ export function TestPlanDetailPage() {
               />
             </div>
             {canRunTests && (
-                <Button label="Start Test Run" icon="pi pi-play" size="small" onClick={openStartRunDialog} />
+              <Button label="Start Test Run" icon="pi pi-play" size="small" onClick={openStartRunDialog} />
             )}
           </div>
           <DataTable

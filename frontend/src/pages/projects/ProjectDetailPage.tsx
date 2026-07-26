@@ -923,7 +923,7 @@ export function ProjectDetailPage() {
             <p className="text-color-secondary text-sm m-0">{project.description || 'No description'}</p>
           </div>
           <div className="flex gap-2">
-            <Button text icon="pi pi-cog" outlined size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
+            <Button text icon="pi pi-cog" rounded size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
           </div>
         </div>
 
@@ -939,144 +939,144 @@ export function ProjectDetailPage() {
       </Card>
 
       <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
-          <TabPanel header="Test Plans">
-            <TestPlanTab
-              plans={testPlans}
-              loading={tabLoading[0]}
-              isMobile={isMobile}
-              search={planSearch}
-              onSearchChange={setPlanSearch}
-              statusFilter={planStatusFilter}
-              onStatusFilterChange={setPlanStatusFilter}
-              hasActiveFilters={!!planSearch || planStatusFilter.length > 0}
-              onClearFilters={() => { setPlanSearch(''); setPlanStatusFilter([]); }}
-              sortField={planSortField}
-              sortOrder={planSortOrder}
-              onSort={sortHandler(setPlanSortField, setPlanSortOrder)}
-              selected={selectedPlans}
-              onSelectedChange={setSelectedPlans}
-              canEditContent={canEditContent}
-              canDeleteContent={canDeleteContent}
-              onCreate={openCreatePlanDialog}
-              onEdit={openEditPlanDialog}
-              onDuplicate={openDuplicatePlanDialog}
-              onDelete={handleDeletePlan}
-              onBulkDelete={handleBulkDeletePlans}
-              onRowClick={(row) => navigate(`/test-plans/${row.id}`)}
-            />
-          </TabPanel>
+        <TabPanel header="Test Plans">
+          <TestPlanTab
+            plans={testPlans}
+            loading={tabLoading[0]}
+            isMobile={isMobile}
+            search={planSearch}
+            onSearchChange={setPlanSearch}
+            statusFilter={planStatusFilter}
+            onStatusFilterChange={setPlanStatusFilter}
+            hasActiveFilters={!!planSearch || planStatusFilter.length > 0}
+            onClearFilters={() => { setPlanSearch(''); setPlanStatusFilter([]); }}
+            sortField={planSortField}
+            sortOrder={planSortOrder}
+            onSort={sortHandler(setPlanSortField, setPlanSortOrder)}
+            selected={selectedPlans}
+            onSelectedChange={setSelectedPlans}
+            canEditContent={canEditContent}
+            canDeleteContent={canDeleteContent}
+            onCreate={openCreatePlanDialog}
+            onEdit={openEditPlanDialog}
+            onDuplicate={openDuplicatePlanDialog}
+            onDelete={handleDeletePlan}
+            onBulkDelete={handleBulkDeletePlans}
+            onRowClick={(row) => navigate(`/test-plans/${row.id}`)}
+          />
+        </TabPanel>
 
-          <TabPanel header="Test Cases">
-            <TestCaseTab
-              cases={testCases}
-              loading={tabLoading[1]}
-              isMobile={isMobile}
-              search={caseSearch}
-              onSearchChange={setCaseSearch}
-              statusFilter={caseStatusFilter}
-              onStatusFilterChange={setCaseStatusFilter}
-              priorityFilter={casePriorityFilter}
-              onPriorityFilterChange={setCasePriorityFilter}
-              moduleFilter={caseModuleFilter}
-              onModuleFilterChange={setCaseModuleFilter}
-              tagFilter={caseTagFilter}
-              onTagFilterChange={setCaseTagFilter}
-              testRoleFilter={caseTestRoleFilter}
-              onTestRoleFilterChange={setCaseTestRoleFilter}
-              hasActiveFilters={!!caseSearch || caseStatusFilter.length > 0 || casePriorityFilter.length > 0 || caseModuleFilter.length > 0 || caseTagFilter.length > 0 || caseTestRoleFilter.length > 0}
-              onClearFilters={() => { setCaseSearch(''); setCaseStatusFilter([]); setCasePriorityFilter([]); setCaseModuleFilter([]); setCaseTagFilter([]); setCaseTestRoleFilter([]); }}
-              moduleOptions={moduleOptions}
-              tagOptions={tagOptions}
-              testRoleOptions={testRoleOptions}
-              sortField={caseSortField}
-              sortOrder={caseSortOrder}
-              onSort={sortHandler(setCaseSortField, setCaseSortOrder)}
-              selected={selectedCases}
-              onSelectedChange={setSelectedCases}
-              canEditContent={canEditContent}
-              canDeleteContent={canDeleteContent}
-              onCreate={openCreateCaseDialog}
-              onImportTemplate={openImportTemplateDialog}
-              onImportExcel={() => setImportExcelDialogOpen(true)}
-              onEdit={openEditCaseDialog}
-              onDuplicate={openDuplicateCaseDialog}
-              onArchive={handleArchiveCase}
-              onDelete={handleDeleteCase}
-              onBulkDelete={handleBulkDeleteCases}
-              onRowClick={(row) => navigate(`/test-cases/${row.id}?projectId=${id}`)}
-            />
-          </TabPanel>
+        <TabPanel header="Test Cases">
+          <TestCaseTab
+            cases={testCases}
+            loading={tabLoading[1]}
+            isMobile={isMobile}
+            search={caseSearch}
+            onSearchChange={setCaseSearch}
+            statusFilter={caseStatusFilter}
+            onStatusFilterChange={setCaseStatusFilter}
+            priorityFilter={casePriorityFilter}
+            onPriorityFilterChange={setCasePriorityFilter}
+            moduleFilter={caseModuleFilter}
+            onModuleFilterChange={setCaseModuleFilter}
+            tagFilter={caseTagFilter}
+            onTagFilterChange={setCaseTagFilter}
+            testRoleFilter={caseTestRoleFilter}
+            onTestRoleFilterChange={setCaseTestRoleFilter}
+            hasActiveFilters={!!caseSearch || caseStatusFilter.length > 0 || casePriorityFilter.length > 0 || caseModuleFilter.length > 0 || caseTagFilter.length > 0 || caseTestRoleFilter.length > 0}
+            onClearFilters={() => { setCaseSearch(''); setCaseStatusFilter([]); setCasePriorityFilter([]); setCaseModuleFilter([]); setCaseTagFilter([]); setCaseTestRoleFilter([]); }}
+            moduleOptions={moduleOptions}
+            tagOptions={tagOptions}
+            testRoleOptions={testRoleOptions}
+            sortField={caseSortField}
+            sortOrder={caseSortOrder}
+            onSort={sortHandler(setCaseSortField, setCaseSortOrder)}
+            selected={selectedCases}
+            onSelectedChange={setSelectedCases}
+            canEditContent={canEditContent}
+            canDeleteContent={canDeleteContent}
+            onCreate={openCreateCaseDialog}
+            onImportTemplate={openImportTemplateDialog}
+            onImportExcel={() => setImportExcelDialogOpen(true)}
+            onEdit={openEditCaseDialog}
+            onDuplicate={openDuplicateCaseDialog}
+            onArchive={handleArchiveCase}
+            onDelete={handleDeleteCase}
+            onBulkDelete={handleBulkDeleteCases}
+            onRowClick={(row) => navigate(`/test-cases/${row.id}?projectId=${id}`)}
+          />
+        </TabPanel>
 
-          <TabPanel header="Test Runs">
-            <TestRunTab
-              runs={testRuns}
-              loading={tabLoading[2]}
-              isMobile={isMobile}
-              search={runSearch}
-              onSearchChange={setRunSearch}
-              statusFilter={runStatusFilter}
-              onStatusFilterChange={setRunStatusFilter}
-              hasActiveFilters={!!runSearch || runStatusFilter.length > 0}
-              onClearFilters={() => { setRunSearch(''); setRunStatusFilter([]); }}
-              sortField={runSortField}
-              sortOrder={runSortOrder}
-              onSort={sortHandler(setRunSortField, setRunSortOrder)}
-              selected={selectedRuns}
-              onSelectedChange={setSelectedRuns}
-              canRunTests={canRunTests}
-              canDeleteContent={canDeleteContent}
-              onCreate={openCreateRunDialog}
-              onDelete={handleDeleteRun}
-              onBulkDelete={handleBulkDeleteRuns}
-              onRowClick={(row) => navigate(`/test-runs/${row.id}`)}
-              onPlanLinkClick={(planId) => navigate(`/test-plans/${planId}`)}
-            />
-          </TabPanel>
+        <TabPanel header="Test Runs">
+          <TestRunTab
+            runs={testRuns}
+            loading={tabLoading[2]}
+            isMobile={isMobile}
+            search={runSearch}
+            onSearchChange={setRunSearch}
+            statusFilter={runStatusFilter}
+            onStatusFilterChange={setRunStatusFilter}
+            hasActiveFilters={!!runSearch || runStatusFilter.length > 0}
+            onClearFilters={() => { setRunSearch(''); setRunStatusFilter([]); }}
+            sortField={runSortField}
+            sortOrder={runSortOrder}
+            onSort={sortHandler(setRunSortField, setRunSortOrder)}
+            selected={selectedRuns}
+            onSelectedChange={setSelectedRuns}
+            canRunTests={canRunTests}
+            canDeleteContent={canDeleteContent}
+            onCreate={openCreateRunDialog}
+            onDelete={handleDeleteRun}
+            onBulkDelete={handleBulkDeleteRuns}
+            onRowClick={(row) => navigate(`/test-runs/${row.id}`)}
+            onPlanLinkClick={(planId) => navigate(`/test-plans/${planId}`)}
+          />
+        </TabPanel>
 
-          <TabPanel header="Issues">
-            <IssueTab
-              issues={issues}
-              loading={tabLoading[3]}
-              isMobile={isMobile}
-              search={issueSearch}
-              onSearchChange={setIssueSearch}
-              statusFilter={issueStatusFilter}
-              onStatusFilterChange={setIssueStatusFilter}
-              priorityFilter={issuePriorityFilter}
-              onPriorityFilterChange={setIssuePriorityFilter}
-              moduleFilter={issueModuleFilter}
-              onModuleFilterChange={setIssueModuleFilter}
-              tagFilter={issueTagFilter}
-              onTagFilterChange={setIssueTagFilter}
-              typeFilter={issueTypeFilter}
-              onTypeFilterChange={setIssueTypeFilter}
-              hasActiveFilters={!!issueSearch || issueStatusFilter.length > 0 || issuePriorityFilter.length > 0 || issueModuleFilter.length > 0 || issueTagFilter.length > 0 || issueTypeFilter.length > 0}
-              onClearFilters={() => { setIssueSearch(''); setIssueStatusFilter([]); setIssuePriorityFilter([]); setIssueModuleFilter([]); setIssueTagFilter([]); setIssueTypeFilter([]); }}
-              moduleOptions={moduleOptions}
-              tagOptions={tagOptions}
-              sortField={issueSortField}
-              sortOrder={issueSortOrder}
-              onSort={sortHandler(setIssueSortField, setIssueSortOrder)}
-              selected={selectedIssues}
-              onSelectedChange={setSelectedIssues}
-              projectMembers={projectMembers}
-              canManageIssues={canManageIssues}
-              canDeleteContent={canDeleteContent}
-              onCreate={openCreateIssueDialog}
-              onEdit={openEditIssueDialog}
-              onDuplicate={openDuplicateIssueDialog}
-              onBulkDelete={handleBulkDeleteIssues}
-              onRowClick={(row) => navigate(`/issues/${row.id}`)}
-              onPatchIssue={patchIssue}
-              onReload={loadAll}
-              onToastSuccess={toastSuccess}
-              lazy
-              totalRecords={totalIssues}
-              first={(issuePage - 1) * issueRowsPerPage}
-              onPage={onIssuePage}
-            />
-          </TabPanel>
-        </TabView>
+        <TabPanel header="Issues">
+          <IssueTab
+            issues={issues}
+            loading={tabLoading[3]}
+            isMobile={isMobile}
+            search={issueSearch}
+            onSearchChange={setIssueSearch}
+            statusFilter={issueStatusFilter}
+            onStatusFilterChange={setIssueStatusFilter}
+            priorityFilter={issuePriorityFilter}
+            onPriorityFilterChange={setIssuePriorityFilter}
+            moduleFilter={issueModuleFilter}
+            onModuleFilterChange={setIssueModuleFilter}
+            tagFilter={issueTagFilter}
+            onTagFilterChange={setIssueTagFilter}
+            typeFilter={issueTypeFilter}
+            onTypeFilterChange={setIssueTypeFilter}
+            hasActiveFilters={!!issueSearch || issueStatusFilter.length > 0 || issuePriorityFilter.length > 0 || issueModuleFilter.length > 0 || issueTagFilter.length > 0 || issueTypeFilter.length > 0}
+            onClearFilters={() => { setIssueSearch(''); setIssueStatusFilter([]); setIssuePriorityFilter([]); setIssueModuleFilter([]); setIssueTagFilter([]); setIssueTypeFilter([]); }}
+            moduleOptions={moduleOptions}
+            tagOptions={tagOptions}
+            sortField={issueSortField}
+            sortOrder={issueSortOrder}
+            onSort={sortHandler(setIssueSortField, setIssueSortOrder)}
+            selected={selectedIssues}
+            onSelectedChange={setSelectedIssues}
+            projectMembers={projectMembers}
+            canManageIssues={canManageIssues}
+            canDeleteContent={canDeleteContent}
+            onCreate={openCreateIssueDialog}
+            onEdit={openEditIssueDialog}
+            onDuplicate={openDuplicateIssueDialog}
+            onBulkDelete={handleBulkDeleteIssues}
+            onRowClick={(row) => navigate(`/issues/${row.id}`)}
+            onPatchIssue={patchIssue}
+            onReload={loadAll}
+            onToastSuccess={toastSuccess}
+            lazy
+            totalRecords={totalIssues}
+            first={(issuePage - 1) * issueRowsPerPage}
+            onPage={onIssuePage}
+          />
+        </TabPanel>
+      </TabView>
 
       <TestPlanDialog
         visible={planDialogOpen}
