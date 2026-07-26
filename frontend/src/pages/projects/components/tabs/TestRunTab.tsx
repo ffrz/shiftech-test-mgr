@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { DataTable, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -16,6 +17,7 @@ const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
 
 export type TestRunWithSummary = TestRun & {
   testPlanName: string | null;
+  testPlanCode: string | null;
   total: number;
   pass: number;
   fail: number;
@@ -69,6 +71,7 @@ export function TestRunTab({
   onRowClick,
   onPlanLinkClick,
 }: TestRunTabProps) {
+  const navigate = useNavigate();
   const mobileRunBody = (row: TestRunWithSummary) => (
     <div className="flex flex-column gap-1">
       <div className="font-medium">{row.name}</div>
@@ -133,9 +136,7 @@ export function TestRunTab({
         loading={loading}
         size="small"
         emptyMessage="No test runs yet"
-        onRowClick={(e) => onRowClick(e.data as TestRunWithSummary)}
         rowHover
-        className="cursor-pointer"
         paginator
         paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
         currentPageReportTemplate="{totalRecords} records"
@@ -149,7 +150,8 @@ export function TestRunTab({
         selectionMode={isMobile ? null : 'checkbox'}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
+        <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
+          body={(row: TestRunWithSummary) => <a className="entity-link" href={`/test-runs/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-runs/${row.id}`); }}>{row.code}</a>} />
         <Column field="name" header="Name" sortable={!isMobile} body={isMobile ? mobileRunBody : undefined} />
         <Column
           header="Test Plan"
@@ -165,7 +167,7 @@ export function TestRunTab({
                   onPlanLinkClick(row.testPlanId!);
                 }}
               >
-                {row.testPlanName}
+                {row.testPlanCode ? `${row.testPlanCode} — ` : ''}{row.testPlanName}
               </a>
             ) : (
               <Tag value="Unplanned" severity="secondary" />

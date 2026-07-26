@@ -47,10 +47,10 @@ export const testRunRepository = {
   async findAllByProject(
     projectId: string,
     options?: { search?: string; statuses?: TestRunStatus[] },
-  ): Promise<(TestRun & { testPlanName: string | null })[]> {
+  ): Promise<(TestRun & { testPlanName: string | null; testPlanCode: string | null })[]> {
     let query = supabase
       .from('test_runs')
-      .select('*, test_plan:test_plans(name)')
+      .select('*, test_plan:test_plans(name, code)')
       .eq('project_id', projectId);
 
     if (options?.search?.trim()) {
@@ -67,6 +67,7 @@ export const testRunRepository = {
     return (data ?? []).map((row: any) => ({
       ...mapTestRunRow(row),
       testPlanName: row.test_plan?.name ?? null,
+      testPlanCode: row.test_plan?.code ?? null,
     }));
   },
 
