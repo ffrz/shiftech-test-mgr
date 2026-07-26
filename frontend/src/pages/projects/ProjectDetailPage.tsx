@@ -34,6 +34,7 @@ import { testRoleService } from '../../services/testRoleService';
 import { testSuiteService } from '../../services/testSuiteService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
+import { useStoredState } from '../../hooks/useStoredState';
 import { queryKeys } from '../../hooks/queryKeys';
 import type {
   TestPlan,
@@ -209,11 +210,13 @@ export function ProjectDetailPage() {
   const [duplicatePlanName, setDuplicatePlanName] = useState('');
   const [duplicatePlanError, setDuplicatePlanError] = useState<string | null>(null);
 
+  const pfx = id ?? '__unknown__';
+
   // Test Plans: search/filter/sort/selection
-  const [planSearch, setPlanSearch] = useState('');
-  const [planStatusFilter, setPlanStatusFilter] = useState<TestPlanStatus | null>(null);
-  const [planSortField, setPlanSortField] = useState('code');
-  const [planSortOrder, setPlanSortOrder] = useState<1 | -1>(1);
+  const [planSearch, setPlanSearch] = useStoredState(`project-${pfx}:planSearch`, '');
+  const [planStatusFilter, setPlanStatusFilter] = useStoredState<TestPlanStatus | null>(`project-${pfx}:planStatusFilter`, null);
+  const [planSortField, setPlanSortField] = useStoredState(`project-${pfx}:planSortField`, 'code');
+  const [planSortOrder, setPlanSortOrder] = useStoredState<1 | -1>(`project-${pfx}:planSortOrder`, 1);
   const [selectedPlans, setSelectedPlans] = useState<TestPlan[]>([]);
 
   const filteredPlans = useMemo(() => {
@@ -425,14 +428,14 @@ export function ProjectDetailPage() {
   const [caseDetailedSteps, setCaseDetailedSteps] = useState<{ action: string; expectedResult: string }[]>([]);
 
   // Test Cases: search/filter/sort/selection
-  const [caseSearch, setCaseSearch] = useState('');
-  const [caseStatusFilter, setCaseStatusFilter] = useState<TestCaseStatus | null>(null);
-  const [casePriorityFilter, setCasePriorityFilter] = useState<TestCasePriority | null>(null);
-  const [caseModuleFilter, setCaseModuleFilter] = useState<string | null>(null);
-  const [caseTagFilter, setCaseTagFilter] = useState<string | null>(null);
-  const [caseTestRoleFilter, setCaseTestRoleFilter] = useState<string | null>(null);
-  const [caseSortField, setCaseSortField] = useState('code');
-  const [caseSortOrder, setCaseSortOrder] = useState<1 | -1>(1);
+  const [caseSearch, setCaseSearch] = useStoredState(`project-${pfx}:caseSearch`, '');
+  const [caseStatusFilter, setCaseStatusFilter] = useStoredState<TestCaseStatus | null>(`project-${pfx}:caseStatusFilter`, null);
+  const [casePriorityFilter, setCasePriorityFilter] = useStoredState<TestCasePriority | null>(`project-${pfx}:casePriorityFilter`, null);
+  const [caseModuleFilter, setCaseModuleFilter] = useStoredState<string | null>(`project-${pfx}:caseModuleFilter`, null);
+  const [caseTagFilter, setCaseTagFilter] = useStoredState<string | null>(`project-${pfx}:caseTagFilter`, null);
+  const [caseTestRoleFilter, setCaseTestRoleFilter] = useStoredState<string | null>(`project-${pfx}:caseTestRoleFilter`, null);
+  const [caseSortField, setCaseSortField] = useStoredState(`project-${pfx}:caseSortField`, 'code');
+  const [caseSortOrder, setCaseSortOrder] = useStoredState<1 | -1>(`project-${pfx}:caseSortOrder`, 1);
   const [selectedCases, setSelectedCases] = useState<TestCaseWithDetails[]>([]);
 
   const filteredCases = useMemo(() => {
@@ -671,10 +674,10 @@ export function ProjectDetailPage() {
   }
 
   // --- Test Runs: search/filter/sort/selection ---
-  const [runSearch, setRunSearch] = useState('');
-  const [runStatusFilter, setRunStatusFilter] = useState<TestRunStatus | null>(null);
-  const [runSortField, setRunSortField] = useState('code');
-  const [runSortOrder, setRunSortOrder] = useState<1 | -1>(1);
+  const [runSearch, setRunSearch] = useStoredState(`project-${pfx}:runSearch`, '');
+  const [runStatusFilter, setRunStatusFilter] = useStoredState<TestRunStatus | null>(`project-${pfx}:runStatusFilter`, null);
+  const [runSortField, setRunSortField] = useStoredState(`project-${pfx}:runSortField`, 'code');
+  const [runSortOrder, setRunSortOrder] = useStoredState<1 | -1>(`project-${pfx}:runSortOrder`, 1);
   const [selectedRuns, setSelectedRuns] = useState<TestRunWithSummary[]>([]);
 
   // --- Create Test Run dialog: "from plan" (existing flow) or "unplanned/custom" ---
@@ -757,14 +760,14 @@ export function ProjectDetailPage() {
   }
 
   // --- Issues: search/filter/sort/selection ---
-  const [issueSearch, setIssueSearch] = useState('');
-  const [issueStatusFilter, setIssueStatusFilter] = useState<IssueStatus | null>(null);
-  const [issuePriorityFilter, setIssuePriorityFilter] = useState<IssuePriority | null>(null);
-  const [issueSortField, setIssueSortField] = useState('title');
-  const [issueSortOrder, setIssueSortOrder] = useState<1 | -1>(1);
+  const [issueSearch, setIssueSearch] = useStoredState(`project-${pfx}:issueSearch`, '');
+  const [issueStatusFilter, setIssueStatusFilter] = useStoredState<IssueStatus | null>(`project-${pfx}:issueStatusFilter`, null);
+  const [issuePriorityFilter, setIssuePriorityFilter] = useStoredState<IssuePriority | null>(`project-${pfx}:issuePriorityFilter`, null);
+  const [issueSortField, setIssueSortField] = useStoredState(`project-${pfx}:issueSortField`, 'title');
+  const [issueSortOrder, setIssueSortOrder] = useStoredState<1 | -1>(`project-${pfx}:issueSortOrder`, 1);
   const [selectedIssues, setSelectedIssues] = useState<IssueWithDetails[]>([]);
-  const [issueModuleFilter, setIssueModuleFilter] = useState<string | null>(null);
-  const [issueTagFilter, setIssueTagFilter] = useState<string | null>(null);
+  const [issueModuleFilter, setIssueModuleFilter] = useStoredState<string | null>(`project-${pfx}:issueModuleFilter`, null);
+  const [issueTagFilter, setIssueTagFilter] = useStoredState<string | null>(`project-${pfx}:issueTagFilter`, null);
 
   const filteredIssues = useMemo(() => {
     const q = issueSearch.trim().toLowerCase();
@@ -953,8 +956,7 @@ export function ProjectDetailPage() {
         </div>
       </Card>
 
-      <Card>
-        <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
+      <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
           <TabPanel header="Test Plans">
             <TestPlanTab
               plans={filteredPlans}
@@ -1079,7 +1081,6 @@ export function ProjectDetailPage() {
             />
           </TabPanel>
         </TabView>
-      </Card>
 
       <TestPlanDialog
         visible={planDialogOpen}
