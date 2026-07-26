@@ -236,7 +236,7 @@ export function ProjectsPage() {
 
   return (
     <div>
-      <Toast ref={toast} />
+      <Toast ref={toast} position="top-center" />
       <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
 
       <Breadcrumb items={[{ label: 'Projects' }]} />

@@ -198,7 +198,7 @@ export function TestSuitesPage() {
 
   return (
     <div>
-      <Toast ref={toast} />
+      <Toast ref={toast} position="top-center" />
       <ConfirmDialog />
       <Breadcrumb items={[{ label: 'Test Suite' }]} />
       <PageHeader

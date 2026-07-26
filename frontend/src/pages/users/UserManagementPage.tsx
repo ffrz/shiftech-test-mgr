@@ -142,7 +142,7 @@ export function UserManagementPage() {
 
   return (
     <div>
-      <Toast ref={toast} />
+      <Toast ref={toast} position="top-center" />
       <ConfirmDialog />
       <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
 

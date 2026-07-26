@@ -218,7 +218,7 @@ export function TestSuiteDetailPage() {
 
   return (
     <div>
-      <Toast ref={toast} />
+      <Toast ref={toast} position="top-center" />
       <ConfirmDialog />
       <Breadcrumb
         items={[

@@ -247,7 +247,7 @@ export function IssueDetailPage() {
 
   return (
     <div>
-      <Toast ref={toast} />
+      <Toast ref={toast} position="top-center" />
       <ConfirmDialog />
 
       <Breadcrumb items={breadcrumbItems} />

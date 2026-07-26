@@ -258,7 +258,7 @@ export function TestCaseDetailPage() {
 
   return (
     <div>
-      <Toast ref={toast} />
+      <Toast ref={toast} position="top-center" />
       <ConfirmDialog />
 
       <Breadcrumb

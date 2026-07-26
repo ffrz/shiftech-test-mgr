@@ -81,7 +81,7 @@ export function TestPlansPage() {
 
   return (
     <div>
-      <Toast ref={toast} />
+      <Toast ref={toast} position="top-center" />
       <Breadcrumb items={[{ label: 'Test Plans' }]} />
       <PageHeader
         title="Test Plans"
