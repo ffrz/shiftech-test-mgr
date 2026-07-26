@@ -183,7 +183,7 @@ export function ProjectDetailPage() {
   useEffect(() => { setIssuePage(1); }, issueFilterDeps); // eslint-disable-line react-hooks/exhaustive-deps
 
   const issuesQuery = useQuery({
-    queryKey: [...queryKeys.issuesByProject(id ?? ''), issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issueTypeFilter, issuePage, issueRowsPerPage],
+    queryKey: [...queryKeys.issuesByProject(id ?? ''), issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issueTypeFilter, issuePage, issueRowsPerPage, issueSortField, issueSortOrder],
     queryFn: () => issueService.listByProjectPaginated(id!, {
       search: issueDebouncedSearch || undefined,
       statuses: issueStatusFilter.length ? issueStatusFilter : undefined,
