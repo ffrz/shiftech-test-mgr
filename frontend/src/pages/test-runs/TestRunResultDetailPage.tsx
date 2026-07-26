@@ -70,7 +70,6 @@ const PRIORITY_FILTER_OPTIONS: { label: string; value: TestCasePriority }[] = (
 ).map((v) => ({ label: TEST_CASE_PRIORITY_LABEL[v], value: v }));
 
 const PANEL_HEIGHT_OFFSET = 14;
-const PANEL_HEIGHT_OFFSET_MOBILE = 10;
 
 export function TestRunResultDetailPage() {
   const { id: runId = null } = useParams<{ id: string }>();
@@ -156,6 +155,7 @@ export function TestRunResultDetailPage() {
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<TestCasePriority | null>(null);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [mobileListOpen, setMobileListOpen] = useState(false);
 
   const isFilterActive = statusFilter || priorityFilter || moduleFilter || tagFilter || search.trim();
 
@@ -431,128 +431,122 @@ export function TestRunResultDetailPage() {
         }
       />
 
-      {/* --- Summary/progress: always visible, doesn't scroll with either panel --- */}
-      {testRun && (
-        <div className="flex align-items-center flex-wrap gap-2 mb-3">
-          <Tag value={TEST_RUN_STATUS_LABEL[testRun.status]} severity={TEST_RUN_STATUS_SEVERITY[testRun.status]} />
-          <span className="text-color-secondary text-sm">
-            {summary.pass} pass · {summary.fail} fail · {summary.skip} skip · {summary.blocked} blocked · {summary.notRun} not run
-          </span>
-          {testPlan && (
+      {/* --- Summary/progress: desktop only --- */}
+      {!isMobile && testRun && (
+        <>
+          <div className="flex align-items-center flex-wrap gap-2 mb-3">
+            <Tag value={TEST_RUN_STATUS_LABEL[testRun.status]} severity={TEST_RUN_STATUS_SEVERITY[testRun.status]} />
             <span className="text-color-secondary text-sm">
-              · Test Plan:{' '}
-              <a className="entity-link" onClick={() => navigate(`/test-plans/${testPlan.id}`)}>
-                {testPlan.code} - {testPlan.name}
-              </a>
+              {summary.pass} pass · {summary.fail} fail · {summary.skip} skip · {summary.blocked} blocked · {summary.notRun} not run
             </span>
+            {testPlan && (
+              <span className="text-color-secondary text-sm">
+                · Test Plan:{' '}
+                <a className="entity-link" onClick={() => navigate(`/test-plans/${testPlan.id}`)}>
+                  {testPlan.code} - {testPlan.name}
+                </a>
+              </span>
+            )}
+          </div>
+
+          {testRun?.notes && (
+            <div className="mb-3 p-0 surface-100 border-round">
+              <div className="text-sm font-medium mb-1">Notes</div>
+              <div className="text-sm white-space-pre-line">{testRun.notes}</div>
+            </div>
           )}
-        </div>
-      )}
 
-      {testRun?.notes && (
-        <div className="mb-3 p-0 surface-100 border-round">
-          <div className="text-sm font-medium mb-1">Notes</div>
-          <div className="text-sm white-space-pre-line">{testRun.notes}</div>
-        </div>
+          <div className="mb-4">
+            <div className="flex justify-content-between mb-1">
+              <span>{summary.executed} / {summary.total} executed</span>
+              <span>{summary.progressPercent}%</span>
+            </div>
+            <ProgressBar value={summary.progressPercent} showValue={false} />
+          </div>
+        </>
       )}
-
-      <div className="mb-4">
-        <div className="flex justify-content-between mb-1">
-          <span>
-            {summary.executed} / {summary.total} executed
-          </span>
-          <span>{summary.progressPercent}%</span>
-        </div>
-        <ProgressBar value={summary.progressPercent} showValue={false} />
-      </div>
 
       <div className="grid">
-        {/* --- Panel kiri: daftar test case collapsible, filter via dialog --- */}
-        <div className="col-12 md:col-4 test-run-detail-filter">
-          <Panel
-            header={
-              <div className="flex align-items-center w-full">
-                <span>Test Cases</span>
-                <span className="flex-1" />
-                <Button
-                  icon={isFilterActive ? "pi pi-filter-fill" : "pi pi-filter"}
-                  text
-                  rounded
-                  size="small"
-                  severity={isFilterActive ? "warning" : "secondary"}
-                  onClick={(e) => { e.stopPropagation(); setFilterDialogOpen(true); }}
-                  tooltip={isFilterActive ? "Filters active" : "Filter"}
-                  tooltipOptions={{ position: 'left' }}
-                />
-              </div>
-            }
-            toggleable
-            collapsed={false}
-            expandIcon="pi pi-chevron-down"
-            collapseIcon="pi pi-chevron-up"
-          >
-            <div
-              className="flex flex-column gap-1"
-              style={{
-                maxHeight: `calc(100vh - ${isMobile ? PANEL_HEIGHT_OFFSET_MOBILE : PANEL_HEIGHT_OFFSET}rem)`,
-                overflowY: 'auto',
-              }}
+        {/* --- Panel kiri: desktop — collapsible with filter via dialog --- */}
+        {!isMobile && (
+          <div className="col-12 md:col-4 test-run-detail-filter">
+            <Panel
+              header={
+                <div className="flex align-items-center w-full">
+                  <span>Test Cases</span>
+                  <span className="flex-1" />
+                  <Button
+                    icon={isFilterActive ? "pi pi-filter-fill" : "pi pi-filter"}
+                    text
+                    rounded
+                    size="small"
+                    severity={isFilterActive ? "warning" : "secondary"}
+                    onClick={(e) => { e.stopPropagation(); setFilterDialogOpen(true); }}
+                    tooltip={isFilterActive ? "Filters active" : "Filter"}
+                    tooltipOptions={{ position: 'left' }}
+                  />
+                </div>
+              }
+              toggleable
+              collapsed={false}
+              expandIcon="pi pi-chevron-down"
+              collapseIcon="pi pi-chevron-up"
             >
-              {!loading && filteredResults.length === 0 && <p className="text-color-secondary text-sm px-2">No matching test cases.</p>}
-              {filteredResults.map((r, index) => (
-                <div
-                  key={r.id}
-                  onClick={() => selectResult(r.id)}
-                  className="p-2 border-round cursor-pointer flex align-items-start gap-2"
-                  style={{
-                    backgroundColor: r.id === resultId ? 'var(--primary-color)' : undefined,
-                    color: r.id === resultId ? 'var(--primary-color-text)' : undefined,
-                  }}
-                >
-                  <span
-                    className={`text-sm flex-shrink-0 ${r.id === resultId ? '' : 'text-color-secondary'}`}
-                    style={{ minWidth: '1.5rem' }}
+              <div
+                className="flex flex-column gap-1"
+                style={{
+                  maxHeight: `calc(100vh - ${PANEL_HEIGHT_OFFSET}rem)`,
+                  overflowY: 'auto',
+                }}
+              >
+                {!loading && filteredResults.length === 0 && <p className="text-color-secondary text-sm px-2">No matching test cases.</p>}
+                {filteredResults.map((r, index) => (
+                  <div
+                    key={r.id}
+                    onClick={() => selectResult(r.id)}
+                    className="p-2 border-round cursor-pointer flex align-items-start gap-2"
+                    style={{
+                      backgroundColor: r.id === resultId ? 'var(--primary-color)' : undefined,
+                      color: r.id === resultId ? 'var(--primary-color-text)' : undefined,
+                    }}
                   >
-                    {index + 1}.
-                  </span>
-                  <div className="flex flex-column gap-1 flex-grow-1">
-                    <div className="flex align-items-center justify-content-between gap-2">
-                      <span className="text-sm font-medium">{r.testCaseCode}</span>
-                      {loading && r.id === resultId ? (
-                        <i className="pi pi-spin pi-spinner text-sm" />
-                      ) : (
-                        <Tag value={TEST_RESULT_STATUS_LABEL[r.status]} severity={TEST_RESULT_STATUS_SEVERITY[r.status]} />
+                    <span
+                      className={`text-sm flex-shrink-0 ${r.id === resultId ? '' : 'text-color-secondary'}`}
+                      style={{ minWidth: '1.5rem' }}
+                    >
+                      {index + 1}.
+                    </span>
+                    <div className="flex flex-column gap-1 flex-grow-1">
+                      <div className="flex align-items-center justify-content-between gap-2">
+                        <span className="text-sm font-medium">{r.testCaseCode}</span>
+                        {loading && r.id === resultId ? (
+                          <i className="pi pi-spin pi-spinner text-sm" />
+                        ) : (
+                          <Tag value={TEST_RESULT_STATUS_LABEL[r.status]} severity={TEST_RESULT_STATUS_SEVERITY[r.status]} />
+                        )}
+                      </div>
+                      <span className="text-sm">{r.testCaseTitle}</span>
+                      {r.testCase && r.testCase.tags.length > 0 && (
+                        <span className="flex flex-wrap gap-1">
+                          {r.testCase.tags.map((tag) => (
+                            <Tag key={tag.id} value={tag.name} severity="info" />
+                          ))}
+                        </span>
                       )}
                     </div>
-                    <span className="text-sm">{r.testCaseTitle}</span>
-                    {r.testCase && r.testCase.tags.length > 0 && (
-                      <span className="flex flex-wrap gap-1">
-                        {r.testCase.tags.map((tag) => (
-                          <Tag key={tag.id} value={tag.name} severity="info" />
-                        ))}
-                      </span>
-                    )}
                   </div>
-                </div>
-              ))}
-            </div>
-          </Panel>
-        </div>
+                ))}
+              </div>
+            </Panel>
+          </div>
+        )}
 
-        {/* --- Right panel: summary (default) or selected test case detail.
-            Desktop: independent scroll area, fixed to viewport height, with
-            the Prev/Next toolbar docked above it.
-            Mobile: flows in the page's own scroll instead, and the toolbar
-            is pulled out of flow entirely — fixed to the bottom of the
-            viewport — so it's always reachable without depending on sticky
-            positioning (which needs a clean chain of non-transformed,
-            non-overflow-clipped ancestors up to the scroll container, easy
-            to accidentally break elsewhere in the page). The content area
-            gets bottom padding so the fixed bar never covers its last card. */}
+        {/* --- Right panel --- */}
         <div
-          className={isMobile ? 'col-12 md:col-8' : 'col-12 md:col-8 flex flex-column'}
+          className={isMobile ? 'col-12' : 'col-12 md:col-8 flex flex-column'}
           style={isMobile ? undefined : { height: `calc(100vh - ${PANEL_HEIGHT_OFFSET}rem)` }}
         >
+          {/* Desktop: Prev/Next toolbar at top */}
           {activeResult && !isMobile && (
             <div
               className="flex align-items-center justify-content-between gap-2 mb-3 p-2 flex-shrink-0"
@@ -561,31 +555,16 @@ export function TestRunResultDetailPage() {
                 transition: 'box-shadow 0.15s ease',
               }}
             >
-              <Button
-                icon="pi pi-chevron-left"
-                size="small"
-                outlined
-                disabled={!prevResult}
-                onClick={() => prevResult && selectResult(prevResult.id)}
-              />
-              <span className="text-color-secondary text-sm">
-                {activeIndex + 1} / {filteredResults.length}
-              </span>
-              <Button
-                icon="pi pi-chevron-right"
-                iconPos="right"
-                size="small"
-                outlined
-                disabled={!nextResult}
-                onClick={() => nextResult && selectResult(nextResult.id)}
-              />
+              <Button icon="pi pi-chevron-left" size="small" outlined disabled={!prevResult} onClick={() => prevResult && selectResult(prevResult.id)} />
+              <span className="text-color-secondary text-sm">{activeIndex + 1} / {filteredResults.length}</span>
+              <Button icon="pi pi-chevron-right" iconPos="right" size="small" outlined disabled={!nextResult} onClick={() => nextResult && selectResult(nextResult.id)} />
             </div>
           )}
 
           <div
             ref={rightPanelRef}
             className={isMobile ? undefined : 'flex-grow-1'}
-            style={isMobile ? { paddingBottom: activeResult ? '4rem' : undefined } : { overflowY: 'auto' }}
+            style={isMobile ? { paddingBottom: activeResult ? '4.5rem' : undefined } : { overflowY: 'auto' }}
             onScroll={isMobile ? undefined : (e) => setRightPanelScrolled(e.currentTarget.scrollTop > 0)}
           >
             {!activeResult ? (
@@ -839,9 +818,18 @@ export function TestRunResultDetailPage() {
             disabled={!prevResult}
             onClick={() => prevResult && selectResult(prevResult.id)}
           />
-          <span className="text-color-secondary text-sm">
-            {activeIndex + 1} / {filteredResults.length}
-          </span>
+          <div className="flex gap-2 align-items-center">
+            <Button
+              icon={isFilterActive ? "pi pi-filter-fill" : "pi pi-list"}
+              size="small"
+              text
+              severity={isFilterActive ? "warning" : "secondary"}
+              onClick={() => setMobileListOpen(true)}
+            />
+            <span className="text-color-secondary text-sm">
+              {activeIndex + 1} / {filteredResults.length}
+            </span>
+          </div>
           <Button
             icon="pi pi-chevron-right"
             iconPos="right"
@@ -852,6 +840,54 @@ export function TestRunResultDetailPage() {
           />
         </div>
       )}
+
+      {/* --- Mobile Test Case List Dialog --- */}
+      <Dialog
+        header={
+          <div className="flex align-items-center w-full">
+            <span>Test Cases</span>
+            <span className="flex-1" />
+            <Button
+              icon={isFilterActive ? "pi pi-filter-fill" : "pi pi-filter"}
+              text
+              rounded
+              size="small"
+              severity={isFilterActive ? "warning" : "secondary"}
+              onClick={(e) => { e.stopPropagation(); setFilterDialogOpen(true); }}
+              tooltip={isFilterActive ? "Filters active" : "Filter"}
+            />
+          </div>
+        }
+        visible={mobileListOpen}
+        onHide={() => setMobileListOpen(false)}
+        style={{ width: '100vw', height: '100vh', maxHeight: '100vh' }}
+        maximizable
+        blockScroll
+      >
+        <div className="flex flex-column gap-1" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 8rem)' }}>
+          {!loading && filteredResults.length === 0 && <p className="text-color-secondary text-sm px-2">No matching test cases.</p>}
+          {filteredResults.map((r, index) => (
+            <div
+              key={r.id}
+              onClick={() => { selectResult(r.id); setMobileListOpen(false); }}
+              className="p-2 border-round cursor-pointer flex align-items-start gap-2"
+              style={{
+                backgroundColor: r.id === resultId ? 'var(--primary-color)' : undefined,
+                color: r.id === resultId ? 'var(--primary-color-text)' : undefined,
+              }}
+            >
+              <span className={`text-sm flex-shrink-0 ${r.id === resultId ? '' : 'text-color-secondary'}`} style={{ minWidth: '1.5rem' }}>{index + 1}.</span>
+              <div className="flex flex-column gap-1 flex-grow-1">
+                <div className="flex align-items-center justify-content-between gap-2">
+                  <span className="text-sm font-medium">{r.testCaseCode}</span>
+                  <Tag value={TEST_RESULT_STATUS_LABEL[r.status]} severity={TEST_RESULT_STATUS_SEVERITY[r.status]} />
+                </div>
+                <span className="text-sm">{r.testCaseTitle}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Dialog>
 
       {/* --- Create Issue via shared IssueEditor, auto-links to activeResult --- */}
       {issueEditorOpen && (
