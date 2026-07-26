@@ -139,34 +139,34 @@ export function TestRunTab({
         )}
       </div>
       {filterVisible && (
-      <div className="grid mb-2">
-        <div className="col-12 md:col-3 p-1">
-          <MultiSelect
-            value={statusFilter}
-            options={TEST_RUN_STATUS_OPTIONS}
-            onChange={(e) => onStatusFilterChange(e.value)}
-            placeholder="All Statuses"
-            className="w-full"
-            selectAll
-            selectAllLabel="All"
-          />
-        </div>
-        <div className="col-12 md:col p-1">
-          <div className="flex gap-2">
-            <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." className="flex-1" />
-            <Button
-              icon="pi pi-refresh"
-              outlined
-              severity="secondary"
-              size="small"
-              disabled={!hasActiveFilters}
-              onClick={onClearFilters}
-              tooltip="Reset filters"
-              tooltipOptions={{ position: 'bottom' }}
+        <div className="grid mb-2 p-1">
+          <div className="col-12 md:col-2 p-1">
+            <MultiSelect
+              value={statusFilter}
+              options={TEST_RUN_STATUS_OPTIONS}
+              onChange={(e) => onStatusFilterChange(e.value)}
+              placeholder="All Statuses"
+              className="w-full"
+              selectAll
+              selectAllLabel="All"
             />
           </div>
+          <div className="col-12 md:col p-1">
+            <div className="flex gap-2">
+              <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." className="flex-1" />
+              <Button
+                icon="pi pi-refresh"
+                outlined
+                severity="secondary"
+                size="small"
+                disabled={!hasActiveFilters}
+                onClick={onClearFilters}
+                tooltip="Reset filters"
+                tooltipOptions={{ position: 'bottom' }}
+              />
+            </div>
+          </div>
         </div>
-      </div>
       )}
       {canDeleteContent && (
         <BulkActionsBar

@@ -262,7 +262,7 @@ export function TestCaseTab({
       </div>
       {filterVisible && (
         <div className="grid mb-2 p-1">
-          <div className="col-12 md:col-3 p-1">
+          <div className="col-6 md:col-2 p-1">
             <MultiSelect
               value={statusFilter}
               options={TEST_CASE_STATUS_OPTIONS}
@@ -273,7 +273,7 @@ export function TestCaseTab({
               selectAllLabel="All"
             />
           </div>
-          <div className="col-12 md:col-3 p-1">
+          <div className="col-6 md:col-2 p-1">
             <MultiSelect
               value={priorityFilter}
               options={PRIORITY_OPTIONS}
@@ -284,7 +284,7 @@ export function TestCaseTab({
               selectAllLabel="All"
             />
           </div>
-          <div className="col-12 md:col-3 p-1">
+          <div className="col-6 md:col-2 p-1">
             <MultiSelect
               value={moduleFilter}
               options={moduleOptions}
@@ -295,23 +295,23 @@ export function TestCaseTab({
               selectAllLabel="All"
             />
           </div>
-          <div className="col-12 md:col-3 p-1">
-            <MultiSelect
-              value={tagFilter}
-              options={tagOptions}
-              onChange={(e) => onTagFilterChange(e.value)}
-              placeholder="All Tags"
-              className="w-full"
-              selectAll
-              selectAllLabel="All"
-            />
-          </div>
-          <div className="col-12 md:col-3 p-1">
+          <div className="col-6 md:col-2 p-1">
             <MultiSelect
               value={testRoleFilter}
               options={testRoleOptions}
               onChange={(e) => onTestRoleFilterChange(e.value)}
               placeholder="All Roles"
+              className="w-full"
+              selectAll
+              selectAllLabel="All"
+            />
+          </div>
+          <div className="col-12 md:col-2 p-1">
+            <MultiSelect
+              value={tagFilter}
+              options={tagOptions}
+              onChange={(e) => onTagFilterChange(e.value)}
+              placeholder="All Tags"
               className="w-full"
               selectAll
               selectAllLabel="All"
