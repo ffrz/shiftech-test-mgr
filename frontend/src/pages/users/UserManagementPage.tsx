@@ -156,6 +156,8 @@ export function UserManagementPage() {
           onChange={(e) => setRoleFilter(e.value)}
           placeholder="All Roles"
           className="w-14rem"
+          selectAll
+          selectAllLabel="All"
         />
       </div>
       <DataTable

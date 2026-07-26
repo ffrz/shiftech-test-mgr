@@ -262,6 +262,8 @@ export function ProjectsPage() {
           onChange={(e) => setVisibilityFilter(e.value)}
           placeholder="All Visibility"
           className="w-14rem"
+          selectAll
+          selectAllLabel="All"
         />
         <MultiSelect
           value={statusFilter}
@@ -273,6 +275,8 @@ export function ProjectsPage() {
           onChange={(e) => setStatusFilter(e.value)}
           placeholder="All Statuses"
           className="w-14rem"
+          selectAll
+          selectAllLabel="All"
         />
       </div>
 
