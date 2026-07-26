@@ -217,6 +217,10 @@ h6 {
   padding: 1rem;
 }
 
+.p-card .p-card-content {
+  padding: 0;
+}
+
 .p-tabview .p-tabview-nav li .p-tabview-nav-link {
   padding: 0.6rem 1rem;
   font-size: 0.85rem;
@@ -611,13 +615,6 @@ h2 {
   padding: 0.75rem;
 }
 
-.p-card .p-card-body {
-  padding: 0.75rem;
-}
-
-.p-card .p-card-content {
-  padding: 0.5rem;
-}
 
 .p-dialog .p-dialog-header .p-dialog-title {
   font-weight: 600;
@@ -743,10 +740,6 @@ html.dark .p-menu .p-menuitem-link.p-focus {
 
 .p-tabview .p-tabview-panels {
   padding: 1rem 0;
-}
-
-.p-card .p-card-body {
-  padding: 0.5rem;
 }
 
 /* Theme bug: PrimeReact's lara-light-blue sets both color and background to
