@@ -91,6 +91,7 @@ export function TestPlanDetailPage() {
   });
 
   // --- Test Runs: search / multi-select filter / server-side pagination ---
+  const [runFilterVisible, setRunFilterVisible] = useState(true);
   const [runSearch, setRunSearch] = useState('');
   const [runStatusFilters, setRunStatusFilters] = useState<TestRunStatus[]>([]);
   const [runFirst, setRunFirst] = useState(0);
@@ -106,6 +107,7 @@ export function TestPlanDetailPage() {
   });
 
   // --- Test Cases: search / multi-select filter / server-side pagination ---
+  const [caseFilterVisible, setCaseFilterVisible] = useState(true);
   const [caseSearch, setCaseSearch] = useState('');
   const [casePriorityFilters, setCasePriorityFilters] = useState<TestCasePriority[]>([]);
   const [caseModuleFilters, setCaseModuleFilters] = useState<string[]>([]);
@@ -385,8 +387,27 @@ export function TestPlanDetailPage() {
 
       <TabView>
         <TabPanel header="Test Cases">
+          <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div />
+            {canEditContent && (
+              <div className="flex gap-2">
+                <Button
+                  icon={caseFilterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
+                  text
+                  rounded
+                  size="small"
+                  severity={caseFilterVisible ? "warning" : "secondary"}
+                  onClick={() => setCaseFilterVisible(!caseFilterVisible)}
+                  tooltip={caseFilterVisible ? "Hide filters" : "Show filters"}
+                  tooltipOptions={{ position: 'bottom' }}
+                />
+                <Button label="Add Test Case" icon="pi pi-plus" size="small" onClick={openAddCaseDialog} />
+              </div>
+            )}
+          </div>
+          {caseFilterVisible && (
           <div className="grid mb-2">
-            <div className="col-12 md:col-4">
+            <div className="col-12 md:col-4 p-1">
               <MultiSelect
                 value={casePriorityFilters}
                 options={PRIORITY_OPTIONS}
@@ -396,7 +417,7 @@ export function TestPlanDetailPage() {
                 display="chip"
               />
             </div>
-            <div className="col-12 md:col-4">
+            <div className="col-12 md:col-4 p-1">
               <MultiSelect
                 value={caseModuleFilters}
                 options={modules.map((m) => ({ label: m.name, value: m.id }))}
@@ -407,7 +428,7 @@ export function TestPlanDetailPage() {
                 filter
               />
             </div>
-            <div className="col-12 md:col-4">
+            <div className="col-12 md:col-4 p-1">
               <MultiSelect
                 value={caseTagFilters}
                 options={tags.map((t) => ({ label: t.name, value: t.id }))}
@@ -418,20 +439,16 @@ export function TestPlanDetailPage() {
                 filter
               />
             </div>
-            <div className="col-12 md:col">
+            <div className="col-12 md:col p-1">
               <div className="flex gap-2">
                 <SearchInput value={caseSearch} onChange={(v) => { setCaseSearch(v); resetCasePage(); }} placeholder="Search title/code..." className="flex-1" />
-                <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
+                <Button icon="pi pi-refresh" text size="small" severity="secondary"
                   onClick={() => { setCaseSearch(''); setCasePriorityFilters([]); setCaseModuleFilters([]); setCaseTagFilters([]); resetCasePage(); setSelectedCases([]); }}
-                  tooltip="Clear filters" />
+                  tooltip="Reset filters" />
               </div>
             </div>
-            {canEditContent && (
-              <div className="col-12 md:col-fixed">
-                <Button label="Add Test Case" icon="pi pi-plus" size="small" className="w-full md:w-auto" onClick={openAddCaseDialog} />
-              </div>
-            )}
           </div>
+          )}
           {canEditContent && (
             <BulkActionsBar
               selectedCount={selectedCases.length}
@@ -534,8 +551,27 @@ export function TestPlanDetailPage() {
           </DataTable>
         </TabPanel>
         <TabPanel header="Test Runs">
+          <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div />
+            {canRunTests && (
+              <div className="flex gap-2">
+                <Button
+                  icon={runFilterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
+                  text
+                  rounded
+                  size="small"
+                  severity={runFilterVisible ? "warning" : "secondary"}
+                  onClick={() => setRunFilterVisible(!runFilterVisible)}
+                  tooltip={runFilterVisible ? "Hide filters" : "Show filters"}
+                  tooltipOptions={{ position: 'bottom' }}
+                />
+                <Button label="Start Test Run" icon="pi pi-play" size="small" onClick={openStartRunDialog} />
+              </div>
+            )}
+          </div>
+          {runFilterVisible && (
           <div className="grid mb-2">
-            <div className="col-12 md:col-3">
+            <div className="col-12 md:col-3 p-1">
               <MultiSelect
                 value={runStatusFilters}
                 options={TEST_RUN_STATUS_OPTIONS}
@@ -545,20 +581,16 @@ export function TestPlanDetailPage() {
                 display="chip"
               />
             </div>
-            <div className="col-12 md:col">
+            <div className="col-12 md:col p-1">
               <div className="flex gap-2">
                 <SearchInput value={runSearch} onChange={(v) => { setRunSearch(v); setRunFirst(0); }} placeholder="Search name/code..." className="flex-1" />
-                <Button icon="pi pi-filter-slash" text size="small" severity="secondary"
+                <Button icon="pi pi-refresh" text size="small" severity="secondary"
                   onClick={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
-                  tooltip="Clear filters" />
+                  tooltip="Reset filters" />
               </div>
             </div>
-            {canRunTests && (
-              <div className="col-12 md:col-fixed">
-                <Button label="Start Test Run" icon="pi pi-play" size="small" className="w-full md:w-auto" onClick={openStartRunDialog} />
-              </div>
-            )}
           </div>
+          )}
           <DataTable
             value={testRuns}
             loading={runsLoading}
