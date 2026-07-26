@@ -913,8 +913,8 @@ export function ProjectDetailPage() {
       />
 
       <Card className="mb-3">
-        <div className="flex align-items-start justify-content-between flex-wrap gap-2">
-          <div>
+        <div className="flex align-items-start justify-content-between gap-2">
+          <div className="min-w-0">
             <div className="flex align-items-center gap-2 mb-1">
               <h2 className="m-0">{project.name}</h2>
               <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
@@ -922,7 +922,7 @@ export function ProjectDetailPage() {
             </div>
             <p className="text-color-secondary text-sm m-0">{project.description || 'No description'}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0">
             <Button text icon="pi pi-cog" rounded size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
           </div>
         </div>
