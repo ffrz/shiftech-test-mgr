@@ -10,9 +10,8 @@ import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
+import SearchInput from '../../components/ui/SearchInput';
 import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
@@ -491,10 +490,7 @@ export function ProjectSettingsPage() {
         <TabView>
           <TabPanel header="Modules">
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-              <IconField iconPosition="left">
-                <InputIcon className="pi pi-search" />
-                <InputText value={moduleSearch} onChange={(e) => setModuleSearch(e.target.value)} placeholder="Search name/code..." />
-              </IconField>
+              <SearchInput value={moduleSearch} onChange={setModuleSearch} placeholder="Search name/code..." />
               <Button label="New Module" icon="pi pi-plus" size="small" onClick={openCreateModuleDialog} />
             </div>
             <BulkActionsBar
@@ -545,10 +541,7 @@ export function ProjectSettingsPage() {
               Tags are also created automatically when typed in the Test Case form. Manage tags here.
             </p>
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-              <IconField iconPosition="left">
-                <InputIcon className="pi pi-search" />
-                <InputText value={tagSearch} onChange={(e) => setTagSearch(e.target.value)} placeholder="Search name..." />
-              </IconField>
+              <SearchInput value={tagSearch} onChange={setTagSearch} placeholder="Search name..." />
               <Button label="New Tag" icon="pi pi-plus" size="small" onClick={openCreateTagDialog} />
             </div>
             <BulkActionsBar
@@ -599,10 +592,7 @@ export function ProjectSettingsPage() {
               Used as the "Target Role" when creating a test case.
             </p>
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-              <IconField iconPosition="left">
-                <InputIcon className="pi pi-search" />
-                <InputText value={testRoleSearch} onChange={(e) => setTestRoleSearch(e.target.value)} placeholder="Search name..." />
-              </IconField>
+              <SearchInput value={testRoleSearch} onChange={setTestRoleSearch} placeholder="Search name..." />
               <Button label="Role Baru" icon="pi pi-plus" size="small" onClick={openCreateTestRoleDialog} />
             </div>
             <BulkActionsBar

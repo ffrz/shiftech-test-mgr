@@ -7,6 +7,47 @@ import {
 import type { TestSuite, TestSuiteItem, TestSuiteItemStep, TestSuiteVisibility } from '../types/domain';
 
 export const testSuiteRepository = {
+  async findAllPaginated(params: {
+    search?: string;
+    ownership?: 'mine' | 'all';
+    visibilityFilter?: string[];
+    userId?: string;
+    page: number;
+    pageSize: number;
+    sortField?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<{ data: TestSuite[]; total: number }> {
+    let query = supabase.from('test_suites').select('*', { count: 'exact' });
+
+    if (params.ownership === 'mine' && params.userId) {
+      query = query.eq('owner_id', params.userId);
+    }
+
+    if (params.search) {
+      const q = params.search.replace(/%/g, '');
+      query = query.ilike('name', `%${q}%`);
+    }
+
+    if (params.visibilityFilter?.length) {
+      query = query.in('visibility', params.visibilityFilter);
+    }
+
+    const sortFieldMap: Record<string, string> = {
+      name: 'name',
+      updatedAt: 'updated_at',
+      createdAt: 'created_at',
+    };
+    const col = sortFieldMap[params.sortField ?? 'name'] ?? 'name';
+    query = query.order(col, { ascending: params.sortOrder !== 'desc' });
+
+    const from = (params.page - 1) * params.pageSize;
+    query = query.range(from, from + params.pageSize - 1);
+
+    const { data, error, count } = await query;
+    if (error) throw error;
+    return { data: (data ?? []).map(mapTestSuiteRow), total: count ?? 0 };
+  },
+
   async findAll(): Promise<TestSuite[]> {
     const { data, error } = await supabase.from('test_suites').select('*').order('name');
     if (error) throw error;

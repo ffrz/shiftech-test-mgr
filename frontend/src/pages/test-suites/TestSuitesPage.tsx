@@ -1,7 +1,7 @@
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DataTable } from 'primereact/datatable';
+import { DataTable, type DataTablePageEvent, type DataTableSortEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
@@ -9,13 +9,15 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Dropdown } from 'primereact/dropdown';
 import { SelectButton } from 'primereact/selectbutton';
+import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useAuthContext } from '../../hooks/useAuth';
 import { testSuiteService } from '../../services/testSuiteService';
-import { queryKeys } from '../../hooks/queryKeys';
 import { useScreenSize } from '../../hooks/useScreenSize';
+import { useStoredState } from '../../hooks/useStoredState';
+import SearchInput from '../../components/ui/SearchInput';
 import type { TestSuite, TestSuiteVisibility } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
@@ -43,17 +45,58 @@ export function TestSuitesPage() {
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
 
-  const [ownershipFilter, setOwnershipFilter] = useState<OwnershipFilter>('mine');
+  const [ownershipFilter, setOwnershipFilter] = useStoredState<OwnershipFilter>('testSuitesPage:ownership', 'mine');
+  const [search, setSearch] = useStoredState('testSuitesPage:search', '');
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const { data: suites = [], isLoading: loading } = useQuery({
-    queryKey: queryKeys.testSuites(),
-    queryFn: () => testSuiteService.listSuites(),
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
+
+  const [visibilityFilter, setVisibilityFilter] = useStoredState<TestSuiteVisibility[]>('testSuitesPage:visibilityFilter', []);
+  const [page, setPage] = useStoredState('testSuitesPage:page', 1);
+  const [rowsPerPage, setRowsPerPage] = useStoredState('testSuitesPage:rowsPerPage', 10);
+  const [sortField, setSortField] = useStoredState('testSuitesPage:sortField', 'name');
+  const [sortOrder, setSortOrder] = useStoredState<-1 | 1>('testSuitesPage:sortOrder', 1);
+
+  const hasActiveFilters = debouncedSearch !== '' || visibilityFilter.length > 0;
+
+  function resetFilters() {
+    setSearch('');
+    setDebouncedSearch('');
+    setVisibilityFilter([]);
+    setPage(1);
+  }
+
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['testSuites-paginated', debouncedSearch, ownershipFilter, visibilityFilter, page, rowsPerPage, sortField, sortOrder, user?.id],
+    queryFn: async () => testSuiteService.listPaginated({
+      search: debouncedSearch || undefined,
+      ownership: ownershipFilter,
+      visibilityFilter: visibilityFilter.length ? visibilityFilter : undefined,
+      userId: ownershipFilter === 'mine' ? user?.id : undefined,
+      page,
+      pageSize: rowsPerPage,
+      sortField,
+      sortOrder: sortOrder === 1 ? 'asc' : 'desc',
+    }),
   });
 
-  const visibleSuites = useMemo(
-    () => (ownershipFilter === 'mine' ? suites.filter((s) => s.ownerId === user?.id) : suites),
-    [suites, ownershipFilter, user?.id],
-  );
+  const suites = data?.data ?? [];
+  const totalRecords = data?.total ?? 0;
+
+  function onPage(e: DataTablePageEvent) {
+    setPage((e.page ?? 0) + 1);
+    if (e.rows) setRowsPerPage(e.rows);
+  }
+
+  function onSort(e: DataTableSortEvent) {
+    setSortField(e.sortField ?? 'name');
+    setSortOrder(e.sortOrder as -1 | 1);
+  }
 
   function isOwnerOrAdmin(row: TestSuite) {
     return isAdmin || row.ownerId === user?.id;
@@ -102,7 +145,7 @@ export function TestSuitesPage() {
   }
 
   async function reload() {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.testSuites() });
+    await queryClient.invalidateQueries({ queryKey: ['testSuites-paginated'] });
   }
 
   async function handleSave() {
@@ -178,11 +221,45 @@ export function TestSuitesPage() {
         />
       </div>
 
+      <div className="flex gap-2 mb-3">
+        <SearchInput value={search} onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }} placeholder="Search suites..." className="flex-1" />
+        <MultiSelect
+          value={visibilityFilter}
+          options={[
+            { label: 'Private', value: 'private' },
+            { label: 'Unlisted', value: 'unlisted' },
+            { label: 'Public', value: 'public' },
+          ]}
+          onChange={(e) => setVisibilityFilter(e.value)}
+          placeholder="All Visibility"
+          className="w-14rem"
+          selectAll
+          selectAllLabel="All"
+        />
+        <Button
+          icon="pi pi-filter-slash"
+          outlined
+          severity="secondary"
+          disabled={!hasActiveFilters}
+          onClick={resetFilters}
+          tooltip="Reset filters"
+          tooltipOptions={{ position: 'bottom' }}
+        />
+      </div>
+
       <DataTable
-        value={visibleSuites}
+        value={suites}
         loading={loading}
+        lazy
+        totalRecords={totalRecords}
         paginator
-        rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
+        rows={rowsPerPage}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        first={(page - 1) * rowsPerPage}
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onPage={onPage}
+        onSort={onSort}
         emptyMessage="No suites yet"
         size="small"
         onRowClick={(e) => navigate(`/test-suites/${(e.data as TestSuite).id}`)}

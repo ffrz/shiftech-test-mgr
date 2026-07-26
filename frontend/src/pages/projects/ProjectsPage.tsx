@@ -5,9 +5,8 @@ import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
 import { Dropdown } from 'primereact/dropdown';
+import SearchInput from '../../components/ui/SearchInput';
 import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import { Menu } from 'primereact/menu';
@@ -234,15 +233,9 @@ export function ProjectsPage() {
       <PageHeader title="Projects" actions={<Button label="New Project" icon="pi pi-plus" size="small" onClick={openCreateDialog} />} />
 
       <div className="flex flex-wrap gap-2 mb-3">
-        <IconField iconPosition="left" className="flex-1" style={{ minWidth: '12rem' }}>
-          <InputIcon className="pi pi-search" />
-          <InputText
-            className="w-full"
-            placeholder="Search projects..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </IconField>
+        <div className="flex-1" style={{ minWidth: '12rem' }}>
+          <SearchInput value={search} onChange={setSearch} placeholder="Search projects..." />
+        </div>
         <Dropdown
           value={ownerFilter}
           options={[

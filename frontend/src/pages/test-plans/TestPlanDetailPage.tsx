@@ -8,9 +8,8 @@ import { Button } from 'primereact/button';
 import { TabView, TabPanel } from 'primereact/tabview';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
 import { Dropdown } from 'primereact/dropdown';
+import SearchInput from '../../components/ui/SearchInput';
 import { MultiSelect } from 'primereact/multiselect';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
@@ -350,10 +349,7 @@ export function TestPlanDetailPage() {
         <TabPanel header="Test Runs">
           <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
             <div className="flex align-items-center gap-2 flex-wrap">
-              <IconField iconPosition="left">
-                <InputIcon className="pi pi-search" />
-                <InputText value={runSearch} onChange={(e) => setRunSearch(e.target.value)} placeholder="Search name/code..." />
-              </IconField>
+              <SearchInput value={runSearch} onChange={setRunSearch} placeholder="Search name/code..." />
               <Dropdown
                 value={runStatusFilter}
                 options={TEST_RUN_STATUS_OPTIONS}
@@ -431,10 +427,7 @@ export function TestPlanDetailPage() {
         <TabPanel header="Test Cases">
           <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
             <div className="flex align-items-center gap-2 flex-wrap">
-              <IconField iconPosition="left">
-                <InputIcon className="pi pi-search" />
-                <InputText value={caseSearch} onChange={(e) => setCaseSearch(e.target.value)} placeholder="Search title/code..." />
-              </IconField>
+              <SearchInput value={caseSearch} onChange={setCaseSearch} placeholder="Search title/code..." />
               <Dropdown
                 value={casePriorityFilter}
                 options={PRIORITY_OPTIONS}

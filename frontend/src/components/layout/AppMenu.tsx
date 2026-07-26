@@ -1,9 +1,7 @@
 import { useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
-import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
+import SearchInput from '../ui/SearchInput';
 import { AppMenuitem, AppMenuSeparator, type MenuItemModel } from './AppMenuitem';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjects } from '../../hooks/useProjects';
@@ -80,15 +78,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
         </li>
 
         <li className="layout-menu-search">
-          <IconField iconPosition="left">
-            <InputIcon className="pi pi-search" />
-            <InputText
-              value={projectSearch}
-              onChange={(e) => setProjectSearch(e.target.value)}
-              placeholder="Filter projects..."
-              className="w-full"
-            />
-          </IconField>
+          <SearchInput value={projectSearch} onChange={setProjectSearch} placeholder="Filter projects..." />
         </li>
 
         {visibleProjects.map((project) => (

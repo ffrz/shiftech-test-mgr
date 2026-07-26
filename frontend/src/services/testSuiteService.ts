@@ -9,6 +9,19 @@ export const testSuiteService = {
     return testSuiteRepository.findAll();
   },
 
+  listPaginated(params: {
+    search?: string;
+    ownership?: 'mine' | 'all';
+    visibilityFilter?: string[];
+    userId?: string;
+    page: number;
+    pageSize: number;
+    sortField?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    return testSuiteRepository.findAllPaginated(params);
+  },
+
   getSuite(id: string) {
     return testSuiteRepository.findById(id);
   },

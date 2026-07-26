@@ -12,9 +12,8 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { MultiSelect } from 'primereact/multiselect';
 import { AutoComplete, type AutoCompleteCompleteEvent } from 'primereact/autocomplete';
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import SearchInput from '../../components/ui/SearchInput';
 import { Toast } from 'primereact/toast';
 import { useTestRunDetail } from '../../hooks/useTestRunDetail';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
@@ -478,10 +477,7 @@ export function TestRunResultDetailPage() {
             }}
           >
             <div className="flex flex-column gap-1">
-              <IconField iconPosition="left">
-                <InputIcon className="pi pi-search" />
-                <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search title/code..." className="w-full" />
-              </IconField>
+              <SearchInput value={search} onChange={setSearch} placeholder="Search title/code..." />
               <Dropdown value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(e) => setStatusFilter(e.value)} placeholder="All Statuses" showClear className="w-full" />
               <Dropdown value={priorityFilter} options={PRIORITY_FILTER_OPTIONS} onChange={(e) => setPriorityFilter(e.value)} placeholder="All Priorities" showClear className="w-full" />
               <Dropdown value={moduleFilter} options={moduleOptions} onChange={(e) => setModuleFilter(e.value)} placeholder="All Modules" showClear className="w-full" />
