@@ -6,8 +6,7 @@ import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { MultiSelect } from 'primereact/multiselect';
 import { Menu } from 'primereact/menu';
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
+
 import { InputText } from 'primereact/inputtext';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
@@ -150,15 +149,22 @@ export function UserManagementPage() {
 
       <PageHeader title="Users" />
       <div className="flex gap-2 mb-3">
-        <IconField iconPosition="left" className="flex-1">
-          <InputIcon className="pi pi-search" />
+        <span className="p-input-icon-left p-input-icon-right flex-1">
+          <i className="pi pi-search" />
           <InputText
             className="w-full"
             placeholder="Search users..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-        </IconField>
+          {search && (
+            <i
+              className="pi pi-times"
+              style={{ cursor: 'pointer' }}
+              onClick={() => { setSearch(''); setDebouncedSearch(''); }}
+            />
+          )}
+        </span>
         <MultiSelect
           value={roleFilter}
           options={ROLE_OPTIONS}
