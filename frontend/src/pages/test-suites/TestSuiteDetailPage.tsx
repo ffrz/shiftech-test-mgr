@@ -522,6 +522,7 @@ export function TestSuiteDetailPage() {
           if (!id) return;
           await testSuiteService.updateSuite(id, { name: data.name, description: data.description, visibility: data.visibility });
           setEditDialogOpen(false);
+          await queryClient.invalidateQueries({ queryKey: queryKeys.testSuite(id) });
           await reloadItems();
           toast.current?.show({ severity: 'success', summary: 'Suite updated' });
         }}
