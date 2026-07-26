@@ -120,13 +120,13 @@ export function UserManagementPage() {
     ? [
       { label: 'View Details', icon: 'pi pi-eye', command: () => navigate(`/users/${menuRow.id}`) },
       ...(menuRow.role === 'user' && !isMenuRowSelf
-        ? [{ separator: true }, { label: 'Make Admin', icon: 'pi pi-shield', command: () => handlePromote(menuRow) }]
+        ? [{ label: 'Make Admin', icon: 'pi pi-shield', command: () => handlePromote(menuRow) }]
         : []),
       ...(menuRow.role === 'admin' && !isMenuRowSelf
-        ? [{ separator: true }, { label: 'Demote to User', icon: 'pi pi-user', command: () => handleDemote(menuRow) }]
+        ? [{ label: 'Demote to User', icon: 'pi pi-user', command: () => handleDemote(menuRow) }]
         : []),
       ...(!isMenuRowSelf
-        ? [{ separator: true }, { label: 'Delete', icon: 'pi pi-trash', command: () => handleDelete(menuRow) }]
+        ? [{ label: 'Delete', icon: 'pi pi-trash', command: () => handleDelete(menuRow) }]
         : []),
     ]
     : [];
