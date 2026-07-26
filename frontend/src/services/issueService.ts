@@ -14,6 +14,23 @@ export const issueService = {
     return issueRepository.findAllByProject(projectId, options);
   },
 
+  listByProjectPaginated(
+    projectId: string,
+    options: {
+      search?: string;
+      statuses?: Issue['status'][];
+      priorities?: Issue['priority'][];
+      moduleIds?: string[];
+      tagIds?: string[];
+      page: number;
+      pageSize: number;
+      sortField?: string;
+      sortOrder?: 'asc' | 'desc';
+    },
+  ) {
+    return issueRepository.findAllByProjectPaginated(projectId, options);
+  },
+
   listByTestRun(testRunId: string) {
     return issueRepository.findAllByTestRun(testRunId);
   },

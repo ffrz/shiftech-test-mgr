@@ -39,6 +39,55 @@ export const issueRepository = {
     return data ? mapIssueWithDetailsRow(data) : null;
   },
 
+  async findAllByProjectPaginated(
+    projectId: string,
+    options: {
+      search?: string;
+      statuses?: IssueStatus[];
+      priorities?: Issue['priority'][];
+      moduleIds?: string[];
+      tagIds?: string[];
+      page: number;
+      pageSize: number;
+      sortField?: string;
+      sortOrder?: 'asc' | 'desc';
+    },
+  ): Promise<{ data: IssueWithDetails[]; total: number }> {
+    const selectStr = options.tagIds?.length
+      ? '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), issue_tags!inner(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))'
+      : ISSUE_DETAIL_SELECT;
+
+    let query = supabase.from('issues').select(selectStr, { count: 'exact' }).eq('project_id', projectId);
+
+    if (options.search?.trim()) {
+      const q = options.search.trim();
+      query = query.or(`title.ilike.%${q}%,code.ilike.%${q}%`);
+    }
+    if (options.statuses?.length) {
+      query = query.in('status', options.statuses);
+    }
+    if (options.priorities?.length) {
+      query = query.in('priority', options.priorities);
+    }
+    if (options.moduleIds?.length) {
+      query = query.in('module_id', options.moduleIds);
+    }
+    if (options.tagIds?.length) {
+      query = query.in('issue_tags.tag_id', options.tagIds);
+    }
+
+    const sortColumn: Record<string, string> = { title: 'title', priority: 'priority', status: 'status', createdAt: 'created_at', updatedAt: 'updated_at' };
+    const sortCol = sortColumn[options.sortField ?? ''] ?? 'created_at';
+    query = query.order(sortCol, { ascending: (options.sortOrder ?? 'desc') === 'asc' });
+
+    const from = (options.page - 1) * options.pageSize;
+    query = query.range(from, from + options.pageSize - 1);
+
+    const { data, error, count } = await query;
+    if (error) throw error;
+    return { data: (data ?? []).map(mapIssueWithDetailsRow), total: count ?? 0 };
+  },
+
   async findAllByProject(
     projectId: string,
     options?: { search?: string; statuses?: IssueStatus[]; priorities?: Issue['priority'][]; moduleIds?: string[]; limit?: number },

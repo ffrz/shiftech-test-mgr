@@ -1,5 +1,5 @@
 import { Button } from 'primereact/button';
-import { DataTable, type DataTableStateEvent } from 'primereact/datatable';
+import { DataTable, type DataTablePageEvent, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
@@ -58,9 +58,13 @@ type IssueTabProps = {
   onDuplicate: (row: IssueWithDetails) => void;
   onBulkDelete: () => void;
   onRowClick: (row: IssueWithDetails) => void;
-  onPatchIssue: (issueId: string, changes: Partial<IssueWithDetails>) => void;
+  onPatchIssue: (_issueId: string, _changes: Partial<IssueWithDetails>) => void;
   onReload: () => Promise<void>;
   onToastSuccess: (summary: string) => void;
+  lazy?: boolean;
+  totalRecords?: number;
+  first?: number;
+  onPage?: (e: DataTablePageEvent) => void;
 };
 
 export function IssueTab({
@@ -97,6 +101,10 @@ export function IssueTab({
   onPatchIssue,
   onReload,
   onToastSuccess,
+  lazy,
+  totalRecords,
+  first,
+  onPage,
 }: IssueTabProps) {
   const mobileIssueBody = (row: IssueWithDetails) => (
     <div className="flex flex-column gap-1">
@@ -182,6 +190,10 @@ export function IssueTab({
         onRowClick={(e) => onRowClick(e.data as IssueWithDetails)}
         rowHover
         className="cursor-pointer"
+        lazy={lazy}
+        totalRecords={lazy ? totalRecords : undefined}
+        first={lazy ? first : undefined}
+        onPage={lazy ? onPage : undefined}
         paginator
         paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
         currentPageReportTemplate="{totalRecords} records"

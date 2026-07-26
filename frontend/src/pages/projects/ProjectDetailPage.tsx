@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
-import type { DataTableStateEvent } from 'primereact/datatable';
+import type { DataTablePageEvent, DataTableStateEvent } from 'primereact/datatable';
 import { TabView, TabPanel } from 'primereact/tabview';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
@@ -22,6 +22,7 @@ import { TestCaseDialog } from './components/dialogs/TestCaseDialog';
 import { ImportTemplateDialog } from './components/dialogs/ImportTemplateDialog';
 import { ImportExcelDialog } from './components/dialogs/ImportExcelDialog';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
+import { CreateProjectDialog } from './components/CreateProjectDialog';
 import { projectService } from '../../services/projectService';
 import { testPlanService } from '../../services/testPlanService';
 import { testCaseService } from '../../services/testCaseService';
@@ -91,6 +92,7 @@ export function ProjectDetailPage() {
   });
   const project = projectQuery.data ?? null;
   const projectLoading = projectQuery.isLoading;
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
   // --- Debounced search for each tab ---
   function useDebouncedSearch(immediate: string, setter: (v: string) => void) {
@@ -172,14 +174,24 @@ export function ProjectDetailPage() {
   const [selectedIssues, setSelectedIssues] = useState<IssueWithDetails[]>([]);
   const [issueModuleFilter, setIssueModuleFilter] = useStoredState<string[]>(`project-${pfx}:issueModuleFilter:v2`, []);
   const [issueTagFilter, setIssueTagFilter] = useStoredState<string[]>(`project-${pfx}:issueTagFilter:v2`, []);
+  const [issuePage, setIssuePage] = useState(1);
+  const [issueRowsPerPage, setIssueRowsPerPage] = useState(10);
+
+  const issueFilterDeps = [issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter];
+  useEffect(() => { setIssuePage(1); }, issueFilterDeps); // eslint-disable-line react-hooks/exhaustive-deps
 
   const issuesQuery = useQuery({
-    queryKey: [...queryKeys.issuesByProject(id ?? ''), issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter],
-    queryFn: () => issueService.listByProject(id!, {
+    queryKey: [...queryKeys.issuesByProject(id ?? ''), issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issuePage, issueRowsPerPage],
+    queryFn: () => issueService.listByProjectPaginated(id!, {
       search: issueDebouncedSearch || undefined,
       statuses: issueStatusFilter.length ? issueStatusFilter : undefined,
       priorities: issuePriorityFilter.length ? issuePriorityFilter : undefined,
       moduleIds: issueModuleFilter.length ? issueModuleFilter : undefined,
+      tagIds: issueTagFilter.length ? issueTagFilter : undefined,
+      page: issuePage,
+      pageSize: issueRowsPerPage,
+      sortField: issueSortField,
+      sortOrder: issueSortOrder === 1 ? 'asc' : 'desc',
     }),
     enabled: !!id,
   });
@@ -211,7 +223,9 @@ export function ProjectDetailPage() {
   const tags = tagsQuery.data ?? EMPTY_ARRAY;
   const testRoles = testRolesQuery.data ?? EMPTY_ARRAY;
   const testRuns = (testRunsQuery.data ?? EMPTY_ARRAY) as TestRunWithSummary[];
-  const issues = issuesQuery.data ?? EMPTY_ARRAY;
+  const issuesData = issuesQuery.data as { data: IssueWithDetails[]; total: number } | undefined;
+  const issues = issuesData?.data ?? EMPTY_ARRAY;
+  const totalIssues = issuesData?.total ?? 0;
   const projectMembers = projectMembersQuery.data ?? EMPTY_ARRAY;
 
   const tabLoading: Record<number, boolean> = {
@@ -244,13 +258,14 @@ export function ProjectDetailPage() {
     await Promise.all(keys.map((k) => queryClient.invalidateQueries({ queryKey: queryKeyByName[k] })));
   }
 
-  // Optimistic patch for the Issues tab's inline dropdowns (status/assignee) — updates the
-  // cached list immediately instead of waiting on a refetch, same UX as before the migration.
-  function patchIssue(issueId: string, changes: Partial<IssueWithDetails>) {
+  function patchIssue(_issueId: string, _changes: Partial<IssueWithDetails>) {
     if (!id) return;
-    queryClient.setQueryData<IssueWithDetails[]>(queryKeys.issuesByProject(id), (prev) =>
-      (prev ?? []).map((i) => (i.id === issueId ? { ...i, ...changes } : i)),
-    );
+    queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(id) });
+  }
+
+  function onIssuePage(e: DataTablePageEvent) {
+    setIssuePage((e.page ?? 0) + 1);
+    if (e.rows) setIssueRowsPerPage(e.rows);
   }
 
   function toastSuccess(summary: string) {
@@ -1047,6 +1062,10 @@ export function ProjectDetailPage() {
               onPatchIssue={patchIssue}
               onReload={loadAll}
               onToastSuccess={toastSuccess}
+              lazy
+              totalRecords={totalIssues}
+              first={(issuePage - 1) * issueRowsPerPage}
+              onPage={onIssuePage}
             />
           </TabPanel>
         </TabView>
@@ -1205,6 +1224,17 @@ export function ProjectDetailPage() {
           onTagsChange={setEditableTags}
         />
       )}
+
+      <CreateProjectDialog
+        visible={settingsDialogOpen}
+        editingProject={project}
+        onHide={() => setSettingsDialogOpen(false)}
+        onSaved={() => {
+          setSettingsDialogOpen(false);
+          queryClient.invalidateQueries({ queryKey: queryKeys.project(id ?? '') });
+          toastSuccess('Project settings updated');
+        }}
+      />
     </div>
   );
 }
