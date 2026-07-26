@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { DataTable, type DataTableStateEvent } from 'primereact/datatable';
@@ -7,6 +7,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
 import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
+import { Toast } from 'primereact/toast';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
@@ -30,6 +31,8 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
 const TEST_CASE_STATUS_OPTIONS: { label: string; value: TestCaseStatus }[] = (
   ['active', 'archived'] as const
 ).map((v) => ({ label: TEST_CASE_STATUS_LABEL[v], value: v }));
+
+type EditableField = 'title' | 'moduleId' | 'priority' | 'status' | 'targetRoleId' | 'tags';
 
 type TestCaseTabProps = {
   cases: TestCaseWithDetails[];
@@ -69,6 +72,8 @@ type TestCaseTabProps = {
   onBulkDelete: () => void;
   onPatchCase?: (_caseId: string, _changes: Partial<TestCaseWithDetails>) => void;
 };
+
+const UNDO_TIMEOUT_MS = 9000;
 
 export function TestCaseTab({
   cases,
@@ -112,48 +117,107 @@ export function TestCaseTab({
   const [editingCell, setEditingCell] = useState<{ caseId: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState<any>(null);
   const editRef = useRef<HTMLDivElement>(null);
+  const cancelledRef = useRef(false);
+  const undoToast = useRef<Toast>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
   const startEdit = useCallback((caseId: string, field: string, currentValue: any) => {
+    cancelledRef.current = false;
     setEditingCell({ caseId, field });
     setEditValue(currentValue);
   }, []);
 
   const cancelEdit = useCallback(() => {
+    cancelledRef.current = true;
     setEditingCell(null);
     setEditValue(null);
   }, []);
 
-  const confirmEdit = useCallback(async (row: TestCaseWithDetails, field: string) => {
-    if (!editingCell || editValue === null) return;
-    const id = row.id;
-    try {
-      if (field === 'title') {
-        if (String(editValue).trim()) {
-          await testCaseService.update(id, row.projectId, { title: String(editValue).trim() });
-          onPatchCase?.(id, { title: String(editValue).trim() } as any);
-        }
-      } else if (field === 'moduleId') {
-        await testCaseService.update(id, row.projectId, { moduleId: editValue || null });
-        onPatchCase?.(id, { moduleId: editValue || null } as any);
-      } else if (field === 'priority') {
-        await testCaseService.update(id, row.projectId, { priority: editValue as TestCasePriority });
-        onPatchCase?.(id, { priority: editValue as TestCasePriority } as any);
-      } else if (field === 'status') {
-        await testCaseService.update(id, row.projectId, { status: editValue as TestCaseStatus });
-        onPatchCase?.(id, { status: editValue as TestCaseStatus } as any);
-      } else if (field === 'targetRoleId') {
-        await testCaseService.update(id, row.projectId, { targetRoleId: editValue || null });
-        onPatchCase?.(id, { targetRoleId: editValue || null } as any);
-      } else if (field === 'tags') {
-        await tagService.saveTagsForTestCase(row.projectId, id, editValue as string[]);
-        onPatchCase?.(id, { tags: editValue } as any);
-      }
-    } catch { /* parent will refetch */ }
-    cancelEdit();
-  }, [editingCell, editValue, onPatchCase, cancelEdit]);
+  const getFieldValue = useCallback((row: TestCaseWithDetails, field: EditableField): any => {
+    if (field === 'moduleId') return row.moduleId;
+    if (field === 'targetRoleId') return row.targetRoleId;
+    if (field === 'tags') return row.tags.map((t) => t.name);
+    return (row as any)[field] ?? null;
+  }, []);
 
-  const handleCellKeyDown = useCallback((e: React.KeyboardEvent, row: TestCaseWithDetails, field: string) => {
-    if (e.key === 'Enter') { confirmEdit(row, field); }
+  const applyFieldChange = useCallback(async (caseId: string, projectId: string, field: EditableField, value: any) => {
+    if (field === 'title') {
+      const title = String(value ?? '').trim();
+      if (!title) return;
+      await testCaseService.update(caseId, projectId, { title });
+      onPatchCase?.(caseId, { title } as any);
+    } else if (field === 'moduleId') {
+      const moduleId = value || null;
+      await testCaseService.update(caseId, projectId, { moduleId });
+      const module = moduleId ? { id: moduleId, name: moduleOptions.find((m) => m.value === moduleId)?.label ?? '' } : null;
+      onPatchCase?.(caseId, { moduleId, module } as any);
+    } else if (field === 'priority') {
+      await testCaseService.update(caseId, projectId, { priority: value as TestCasePriority });
+      onPatchCase?.(caseId, { priority: value as TestCasePriority } as any);
+    } else if (field === 'status') {
+      await testCaseService.update(caseId, projectId, { status: value as TestCaseStatus });
+      onPatchCase?.(caseId, { status: value as TestCaseStatus } as any);
+    } else if (field === 'targetRoleId') {
+      const targetRoleId = value || null;
+      await testCaseService.update(caseId, projectId, { targetRoleId });
+      onPatchCase?.(caseId, { targetRoleId } as any);
+    } else if (field === 'tags') {
+      await tagService.saveTagsForTestCase(projectId, caseId, value as string[]);
+      onPatchCase?.(caseId, { tags: value } as any);
+    }
+  }, [onPatchCase, moduleOptions]);
+
+  const handleUndo = useCallback(async (caseId: string, projectId: string, field: EditableField, previousValue: any) => {
+    if (undoTimerRef.current) { clearTimeout(undoTimerRef.current); undoTimerRef.current = null; }
+    undoToast.current?.clear();
+    try {
+      await applyFieldChange(caseId, projectId, field, previousValue);
+    } catch { /* parent will refetch */ }
+  }, [applyFieldChange]);
+
+  const scheduleUndoToast = useCallback((caseId: string, projectId: string, field: EditableField, previousValue: any, fieldLabel: string) => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoToast.current?.clear();
+    undoToast.current?.show({
+      severity: 'info',
+      content: (
+        <div className="flex align-items-center justify-content-between gap-3 w-full">
+          <span>{fieldLabel} updated</span>
+          <Button label="Undo" text size="small" onClick={() => handleUndo(caseId, projectId, field, previousValue)} />
+        </div>
+      ),
+      sticky: true,
+    });
+    undoTimerRef.current = setTimeout(() => {
+      undoToast.current?.clear();
+      undoTimerRef.current = null;
+    }, UNDO_TIMEOUT_MS);
+  }, [handleUndo]);
+
+  const confirmEdit = useCallback(async (row: TestCaseWithDetails, field: EditableField, value: any) => {
+    if (cancelledRef.current) return;
+    setEditingCell(null);
+    setEditValue(null);
+
+    const previousValue = getFieldValue(row, field);
+    const normalizedValue = field === 'title' ? String(value ?? '').trim() : value;
+    const normalizedPrevious = field === 'title' ? String(previousValue ?? '').trim() : previousValue;
+    if (field === 'title' && !normalizedValue) return;
+    if (JSON.stringify(normalizedValue) === JSON.stringify(normalizedPrevious)) return;
+
+    const fieldLabel: Record<string, string> = {
+      title: 'Title', moduleId: 'Module', priority: 'Priority', status: 'Status', targetRoleId: 'Target Role', tags: 'Tags',
+    };
+    try {
+      await applyFieldChange(row.id, row.projectId, field, value);
+      scheduleUndoToast(row.id, row.projectId, field, previousValue, fieldLabel[field] ?? field);
+    } catch { /* parent will refetch */ }
+  }, [getFieldValue, applyFieldChange, scheduleUndoToast]);
+
+  const handleCellKeyDown = useCallback((e: React.KeyboardEvent, row: TestCaseWithDetails, field: EditableField, value: any) => {
+    if (e.key === 'Enter') { confirmEdit(row, field, value); }
     else if (e.key === 'Escape') { cancelEdit(); }
   }, [confirmEdit, cancelEdit]);
 
@@ -171,6 +235,7 @@ export function TestCaseTab({
 
   return (
     <>
+      <Toast ref={undoToast} position="bottom-center" />
       <div className="grid mb-2">
         <div className="col-12 md:col-3">
           <MultiSelect
@@ -284,9 +349,9 @@ export function TestCaseTab({
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'title';
           if (isEditing && canEditContent) {
             return (
-              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'title')}>
-                <InputText value={String(editValue ?? '')} onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={() => confirmEdit(row, 'title')} autoFocus className="w-full" />
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'title', editValue)}>
+                <InputText value={editValue ?? ''} onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => confirmEdit(row, 'title', editValue)} autoFocus className="w-full" />
               </div>
             );
           }
@@ -296,9 +361,11 @@ export function TestCaseTab({
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'moduleId';
           if (isEditing && canEditContent) {
             return (
-              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'moduleId')}>
-                <Dropdown value={editValue} options={moduleOptions} onChange={(e) => { setEditValue(e.value); }} placeholder="None"
-                  onHide={() => confirmEdit(row, 'moduleId')} showClear autoFocus className="w-10rem" />
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'moduleId', editValue)}>
+                <Dropdown value={editValue} options={moduleOptions}
+                  onChange={(e) => confirmEdit(row, 'moduleId', e.value ?? null)}
+                  onHide={cancelEdit}
+                  placeholder="None" showClear autoFocus className="w-10rem" />
               </div>
             );
           }
@@ -308,9 +375,11 @@ export function TestCaseTab({
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'priority';
           if (isEditing && canEditContent) {
             return (
-              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'priority')}>
-                <Dropdown value={editValue as TestCasePriority} options={PRIORITY_OPTIONS} onChange={(e) => { setEditValue(e.value); }}
-                  onHide={() => confirmEdit(row, 'priority')} autoFocus className="w-10rem" />
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'priority', editValue)}>
+                <Dropdown value={editValue as TestCasePriority} options={PRIORITY_OPTIONS}
+                  onChange={(e) => confirmEdit(row, 'priority', e.value)}
+                  onHide={cancelEdit}
+                  autoFocus className="w-10rem" />
               </div>
             );
           }
@@ -322,9 +391,11 @@ export function TestCaseTab({
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'status';
           if (isEditing && canEditContent) {
             return (
-              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'status')}>
-                <Dropdown value={editValue as TestCaseStatus} options={TEST_CASE_STATUS_OPTIONS} onChange={(e) => { setEditValue(e.value); }}
-                  onHide={() => confirmEdit(row, 'status')} autoFocus className="w-10rem" />
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'status', editValue)}>
+                <Dropdown value={editValue as TestCaseStatus} options={TEST_CASE_STATUS_OPTIONS}
+                  onChange={(e) => confirmEdit(row, 'status', e.value)}
+                  onHide={cancelEdit}
+                  autoFocus className="w-10rem" />
               </div>
             );
           }
@@ -336,9 +407,11 @@ export function TestCaseTab({
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'targetRoleId';
           if (isEditing && canEditContent) {
             return (
-              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'targetRoleId')}>
-                <Dropdown value={editValue} options={testRoleOptions} onChange={(e) => { setEditValue(e.value); }} placeholder="None"
-                  onHide={() => confirmEdit(row, 'targetRoleId')} showClear autoFocus className="w-10rem" />
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'targetRoleId', editValue)}>
+                <Dropdown value={editValue} options={testRoleOptions}
+                  onChange={(e) => confirmEdit(row, 'targetRoleId', e.value ?? null)}
+                  onHide={cancelEdit}
+                  placeholder="None" showClear autoFocus className="w-10rem" />
               </div>
             );
           }
@@ -350,9 +423,11 @@ export function TestCaseTab({
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'tags';
           if (isEditing && canEditContent) {
             return (
-              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'tags')}>
-                <MultiSelect value={editValue ?? []} options={tagOptions} onChange={(e) => { setEditValue(e.value); }}
-                  onHide={() => confirmEdit(row, 'tags')} autoFocus className="w-10rem" display="chip" />
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'tags', editValue)}>
+                <MultiSelect value={editValue ?? []} options={tagOptions}
+                  onChange={(e) => confirmEdit(row, 'tags', e.value)}
+                  onHide={cancelEdit}
+                  autoFocus className="w-10rem" display="chip" />
               </div>
             );
           }
