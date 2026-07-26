@@ -18,6 +18,7 @@ import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import type { TestSuite, TestSuiteVisibility } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
+import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
@@ -227,9 +228,7 @@ export function TestSuitesPage() {
         loading={loading}
         lazy
         totalRecords={totalRecords}
-        paginator
-        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        currentPageReportTemplate="{totalRecords} records"
+        {...dataTablePaginatorProps}
         rows={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25, 50]}
         first={(page - 1) * rowsPerPage}

@@ -11,6 +11,7 @@ import { Toast } from 'primereact/toast';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
+import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { testPlanService } from '../../../../services/testPlanService';
 import type { TestPlan, TestPlanStatus } from '../../../../types/domain';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
@@ -218,9 +219,7 @@ export function TestPlanTab({
         emptyMessage="No test plans yet"
         onRowClick={isMobile ? (e) => onRowClick(e.data as TestPlan) : undefined}
         rowHover
-        paginator
-        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        currentPageReportTemplate="{totalRecords} records"
+        {...dataTablePaginatorProps}
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : sortOrder}

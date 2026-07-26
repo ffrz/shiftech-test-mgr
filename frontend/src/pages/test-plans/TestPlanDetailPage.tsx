@@ -14,6 +14,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
+import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { useTestPlanDetail } from '../../hooks/useTestPlanDetail';
 import { useTestRuns } from '../../hooks/useTestRuns';
 import { testPlanService } from '../../services/testPlanService';
@@ -459,8 +460,7 @@ export function TestPlanDetailPage() {
             rows={isCaseFilterActive ? caseRows : undefined}
             onPage={isCaseFilterActive ? (e) => { setCaseFirst(e.first); setCaseRows(e.rows); } : undefined}
             paginator={isCaseFilterActive}
-            paginatorTemplate={isCaseFilterActive ? "CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" : undefined}
-            currentPageReportTemplate={isCaseFilterActive ? "{totalRecords} records" : undefined}
+            paginatorTemplate={isCaseFilterActive ? dataTablePaginatorProps.paginatorTemplate : undefined}
             rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="No test cases in this plan yet"
             size="small"
@@ -563,13 +563,11 @@ export function TestPlanDetailPage() {
             value={testRuns}
             loading={runsLoading}
             lazy
-            paginator
+            {...dataTablePaginatorProps}
             totalRecords={totalRuns}
             first={runFirst}
             rows={runRows}
             onPage={(e) => { setRunFirst(e.first); setRunRows(e.rows); }}
-            paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-            currentPageReportTemplate="{totalRecords} records"
             rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="No test runs yet"
             onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}

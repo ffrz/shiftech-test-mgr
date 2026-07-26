@@ -18,6 +18,7 @@ import type { IssueStatus, IssueWithDetails } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
+import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import { testRunService } from '../../services/testRunService';
 import { testPlanService } from '../../services/testPlanService';
@@ -236,9 +237,7 @@ export function TestRunIssuesPage() {
       <DataTable
         value={issues}
         loading={loading}
-        paginator
-        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        currentPageReportTemplate="{totalRecords} records"
+        {...dataTablePaginatorProps}
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="No issues yet"
         size="small"

@@ -14,6 +14,7 @@ import { Toast } from 'primereact/toast';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import SearchInput from '../../components/ui/SearchInput';
 import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
+import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
@@ -535,9 +536,7 @@ export function ProjectSettingsPage() {
               value={filteredModules}
               size="small"
               emptyMessage="No modules yet"
-              paginator
-              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-              currentPageReportTemplate="{totalRecords} records"
+              {...dataTablePaginatorProps}
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={moduleSortField}
               sortOrder={moduleSortOrder}
@@ -588,9 +587,7 @@ export function ProjectSettingsPage() {
               value={filteredTags}
               size="small"
               emptyMessage="No tags yet"
-              paginator
-              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-              currentPageReportTemplate="{totalRecords} records"
+              {...dataTablePaginatorProps}
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={tagSortField}
               sortOrder={tagSortOrder}
@@ -641,9 +638,7 @@ export function ProjectSettingsPage() {
               value={filteredTestRoles}
               size="small"
               emptyMessage="No roles yet"
-              paginator
-              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-              currentPageReportTemplate="{totalRecords} records"
+              {...dataTablePaginatorProps}
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               sortField={testRoleSortField}
               sortOrder={testRoleSortOrder}
@@ -693,9 +688,7 @@ export function ProjectSettingsPage() {
               value={members}
               size="small"
               emptyMessage="No members yet"
-              paginator
-              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-              currentPageReportTemplate="{totalRecords} records"
+              {...dataTablePaginatorProps}
               rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
               selection={selectedMembers}
               onSelectionChange={(e: any) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}

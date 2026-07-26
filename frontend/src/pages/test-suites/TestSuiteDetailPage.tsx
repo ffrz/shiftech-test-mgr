@@ -21,6 +21,7 @@ import { queryKeys } from '../../hooks/queryKeys';
 import type { TestCasePriority, TestCaseStepType, TestSuiteItem } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
+import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import { ImportTemplateDialog } from '../projects/components/dialogs/ImportTemplateDialog';
@@ -441,7 +442,7 @@ export function TestSuiteDetailPage() {
         ) : undefined}
       />
 
-      <DataTable value={items} loading={loading} paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small" cellMemo={false}>
+      <DataTable value={items} loading={loading} {...dataTablePaginatorProps} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small" cellMemo={false}>
         {isMobile
           ? <Column header="Title" body={mobileBodyTemplate} />
           : <Column field="title" header="Title" sortable body={(row: TestSuiteItem) => {

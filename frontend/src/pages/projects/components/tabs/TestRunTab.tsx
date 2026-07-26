@@ -9,6 +9,7 @@ import { Tag } from 'primereact/tag';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
+import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { testRunService } from '../../../../services/testRunService';
 import type { TestRun, TestRunStatus } from '../../../../types/domain';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
@@ -165,9 +166,7 @@ export function TestRunTab({
         emptyMessage="No test runs yet"
         onRowClick={isMobile ? (e) => onRowClick(e.data as TestRunWithSummary) : undefined}
         rowHover
-        paginator
-        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        currentPageReportTemplate="{totalRecords} records"
+        {...dataTablePaginatorProps}
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : sortOrder}

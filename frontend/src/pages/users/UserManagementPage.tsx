@@ -19,6 +19,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { USER_ROLE_LABEL, USER_ROLE_SEVERITY } from '../../helpers/statusLabels';
 
 type EnrichedUser = User & { _displayName: string; _username: string };
@@ -186,9 +187,7 @@ export function UserManagementPage() {
         loading={loading}
         lazy
         totalRecords={totalRecords}
-        paginator
-        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        currentPageReportTemplate="{totalRecords} records"
+        {...dataTablePaginatorProps}
         rows={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25, 50]}
         first={(page - 1) * rowsPerPage}

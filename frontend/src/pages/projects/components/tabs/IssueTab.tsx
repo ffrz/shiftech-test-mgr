@@ -12,6 +12,7 @@ import SearchInput from '../../../../components/ui/SearchInput';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
+import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import type { IssueWithDetails, IssueStatus, IssuePriority, IssueType, ProjectMemberWithProfile } from '../../../../types/domain';
 import { issueService } from '../../../../services/issueService';
 
@@ -339,9 +340,7 @@ export function IssueTab({
         totalRecords={lazy ? totalRecords : undefined}
         first={lazy ? first : undefined}
         onPage={lazy ? onPage : undefined}
-        paginator
-        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        currentPageReportTemplate="{totalRecords} records"
+        {...dataTablePaginatorProps}
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : sortOrder}

@@ -27,6 +27,7 @@ import type { IssueWithDetails, Project, ProjectStatus, ProjectVisibility, TestC
 import type { ProjectOwnerFilter } from '../../repositories/projectRepository';
 import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY, PROJECT_VISIBILITY_LABEL, PROJECT_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 
 export function ProjectsPage() {
@@ -315,9 +316,7 @@ export function ProjectsPage() {
         loading={loading}
         lazy
         totalRecords={totalRecords}
-        paginator
-        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        currentPageReportTemplate="{totalRecords} records"
+        {...dataTablePaginatorProps}
         rows={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25, 50]}
         first={(page - 1) * rowsPerPage}

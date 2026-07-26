@@ -11,6 +11,7 @@ import { Toast } from 'primereact/toast';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
+import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import type { TestCase, TestCaseWithDetails, TestCasePriority, TestCaseStatus } from '../../../../types/domain';
 import { testCaseService } from '../../../../services/testCaseService';
 import { tagService } from '../../../../services/tagService';
@@ -333,9 +334,7 @@ export function TestCaseTab({
         emptyMessage="No test cases yet"
         onRowClick={isMobile ? (e) => onRowClick(e.data as TestCaseWithDetails) : undefined}
         rowHover
-        paginator
-        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        currentPageReportTemplate="{totalRecords} records"
+        {...dataTablePaginatorProps}
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : sortOrder}

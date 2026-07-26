@@ -20,6 +20,7 @@ import { useScreenSize } from '../../hooks/useScreenSize';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
+import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
 
 const TEST_PLAN_STATUS_OPTIONS: TestPlanStatus[] = ['draft', 'active', 'completed', 'archived'];
@@ -111,7 +112,7 @@ export function TestPlansPage() {
         </p>
       )}
 
-      <DataTable value={testPlans} loading={loading} paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
+      <DataTable value={testPlans} loading={loading} {...dataTablePaginatorProps} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
         selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
         <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : '7rem' }}
           body={isMobile ? mobileCodeBody : undefined} />
