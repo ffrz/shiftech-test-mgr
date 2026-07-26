@@ -193,6 +193,20 @@ export function TestPlanDetailPage() {
     await reloadCases();
   }
 
+  function handleMoveUp(index: number) {
+    if (index === 0) return;
+    const newOrder = [...cases];
+    [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+    handleReorderCases(newOrder);
+  }
+
+  function handleMoveDown(index: number) {
+    if (index === cases.length - 1) return;
+    const newOrder = [...cases];
+    [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+    handleReorderCases(newOrder);
+  }
+
   // --- Test Run ---
   const [runDialogOpen, setRunDialogOpen] = useState(false);
   const [runName, setRunName] = useState('');
@@ -548,10 +562,7 @@ export function TestPlanDetailPage() {
             onSelectionChange={(e: { value: TestPlanCaseWithDetails[] }) => setSelectedCases(e.value)}
             dataKey="id"
             selectionMode={canEditContent ? 'checkbox' : null}
-            reorderableRows={canEditContent && !isCaseFilterActive}
-            onRowReorder={(e) => handleReorderCases(e.value)}
           >
-            {canEditContent && !isCaseFilterActive && <Column rowReorder style={{ width: '3rem' }} />}
             {canEditContent && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
             {!isMobile && (
               <Column
@@ -597,10 +608,21 @@ export function TestPlanDetailPage() {
             {canEditContent && (
               <Column
                 header=""
-                style={{ width: '4rem' }}
-                body={(row: TestPlanCaseWithDetails) => (
-                  <Button icon="pi pi-times" text rounded size="small" severity="danger" aria-label="Remove" onClick={() => handleRemoveCase(row)} />
-                )}
+                style={{ width: '8rem' }}
+                body={(row: TestPlanCaseWithDetails) => {
+                  const idx = cases.indexOf(row);
+                  return (
+                    <div className="flex gap-1">
+                      {!isCaseFilterActive && cases.length > 1 && (
+                        <>
+                          <Button icon="pi pi-angle-up" text rounded size="small" severity="secondary" aria-label="Move up" disabled={idx === 0} onClick={(e) => { e.stopPropagation(); handleMoveUp(idx); }} />
+                          <Button icon="pi pi-angle-down" text rounded size="small" severity="secondary" aria-label="Move down" disabled={idx === cases.length - 1} onClick={(e) => { e.stopPropagation(); handleMoveDown(idx); }} />
+                        </>
+                      )}
+                      <Button icon="pi pi-times" text rounded size="small" severity="danger" aria-label="Remove" onClick={(e) => { e.stopPropagation(); handleRemoveCase(row); }} />
+                    </div>
+                  );
+                }}
               />
             )}
           </DataTable>

@@ -12,11 +12,6 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './hooks/useAuth.tsx'
 import { ThemeProvider } from './hooks/useTheme.tsx'
-import { polyfill as mobileDragDropPolyfill } from 'mobile-drag-drop'
-import 'mobile-drag-drop/default.css'
-
-mobileDragDropPolyfill({ holdToDrag: 300 });
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
