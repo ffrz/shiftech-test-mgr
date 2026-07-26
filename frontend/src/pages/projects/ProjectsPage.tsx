@@ -7,6 +7,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
+import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import { Menu } from 'primereact/menu';
@@ -14,6 +15,7 @@ import { Checkbox } from 'primereact/checkbox';
 import { Toast } from 'primereact/toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useScreenSize } from '../../hooks/useScreenSize';
+import { useAuthContext } from '../../hooks/useAuth';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { testPlanService } from '../../services/testPlanService';
@@ -21,7 +23,8 @@ import { testCaseService } from '../../services/testCaseService';
 import { issueService } from '../../services/issueService';
 import { projectDuplicateService } from '../../services/projectDuplicateService';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
-import type { IssueWithDetails, Project, ProjectStatus, TestCaseWithDetails, TestPlan } from '../../types/domain';
+import type { IssueWithDetails, Project, ProjectStatus, ProjectVisibility, TestCaseWithDetails, TestPlan } from '../../types/domain';
+import type { ProjectOwnerFilter } from '../../repositories/projectRepository';
 import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY, PROJECT_VISIBILITY_LABEL, PROJECT_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
@@ -29,6 +32,7 @@ import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY, PROJECT_VISIBILITY_LABEL
 export function ProjectsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuthContext();
   const toast = useRef<Toast>(null);
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
@@ -45,16 +49,21 @@ export function ProjectsPage() {
   }, [search]);
 
   const [statusFilter, setStatusFilter] = useState<ProjectStatus[]>([]);
+  const [ownerFilter, setOwnerFilter] = useState<ProjectOwnerFilter>('all');
+  const [visibilityFilter, setVisibilityFilter] = useState<ProjectVisibility[]>([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortField, setSortField] = useState('name');
   const [sortOrder, setSortOrder] = useState<-1 | 1>(1);
 
   const { data, isLoading: loading } = useQuery({
-    queryKey: ['projects-paginated', debouncedSearch, statusFilter, page, rowsPerPage, sortField, sortOrder],
+    queryKey: ['projects-paginated', debouncedSearch, statusFilter, ownerFilter, visibilityFilter, page, rowsPerPage, sortField, sortOrder],
     queryFn: () => projectService.listPaginated({
       search: debouncedSearch || undefined,
       statuses: statusFilter.length ? statusFilter : undefined,
+      ownerFilter,
+      currentUserId: currentUser?.id,
+      visibilities: visibilityFilter.length ? visibilityFilter : undefined,
       page,
       pageSize: rowsPerPage,
       sortField,
@@ -223,8 +232,8 @@ export function ProjectsPage() {
 
       <PageHeader title="Projects" actions={<Button label="New Project" icon="pi pi-plus" size="small" onClick={openCreateDialog} />} />
 
-      <div className="flex gap-2 mb-3">
-        <IconField iconPosition="left" className="flex-1">
+      <div className="flex flex-wrap gap-2 mb-3">
+        <IconField iconPosition="left" className="flex-1" style={{ minWidth: '12rem' }}>
           <InputIcon className="pi pi-search" />
           <InputText
             className="w-full"
@@ -233,6 +242,27 @@ export function ProjectsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </IconField>
+        <Dropdown
+          value={ownerFilter}
+          options={[
+            { label: 'All Projects', value: 'all' },
+            { label: 'My Projects', value: 'mine' },
+            { label: 'Shared with Me', value: 'shared' },
+          ]}
+          onChange={(e) => setOwnerFilter(e.value)}
+          className="w-12rem"
+        />
+        <MultiSelect
+          value={visibilityFilter}
+          options={[
+            { label: 'Private', value: 'private' },
+            { label: 'Unlisted', value: 'unlisted' },
+            { label: 'Public', value: 'public' },
+          ]}
+          onChange={(e) => setVisibilityFilter(e.value)}
+          placeholder="All Visibility"
+          className="w-14rem"
+        />
         <MultiSelect
           value={statusFilter}
           options={[

@@ -15,9 +15,14 @@ export interface ProjectQuery {
   sortDirection?: SortDirection;
 }
 
+export type ProjectOwnerFilter = 'all' | 'mine' | 'shared';
+
 export interface ProjectPaginatedQuery {
   search?: string;
   statuses?: string[];
+  visibilities?: string[];
+  ownerFilter?: ProjectOwnerFilter;
+  currentUserId?: string;
   page: number;
   pageSize: number;
   sortField?: string;
@@ -53,6 +58,14 @@ export const projectRepository = {
     }
     if (query.statuses?.length) {
       builder = builder.in('status', query.statuses);
+    }
+    if (query.visibilities?.length) {
+      builder = builder.in('visibility', query.visibilities);
+    }
+    if (query.ownerFilter === 'mine' && query.currentUserId) {
+      builder = builder.eq('owner_id', query.currentUserId);
+    } else if (query.ownerFilter === 'shared' && query.currentUserId) {
+      builder = builder.neq('owner_id', query.currentUserId);
     }
 
     builder = builder.order(sortCol, { ascending: (query.sortOrder ?? 'asc') === 'asc' });
