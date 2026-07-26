@@ -188,7 +188,11 @@ export function TestRunResultDetailPage() {
     setResultTesterId(activeResult.testerId ?? currentProfile?.id ?? null);
     setResultNotes(activeResult.notes ?? '');
     setRightPanelScrolled(false);
-    rightPanelRef.current?.scrollTo({ top: 0 });
+    if (isMobile) {
+      window.scrollTo({ top: 0 });
+    } else {
+      rightPanelRef.current?.scrollTo({ top: 0 });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultId]);
 
@@ -351,9 +355,20 @@ export function TestRunResultDetailPage() {
 
   // --- Complete run dialog ---
   // Shadow below the Prev/Next toolbar only appears once the content below it has scrolled —
-  // a visual cue that "there's more content above", not permanent decoration.
+  // a visual cue that "there's more content above", not permanent decoration. On mobile the
+  // right panel no longer scrolls independently (see the sticky-toolbar comment below), so
+  // the page's own scroll position drives this instead of the panel's onScroll.
   const [rightPanelScrolled, setRightPanelScrolled] = useState(false);
   const rightPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    function handleWindowScroll() {
+      setRightPanelScrolled(window.scrollY > 0);
+    }
+    window.addEventListener('scroll', handleWindowScroll);
+    return () => window.removeEventListener('scroll', handleWindowScroll);
+  }, [isMobile]);
 
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [completeNotes, setCompleteNotes] = useState('');
@@ -532,18 +547,30 @@ export function TestRunResultDetailPage() {
           </Panel>
         </div>
 
-        {/* --- Right panel: summary (default) or selected test case detail (scrolls independently) --- */}
-        <div className="col-12 md:col-8 flex flex-column" style={{ height: `calc(100vh - ${isMobile ? PANEL_HEIGHT_OFFSET_MOBILE : PANEL_HEIGHT_OFFSET}rem)` }}>
+        {/* --- Right panel: summary (default) or selected test case detail.
+            Desktop: independent scroll area, fixed to viewport height.
+            Mobile: flows in the page's own scroll instead — the Prev/Next
+            toolbar below is sticky, so scrolling past the Test Cases panel
+            pins the toolbar to the top of the viewport and the detail card
+            gets the full screen to read, instead of being capped to a
+            viewport-height box stacked below the (already tall) list panel. */}
+        <div
+          className="col-12 md:col-8 flex flex-column"
+          style={isMobile ? undefined : { height: `calc(100vh - ${PANEL_HEIGHT_OFFSET}rem)` }}
+        >
           {activeResult && (
             <div
               className="flex align-items-center justify-content-between gap-2 mb-3 p-2 flex-shrink-0"
               style={{
+                position: isMobile ? 'sticky' : undefined,
+                top: isMobile ? 0 : undefined,
+                zIndex: isMobile ? 1 : undefined,
+                background: isMobile ? 'var(--surface-ground)' : undefined,
                 boxShadow: rightPanelScrolled ? '0 2px 4px -2px rgba(0, 0, 0, 0.15)' : 'none',
                 transition: 'box-shadow 0.15s ease',
               }}
             >
               <Button
-                label="Previous"
                 icon="pi pi-chevron-left"
                 size="small"
                 outlined
@@ -554,7 +581,6 @@ export function TestRunResultDetailPage() {
                 {activeIndex + 1} / {filteredResults.length}
               </span>
               <Button
-                label="Next"
                 icon="pi pi-chevron-right"
                 iconPos="right"
                 size="small"
@@ -568,8 +594,8 @@ export function TestRunResultDetailPage() {
           <div
             ref={rightPanelRef}
             className="flex-grow-1"
-            style={{ overflowY: 'auto' }}
-            onScroll={(e) => setRightPanelScrolled(e.currentTarget.scrollTop > 0)}
+            style={isMobile ? undefined : { overflowY: 'auto' }}
+            onScroll={isMobile ? undefined : (e) => setRightPanelScrolled(e.currentTarget.scrollTop > 0)}
           >
             {!activeResult ? (
               <Card>
@@ -763,7 +789,7 @@ export function TestRunResultDetailPage() {
                           className="flex-grow-1"
                           inputClassName="w-full"
                         />
-                        <Button label="New Issue" icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />
+                        <Button text rounded icon="pi pi-plus" size="small" onClick={openCreateIssueDialog} />
                       </div>
                       {linkedIssues.length === 0 && (
                         <p className="text-color-secondary text-sm m-0">No issues linked to this test case yet.</p>
