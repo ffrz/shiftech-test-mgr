@@ -114,6 +114,16 @@ export const issueService = {
     return issue;
   },
 
+  async patchField(
+    id: string,
+    changes: Partial<Pick<Issue, 'title' | 'priority' | 'type' | 'moduleId'>>,
+  ) {
+    if (changes.title !== undefined && !changes.title.trim()) {
+      throw new Error('Issue title cannot be empty');
+    }
+    return issueRepository.update(id, changes.title !== undefined ? { ...changes, title: changes.title.trim() } : changes);
+  },
+
   changeStatus: issueRepository.updateStatus,
   assign: issueRepository.assign,
   remove: issueRepository.remove,

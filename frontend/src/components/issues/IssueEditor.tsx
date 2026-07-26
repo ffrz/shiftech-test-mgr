@@ -289,6 +289,27 @@ export function IssueEditor({
             <InputTextarea id="issue-expected" value={expectedResult} onChange={(e) => setExpectedResult(e.target.value)} rows={2} />
           </div>
 
+          <div className="flex flex-column gap-2">
+            <label>Attachments</label>
+            {mode === 'edit' && issueId ? (
+              <>
+                {(attachments ?? []).map((a) => (
+                  <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
+                    <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
+                      <i className="pi pi-paperclip mr-2" />
+                      {a.fileName}
+                    </a>
+                    <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
+                  </div>
+                ))}
+                {(attachments?.length ?? 0) === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
+                <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
+              </>
+            ) : (
+              <p className="text-color-secondary text-sm m-0">Attachments can be added after the issue is created.</p>
+            )}
+          </div>
+
           <div className="flex flex-column gap-1">
             <label>GitHub Links</label>
             {githubLinks.map((link, i) => (
@@ -315,27 +336,6 @@ export function IssueEditor({
               size="small"
               onClick={() => setGithubLinks((prev) => [...prev, { url: '', label: '' }])}
             />
-          </div>
-
-          <div className="flex flex-column gap-2">
-            <label>Attachments</label>
-            {mode === 'edit' && issueId ? (
-              <>
-                {(attachments ?? []).map((a) => (
-                  <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
-                    <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-                      <i className="pi pi-paperclip mr-2" />
-                      {a.fileName}
-                    </a>
-                    <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
-                  </div>
-                ))}
-                {(attachments?.length ?? 0) === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
-                <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
-              </>
-            ) : (
-              <p className="text-color-secondary text-sm m-0">Attachments can be added after the issue is created.</p>
-            )}
           </div>
 
           {error && <small className="p-error">{error}</small>}

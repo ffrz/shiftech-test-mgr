@@ -1003,7 +1003,7 @@ export function ProjectDetailPage() {
             onArchive={handleArchiveCase}
             onDelete={handleDeleteCase}
             onBulkDelete={handleBulkDeleteCases}
-            onRowClick={(row) => navigate(`/test-cases/${row.id}?projectId=${id}`)}
+            onPatchCase={() => queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(id ?? '') })}
           />
         </TabPanel>
 

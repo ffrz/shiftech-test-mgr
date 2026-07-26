@@ -1,17 +1,22 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { DataTable, type DataTablePageEvent, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
+import { InputText } from 'primereact/inputtext';
 import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
+import { Toast } from 'primereact/toast';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import type { IssueWithDetails, IssueStatus, IssuePriority, IssueType, ProjectMemberWithProfile } from '../../../../types/domain';
 import { issueService } from '../../../../services/issueService';
+
+const UNDO_TIMEOUT_MS = 9000;
+type EditableField = 'status' | 'assignedTo' | 'title' | 'type' | 'priority' | 'moduleId';
 import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
@@ -116,33 +121,108 @@ export function IssueTab({
   const [editingCell, setEditingCell] = useState<{ issueId: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState<string | null>(null);
   const editRef = useRef<HTMLDivElement>(null);
+  const cancelledRef = useRef(false);
+  const undoToast = useRef<Toast>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
   const startEdit = useCallback((issueId: string, field: string, currentValue: string | null) => {
+    cancelledRef.current = false;
     setEditingCell({ issueId, field });
     setEditValue(currentValue);
   }, []);
 
   const cancelEdit = useCallback(() => {
+    cancelledRef.current = true;
     setEditingCell(null);
     setEditValue(null);
   }, []);
 
-  const confirmEdit = useCallback(async (row: IssueWithDetails, field: string) => {
-    if (!editingCell || editValue === null) return;
-    try {
-      if (field === 'status') {
-        await issueService.changeStatus(row.id, editValue as IssueStatus);
-        onPatchIssue(row.id, { status: editValue as IssueStatus });
-      } else if (field === 'assignedTo') {
-        await issueService.assign(row.id, editValue || null);
-        onPatchIssue(row.id, { assignedTo: editValue || null });
-      }
-    } catch { /* parent will refetch */ }
-    cancelEdit();
-  }, [editingCell, editValue, onPatchIssue, cancelEdit]);
+  const getFieldValue = useCallback((row: IssueWithDetails, field: EditableField): string | null => {
+    if (field === 'moduleId') return row.moduleId;
+    return row[field] as string | null;
+  }, []);
 
-  const handleCellKeyDown = useCallback((e: React.KeyboardEvent, row: IssueWithDetails, field: string) => {
-    if (e.key === 'Enter') { confirmEdit(row, field); }
+  // Persists `value` for `field` on the issue and reflects it optimistically via onPatchIssue.
+  // Shared by both the cell-edit confirm path and the undo action so they stay consistent.
+  const applyFieldChange = useCallback(async (issueId: string, field: EditableField, value: string | null) => {
+    if (field === 'status') {
+      await issueService.changeStatus(issueId, value as IssueStatus);
+      onPatchIssue(issueId, { status: value as IssueStatus });
+    } else if (field === 'assignedTo') {
+      await issueService.assign(issueId, value || null);
+      onPatchIssue(issueId, { assignedTo: value || null });
+    } else if (field === 'title') {
+      const title = (value ?? '').trim();
+      await issueService.patchField(issueId, { title });
+      onPatchIssue(issueId, { title });
+    } else if (field === 'type') {
+      await issueService.patchField(issueId, { type: value as IssueType });
+      onPatchIssue(issueId, { type: value as IssueType });
+    } else if (field === 'priority') {
+      await issueService.patchField(issueId, { priority: value as IssuePriority });
+      onPatchIssue(issueId, { priority: value as IssuePriority });
+    } else if (field === 'moduleId') {
+      const moduleId = value || null;
+      await issueService.patchField(issueId, { moduleId });
+      const module = moduleId ? { id: moduleId, name: moduleOptions.find((m) => m.value === moduleId)?.label ?? '' } : null;
+      onPatchIssue(issueId, { moduleId, module } as Partial<IssueWithDetails>);
+    }
+  }, [onPatchIssue, moduleOptions]);
+
+  const handleUndo = useCallback(async (issueId: string, field: EditableField, previousValue: string | null) => {
+    if (undoTimerRef.current) { clearTimeout(undoTimerRef.current); undoTimerRef.current = null; }
+    undoToast.current?.clear();
+    try {
+      await applyFieldChange(issueId, field, previousValue);
+    } catch { /* parent will refetch */ }
+  }, [applyFieldChange]);
+
+  const scheduleUndoToast = useCallback((issueId: string, field: EditableField, previousValue: string | null, fieldLabel: string) => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoToast.current?.clear();
+    undoToast.current?.show({
+      severity: 'info',
+      content: (
+        <div className="flex align-items-center justify-content-between gap-3 w-full">
+          <span>{fieldLabel} updated</span>
+          <Button label="Undo" text size="small" onClick={() => handleUndo(issueId, field, previousValue)} />
+        </div>
+      ),
+      sticky: true,
+    });
+    undoTimerRef.current = setTimeout(() => {
+      undoToast.current?.clear();
+      undoTimerRef.current = null;
+    }, UNDO_TIMEOUT_MS);
+  }, [handleUndo]);
+
+  // Takes the new value explicitly (instead of reading state) because PrimeReact's Dropdown
+  // fires onHide synchronously after onChange, in the same tick as the setEditValue update —
+  // reading editValue from the closure would see the stale pre-selection value.
+  const confirmEdit = useCallback(async (row: IssueWithDetails, field: EditableField, value: string | null) => {
+    if (cancelledRef.current) return;
+    setEditingCell(null);
+    setEditValue(null);
+
+    const previousValue = getFieldValue(row, field);
+    const normalizedValue = field === 'title' ? (value ?? '').trim() : (value || null);
+    const normalizedPrevious = field === 'title' ? (previousValue ?? '').trim() : previousValue;
+    if (field === 'title' && !normalizedValue) return;
+    if (normalizedValue === normalizedPrevious) return;
+
+    const fieldLabel: Record<EditableField, string> = {
+      status: 'Status', assignedTo: 'Assignee', title: 'Title', type: 'Type', priority: 'Priority', moduleId: 'Module',
+    };
+    try {
+      await applyFieldChange(row.id, field, value);
+      scheduleUndoToast(row.id, field, previousValue, fieldLabel[field]);
+    } catch { /* parent will refetch */ }
+  }, [getFieldValue, applyFieldChange, scheduleUndoToast]);
+
+  const handleCellKeyDown = useCallback((e: React.KeyboardEvent, row: IssueWithDetails, field: EditableField, value: string | null) => {
+    if (e.key === 'Enter') { confirmEdit(row, field, value); }
     else if (e.key === 'Escape') { cancelEdit(); }
   }, [confirmEdit, cancelEdit]);
 
@@ -163,6 +243,7 @@ export function IssueTab({
 
   return (
     <>
+      <Toast ref={undoToast} position="bottom-left" />
       <div className="grid mb-2">
         <div className="col-12 md:col-3">
           <MultiSelect
@@ -268,24 +349,84 @@ export function IssueTab({
         onSelectionChange={(e: any) => onSelectedChange(e.value as IssueWithDetails[])}
         dataKey="id"
         selectionMode={isMobile ? null : 'checkbox'}
+        cellMemo={false}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
         <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
           body={(row: IssueWithDetails) => <a className="entity-link" href={`/issues/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/issues/${row.id}`); }}>{row.code}</a>} />
-        <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileIssueBody : undefined} />
+        <Column
+          field="title"
+          header="Title"
+          sortable={!isMobile}
+          body={isMobile ? mobileIssueBody : (row: IssueWithDetails) => {
+            const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'title';
+            if (isEditing && canManageIssues) {
+              return (
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'title', editValue)}>
+                  <InputText
+                    value={editValue ?? ''}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onBlur={() => confirmEdit(row, 'title', editValue)}
+                    autoFocus
+                    className="w-full"
+                  />
+                </div>
+              );
+            }
+            return (
+              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'title', row.title); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+                {row.title}
+              </div>
+            );
+          }}
+        />
         <Column
           field="type"
           header="Type"
           sortable
           hidden={isMobile}
-          body={(row: IssueWithDetails) => <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />}
+          body={(row: IssueWithDetails) => {
+            const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'type';
+            if (isEditing && canManageIssues) {
+              return (
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'type', editValue)}>
+                  <Dropdown value={editValue as IssueType} options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
+                    onChange={(e) => confirmEdit(row, 'type', e.value)}
+                    onHide={cancelEdit}
+                    autoFocus className="w-10rem" />
+                </div>
+              );
+            }
+            return (
+              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'type', row.type); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+                <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />
+              </div>
+            );
+          }}
         />
         <Column
           field="moduleName"
           header="Module"
           sortable
           hidden={isMobile}
-          body={(row: IssueWithDetails) => row.module?.name ?? '-'}
+          body={(row: IssueWithDetails) => {
+            const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'moduleId';
+            if (isEditing && canManageIssues) {
+              return (
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'moduleId', editValue)}>
+                  <Dropdown value={editValue} options={moduleOptions}
+                    onChange={(e) => confirmEdit(row, 'moduleId', e.value ?? null)}
+                    onHide={cancelEdit}
+                    placeholder="No module" showClear autoFocus className="w-10rem" />
+                </div>
+              );
+            }
+            return (
+              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'moduleId', row.moduleId); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+                {row.module?.name ?? '-'}
+              </div>
+            );
+          }}
         />
         <Column
           header="Tag"
@@ -307,7 +448,30 @@ export function IssueTab({
             )
           }
         />
-        <Column field="priority" header="Priority" sortable hidden={isMobile} body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} />
+        <Column
+          field="priority"
+          header="Priority"
+          sortable
+          hidden={isMobile}
+          body={(row: IssueWithDetails) => {
+            const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'priority';
+            if (isEditing && canManageIssues) {
+              return (
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'priority', editValue)}>
+                  <Dropdown value={editValue as IssuePriority} options={ISSUE_PRIORITY_OPTIONS}
+                    onChange={(e) => confirmEdit(row, 'priority', e.value)}
+                    onHide={cancelEdit}
+                    autoFocus className="w-10rem" />
+                </div>
+              );
+            }
+            return (
+              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'priority', row.priority); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+                <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />
+              </div>
+            );
+          }}
+        />
         <Column
           field="status"
           header="Status"
@@ -317,10 +481,10 @@ export function IssueTab({
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'status';
             if (isEditing && canManageIssues) {
               return (
-                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'status')}>
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'status', editValue)}>
                   <Dropdown value={editValue as IssueStatus} options={ISSUE_STATUS_OPTIONS}
-                    onChange={(e) => { setEditValue(e.value); }}
-                    onHide={() => confirmEdit(row, 'status')}
+                    onChange={(e) => confirmEdit(row, 'status', e.value)}
+                    onHide={cancelEdit}
                     autoFocus className="w-10rem" />
                 </div>
               );
@@ -341,10 +505,10 @@ export function IssueTab({
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'assignedTo';
             if (isEditing && canManageIssues) {
               return (
-                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'assignedTo')}>
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'assignedTo', editValue)}>
                   <Dropdown value={editValue} options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
-                    onChange={(e) => { setEditValue(e.value ?? null); }}
-                    onHide={() => confirmEdit(row, 'assignedTo')}
+                    onChange={(e) => confirmEdit(row, 'assignedTo', e.value ?? null)}
+                    onHide={cancelEdit}
                     placeholder="Unassigned" showClear autoFocus className="w-10rem" />
                 </div>
               );

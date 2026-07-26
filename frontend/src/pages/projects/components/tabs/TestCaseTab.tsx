@@ -1,12 +1,18 @@
+import { useCallback, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { DataTable, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
+import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import type { TestCase, TestCaseWithDetails, TestCasePriority, TestCaseStatus } from '../../../../types/domain';
+import { testCaseService } from '../../../../services/testCaseService';
+import { tagService } from '../../../../services/tagService';
 import {
   TEST_CASE_PRIORITY_LABEL,
   TEST_CASE_PRIORITY_SEVERITY,
@@ -61,7 +67,7 @@ type TestCaseTabProps = {
   onArchive: (row: TestCase) => void;
   onDelete: (row: TestCase) => void;
   onBulkDelete: () => void;
-  onRowClick: (row: TestCaseWithDetails) => void;
+  onPatchCase?: (_caseId: string, _changes: Partial<TestCaseWithDetails>) => void;
 };
 
 export function TestCaseTab({
@@ -100,8 +106,57 @@ export function TestCaseTab({
   onArchive,
   onDelete,
   onBulkDelete,
-  onRowClick,
+  onPatchCase,
 }: TestCaseTabProps) {
+  const navigate = useNavigate();
+  const [editingCell, setEditingCell] = useState<{ caseId: string; field: string } | null>(null);
+  const [editValue, setEditValue] = useState<any>(null);
+  const editRef = useRef<HTMLDivElement>(null);
+
+  const startEdit = useCallback((caseId: string, field: string, currentValue: any) => {
+    setEditingCell({ caseId, field });
+    setEditValue(currentValue);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingCell(null);
+    setEditValue(null);
+  }, []);
+
+  const confirmEdit = useCallback(async (row: TestCaseWithDetails, field: string) => {
+    if (!editingCell || editValue === null) return;
+    const id = row.id;
+    try {
+      if (field === 'title') {
+        if (String(editValue).trim()) {
+          await testCaseService.update(id, row.projectId, { title: String(editValue).trim() });
+          onPatchCase?.(id, { title: String(editValue).trim() } as any);
+        }
+      } else if (field === 'moduleId') {
+        await testCaseService.update(id, row.projectId, { moduleId: editValue || null });
+        onPatchCase?.(id, { moduleId: editValue || null } as any);
+      } else if (field === 'priority') {
+        await testCaseService.update(id, row.projectId, { priority: editValue as TestCasePriority });
+        onPatchCase?.(id, { priority: editValue as TestCasePriority } as any);
+      } else if (field === 'status') {
+        await testCaseService.update(id, row.projectId, { status: editValue as TestCaseStatus });
+        onPatchCase?.(id, { status: editValue as TestCaseStatus } as any);
+      } else if (field === 'targetRoleId') {
+        await testCaseService.update(id, row.projectId, { targetRoleId: editValue || null });
+        onPatchCase?.(id, { targetRoleId: editValue || null } as any);
+      } else if (field === 'tags') {
+        await tagService.saveTagsForTestCase(row.projectId, id, editValue as string[]);
+        onPatchCase?.(id, { tags: editValue } as any);
+      }
+    } catch { /* parent will refetch */ }
+    cancelEdit();
+  }, [editingCell, editValue, onPatchCase, cancelEdit]);
+
+  const handleCellKeyDown = useCallback((e: React.KeyboardEvent, row: TestCaseWithDetails, field: string) => {
+    if (e.key === 'Enter') { confirmEdit(row, field); }
+    else if (e.key === 'Escape') { cancelEdit(); }
+  }, [confirmEdit, cancelEdit]);
+
   const mobileCaseBody = (row: TestCaseWithDetails) => (
     <div className="flex flex-column gap-1">
       <div className="font-medium">{row.title}</div>
@@ -209,9 +264,7 @@ export function TestCaseTab({
         loading={loading}
         size="small"
         emptyMessage="No test cases yet"
-        onRowClick={(e) => onRowClick(e.data as TestCaseWithDetails)}
         rowHover
-        className="cursor-pointer"
         paginator
         paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
         currentPageReportTemplate="{totalRecords} records"
@@ -225,44 +278,90 @@ export function TestCaseTab({
         selectionMode={isMobile ? null : 'checkbox'}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile} />
-        <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileCaseBody : undefined} />
-        <Column field="module.name" header="Module" sortable body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} hidden={isMobile} />
-        <Column
-          field="priority"
-          header="Priority"
-          sortable
-          hidden={isMobile}
-          body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />}
-        />
-        <Column
-          field="status"
-          header="Status"
-          sortable
-          hidden={isMobile}
-          body={(row: TestCaseWithDetails) => (
+        <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
+          body={(row: TestCaseWithDetails) => <a className="entity-link" href={`/test-cases/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-cases/${row.id}`); }}>{row.code}</a>} />
+        <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileCaseBody : (row: TestCaseWithDetails) => {
+          const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'title';
+          if (isEditing && canEditContent) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'title')}>
+                <InputText value={String(editValue ?? '')} onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => confirmEdit(row, 'title')} autoFocus className="w-full" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'title', row.title); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>{row.title}</div>;
+        }} />
+        <Column field="moduleName" header="Module" sortable hidden={isMobile} body={(row: TestCaseWithDetails) => {
+          const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'moduleId';
+          if (isEditing && canEditContent) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'moduleId')}>
+                <Dropdown value={editValue} options={moduleOptions} onChange={(e) => { setEditValue(e.value); }} placeholder="None"
+                  onHide={() => confirmEdit(row, 'moduleId')} showClear autoFocus className="w-10rem" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'moduleId', row.moduleId); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>{row.module?.name ?? '-'}</div>;
+        }} />
+        <Column field="priority" header="Priority" sortable hidden={isMobile} body={(row: TestCaseWithDetails) => {
+          const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'priority';
+          if (isEditing && canEditContent) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'priority')}>
+                <Dropdown value={editValue as TestCasePriority} options={PRIORITY_OPTIONS} onChange={(e) => { setEditValue(e.value); }}
+                  onHide={() => confirmEdit(row, 'priority')} autoFocus className="w-10rem" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'priority', row.priority); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>
+            <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
+          </div>;
+        }} />
+        <Column field="status" header="Status" sortable hidden={isMobile} body={(row: TestCaseWithDetails) => {
+          const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'status';
+          if (isEditing && canEditContent) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'status')}>
+                <Dropdown value={editValue as TestCaseStatus} options={TEST_CASE_STATUS_OPTIONS} onChange={(e) => { setEditValue(e.value); }}
+                  onHide={() => confirmEdit(row, 'status')} autoFocus className="w-10rem" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'status', row.status); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>
             <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />
-          )}
-        />
-        <Column
-          field="targetRole.name"
-          header="Target Role"
-          sortable
-          hidden={isMobile}
-          body={(row: TestCaseWithDetails) => (row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-')}
-        />
-        <Column
-          field="tags"
-          header="Tag"
-          hidden={isMobile}
-          body={(row: TestCaseWithDetails) => (
+          </div>;
+        }} />
+        <Column field="targetRoleName" header="Target Role" sortable hidden={isMobile} body={(row: TestCaseWithDetails) => {
+          const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'targetRoleId';
+          if (isEditing && canEditContent) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'targetRoleId')}>
+                <Dropdown value={editValue} options={testRoleOptions} onChange={(e) => { setEditValue(e.value); }} placeholder="None"
+                  onHide={() => confirmEdit(row, 'targetRoleId')} showClear autoFocus className="w-10rem" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'targetRoleId', row.targetRoleId); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>
+            {row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-'}
+          </div>;
+        }} />
+        <Column field="tags" header="Tag" hidden={isMobile} body={(row: TestCaseWithDetails) => {
+          const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'tags';
+          if (isEditing && canEditContent) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'tags')}>
+                <MultiSelect value={editValue ?? []} options={tagOptions} onChange={(e) => { setEditValue(e.value); }}
+                  onHide={() => confirmEdit(row, 'tags')} autoFocus className="w-10rem" display="chip" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'tags', row.tags.map((t) => t.name)); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>
             <div className="flex flex-wrap gap-1">
-              {row.tags.map((t) => (
-                <Tag key={t.id} value={t.name} severity="info" />
-              ))}
+              {row.tags.map((t) => (<Tag key={t.id} value={t.name} severity="info" />))}
             </div>
-          )}
-        />
+          </div>;
+        }} />
         <Column
           header=""
           style={{ width: '3.5rem' }}
