@@ -341,6 +341,7 @@ export function TestCaseTab({
         onSelectionChange={(e: any) => onSelectedChange(e.value as TestCaseWithDetails[])}
         dataKey="id"
         selectionMode={isMobile ? null : 'checkbox'}
+        cellMemo={false}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
         <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
