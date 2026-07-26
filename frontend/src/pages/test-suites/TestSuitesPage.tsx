@@ -4,10 +4,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type DataTablePageEvent, type DataTableSortEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Dropdown } from 'primereact/dropdown';
 import { SelectButton } from 'primereact/selectbutton';
 import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
@@ -18,18 +14,13 @@ import { testSuiteService } from '../../services/testSuiteService';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { useStoredState } from '../../hooks/useStoredState';
 import SearchInput from '../../components/ui/SearchInput';
+import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import type { TestSuite, TestSuiteVisibility } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
-
-const VISIBILITY_OPTIONS: { label: string; value: TestSuiteVisibility }[] = [
-  { label: 'Private — only you', value: 'private' },
-  { label: 'Unlisted — anyone with the link', value: 'unlisted' },
-  { label: 'Public — visible to everyone', value: 'public' },
-];
 
 type OwnershipFilter = 'mine' | 'all';
 
@@ -104,51 +95,27 @@ export function TestSuitesPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit' | 'duplicate'>('create');
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingRow, setEditingRow] = useState<TestSuite | null>(null);
   const [duplicatingSourceId, setDuplicatingSourceId] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState<TestSuiteVisibility>('private');
-  const [error, setError] = useState<string | null>(null);
-  const suiteNameRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (error && suiteNameRef.current) {
-      suiteNameRef.current.focus();
-      suiteNameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    }
-  }, [error]);
 
   function openCreateDialog() {
     setDialogMode('create');
-    setEditingId(null);
+    setEditingRow(null);
     setDuplicatingSourceId(null);
-    setName('');
-    setDescription('');
-    setVisibility('private');
-    setError(null);
     setDialogOpen(true);
   }
 
   function openEditDialog(row: TestSuite) {
     setDialogMode('edit');
-    setEditingId(row.id);
+    setEditingRow(row);
     setDuplicatingSourceId(null);
-    setName(row.name);
-    setDescription(row.description ?? '');
-    setVisibility(row.visibility);
-    setError(null);
     setDialogOpen(true);
   }
 
   function openDuplicateDialog(row: TestSuite) {
     setDialogMode('duplicate');
-    setEditingId(null);
+    setEditingRow(row);
     setDuplicatingSourceId(row.id);
-    setName(`${row.name} (Copy)`);
-    setDescription(row.description ?? '');
-    setVisibility('private');
-    setError(null);
     setDialogOpen(true);
   }
 
@@ -156,27 +123,21 @@ export function TestSuitesPage() {
     await queryClient.invalidateQueries({ queryKey: ['testSuites-paginated'] });
   }
 
-  async function handleSave() {
-    setError(null);
-    try {
-      if (dialogMode === 'edit' && editingId) {
-        await testSuiteService.updateSuite(editingId, { name, description, visibility });
-      } else if (dialogMode === 'duplicate' && duplicatingSourceId) {
-        await testSuiteService.duplicateSuite(duplicatingSourceId, { name, description });
-      } else {
-        await testSuiteService.createSuite({ name, description, visibility });
-      }
+  async function handleSave(data: { name: string; description: string; visibility: TestSuiteVisibility }) {
+    if (dialogMode === 'edit' && editingRow) {
+      await testSuiteService.updateSuite(editingRow.id, { name: data.name, description: data.description, visibility: data.visibility });
+    } else if (dialogMode === 'duplicate' && duplicatingSourceId) {
+      await testSuiteService.duplicateSuite(duplicatingSourceId, { name: data.name, description: data.description });
+    } else {
+      const s = await testSuiteService.createSuite({ name: data.name, description: data.description, visibility: data.visibility });
       setDialogOpen(false);
-      await reload();
-      const summaryMap: Record<typeof dialogMode, string> = {
-        create: 'Suite created',
-        edit: 'Suite updated',
-        duplicate: 'Suite duplicated',
-      };
-      toast.current?.show({ severity: 'success', summary: summaryMap[dialogMode] });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save suite');
+      toast.current?.show({ severity: 'success', summary: 'Suite created' });
+      navigate(`/test-suites/${s.id}`);
+      return;
     }
+    setDialogOpen(false);
+    await reload();
+    toast.current?.show({ severity: 'success', summary: dialogMode === 'edit' ? 'Suite updated' : 'Suite duplicated' });
   }
 
   function handleDelete(row: TestSuite) {
@@ -312,39 +273,13 @@ export function TestSuitesPage() {
         />
       </DataTable>
 
-      <Dialog
-        header={
-          dialogMode === 'edit' ? 'Edit Suite' : dialogMode === 'duplicate' ? 'Duplicate Suite' : 'New Suite'
-        }
+      <TestSuiteDialog
         visible={dialogOpen}
+        mode={dialogMode}
+        initialData={editingRow ? { name: editingRow.name, description: editingRow.description, visibility: editingRow.visibility } : undefined}
         onHide={() => setDialogOpen(false)}
-        style={{ width: '30rem' }}
-      >
-        <div className="flex flex-column gap-3">
-          <div className="flex flex-column gap-1">
-            <label htmlFor="suite-name" className={error ? 'p-error' : ''}>Name</label>
-            <InputText id="suite-name" ref={suiteNameRef} value={name} onChange={(e) => setName(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
-            {error && <small className="p-error">{error}</small>}
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="suite-description">Description</label>
-            <InputTextarea id="suite-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
-          </div>
-          {dialogMode !== 'duplicate' && (
-            <div className="flex flex-column gap-1">
-              <label htmlFor="suite-visibility">Visibility</label>
-              <Dropdown
-                id="suite-visibility"
-                value={visibility}
-                options={VISIBILITY_OPTIONS}
-                onChange={(e) => setVisibility(e.value)}
-                className="w-full"
-              />
-            </div>
-          )}
-          <Button label="Save" size="small" onClick={handleSave} />
-        </div>
-      </Dialog>
+        onSave={handleSave}
+      />
     </div>
   );
 }

@@ -21,6 +21,7 @@ import type { TestCasePriority, TestCaseStepType, TestSuiteItem } from '../../ty
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY } from '../../helpers/statusLabels';
 
 const UNDO_TIMEOUT_MS = 9000;
@@ -44,6 +45,7 @@ export function TestSuiteDetailPage() {
   });
 
   const canEdit = isAdmin || suite?.ownerId === user?.id;
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: items = [], isLoading: loading } = useQuery({
     queryKey: queryKeys.testSuiteItems(id ?? ''),
@@ -319,6 +321,9 @@ export function TestSuiteDetailPage() {
             <h2 className="m-0">{suite?.name ?? '…'}</h2>
             <p className="text-color-secondary text-sm m-0">{suite?.description || 'No description'}</p>
           </div>
+          {canEdit && (
+            <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />
+          )}
         </div>
       </Card>
 
@@ -507,6 +512,20 @@ export function TestSuiteDetailPage() {
           <Button label="Save" size="small" onClick={handleSaveItem} />
         </div>
       </Dialog>
+
+      <TestSuiteDialog
+        visible={editDialogOpen}
+        mode="edit"
+        initialData={suite ? { name: suite.name, description: suite.description, visibility: suite.visibility } : undefined}
+        onHide={() => setEditDialogOpen(false)}
+        onSave={async (data) => {
+          if (!id) return;
+          await testSuiteService.updateSuite(id, { name: data.name, description: data.description, visibility: data.visibility });
+          setEditDialogOpen(false);
+          await reloadItems();
+          toast.current?.show({ severity: 'success', summary: 'Suite updated' });
+        }}
+      />
     </div>
   );
 }
