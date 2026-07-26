@@ -162,24 +162,23 @@ export function UserManagementPage() {
           />
         </div>
         <div className="col-12 md:col">
-          <SearchInput
-            value={search}
-            onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
-            placeholder="Search users..."
-            className="w-full"
-          />
-        </div>
-        <div className="col-12 md:col-fixed">
-          <Button
-            icon="pi pi-filter-slash"
-            outlined
-            severity="secondary"
-            className="w-full md:w-auto"
-            disabled={!hasActiveFilters}
-            onClick={resetFilters}
-            tooltip="Reset filters"
-            tooltipOptions={{ position: 'bottom' }}
-          />
+          <div className="flex gap-2">
+            <SearchInput
+              value={search}
+              onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
+              placeholder="Search users..."
+              className="flex-1"
+            />
+            <Button
+              icon="pi pi-filter-slash"
+              outlined
+              severity="secondary"
+              disabled={!hasActiveFilters}
+              onClick={resetFilters}
+              tooltip="Reset filters"
+              tooltipOptions={{ position: 'bottom' }}
+            />
+          </div>
         </div>
       </div>
       <DataTable
