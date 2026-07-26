@@ -1,12 +1,15 @@
+import { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { DataTable, type DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { MultiSelect } from 'primereact/multiselect';
+import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
+import { testRunService } from '../../../../services/testRunService';
 import type { TestRun, TestRunStatus } from '../../../../types/domain';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
 import { TEST_RUN_STATUS_LABEL, TEST_RUN_STATUS_SEVERITY, TEST_RESULT_STATUS_SEVERITY } from '../../../../helpers/statusLabels';
@@ -72,6 +75,30 @@ export function TestRunTab({
   onPlanLinkClick,
 }: TestRunTabProps) {
   const navigate = useNavigate();
+  const [editingName, setEditingName] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const editNameRef = useRef<HTMLInputElement>(null);
+
+  const startEditName = useCallback((row: TestRunWithSummary) => {
+    setEditingName(row.id);
+    setEditValue(row.name);
+    setTimeout(() => editNameRef.current?.focus(), 0);
+  }, []);
+
+  const cancelEditName = useCallback(() => {
+    setEditingName(null);
+    setEditValue('');
+  }, []);
+
+  async function confirmEditName(row: TestRunWithSummary) {
+    const newName = editValue.trim();
+    if (!newName) { cancelEditName(); return; }
+    if (newName === row.name) { cancelEditName(); return; }
+    try {
+      await testRunService.rename(row.id, { name: newName, code: row.code });
+    } catch { /* ignore */ }
+    cancelEditName();
+  }
   const mobileRunBody = (row: TestRunWithSummary) => (
     <div className="flex flex-column gap-1">
       <div className="font-medium">{row.name}</div>
@@ -148,11 +175,22 @@ export function TestRunTab({
         onSelectionChange={(e: any) => onSelectedChange(e.value as TestRunWithSummary[])}
         dataKey="id"
         selectionMode={isMobile ? null : 'checkbox'}
+        cellMemo={false}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
         <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
           body={(row: TestRunWithSummary) => <a className="entity-link" href={`/test-runs/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-runs/${row.id}`); }}>{row.code}</a>} />
-        <Column field="name" header="Name" sortable={!isMobile} body={isMobile ? mobileRunBody : undefined} />
+        <Column field="name" header="Name" sortable={!isMobile} body={isMobile ? mobileRunBody : (row: TestRunWithSummary) => {
+          if (editingName === row.id) {
+            return (
+              <div onKeyDown={(e) => { if (e.key === 'Enter') confirmEditName(row); else if (e.key === 'Escape') cancelEditName(); }}>
+                <InputText ref={editNameRef} value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => confirmEditName(row)} autoFocus className="w-full" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); startEditName(row); }} style={{ cursor: 'pointer' }}>{row.name}</div>;
+        }} />
         <Column
           header="Test Plan"
           field="testPlanName"
