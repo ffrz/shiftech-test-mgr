@@ -56,6 +56,17 @@ export function ProjectsPage() {
   const [sortField, setSortField] = useStoredState('projectsPage:sortField', 'name');
   const [sortOrder, setSortOrder] = useStoredState<-1 | 1>('projectsPage:sortOrder', 1);
 
+  const hasActiveFilters = debouncedSearch !== '' || statusFilter.length > 0 || ownerFilter !== 'all' || visibilityFilter.length > 0;
+
+  function resetFilters() {
+    setSearch('');
+    setDebouncedSearch('');
+    setStatusFilter([]);
+    setOwnerFilter('all');
+    setVisibilityFilter([]);
+    setPage(1);
+  }
+
   const { data, isLoading: loading } = useQuery({
     queryKey: ['projects-paginated', debouncedSearch, statusFilter, ownerFilter, visibilityFilter, page, rowsPerPage, sortField, sortOrder],
     queryFn: () => projectService.listPaginated({
@@ -271,6 +282,15 @@ export function ProjectsPage() {
           className="w-14rem"
           selectAll
           selectAllLabel="All"
+        />
+        <Button
+          icon="pi pi-filter-slash"
+          outlined
+          severity="secondary"
+          disabled={!hasActiveFilters}
+          onClick={resetFilters}
+          tooltip="Reset filters"
+          tooltipOptions={{ position: 'bottom' }}
         />
       </div>
 
