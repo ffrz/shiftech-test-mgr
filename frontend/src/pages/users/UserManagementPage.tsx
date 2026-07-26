@@ -7,7 +7,7 @@ import { Button } from 'primereact/button';
 import { MultiSelect } from 'primereact/multiselect';
 import { Menu } from 'primereact/menu';
 
-import { InputText } from 'primereact/inputtext';
+import SearchInput from '../../components/ui/SearchInput';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { userService } from '../../services/userService';
@@ -149,22 +149,12 @@ export function UserManagementPage() {
 
       <PageHeader title="Users" />
       <div className="flex gap-2 mb-3">
-        <span className={`p-icon-field p-icon-field-left${search ? ' p-icon-field-right' : ''} flex-1`}>
-          <i className="pi pi-search p-input-icon" />
-          <InputText
-            className="w-full"
-            placeholder="Search users..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <i
-              className="pi pi-times p-input-icon"
-              style={{ right: '0.75rem', cursor: 'pointer', color: 'var(--text-color-secondary)' }}
-              onClick={() => { setSearch(''); setDebouncedSearch(''); }}
-            />
-          )}
-        </span>
+        <SearchInput
+          value={search}
+          onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }}
+          placeholder="Search users..."
+          className="flex-1"
+        />
         <MultiSelect
           value={roleFilter}
           options={ROLE_OPTIONS}
