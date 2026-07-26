@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -66,8 +66,6 @@ export function TestPlanDetailPage() {
     queryFn: () => testPlanService.getById(id!),
     enabled: !!id,
   });
-  const { cases, loading: casesLoading, reload: reloadCases } = useTestPlanDetail(id ?? null);
-  const { testRuns, loading: runsLoading, reload: reloadRuns } = useTestRuns(id ?? null);
   const { canEditContent, canDeleteContent, canRunTests } = useProjectRole(testPlan?.projectId);
 
   const { lt } = useScreenSize();
@@ -91,36 +89,50 @@ export function TestPlanDetailPage() {
     enabled: !!testPlan?.projectId,
   });
 
-  // --- Test Cases: search/filter ---
+  // --- Test Runs: search / multi-select filter / server-side pagination ---
+  const [runSearch, setRunSearch] = useState('');
+  const [runStatusFilters, setRunStatusFilters] = useState<TestRunStatus[]>([]);
+  const [runFirst, setRunFirst] = useState(0);
+  const [runRows, setRunRows] = useState(10);
+
+  const runPage = Math.floor(runFirst / runRows) + 1;
+
+  const { testRuns, total: totalRuns, loading: runsLoading, reload: reloadRuns } = useTestRuns(id ?? null, {
+    search: runSearch,
+    statuses: runStatusFilters.length > 0 ? runStatusFilters : undefined,
+    page: runPage,
+    rowsPerPage: runRows,
+  });
+
+  // --- Test Cases: search / multi-select filter / server-side pagination ---
   const [caseSearch, setCaseSearch] = useState('');
-  const [casePriorityFilter, setCasePriorityFilter] = useState<TestCasePriority | null>(null);
-  const [caseModuleFilter, setCaseModuleFilter] = useState<string | null>(null);
-  const [caseTagFilter, setCaseTagFilter] = useState<string | null>(null);
+  const [casePriorityFilters, setCasePriorityFilters] = useState<TestCasePriority[]>([]);
+  const [caseModuleFilters, setCaseModuleFilters] = useState<string[]>([]);
+  const [caseTagFilters, setCaseTagFilters] = useState<string[]>([]);
+  const [caseFirst, setCaseFirst] = useState(0);
+  const [caseRows, setCaseRows] = useState(10);
   const [selectedCases, setSelectedCases] = useState<TestPlanCaseWithDetails[]>([]);
 
-  const filteredCases = useMemo(() => {
-    const q = caseSearch.trim().toLowerCase();
-    return cases.filter((c) => {
-      if (casePriorityFilter && c.testCase.priority !== casePriorityFilter) return false;
-      if (caseModuleFilter && c.testCase.module?.id !== caseModuleFilter) return false;
-      if (caseTagFilter && !c.testCase.tags.some((t) => t.id === caseTagFilter)) return false;
-      if (q && !c.testCase.title.toLowerCase().includes(q) && !c.testCase.code.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [cases, caseSearch, casePriorityFilter, caseModuleFilter, caseTagFilter]);
+  const isCaseFilterActive = Boolean(
+    caseSearch.trim() || casePriorityFilters.length > 0 || caseModuleFilters.length > 0 || caseTagFilters.length > 0,
+  );
 
-  // --- Test Runs: search/filter ---
-  const [runSearch, setRunSearch] = useState('');
-  const [runStatusFilter, setRunStatusFilter] = useState<TestRunStatus | null>(null);
+  // When no filters are active, fetch all rows for reorder; otherwise paginate
+  const caseRowsPerPage = isCaseFilterActive ? caseRows : 0;
+  const casePage = isCaseFilterActive ? Math.floor(caseFirst / caseRows) + 1 : 1;
 
-  const filteredRuns = useMemo(() => {
-    const q = runSearch.trim().toLowerCase();
-    return testRuns.filter((r) => {
-      if (runStatusFilter && r.status !== runStatusFilter) return false;
-      if (q && !r.name.toLowerCase().includes(q) && !r.code.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [testRuns, runSearch, runStatusFilter]);
+  const { cases, total: totalCases, loading: casesLoading, reload: reloadCases } = useTestPlanDetail(id ?? null, {
+    search: caseSearch,
+    priorities: casePriorityFilters.length > 0 ? casePriorityFilters : undefined,
+    moduleIds: caseModuleFilters.length > 0 ? caseModuleFilters : undefined,
+    tagIds: caseTagFilters.length > 0 ? caseTagFilters : undefined,
+    page: casePage,
+    rowsPerPage: caseRowsPerPage,
+  });
+
+  function resetCasePage() {
+    setCaseFirst(0);
+  }
 
   // --- Add test case to plan ---
   const [addCaseDialogOpen, setAddCaseDialogOpen] = useState(false);
@@ -176,11 +188,6 @@ export function TestPlanDetailPage() {
     });
   }
 
-  // Sequence is a workflow guide, not an execution constraint — testers can still record
-  // results out of order (see docs/PRD.md). Reordering only makes sense against the full,
-  // unfiltered list, so it's only enabled when no filter/search is active.
-  const isCaseFilterActive = Boolean(caseSearch.trim() || casePriorityFilter || caseModuleFilter || caseTagFilter);
-
   async function handleReorderCases(newOrder: TestPlanCaseWithDetails[]) {
     await testPlanService.reorderCases(newOrder.map((c) => c.id));
     await reloadCases();
@@ -218,7 +225,7 @@ export function TestPlanDetailPage() {
     toast.current?.show({ severity: 'success', summary: `Status changed to ${TEST_PLAN_STATUS_LABEL[status]}` });
   }
 
-  // --- Duplicate: new plan + same scope (same testCaseId rows re-attached, not duplicated) ---
+  // --- Duplicate ---
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
   const [duplicateName, setDuplicateName] = useState('');
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
@@ -349,14 +356,14 @@ export function TestPlanDetailPage() {
         <TabPanel header="Test Runs">
           <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
             <div className="flex align-items-center gap-2 flex-wrap">
-              <SearchInput value={runSearch} onChange={setRunSearch} placeholder="Search name/code..." />
-              <Dropdown
-                value={runStatusFilter}
+              <SearchInput value={runSearch} onChange={(v) => { setRunSearch(v); setRunFirst(0); }} placeholder="Search name/code..." />
+              <MultiSelect
+                value={runStatusFilters}
                 options={TEST_RUN_STATUS_OPTIONS}
-                onChange={(e) => setRunStatusFilter(e.value)}
+                onChange={(e) => { setRunStatusFilters(e.value); setRunFirst(0); }}
                 placeholder="All Statuses"
-                showClear
-                className="w-10rem"
+                className="w-12rem"
+                display="chip"
               />
             </div>
             {canRunTests && (
@@ -364,12 +371,16 @@ export function TestPlanDetailPage() {
             )}
           </div>
           <DataTable
-            value={filteredRuns}
+            value={testRuns}
             loading={runsLoading}
-            paginator
+            lazy
+            totalRecords={totalRuns}
+            first={runFirst}
+            rows={runRows}
+            onPage={(e) => { setRunFirst(e.first); setRunRows(e.rows); }}
             paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             currentPageReportTemplate="{totalRecords} records"
-            rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
+            rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="No test runs yet"
             onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
             rowHover
@@ -429,30 +440,32 @@ export function TestPlanDetailPage() {
         <TabPanel header="Test Cases">
           <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
             <div className="flex align-items-center gap-2 flex-wrap">
-              <SearchInput value={caseSearch} onChange={setCaseSearch} placeholder="Search title/code..." />
-              <Dropdown
-                value={casePriorityFilter}
+              <SearchInput value={caseSearch} onChange={(v) => { setCaseSearch(v); resetCasePage(); }} placeholder="Search title/code..." />
+              <MultiSelect
+                value={casePriorityFilters}
                 options={PRIORITY_OPTIONS}
-                onChange={(e) => setCasePriorityFilter(e.value)}
+                onChange={(e) => { setCasePriorityFilters(e.value); resetCasePage(); }}
                 placeholder="All Priorities"
-                showClear
-                className="w-10rem"
+                className="w-12rem"
+                display="chip"
               />
-              <Dropdown
-                value={caseModuleFilter}
+              <MultiSelect
+                value={caseModuleFilters}
                 options={modules.map((m) => ({ label: m.name, value: m.id }))}
-                onChange={(e) => setCaseModuleFilter(e.value)}
+                onChange={(e) => { setCaseModuleFilters(e.value); resetCasePage(); }}
                 placeholder="All Modules"
-                showClear
-                className="w-10rem"
+                className="w-12rem"
+                display="chip"
+                filter
               />
-              <Dropdown
-                value={caseTagFilter}
+              <MultiSelect
+                value={caseTagFilters}
                 options={tags.map((t) => ({ label: t.name, value: t.id }))}
-                onChange={(e) => setCaseTagFilter(e.value)}
+                onChange={(e) => { setCaseTagFilters(e.value); resetCasePage(); }}
                 placeholder="All Tags"
-                showClear
-                className="w-10rem"
+                className="w-12rem"
+                display="chip"
+                filter
               />
             </div>
             {canEditContent && (
@@ -479,12 +492,17 @@ export function TestPlanDetailPage() {
             </p>
           )}
           <DataTable
-            value={filteredCases}
+            value={cases}
             loading={casesLoading}
+            lazy={isCaseFilterActive}
+            totalRecords={isCaseFilterActive ? totalCases : undefined}
+            first={isCaseFilterActive ? caseFirst : undefined}
+            rows={isCaseFilterActive ? caseRows : undefined}
+            onPage={isCaseFilterActive ? (e) => { setCaseFirst(e.first); setCaseRows(e.rows); } : undefined}
             paginator={isCaseFilterActive}
             paginatorTemplate={isCaseFilterActive ? "CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" : undefined}
             currentPageReportTemplate={isCaseFilterActive ? "{totalRecords} records" : undefined}
-            rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
+            rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="No test cases in this plan yet"
             size="small"
             selection={selectedCases}
@@ -552,7 +570,6 @@ export function TestPlanDetailPage() {
         </TabPanel>
       </TabView>
 
-      {/* --- Add Test Case Dialog --- */}
       <Dialog header="Add Test Case to Plan" visible={addCaseDialogOpen} onHide={() => setAddCaseDialogOpen(false)} style={{ width: '30rem' }}>
         <div className="flex flex-column gap-3">
           <MultiSelect
@@ -568,7 +585,6 @@ export function TestPlanDetailPage() {
         </div>
       </Dialog>
 
-      {/* --- Start Test Run Dialog --- */}
       <Dialog header="Start Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '25rem' }}>
         <div className="flex flex-column gap-3">
           {runError && <small className="p-error">{runError}</small>}

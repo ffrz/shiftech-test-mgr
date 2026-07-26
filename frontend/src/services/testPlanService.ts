@@ -71,6 +71,13 @@ export const testPlanService = {
     return testCaseRepository.findCasesForPlan(testPlanId);
   },
 
+  listCasesPaginated(
+    testPlanId: string,
+    options: { search?: string; priorities?: string[]; moduleIds?: string[]; tagIds?: string[]; page: number; rowsPerPage: number },
+  ) {
+    return testCaseRepository.findCasesForPlanPaginated(testPlanId, options);
+  },
+
   addCase(testPlanId: string, testCaseId: string, order: number) {
     return testCaseRepository.attachToPlan(testPlanId, testCaseId, order);
   },

@@ -175,6 +175,61 @@ export const testCaseRepository = {
     }));
   },
 
+  async findCasesForPlanPaginated(
+    testPlanId: string,
+    options: { search?: string; priorities?: string[]; moduleIds?: string[]; tagIds?: string[]; page: number; rowsPerPage: number },
+  ): Promise<{ data: TestPlanCaseWithDetails[]; total: number }> {
+    let caseIdsFilter: string[] | undefined;
+    if (options.tagIds?.length) {
+      const { data: linked } = await supabase
+        .from('test_case_tags')
+        .select('test_case_id')
+        .in('tag_id', options.tagIds);
+      caseIdsFilter = [...new Set((linked ?? []).map((r: any) => r.test_case_id))];
+      if (caseIdsFilter.length === 0) return { data: [], total: 0 };
+    }
+
+    let query = supabase
+      .from('test_plan_cases')
+      .select('*, test_case:test_cases!inner(*, module:modules(*), target_role:test_roles(*), test_case_tags(tag:tags(*)))', { count: 'exact' })
+      .eq('test_plan_id', testPlanId);
+
+    if (options.search?.trim()) {
+      const q = options.search.trim();
+      query = query.or(`test_case.title.ilike.%${q}%,test_case.code.ilike.%${q}%`);
+    }
+    if (options.priorities?.length) {
+      query = query.in('test_case.priority', options.priorities);
+    }
+    if (options.moduleIds?.length) {
+      query = query.in('test_case.module_id', options.moduleIds);
+    }
+    if (caseIdsFilter) {
+      query = query.in('test_case_id', caseIdsFilter);
+    }
+
+    if (options.rowsPerPage > 0) {
+      const from = (options.page - 1) * options.rowsPerPage;
+      query = query.range(from, from + options.rowsPerPage - 1);
+    }
+
+    const { data, error, count } = await query.order('order', { ascending: true });
+
+    if (error) throw error;
+    return {
+      data: (data ?? []).map((row: any) => ({
+        ...mapTestPlanCaseRow(row),
+        testCase: {
+          ...mapTestCaseRow(row.test_case),
+          module: row.test_case.module ? mapModuleRow(row.test_case.module) : null,
+          targetRole: row.test_case.target_role ? mapTestRoleRow(row.test_case.target_role) : null,
+          tags: (row.test_case.test_case_tags ?? []).map((t: any) => mapTagRow(t.tag)),
+        },
+      })),
+      total: count ?? 0,
+    };
+  },
+
   async attachToPlan(testPlanId: string, testCaseId: string, order: number): Promise<TestPlanCase> {
     const { data, error } = await supabase
       .from('test_plan_cases')

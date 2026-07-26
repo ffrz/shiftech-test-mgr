@@ -14,6 +14,34 @@ export const testRunRepository = {
     return (data ?? []).map(mapTestRunRow);
   },
 
+  async findAllByPlanPaginated(
+    testPlanId: string,
+    options: { search?: string; statuses?: TestRunStatus[]; page: number; rowsPerPage: number },
+  ): Promise<{ data: TestRun[]; total: number }> {
+    let query = supabase
+      .from('test_runs')
+      .select('*', { count: 'exact' })
+      .eq('test_plan_id', testPlanId);
+
+    if (options.search?.trim()) {
+      const q = options.search.trim();
+      query = query.or(`name.ilike.%${q}%,code.ilike.%${q}%`);
+    }
+    if (options.statuses?.length) {
+      query = query.in('status', options.statuses);
+    }
+
+    if (options.rowsPerPage > 0) {
+      const from = (options.page - 1) * options.rowsPerPage;
+      query = query.range(from, from + options.rowsPerPage - 1);
+    }
+
+    const { data, error, count } = await query.order('started_at', { ascending: false });
+
+    if (error) throw error;
+    return { data: (data ?? []).map(mapTestRunRow), total: count ?? 0 };
+  },
+
   // Cross-plan listing for a whole project — includes custom/unplanned runs
   // (test_plan_id null), so the join to test_plans must be a left join.
   async findAllByProject(

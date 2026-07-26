@@ -2,7 +2,7 @@ import { testRunRepository } from '../repositories/testRunRepository';
 import { testResultRepository } from '../repositories/testResultRepository';
 import { testCaseRepository } from '../repositories/testCaseRepository';
 import { testPlanRepository } from '../repositories/testPlanRepository';
-import type { TestResultStatus, TestRun } from '../types/domain';
+import type { TestResultStatus, TestRun, TestRunStatus } from '../types/domain';
 
 export const testRunService = {
   listByPlan(testPlanId: string) {
@@ -31,6 +31,22 @@ export const testRunService = {
       testResultRepository.getDistinctTestersByRunIds(runIds),
     ]);
     return runs.map((r) => ({ ...r, ...summary[r.id] ?? { total: 0, pass: 0, fail: 0 }, testers: testers[r.id] ?? [] }));
+  },
+
+  async listByPlanWithSummaryPaginated(
+    testPlanId: string,
+    options: { search?: string; statuses?: TestRunStatus[]; page: number; rowsPerPage: number },
+  ) {
+    const { data, total } = await testRunRepository.findAllByPlanPaginated(testPlanId, options);
+    const runIds = data.map((r) => r.id);
+    const [summary, testers] = await Promise.all([
+      testResultRepository.getSummaryByRunIds(runIds),
+      testResultRepository.getDistinctTestersByRunIds(runIds),
+    ]);
+    return {
+      data: data.map((r) => ({ ...r, ...summary[r.id] ?? { total: 0, pass: 0, fail: 0 }, testers: testers[r.id] ?? [] })),
+      total,
+    };
   },
 
   getById(id: string) {
