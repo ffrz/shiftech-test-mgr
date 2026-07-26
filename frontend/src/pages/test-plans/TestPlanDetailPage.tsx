@@ -608,7 +608,7 @@ export function TestPlanDetailPage() {
             {canEditContent && (
               <Column
                 header=""
-                style={{ width: '8rem' }}
+                style={{ width: isMobile ? '3rem' : '7rem' }}
                 body={(row: TestPlanCaseWithDetails) => {
                   const idx = cases.indexOf(row);
                   return (
