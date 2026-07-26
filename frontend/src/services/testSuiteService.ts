@@ -167,6 +167,34 @@ export const testSuiteService = {
   // are text on the suite item (suites aren't project-scoped) — resolved here into
   // real per-project Module/Tag rows, find-or-create, cached per call so a batch of items
   // sharing a module name only creates it once.
+  async cloneItemsToSuite(suiteId: string, itemIds: string[]): Promise<void> {
+    if (itemIds.length === 0) return;
+    const existingItems = await testSuiteRepository.findItemsBySuite(suiteId);
+    const sourceItems = await testSuiteRepository.findItemsByIds(itemIds);
+    for (let i = 0; i < sourceItems.length; i++) {
+      const item = sourceItems[i];
+      const detailedSteps =
+        item.stepType === 'detailed' ? await testSuiteRepository.findStepsByItem(item.id) : [];
+      await this.addItem({
+        suiteId,
+        moduleName: item.moduleName ?? undefined,
+        title: item.title,
+        objective: item.objective ?? undefined,
+        preconditions: item.preconditions ?? undefined,
+        steps: item.steps,
+        expectedResult: item.expectedResult,
+        priority: item.priority,
+        targetRole: item.targetRole ?? undefined,
+        tagNames: item.tagNames ?? [],
+        stepType: item.stepType,
+        detailedSteps: item.stepType === 'detailed'
+          ? detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? undefined }))
+          : undefined,
+        orderIndex: existingItems.length + i,
+      });
+    }
+  },
+
   async cloneItemsToProject(projectId: string, itemIds: string[]): Promise<void> {
     if (itemIds.length === 0) return;
     const items = await testSuiteRepository.findItemsByIds(itemIds);

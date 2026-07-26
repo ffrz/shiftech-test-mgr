@@ -11,6 +11,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Dropdown } from 'primereact/dropdown';
 import { SelectButton } from 'primereact/selectbutton';
+import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useAuthContext } from '../../hooks/useAuth';
@@ -22,6 +23,8 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
+import { ImportTemplateDialog } from '../projects/components/dialogs/ImportTemplateDialog';
+import { parseTestCaseCsv } from '../../helpers/csvImport';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY, TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 
 const UNDO_TIMEOUT_MS = 9000;
@@ -46,6 +49,103 @@ export function TestSuiteDetailPage() {
 
   const canEdit = isAdmin || suite?.ownerId === user?.id;
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  // --- Import from Template ---
+  const [importTemplateDialogOpen, setImportTemplateDialogOpen] = useState(false);
+  const [importTemplateId, setImportTemplateId] = useState<string | null>(null);
+  const [importTemplateItems, setImportTemplateItems] = useState<TestSuiteItem[]>([]);
+  const [importTemplateItemIds, setImportTemplateItemIds] = useState<string[]>([]);
+  const [importTemplateLoading, setImportTemplateLoading] = useState(false);
+
+  const { data: allTemplates = [] } = useQuery({
+    queryKey: [...queryKeys.testSuites(), 'all'],
+    queryFn: () => testSuiteService.listSuites(),
+    enabled: importTemplateDialogOpen,
+  });
+
+  function openImportTemplateDialog() {
+    setImportTemplateId(null);
+    setImportTemplateItems([]);
+    setImportTemplateItemIds([]);
+    setImportTemplateDialogOpen(true);
+  }
+
+  async function handleSelectImportTemplate(nextTemplateId: string | null) {
+    setImportTemplateId(nextTemplateId);
+    setImportTemplateItemIds([]);
+    if (!nextTemplateId) { setImportTemplateItems([]); return; }
+    setImportTemplateItems(await testSuiteService.listItems(nextTemplateId));
+  }
+
+  async function handleImportTemplate() {
+    if (!id || importTemplateItemIds.length === 0) return;
+    setImportTemplateLoading(true);
+    try {
+      await testSuiteService.cloneItemsToSuite(id, importTemplateItemIds);
+      setImportTemplateDialogOpen(false);
+      await reloadItems();
+      toast.current?.show({ severity: 'success', summary: `${importTemplateItemIds.length} test case(s) imported` });
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
+    } finally {
+      setImportTemplateLoading(false);
+    }
+  }
+
+  // --- Import from CSV ---
+  const [importCsvDialogOpen, setImportCsvDialogOpen] = useState(false);
+  const [csvValidRows, setCsvValidRows] = useState<any[]>([]);
+  const [csvInvalidRows, setCsvInvalidRows] = useState<any[]>([]);
+  const [csvParsed, setCsvParsed] = useState(false);
+  const [csvImporting, setCsvImporting] = useState(false);
+
+  async function handleCsvFile(event: FileUploadHandlerEvent) {
+    const file = event.files[0];
+    if (!file) return;
+    try {
+      const { valid, invalid } = await parseTestCaseCsv(file);
+      setCsvValidRows(valid);
+      setCsvInvalidRows(invalid);
+      setCsvParsed(true);
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Failed to read file', detail: err instanceof Error ? err.message : undefined });
+    }
+  }
+
+  async function handleImportCsv() {
+    if (!id || csvValidRows.length === 0) return;
+    setCsvImporting(true);
+    try {
+      const existingItems = await testSuiteService.listItems(id);
+      for (let i = 0; i < csvValidRows.length; i++) {
+        const row = csvValidRows[i];
+        await testSuiteService.addItem({
+          suiteId: id,
+          moduleName: row.moduleName ?? undefined,
+          title: row.title,
+          objective: row.objective ?? undefined,
+          preconditions: row.preconditions ?? undefined,
+          steps: row.steps,
+          expectedResult: row.expectedResult,
+          priority: row.priority,
+          targetRole: row.targetRole ?? undefined,
+          tagNames: row.tagNames ?? [],
+          stepType: 'simple',
+          orderIndex: existingItems.length + i,
+        });
+      }
+      setImportCsvDialogOpen(false);
+      setCsvParsed(false);
+      setCsvValidRows([]);
+      setCsvInvalidRows([]);
+      await reloadItems();
+      toast.current?.show({ severity: 'success', summary: `${csvValidRows.length} test case(s) imported` });
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
+    } finally {
+      setCsvImporting(false);
+    }
+  }
 
   const { data: items = [], isLoading: loading } = useQuery({
     queryKey: queryKeys.testSuiteItems(id ?? ''),
@@ -332,7 +432,13 @@ export function TestSuiteDetailPage() {
 
       <PageHeader
         title="Item Test Case"
-        actions={canEdit ? <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} /> : undefined}
+        actions={canEdit ? (
+          <div className="flex gap-2">
+            <Button icon="pi pi-copy" size="small" text onClick={openImportTemplateDialog} tooltip="Import from Template" />
+            <Button icon="pi pi-file-excel" size="small" text onClick={() => setImportCsvDialogOpen(true)} tooltip="Import from CSV" />
+            <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} />
+          </div>
+        ) : undefined}
       />
 
       <DataTable value={items} loading={loading} paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small" cellMemo={false}>
@@ -530,6 +636,57 @@ export function TestSuiteDetailPage() {
           toast.current?.show({ severity: 'success', summary: 'Suite updated' });
         }}
       />
+
+      <ImportTemplateDialog
+        visible={importTemplateDialogOpen}
+        templateId={importTemplateId}
+        onSelectTemplate={handleSelectImportTemplate}
+        templates={allTemplates}
+        items={importTemplateItems}
+        itemIds={importTemplateItemIds}
+        onItemIdsChange={setImportTemplateItemIds}
+        loading={importTemplateLoading}
+        onHide={() => setImportTemplateDialogOpen(false)}
+        onImport={handleImportTemplate}
+      />
+
+      <Dialog header="Import from CSV" visible={importCsvDialogOpen} onHide={() => { setImportCsvDialogOpen(false); setCsvParsed(false); setCsvValidRows([]); setCsvInvalidRows([]); }} style={{ width: '40rem' }}>
+        <div className="flex flex-column gap-3">
+          <Toast ref={toast} position="bottom-center" />
+          {!csvParsed && (
+            <>
+              <p className="text-color-secondary text-sm m-0">
+                CSV file with header: Module, Title, Objective, Preconditions, Steps, Expected Result, Priority, Tags,
+                Target Role. Only <strong>Title</strong> is required. Tags are comma-separated.
+              </p>
+              <FileUpload mode="basic" chooseLabel="Choose CSV File" accept=".csv" customUpload uploadHandler={handleCsvFile} auto />
+            </>
+          )}
+          {csvParsed && (
+            <>
+              <div className="flex align-items-center gap-2 text-sm">
+                <Tag value={`${csvValidRows.length} valid`} severity="success" />
+                {csvInvalidRows.length > 0 && <Tag value={`${csvInvalidRows.length} invalid`} severity="danger" />}
+                <Button label="Choose Another File" size="small" text onClick={() => setCsvParsed(false)} />
+              </div>
+              {csvInvalidRows.length > 0 && (
+                <DataTable value={csvInvalidRows} size="small" paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={5} className="mb-2">
+                  <Column field="rowNumber" header="Row" style={{ width: '5rem' }} />
+                  <Column field="reason" header="Failure Reason" body={(row: any) => <span className="text-red-500">{row.reason}</span>} />
+                </DataTable>
+              )}
+              <DataTable value={csvValidRows} size="small" paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={5} emptyMessage="No valid rows to import.">
+                <Column field="rowNumber" header="Row" style={{ width: '5rem' }} />
+                <Column field="title" header="Title" />
+                <Column field="moduleName" header="Module" body={(row: any) => row.moduleName ?? '-'} />
+                <Column field="priority" header="Priority" />
+                <Column field="targetRole" header="Target Role" body={(row: any) => row.targetRole ?? '-'} />
+              </DataTable>
+              <Button label={`Import ${csvValidRows.length} Test Case${csvValidRows.length !== 1 ? 's' : ''}`} size="small" loading={csvImporting} disabled={csvValidRows.length === 0} onClick={handleImportCsv} />
+            </>
+          )}
+        </div>
+      </Dialog>
     </div>
   );
 }
