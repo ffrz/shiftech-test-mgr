@@ -47,7 +47,7 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
 
   return (
     <div className="flex flex-column gap-3">
-      <Toast ref={toast} position="top-center" />
+      <Toast ref={toast} position="bottom-center" />
 
       {!parsed && (
         <>

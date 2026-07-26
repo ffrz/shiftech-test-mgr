@@ -491,7 +491,7 @@ export function ProjectSettingsPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="top-center" />
+      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
 
       <Breadcrumb

@@ -393,7 +393,7 @@ export function TestRunResultDetailPage() {
 
   return (
     <div className="page-fade-in">
-      <Toast ref={toast} position="top-center" />
+      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
 
       <Breadcrumb

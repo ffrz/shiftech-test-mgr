@@ -190,7 +190,7 @@ export function IssueEditor({
 
   return (
     <>
-      <Toast ref={toast} position="top-center" />
+      <Toast ref={toast} position="bottom-center" />
       <Dialog
         header={mode === 'create' ? 'Create Issue' : 'Edit Issue'}
         visible={visible}
