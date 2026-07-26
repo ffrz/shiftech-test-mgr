@@ -64,6 +64,7 @@ export function TestRunIssuesPage() {
   });
   const projectName = project?.name ?? null;
   const { canManageIssues, canDeleteContent } = useProjectRole(projectId);
+  const isRunCompleted = testRun?.status === 'completed';
 
   const { data: projectMembers = [] } = useQuery({
     queryKey: queryKeys.projectMembers(projectId ?? ''),
@@ -261,7 +262,7 @@ export function TestRunIssuesPage() {
                   value={row.status}
                   options={STATUS_OPTIONS}
                   onChange={(e) => handleChangeStatus(row, e.value)}
-                  disabled={!canManageIssues}
+                  disabled={!canManageIssues || isRunCompleted}
                   className="w-12rem"
                 />
               </div>
@@ -280,7 +281,7 @@ export function TestRunIssuesPage() {
                   onChange={(e) => handleAssign(row, e.value)}
                   placeholder="Unassigned"
                   showClear
-                  disabled={!canManageIssues}
+                  disabled={!canManageIssues || isRunCompleted}
                   className="w-12rem"
                 />
               </div>
@@ -294,11 +295,11 @@ export function TestRunIssuesPage() {
             <RowActionsMenu
               items={[
                 { label: 'View Details', icon: 'pi pi-external-link', command: () => navigate(`/issues/${row.id}?testRunId=${id}`) },
-                ...(canManageIssues ? [{ label: 'Edit', icon: 'pi pi-pencil', command: () => openEdit(row) }] : []),
-                ...(canManageIssues ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => handleDuplicate(row) }] : []),
-                ...(canDeleteContent
+                ...(!isRunCompleted && canManageIssues ? [{ label: 'Edit', icon: 'pi pi-pencil', command: () => openEdit(row) }] : []),
+                ...(!isRunCompleted && canManageIssues ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => handleDuplicate(row) }] : []),
+                ...(!isRunCompleted && canDeleteContent
                   ? [{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) }]
-                  : canManageIssues && row.status !== 'closed'
+                  : !isRunCompleted && canManageIssues && row.status !== 'closed'
                     ? [{ label: 'Archive', icon: 'pi pi-inbox', command: () => handleArchive(row) }]
                     : []),
               ]}
@@ -309,7 +310,7 @@ export function TestRunIssuesPage() {
 
       {/* --- Edit Issue Dialog (reusable IssueEditor) --- */}
       <IssueEditor
-        visible={!!editIssue}
+        visible={!!editIssue && !isRunCompleted}
         onHide={closeEdit}
         onSave={handleSaveEdit}
         projectId={projectId ?? ''}
