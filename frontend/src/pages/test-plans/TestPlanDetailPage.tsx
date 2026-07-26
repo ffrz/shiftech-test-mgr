@@ -612,7 +612,7 @@ export function TestPlanDetailPage() {
                 body={(row: TestPlanCaseWithDetails) => {
                   const idx = cases.indexOf(row);
                   return (
-                    <div className="flex gap-1">
+                    <div className="flex flex-column md:flex-row gap-1">
                       {!isCaseFilterActive && cases.length > 1 && (
                         <>
                           <Button icon="pi pi-angle-up" text rounded size="small" severity="secondary" aria-label="Move up" disabled={idx === 0} onClick={(e) => { e.stopPropagation(); handleMoveUp(idx); }} />
