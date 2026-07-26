@@ -445,6 +445,11 @@ html.dark .layout-menuitem-link.active-route {
   text-align: left;
 }
 
+.layout-root-menuitem button {
+  padding: 0 !important;
+}
+
+
 .layout-menuitem-add,
 .layout-menuitem-expand {
   display: flex;
@@ -499,6 +504,10 @@ html.dark .layout-menuitem-link.active-route {
   flex: 1;
   min-width: 0;
   padding-left: 2.35rem;
+}
+
+.top-project-items .layout-submenu-link {
+  padding-left: 1rem;
 }
 
 .layout-submenu-link .layout-menuitem-text {
