@@ -23,6 +23,8 @@ import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY } from '../../helpers/statusLabels';
 
+const UNDO_TIMEOUT_MS = 9000;
+
 const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = (
   ['low', 'medium', 'high', 'critical'] as const
 ).map((v) => ({ label: TEST_CASE_PRIORITY_LABEL[v], value: v }));
@@ -48,6 +50,81 @@ export function TestSuiteDetailPage() {
     queryFn: () => testSuiteService.listItems(id!),
     enabled: !!id,
   });
+
+  const undoToast = useRef<Toast>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
+
+  const [editingCell, setEditingCell] = useState<{ itemId: string; field: string } | null>(null);
+  const [editValue, setEditValue] = useState<any>(null);
+  const editRef = useRef<HTMLDivElement>(null);
+  const cancelledRef = useRef(false);
+
+  const startEdit = useCallback((itemId: string, field: string, currentValue: any) => {
+    cancelledRef.current = false;
+    setEditingCell({ itemId, field });
+    setEditValue(currentValue);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    cancelledRef.current = true;
+    setEditingCell(null);
+    setEditValue(null);
+  }, []);
+
+  const handleUndo = useCallback(async (itemId: string, changes: Partial<TestSuiteItem>) => {
+    if (undoTimerRef.current) { clearTimeout(undoTimerRef.current); undoTimerRef.current = null; }
+    undoToast.current?.clear();
+    try {
+      await testSuiteService.updateItem(itemId, changes);
+      await reloadItems();
+    } catch { /* ignore */ }
+  }, []);
+
+  const scheduleUndoToast = useCallback((itemId: string, changes: Partial<TestSuiteItem>, fieldLabel: string) => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoToast.current?.clear();
+    undoToast.current?.show({
+      severity: 'info',
+      content: (
+        <div className="flex align-items-center justify-content-between gap-3 w-full">
+          <span>{fieldLabel} updated</span>
+          <Button label="Undo" text size="small" onClick={() => handleUndo(itemId, changes)} />
+        </div>
+      ),
+      sticky: true,
+    });
+    undoTimerRef.current = setTimeout(() => {
+      undoToast.current?.clear();
+      undoTimerRef.current = null;
+    }, UNDO_TIMEOUT_MS);
+  }, [handleUndo]);
+
+  const confirmEdit = useCallback(async (row: TestSuiteItem, field: string, value: any) => {
+    if (cancelledRef.current) return;
+    setEditingCell(null);
+    setEditValue(null);
+
+    const normalizedValue = field === 'title' ? String(value ?? '').trim() : value;
+    const normalizedPrevious = field === 'title' ? String((row as any)[field] ?? '').trim() : (row as any)[field];
+    if (field === 'title' && !normalizedValue) return;
+    if (normalizedValue === normalizedPrevious) return;
+
+    const changes = { [field]: normalizedValue } as Partial<TestSuiteItem>;
+    const fieldLabel: Record<string, string> = { title: 'Title', moduleName: 'Module', priority: 'Priority', targetRole: 'Role Target' };
+    try {
+      await testSuiteService.updateItem(row.id, changes);
+      const undoChanges = { [field]: (row as any)[field] } as Partial<TestSuiteItem>;
+      scheduleUndoToast(row.id, undoChanges, fieldLabel[field] ?? field);
+      await reloadItems();
+    } catch { /* ignore */ }
+  }, [reloadItems, scheduleUndoToast]);
+
+  const handleCellKeyDown = useCallback((e: React.KeyboardEvent, row: TestSuiteItem, field: string, value: any) => {
+    if (e.key === 'Enter') { confirmEdit(row, field, value); }
+    else if (e.key === 'Escape') { cancelEdit(); }
+  }, [confirmEdit, cancelEdit]);
 
   async function reloadItems() {
     if (id) await queryClient.invalidateQueries({ queryKey: queryKeys.testSuiteItems(id) });
@@ -227,6 +304,7 @@ export function TestSuiteDetailPage() {
   return (
     <div>
       <Toast ref={toast} position="bottom-center" />
+      <Toast ref={undoToast} position="bottom-center" />
       <ConfirmDialog />
       <Breadcrumb
         items={[
@@ -249,14 +327,64 @@ export function TestSuiteDetailPage() {
         actions={canEdit ? <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} /> : undefined}
       />
 
-      <DataTable value={items} loading={loading} paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small">
+      <DataTable value={items} loading={loading} paginator paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown" currentPageReportTemplate="{totalRecords} records" rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small" cellMemo={false}>
         {isMobile
           ? <Column header="Title" body={mobileBodyTemplate} />
-          : <Column field="title" header="Title" sortable />
+          : <Column field="title" header="Title" sortable body={(row: TestSuiteItem) => {
+            const isEditing = editingCell?.itemId === row.id && editingCell?.field === 'title';
+            if (isEditing && canEdit) {
+              return (
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'title', editValue)}>
+                  <InputText value={editValue ?? ''} onChange={(e) => setEditValue(e.target.value)}
+                    onBlur={() => confirmEdit(row, 'title', editValue)} autoFocus className="w-full" />
+                </div>
+              );
+            }
+            return <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'title', row.title); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>{row.title}</div>;
+          }} />
         }
-        {!isMobile && <Column field="moduleName" header="Module" body={(row: TestSuiteItem) => row.moduleName || '-'} />}
-        {!isMobile && <Column field="priority" header="Priority" body={(row: TestSuiteItem) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />} />}
-        {!isMobile && <Column field="targetRole" header="Role Target" body={(row: TestSuiteItem) => (row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-')} />}
+        {!isMobile && <Column field="moduleName" header="Module" body={(row: TestSuiteItem) => {
+          const isEditing = editingCell?.itemId === row.id && editingCell?.field === 'moduleName';
+          if (isEditing && canEdit) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'moduleName', editValue)}>
+                <InputText value={editValue ?? ''} onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => confirmEdit(row, 'moduleName', editValue)} autoFocus className="w-full" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'moduleName', row.moduleName); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>{row.moduleName || '-'}</div>;
+        }} />}
+        {!isMobile && <Column field="priority" header="Priority" body={(row: TestSuiteItem) => {
+          const isEditing = editingCell?.itemId === row.id && editingCell?.field === 'priority';
+          if (isEditing && canEdit) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'priority', editValue)}>
+                <Dropdown value={editValue as TestCasePriority} options={PRIORITY_OPTIONS}
+                  onChange={(e) => confirmEdit(row, 'priority', e.value)}
+                  onHide={cancelEdit}
+                  autoFocus className="w-10rem" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'priority', row.priority); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
+            <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
+          </div>;
+        }} />}
+        {!isMobile && <Column field="targetRole" header="Role Target" body={(row: TestSuiteItem) => {
+          const isEditing = editingCell?.itemId === row.id && editingCell?.field === 'targetRole';
+          if (isEditing && canEdit) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'targetRole', editValue)}>
+                <InputText value={editValue ?? ''} onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => confirmEdit(row, 'targetRole', editValue)} autoFocus className="w-full" />
+              </div>
+            );
+          }
+          return <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'targetRole', row.targetRole); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
+            {row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-'}
+          </div>;
+        }} />}
         {!isMobile && <Column field="stepType" header="Mode" body={(row: TestSuiteItem) => (row.stepType === 'detailed' ? 'Detailed' : 'Simple')} />}
         {canEdit && (
           <Column
