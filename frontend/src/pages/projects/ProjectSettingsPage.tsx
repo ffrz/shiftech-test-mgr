@@ -27,6 +27,7 @@ import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMembe
 import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
+import { CreateProjectDialog } from './components/CreateProjectDialog';
 
 const MEMBER_ROLE_OPTIONS: { label: string; value: ProjectMemberRole }[] = [
   { label: PROJECT_MEMBER_ROLE_LABEL.member, value: 'member' },
@@ -50,6 +51,7 @@ export function ProjectSettingsPage() {
   const [testRoles, setTestRoles] = useState<TestRole[]>([]);
   const [members, setMembers] = useState<ProjectMemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   async function loadAll(showLoading = true) {
     if (!id) return;
@@ -480,9 +482,19 @@ export function ProjectSettingsPage() {
       />
 
       <Card className="mb-3">
-        <div className="flex align-items-center gap-2">
-          <Button icon="pi pi-arrow-left" text rounded aria-label="Back" onClick={() => navigate(`/projects/${id}`)} />
-          <h2 className="m-0">Project Setting — {project.name}</h2>
+        <div className="flex align-items-center justify-content-between flex-wrap gap-2">
+          <div className="flex align-items-center gap-2">
+            <Button icon="pi pi-arrow-left" text rounded aria-label="Back" onClick={() => navigate(`/projects/${id}`)} />
+            <div>
+              <h2 className="m-0">{project.name}</h2>
+              {project.description && <p className="m-0 mt-1 text-color-secondary text-sm">{project.description}</p>}
+              <div className="flex gap-2 mt-1">
+                <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
+                <Tag value={project.visibility === 'public' ? 'Public' : project.visibility === 'unlisted' ? 'Unlisted' : 'Private'} severity="info" />
+              </div>
+            </div>
+          </div>
+          <Button label="Edit" icon="pi pi-pencil" size="small" outlined onClick={() => setEditDialogOpen(true)} />
         </div>
       </Card>
 
@@ -868,6 +880,17 @@ export function ProjectSettingsPage() {
           <Button label="Send Invite" size="small" onClick={handleAddMember} />
         </div>
       </Dialog>
+
+      <CreateProjectDialog
+        visible={editDialogOpen}
+        editingProject={project}
+        onHide={() => setEditDialogOpen(false)}
+        onSaved={() => {
+          setEditDialogOpen(false);
+          loadAll(false);
+          toast.current?.show({ severity: 'success', summary: 'Project updated' });
+        }}
+      />
     </div>
   );
 }
