@@ -260,6 +260,7 @@ export function TestSuitesPage() {
           body={(row: TestSuite) => (
             <RowActionsMenu
               items={[
+                { label: 'View Details', icon: 'pi pi-external-link', command: () => navigate(`/test-suites/${row.id}`) },
                 { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
                 ...(isOwnerOrAdmin(row)
                   ? [
