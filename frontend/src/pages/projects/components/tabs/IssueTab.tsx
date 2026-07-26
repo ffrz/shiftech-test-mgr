@@ -53,6 +53,7 @@ type IssueTabProps = {
   canManageIssues: boolean;
   canDeleteContent: boolean;
   onCreate: () => void;
+  onEdit: (row: IssueWithDetails) => void;
   onDuplicate: (row: IssueWithDetails) => void;
   onBulkDelete: () => void;
   onRowClick: (row: IssueWithDetails) => void;
@@ -86,6 +87,7 @@ export function IssueTab({
   canManageIssues,
   canDeleteContent,
   onCreate,
+  onEdit,
   onDuplicate,
   onBulkDelete,
   onRowClick,
@@ -257,6 +259,9 @@ export function IssueTab({
             <RowActionsMenu
               items={[
                 { label: 'Detail', icon: 'pi pi-external-link', command: () => onRowClick(row) },
+                ...(canManageIssues
+                  ? [{ label: 'Edit', icon: 'pi pi-pencil', command: () => onEdit(row) }]
+                  : []),
                 ...(canManageIssues
                   ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => onDuplicate(row) }]
                   : []),

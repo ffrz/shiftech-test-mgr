@@ -17,6 +17,7 @@ const ISSUE_TYPE_OPTIONS: { label: string; value: IssueType }[] = (
 
 type IssueDialogProps = {
   visible: boolean;
+  editing?: boolean;
   title: string;
   onTitleChange: (value: string) => void;
   type: IssueType;
@@ -31,6 +32,10 @@ type IssueDialogProps = {
   tagOptions: { label: string; value: string }[];
   description: string;
   onDescriptionChange: (value: string) => void;
+  actualResult?: string;
+  onActualResultChange?: (value: string) => void;
+  expectedResult?: string;
+  onExpectedResultChange?: (value: string) => void;
   error: string | null;
   onHide: () => void;
   onSave: () => void;
@@ -39,6 +44,7 @@ type IssueDialogProps = {
 
 export function IssueDialog({
   visible,
+  editing = false,
   title,
   onTitleChange,
   type,
@@ -53,13 +59,17 @@ export function IssueDialog({
   tagOptions,
   description,
   onDescriptionChange,
+  actualResult,
+  onActualResultChange,
+  expectedResult,
+  onExpectedResultChange,
   error,
   onHide,
   onSave,
   onQuickAddTag,
 }: IssueDialogProps) {
   return (
-    <Dialog header="Create Issue" visible={visible} onHide={onHide} style={{ width: '32rem' }}>
+    <Dialog header={editing ? 'Edit Issue' : 'Create Issue'} visible={visible} onHide={onHide} style={{ width: '32rem' }}>
       <div className="flex flex-column gap-3">
         {error && <small className="p-error">{error}</small>}
         <div className="flex flex-column gap-1">
@@ -113,11 +123,23 @@ export function IssueDialog({
             />
           </div>
         </div>
-        <div className="flex flex-column gap-1">
-          <label htmlFor="issue-new-description">Description (optional)</label>
-          <InputTextarea id="issue-new-description" value={description} onChange={(e) => onDescriptionChange(e.target.value)} rows={3} />
-        </div>
-        <Button label="Save" size="small" onClick={onSave} />
+          <div className="flex flex-column gap-1">
+            <label htmlFor="issue-new-description">Description (optional)</label>
+            <InputTextarea id="issue-new-description" value={description} onChange={(e) => onDescriptionChange(e.target.value)} rows={3} />
+          </div>
+          {editing && (
+            <>
+              <div className="flex flex-column gap-1">
+                <label htmlFor="issue-edit-actual">Actual Result (optional)</label>
+                <InputTextarea id="issue-edit-actual" value={actualResult ?? ''} onChange={(e) => onActualResultChange?.(e.target.value)} rows={2} />
+              </div>
+              <div className="flex flex-column gap-1">
+                <label htmlFor="issue-edit-expected">Expected Result (optional)</label>
+                <InputTextarea id="issue-edit-expected" value={expectedResult ?? ''} onChange={(e) => onExpectedResultChange?.(e.target.value)} rows={2} />
+              </div>
+            </>
+          )}
+          <Button label={editing ? 'Update' : 'Save'} size="small" onClick={onSave} />
       </div>
     </Dialog>
   );

@@ -778,23 +778,43 @@ export function ProjectDetailPage() {
     });
   }, [issues, issueSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter]);
 
-  // --- Issue create dialog (standalone, project-level) ---
+  // --- Issue create/edit dialog ---
   const [issueDialogOpen, setIssueDialogOpen] = useState(false);
+  const [editingIssueId, setEditingIssueId] = useState<string | null>(null);
   const [issueTitle, setIssueTitle] = useState('');
   const [issueType, setIssueType] = useState<IssueType>('bug');
   const [issueModuleId, setIssueModuleId] = useState<string | null>(null);
   const [issueDescription, setIssueDescription] = useState('');
+  const [issueActualResult, setIssueActualResult] = useState('');
+  const [issueExpectedResult, setIssueExpectedResult] = useState('');
   const [issuePriorityValue, setIssuePriorityValue] = useState<IssuePriority>('medium');
   const [issueTagNames, setIssueTagNames] = useState<string[]>([]);
   const [issueFormError, setIssueFormError] = useState<string | null>(null);
 
   function openCreateIssueDialog() {
+    setEditingIssueId(null);
     setIssueTitle('');
     setIssueType('bug');
     setIssueModuleId(null);
     setIssueDescription('');
+    setIssueActualResult('');
+    setIssueExpectedResult('');
     setIssuePriorityValue('medium');
     setIssueTagNames([]);
+    setIssueFormError(null);
+    setIssueDialogOpen(true);
+  }
+
+  function openEditIssueDialog(row: IssueWithDetails) {
+    setEditingIssueId(row.id);
+    setIssueTitle(row.title);
+    setIssueType(row.type);
+    setIssueModuleId(row.moduleId);
+    setIssueDescription(row.description ?? '');
+    setIssueActualResult(row.actualResult ?? '');
+    setIssueExpectedResult(row.expectedResult ?? '');
+    setIssuePriorityValue(row.priority);
+    setIssueTagNames(row.tags.map((t) => t.name));
     setIssueFormError(null);
     setIssueDialogOpen(true);
   }
@@ -803,10 +823,13 @@ export function ProjectDetailPage() {
   // one — submitting always creates a new issue (this dialog has no edit mode), so no
   // separate editingId bookkeeping is needed here unlike the Test Case dialog.
   function openDuplicateIssueDialog(row: IssueWithDetails) {
+    setEditingIssueId(null);
     setIssueTitle(`${row.title} (Copy)`);
     setIssueType(row.type);
     setIssueModuleId(row.moduleId);
     setIssueDescription(row.description ?? '');
+    setIssueActualResult('');
+    setIssueExpectedResult('');
     setIssuePriorityValue(row.priority);
     setIssueTagNames(row.tags.map((t) => t.name));
     setIssueFormError(null);
@@ -817,20 +840,38 @@ export function ProjectDetailPage() {
     if (!id) return;
     setIssueFormError(null);
     try {
-      await issueService.create({
-        projectId: id,
-        moduleId: issueModuleId,
-        type: issueType,
-        title: issueTitle,
-        description: issueDescription,
-        priority: issuePriorityValue,
-        tagNames: issueTagNames,
-      });
+      if (editingIssueId) {
+        await issueService.update(
+          editingIssueId,
+          id,
+          {
+            title: issueTitle,
+            description: issueDescription,
+            actualResult: issueActualResult,
+            expectedResult: issueExpectedResult,
+            priority: issuePriorityValue,
+            type: issueType,
+            moduleId: issueModuleId,
+            githubLinks: [],
+          },
+          issueTagNames,
+        );
+      } else {
+        await issueService.create({
+          projectId: id,
+          moduleId: issueModuleId,
+          type: issueType,
+          title: issueTitle,
+          description: issueDescription,
+          priority: issuePriorityValue,
+          tagNames: issueTagNames,
+        });
+      }
       setIssueDialogOpen(false);
       await loadAll();
-      toastSuccess('Issue created');
+      toastSuccess(editingIssueId ? 'Issue updated' : 'Issue created');
     } catch (err) {
-      setIssueFormError(err instanceof Error ? err.message : 'Failed to create issue');
+      setIssueFormError(err instanceof Error ? err.message : `Failed to ${editingIssueId ? 'update' : 'create'} issue`);
     }
   }
 
@@ -1028,6 +1069,7 @@ export function ProjectDetailPage() {
               canManageIssues={canManageIssues}
               canDeleteContent={canDeleteContent}
               onCreate={openCreateIssueDialog}
+              onEdit={openEditIssueDialog}
               onDuplicate={openDuplicateIssueDialog}
               onBulkDelete={handleBulkDeleteIssues}
               onRowClick={(row) => navigate(`/issues/${row.id}`)}
@@ -1180,6 +1222,7 @@ export function ProjectDetailPage() {
 
       <IssueDialog
         visible={issueDialogOpen}
+        editing={!!editingIssueId}
         title={issueTitle}
         onTitleChange={setIssueTitle}
         type={issueType}
@@ -1194,6 +1237,10 @@ export function ProjectDetailPage() {
         tagOptions={caseTagOptions}
         description={issueDescription}
         onDescriptionChange={setIssueDescription}
+        actualResult={issueActualResult}
+        onActualResultChange={setIssueActualResult}
+        expectedResult={issueExpectedResult}
+        onExpectedResultChange={setIssueExpectedResult}
         error={issueFormError}
         onHide={() => setIssueDialogOpen(false)}
         onSave={handleSaveIssue}
