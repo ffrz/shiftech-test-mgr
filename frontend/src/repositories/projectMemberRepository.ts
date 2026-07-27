@@ -43,7 +43,7 @@ export const projectMemberRepository = {
   async listPendingInvitationsForUser(userId: string): Promise<ProjectMemberInvitation[]> {
     const { data, error } = await supabase
       .from('project_members')
-      .select(`${MEMBER_WITH_PROFILE_SELECT}, project:projects(id, name)`)
+      .select(`${MEMBER_WITH_PROFILE_SELECT}, project:projects(id, name, owner:users!projects_owner_id_fkey(profile:profiles(username, display_name)))`)
       .eq('user_id', userId)
       .eq('status', 'invited')
       .order('invited_at', { ascending: false });

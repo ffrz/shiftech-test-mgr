@@ -68,10 +68,11 @@ export interface ProjectMemberWithProfile extends ProjectMember {
   email: string;
 }
 
-// Used by "My Invitations" (own pending invites) — same shape plus the project name,
-// since that list spans multiple projects and needs to say which one each invite is for.
+// Used by "My Invitations" (own pending invites) — same shape plus project info for
+// display (@ownerUsername/project-name), since that list spans multiple projects and
+// needs to say which one each invite is for.
 export interface ProjectMemberInvitation extends ProjectMemberWithProfile {
-  project: { id: string; name: string } | null;
+  project: { id: string; name: string; ownerUsername: string; ownerDisplayName: string | null } | null;
 }
 
 export interface Module {

@@ -16,17 +16,26 @@ export function useProjectInvitations() {
   });
 
   function invalidate() {
-    if (user) queryClient.invalidateQueries({ queryKey: queryKeys.ownPendingInvitations(user.id) });
+    if (!user) return;
+    queryClient.invalidateQueries({ queryKey: queryKeys.ownPendingInvitations(user.id) });
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
   }
 
-  async function accept(id: string) {
+  async function accept(id: string, projectId?: string) {
     await projectMemberService.accept(id);
     invalidate();
+    if (projectId) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectMembers(projectId) });
+    }
   }
 
-  async function decline(id: string) {
+  async function decline(id: string, projectId?: string) {
     await projectMemberService.decline(id);
     invalidate();
+    if (projectId) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectMembers(projectId) });
+    }
   }
 
   return {

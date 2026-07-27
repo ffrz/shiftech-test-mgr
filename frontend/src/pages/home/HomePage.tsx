@@ -25,14 +25,14 @@ export function HomePage() {
               <Card key={invite.id}>
                 <div className="flex align-items-center justify-content-between gap-3 flex-wrap">
                   <div>
-                    <div className="font-bold">{invite.project?.name ?? 'Unknown project'}</div>
+                    <div className="font-bold">{invite.project ? `${invite.project.ownerDisplayName ?? `@${invite.project.ownerUsername}`}/${invite.project.name}` : 'Unknown project'}</div>
                     <div className="text-sm text-color-secondary">
                       Invited as {invite.role}
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button label="Decline" text size="small" onClick={() => decline(invite.id)} />
-                    <Button label="Accept" size="small" onClick={() => accept(invite.id)} />
+                    <Button label="Decline" text size="small" onClick={() => decline(invite.id, invite.projectId)} />
+                    <Button label="Accept" size="small" onClick={() => accept(invite.id, invite.projectId)} />
                   </div>
                 </div>
               </Card>

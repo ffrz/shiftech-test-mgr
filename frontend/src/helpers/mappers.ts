@@ -65,7 +65,14 @@ export function mapProjectMemberWithProfileRow(row: any): ProjectMemberWithProfi
 export function mapProjectMemberInvitationRow(row: any): ProjectMemberInvitation {
   return {
     ...mapProjectMemberWithProfileRow(row),
-    project: row.project ? { id: row.project.id, name: row.project.name } : null,
+    project: row.project
+      ? {
+          id: row.project.id,
+          name: row.project.name,
+          ownerUsername: row.project.owner?.profile?.username ?? '',
+          ownerDisplayName: row.project.owner?.profile?.display_name ?? null,
+        }
+      : null,
   };
 }
 
