@@ -33,6 +33,24 @@ export const tagService = {
     return tags;
   },
 
+  // Batch: resolve all tags for multiple test cases at once, then batch-insert junction rows.
+  async saveTagsForTestCaseMany(
+    projectId: string,
+    items: { testCaseId: string; tagNames: string[] }[],
+  ): Promise<void> {
+    const nonEmpty = items.filter((i) => i.tagNames.length > 0);
+    if (nonEmpty.length === 0) return;
+
+    const allNames = [...new Set(nonEmpty.flatMap((i) => i.tagNames.map((n) => n.trim()).filter(Boolean)))];
+    if (allNames.length === 0) return;
+
+    const tagMap = await tagRepository.findOrCreateMany(projectId, allNames);
+    const junctionRows = nonEmpty.flatMap((i) =>
+      i.tagNames.map((name) => ({ testCaseId: i.testCaseId, tagId: tagMap.get(name.trim())!.id })),
+    );
+    await tagRepository.insertTestCaseTags(junctionRows);
+  },
+
   // Same creatable-tag pattern as saveTagsForTestCase, but for Issues — issues reuse the
   // same per-project `tags` master, just a different junction table (issue_tags).
   async saveTagsForIssue(projectId: string, issueId: string, tagNames: string[]) {

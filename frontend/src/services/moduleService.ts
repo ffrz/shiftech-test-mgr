@@ -10,6 +10,11 @@ export const moduleService = {
     return moduleRepository.create({ projectId: input.projectId, name: input.name.trim(), code: input.code?.trim() || null });
   },
 
+  async createMany(inputs: { projectId: string; name: string; code?: string }[]) {
+    const trimmed = inputs.map((i) => ({ projectId: i.projectId, name: i.name.trim(), code: i.code?.trim() || null }));
+    return moduleRepository.createMany(trimmed);
+  },
+
   async update(id: string, input: { name: string; code: string }) {
     if (!input.name.trim()) throw new Error('Module name cannot be empty');
     if (!input.code.trim()) throw new Error('Module code cannot be empty');

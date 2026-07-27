@@ -118,9 +118,8 @@ export function TestSuiteDetailPage() {
     setCsvImporting(true);
     try {
       const existingItems = await testSuiteService.listItems(id);
-      for (let i = 0; i < csvValidRows.length; i++) {
-        const row = csvValidRows[i];
-        await testSuiteService.addItem({
+      await testSuiteService.addItemsMany(
+        csvValidRows.map((row, i) => ({
           suiteId: id,
           moduleName: row.moduleName ?? undefined,
           title: row.title,
@@ -131,10 +130,10 @@ export function TestSuiteDetailPage() {
           priority: row.priority,
           targetRole: row.targetRole ?? undefined,
           tagNames: row.tagNames ?? [],
-          stepType: 'simple',
+          stepType: 'simple' as const,
           orderIndex: existingItems.length + i,
-        });
-      }
+        })),
+      );
       setImportCsvDialogOpen(false);
       setCsvParsed(false);
       setCsvValidRows([]);

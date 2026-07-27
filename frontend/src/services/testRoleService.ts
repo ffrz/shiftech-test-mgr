@@ -10,6 +10,11 @@ export const testRoleService = {
     return testRoleRepository.create({ projectId: input.projectId, name: input.name.trim() });
   },
 
+  async createMany(inputs: { projectId: string; name: string }[]) {
+    const trimmed = inputs.map((i) => ({ projectId: i.projectId, name: i.name.trim() }));
+    return testRoleRepository.createMany(trimmed);
+  },
+
   async update(id: string, input: { name: string }) {
     if (!input.name.trim()) throw new Error('Role name cannot be empty');
     return testRoleRepository.update(id, { name: input.name.trim() });

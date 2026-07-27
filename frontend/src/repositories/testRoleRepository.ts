@@ -31,6 +31,16 @@ export const testRoleRepository = {
     return mapTestRoleRow(data);
   },
 
+  async createMany(inputs: { projectId: string; name: string }[]): Promise<TestRole[]> {
+    if (inputs.length === 0) return [];
+    const { data, error } = await supabase
+      .from('test_roles')
+      .insert(inputs.map((i) => ({ project_id: i.projectId, name: i.name })))
+      .select('*');
+    if (error) throw error;
+    return (data ?? []).map(mapTestRoleRow);
+  },
+
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from('test_roles').delete().eq('id', id);
     if (error) throw error;

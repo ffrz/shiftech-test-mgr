@@ -255,7 +255,7 @@ export function TestCaseTab({
               tooltipOptions={{ position: 'bottom' }}
             />
             <Button icon="pi pi-copy" size="small" text onClick={onImportTemplate} />
-            <Button icon="pi pi-file-excel" size="small" text onClick={onImportExcel} />
+            <Button icon="pi pi-file-excel" size="small" text onClick={onImportExcel} tooltip="Import CSV" tooltipOptions={{ position: 'bottom' }} />
             <Button label="New Test Case" icon="pi pi-plus" size="small" onClick={onCreate} />
           </div>
         )}

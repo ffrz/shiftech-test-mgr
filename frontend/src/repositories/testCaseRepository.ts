@@ -149,6 +149,34 @@ export const testCaseRepository = {
     return mapTestCaseRow(data);
   },
 
+  async createMany(
+    inputs: (Omit<TestCase, 'id' | 'createdAt' | 'updatedAt' | 'code'> & { code?: string | null })[],
+  ): Promise<TestCase[]> {
+    if (inputs.length === 0) return [];
+    const { data, error } = await supabase
+      .from('test_cases')
+      .insert(
+        inputs.map((i) => ({
+          project_id: i.projectId,
+          module_id: i.moduleId,
+          code: i.code || undefined,
+          title: i.title,
+          objective: i.objective,
+          preconditions: i.preconditions,
+          steps: i.steps,
+          expected_result: i.expectedResult,
+          priority: i.priority,
+          status: i.status,
+          notes: i.notes,
+          step_type: i.stepType,
+          target_role_id: i.targetRoleId,
+        })),
+      )
+      .select('*');
+    if (error) throw error;
+    return (data ?? []).map(mapTestCaseRow);
+  },
+
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from('test_cases').delete().eq('id', id);
     if (error) throw error;

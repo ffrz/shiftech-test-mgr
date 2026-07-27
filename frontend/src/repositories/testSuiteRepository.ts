@@ -149,6 +149,63 @@ export const testSuiteRepository = {
     if (error) throw error;
   },
 
+  async createItemsMany(
+    inputs: Omit<TestSuiteItem, 'id' | 'createdAt' | 'updatedAt'>[],
+  ): Promise<TestSuiteItem[]> {
+    if (inputs.length === 0) return [];
+    const { data, error } = await supabase
+      .from('test_suite_items')
+      .insert(
+        inputs.map((i) => ({
+          suite_id: i.suiteId,
+          module_name: i.moduleName,
+          title: i.title,
+          objective: i.objective,
+          preconditions: i.preconditions,
+          steps: i.steps,
+          expected_result: i.expectedResult,
+          priority: i.priority,
+          step_type: i.stepType,
+          target_role: i.targetRole,
+          tag_names: i.tagNames,
+          order_index: i.orderIndex,
+        })),
+      )
+      .select('*');
+    if (error) throw error;
+    return (data ?? []).map(mapTestSuiteItemRow);
+  },
+
+  async findStepsByItems(suiteItemIds: string[]): Promise<TestSuiteItemStep[]> {
+    if (suiteItemIds.length === 0) return [];
+    const { data, error } = await supabase
+      .from('test_suite_item_steps')
+      .select('*')
+      .in('suite_item_id', suiteItemIds)
+      .order('step_number', { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(mapTestSuiteItemStepRow);
+  },
+
+  async createStepsMany(
+    steps: { suiteItemId: string; action: string; expectedResult: string | null; stepNumber: number }[],
+  ): Promise<TestSuiteItemStep[]> {
+    if (steps.length === 0) return [];
+    const { data, error } = await supabase
+      .from('test_suite_item_steps')
+      .insert(
+        steps.map((s) => ({
+          suite_item_id: s.suiteItemId,
+          step_number: s.stepNumber,
+          action: s.action,
+          expected_result: s.expectedResult,
+        })),
+      )
+      .select('*');
+    if (error) throw error;
+    return (data ?? []).map(mapTestSuiteItemStepRow);
+  },
+
   // --- Item steps (only meaningful when stepType === 'detailed') ---
 
   async findStepsByItem(suiteItemId: string): Promise<TestSuiteItemStep[]> {

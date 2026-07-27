@@ -10,8 +10,8 @@ type ImportExcelDialogProps = {
 
 export function ImportExcelDialog({ visible, projectId, onHide, onImported }: ImportExcelDialogProps) {
   return (
-    <Dialog header="Import from Excel" visible={visible} onHide={onHide} style={{ width: '40rem' }}>
-      <ExcelImportPanel projectId={projectId} onImported={async () => { onHide(); await onImported(); }} />
+    <Dialog header="Import CSV" visible={visible} onHide={onHide} style={{ width: '40rem' }}>
+      <ExcelImportPanel projectId={projectId} onImported={async () => { await onImported(); onHide(); }} />
     </Dialog>
   );
 }

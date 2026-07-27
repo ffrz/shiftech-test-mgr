@@ -1,8 +1,9 @@
 import { testSuiteRepository } from '../repositories/testSuiteRepository';
-import { testCaseService } from './testCaseService';
+import { testCaseRepository } from '../repositories/testCaseRepository';
 import { moduleService } from './moduleService';
 import { testRoleService } from './testRoleService';
-import type { TestSuite, TestSuiteItem, TestSuiteItemWithSteps, TestSuiteVisibility } from '../types/domain';
+import { tagService } from './tagService';
+import type { TestSuite, TestSuiteItem, TestSuiteItemStep, TestSuiteItemWithSteps, TestSuiteVisibility } from '../types/domain';
 
 export const testSuiteService = {
   listSuites() {
@@ -59,11 +60,19 @@ export const testSuiteService = {
     });
 
     const sourceItems = await testSuiteRepository.findItemsBySuite(sourceSuiteId);
-    for (const item of sourceItems) {
-      const detailedSteps =
-        item.stepType === 'detailed' ? await testSuiteRepository.findStepsByItem(item.id) : [];
+    const sourceItemIds = sourceItems.filter((i) => i.stepType === 'detailed').map((i) => i.id);
+    const stepsByItem = new Map<string, TestSuiteItemStep[]>();
+    if (sourceItemIds.length > 0) {
+      const allSteps = await testSuiteRepository.findStepsByItems(sourceItemIds);
+      for (const step of allSteps) {
+        const arr = stepsByItem.get(step.suiteItemId);
+        if (arr) arr.push(step);
+        else stepsByItem.set(step.suiteItemId, [step]);
+      }
+    }
 
-      await this.addItem({
+    await this.addItemsMany(
+      sourceItems.map((item) => ({
         suiteId: newSuite.id,
         moduleName: item.moduleName ?? undefined,
         title: item.title,
@@ -75,13 +84,16 @@ export const testSuiteService = {
         targetRole: item.targetRole ?? undefined,
         tagNames: item.tagNames,
         stepType: item.stepType,
-        detailedSteps: detailedSteps.map((s) => ({
-          action: s.action,
-          expectedResult: s.expectedResult ?? undefined,
-        })),
+        detailedSteps:
+          item.stepType === 'detailed'
+            ? (stepsByItem.get(item.id) ?? []).map((s) => ({
+                action: s.action,
+                expectedResult: s.expectedResult ?? undefined,
+              }))
+            : undefined,
         orderIndex: item.orderIndex,
-      });
-    }
+      })),
+    );
 
     return newSuite;
   },
@@ -144,6 +156,67 @@ export const testSuiteService = {
     return item;
   },
 
+  async addItemsMany(
+    inputs: {
+      suiteId: string;
+      moduleName?: string;
+      title: string;
+      objective?: string;
+      preconditions?: string;
+      steps: string;
+      expectedResult: string;
+      priority?: TestSuiteItem['priority'];
+      targetRole?: string;
+      tagNames?: string[];
+      stepType?: TestSuiteItem['stepType'];
+      detailedSteps?: { action: string; expectedResult?: string }[];
+      orderIndex: number;
+    }[],
+  ): Promise<TestSuiteItem[]> {
+    if (inputs.length === 0) return [];
+
+    const items = await testSuiteRepository.createItemsMany(
+      inputs.map((input) => {
+        const stepType = input.stepType ?? 'simple';
+        return {
+          suiteId: input.suiteId,
+          moduleName: input.moduleName?.trim() || null,
+          title: input.title.trim(),
+          objective: input.objective?.trim() || null,
+          preconditions: input.preconditions?.trim() || null,
+          steps: input.steps.trim(),
+          expectedResult: input.expectedResult.trim(),
+          priority: input.priority ?? 'medium',
+          stepType,
+          targetRole: input.targetRole?.trim() || null,
+          tagNames: input.tagNames ?? [],
+          orderIndex: input.orderIndex,
+        };
+      }),
+    );
+
+    const stepRows: { suiteItemId: string; action: string; expectedResult: string | null; stepNumber: number }[] = [];
+    for (let i = 0; i < inputs.length; i++) {
+      const input = inputs[i];
+      const item = items[i];
+      if ((input.stepType ?? 'simple') === 'detailed' && input.detailedSteps?.length) {
+        for (let j = 0; j < input.detailedSteps.length; j++) {
+          stepRows.push({
+            suiteItemId: item.id,
+            stepNumber: j + 1,
+            action: input.detailedSteps[j].action,
+            expectedResult: input.detailedSteps[j].expectedResult?.trim() || null,
+          });
+        }
+      }
+    }
+    if (stepRows.length > 0) {
+      await testSuiteRepository.createStepsMany(stepRows);
+    }
+
+    return items;
+  },
+
   async updateItem(
     id: string,
     changes: Partial<Omit<TestSuiteItem, 'id' | 'suiteId' | 'createdAt' | 'updatedAt'>>,
@@ -163,19 +236,24 @@ export const testSuiteService = {
     return testSuiteRepository.removeItem(id);
   },
 
-  // Clones the given suite items into a project's own test_cases. module_name/tag_names
-  // are text on the suite item (suites aren't project-scoped) — resolved here into
-  // real per-project Module/Tag rows, find-or-create, cached per call so a batch of items
-  // sharing a module name only creates it once.
   async cloneItemsToSuite(suiteId: string, itemIds: string[]): Promise<void> {
     if (itemIds.length === 0) return;
     const existingItems = await testSuiteRepository.findItemsBySuite(suiteId);
     const sourceItems = await testSuiteRepository.findItemsByIds(itemIds);
-    for (let i = 0; i < sourceItems.length; i++) {
-      const item = sourceItems[i];
-      const detailedSteps =
-        item.stepType === 'detailed' ? await testSuiteRepository.findStepsByItem(item.id) : [];
-      await this.addItem({
+
+    const detailedIds = sourceItems.filter((i) => i.stepType === 'detailed').map((i) => i.id);
+    const stepsByItem = new Map<string, TestSuiteItemStep[]>();
+    if (detailedIds.length > 0) {
+      const allSteps = await testSuiteRepository.findStepsByItems(detailedIds);
+      for (const step of allSteps) {
+        const arr = stepsByItem.get(step.suiteItemId);
+        if (arr) arr.push(step);
+        else stepsByItem.set(step.suiteItemId, [step]);
+      }
+    }
+
+    await this.addItemsMany(
+      sourceItems.map((item, i) => ({
         suiteId,
         moduleName: item.moduleName ?? undefined,
         title: item.title,
@@ -187,12 +265,16 @@ export const testSuiteService = {
         targetRole: item.targetRole ?? undefined,
         tagNames: item.tagNames ?? [],
         stepType: item.stepType,
-        detailedSteps: item.stepType === 'detailed'
-          ? detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? undefined }))
-          : undefined,
+        detailedSteps:
+          item.stepType === 'detailed'
+            ? (stepsByItem.get(item.id) ?? []).map((s) => ({
+                action: s.action,
+                expectedResult: s.expectedResult ?? undefined,
+              }))
+            : undefined,
         orderIndex: existingItems.length + i,
-      });
-    }
+      })),
+    );
   },
 
   async cloneItemsToProject(projectId: string, itemIds: string[]): Promise<void> {
@@ -201,52 +283,86 @@ export const testSuiteService = {
 
     const existingModules = await moduleService.listByProject(projectId);
     const moduleIdByName = new Map(existingModules.map((m) => [m.name.toLowerCase(), m.id]));
-
-    async function resolveModuleId(moduleName: string | null): Promise<string | null> {
-      if (!moduleName) return null;
-      const key = moduleName.toLowerCase();
-      const existing = moduleIdByName.get(key);
-      if (existing) return existing;
-      const created = await moduleService.create({ projectId, name: moduleName });
-      moduleIdByName.set(key, created.id);
-      return created.id;
+    const newModuleNames = [
+      ...new Set(
+        items
+          .map((i) => i.moduleName?.trim())
+          .filter((n): n is string => !!n && !moduleIdByName.has(n.toLowerCase())),
+      ),
+    ];
+    if (newModuleNames.length > 0) {
+      const created = await moduleService.createMany(newModuleNames.map((n) => ({ projectId, name: n })));
+      for (const m of created) moduleIdByName.set(m.name.toLowerCase(), m.id);
     }
 
-    const existingTestRoles = await testRoleService.listByProject(projectId);
-    const testRoleIdByName = new Map(existingTestRoles.map((r) => [r.name.toLowerCase(), r.id]));
-
-    async function resolveTestRoleId(roleName: string | null): Promise<string | null> {
-      if (!roleName) return null;
-      const key = roleName.toLowerCase();
-      const existing = testRoleIdByName.get(key);
-      if (existing) return existing;
-      const created = await testRoleService.create({ projectId, name: roleName });
-      testRoleIdByName.set(key, created.id);
-      return created.id;
+    const existingRoles = await testRoleService.listByProject(projectId);
+    const roleIdByName = new Map(existingRoles.map((r) => [r.name.toLowerCase(), r.id]));
+    const newRoleNames = [
+      ...new Set(
+        items
+          .map((i) => i.targetRole?.trim())
+          .filter((n): n is string => !!n && !roleIdByName.has(n.toLowerCase())),
+      ),
+    ];
+    if (newRoleNames.length > 0) {
+      const created = await testRoleService.createMany(newRoleNames.map((n) => ({ projectId, name: n })));
+      for (const r of created) roleIdByName.set(r.name.toLowerCase(), r.id);
     }
 
-    for (const item of items) {
-      const moduleId = await resolveModuleId(item.moduleName);
-      const targetRoleId = await resolveTestRoleId(item.targetRole);
-      const detailedSteps =
-        item.stepType === 'detailed' ? await testSuiteRepository.findStepsByItem(item.id) : [];
-
-      await testCaseService.create({
+    const testCases = await testCaseRepository.createMany(
+      items.map((item) => ({
         projectId,
-        moduleId,
+        moduleId: item.moduleName ? moduleIdByName.get(item.moduleName.toLowerCase()) ?? null : null,
         title: item.title,
-        objective: item.objective ?? undefined,
-        preconditions: item.preconditions ?? undefined,
+        objective: item.objective ?? null,
+        preconditions: item.preconditions ?? null,
         steps: item.steps,
         expectedResult: item.expectedResult,
         priority: item.priority,
-        targetRoleId,
-        tagNames: item.tagNames,
+        status: 'active' as const,
+        notes: null,
         stepType: item.stepType,
-        detailedSteps: item.stepType === 'detailed'
-          ? detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? undefined }))
-          : undefined,
-      });
+        targetRoleId: item.targetRole ? roleIdByName.get(item.targetRole.toLowerCase()) ?? null : null,
+      })),
+    );
+
+    await tagService.saveTagsForTestCaseMany(
+      projectId,
+      testCases.map((tc, i) => ({
+        testCaseId: tc.id,
+        tagNames: items[i]?.tagNames ?? [],
+      })),
+    );
+
+    // Handle detailed steps: batch copy from test_suite_item_steps → test_case_steps
+    const testCaseStepRepository = await import('../repositories/testCaseStepRepository').then((m) => m.testCaseStepRepository);
+    const detailedIndices = items
+      .map((item, i) => (item.stepType === 'detailed' ? i : -1))
+      .filter((i) => i >= 0);
+    if (detailedIndices.length > 0) {
+      const allSteps = await testSuiteRepository.findStepsByItems(
+        detailedIndices.map((i) => items[i].id),
+      );
+      const stepsBySourceId = new Map<string, TestSuiteItemStep[]>();
+      for (const step of allSteps) {
+        const arr = stepsBySourceId.get(step.suiteItemId);
+        if (arr) arr.push(step);
+        else stepsBySourceId.set(step.suiteItemId, [step]);
+      }
+      const stepRows: { testCaseId: string; action: string; expectedResult: string | null; stepNumber: number }[] = [];
+      for (const idx of detailedIndices) {
+        const sourceSteps = stepsBySourceId.get(items[idx].id) ?? [];
+        const tcId = testCases[idx].id;
+        for (let j = 0; j < sourceSteps.length; j++) {
+          stepRows.push({
+            testCaseId: tcId,
+            stepNumber: j + 1,
+            action: sourceSteps[j].action,
+            expectedResult: sourceSteps[j].expectedResult,
+          });
+        }
+      }
+      await testCaseStepRepository.createMany(stepRows);
     }
   },
 };
