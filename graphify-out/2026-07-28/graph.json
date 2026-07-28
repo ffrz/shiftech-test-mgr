@@ -10232,8 +10232,8 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_testrun_fromtestresult",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "fromtestresult()"
     },
     {
@@ -12983,8 +12983,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_package_dependencies_tanstack_react_query",
-      "community": 9,
-      "community_name": "Frontend Test Case UI",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "@tanstack/react-query"
     },
     {
@@ -12994,8 +12994,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "tanstack_react_query",
-      "community": 9,
-      "community_name": "Frontend Test Case UI",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "@tanstack/react-query"
     },
     {
@@ -13071,8 +13071,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_package_dependencies_react",
-      "community": 135,
-      "community_name": "@tanstack/react-query",
+      "community": 9,
+      "community_name": "Frontend Test Case UI",
       "norm_label": "react"
     },
     {
@@ -13082,8 +13082,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "react",
-      "community": 135,
-      "community_name": "@tanstack/react-query",
+      "community": 9,
+      "community_name": "Frontend Test Case UI",
       "norm_label": "react"
     },
     {
@@ -13621,8 +13621,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "app.tsx"
     },
     {
@@ -13632,8 +13632,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_app_app",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "app()"
     },
     {
@@ -13643,8 +13643,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_auth_adminroute",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "adminroute.tsx"
     },
     {
@@ -13654,8 +13654,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_components_auth_adminroute_adminroute",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "adminroute()"
     },
     {
@@ -13665,8 +13665,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_auth_protectedroute",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "protectedroute.tsx"
     },
     {
@@ -13676,8 +13676,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_components_auth_protectedroute_protectedroute",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "protectedroute()"
     },
     {
@@ -14171,8 +14171,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "breadcrumb.tsx"
     },
     {
@@ -14193,8 +14193,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb_breadcrumbprops",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "breadcrumbprops"
     },
     {
@@ -14215,8 +14215,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb_breadcrumb",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "breadcrumb()"
     },
     {
@@ -14226,8 +14226,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_bulkactionsbar",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "bulkactionsbar.tsx"
     },
     {
@@ -14237,8 +14237,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_components_ui_bulkactionsbar_bulkactionsbarprops",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "bulkactionsbarprops"
     },
     {
@@ -14248,8 +14248,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_components_ui_bulkactionsbar_bulkactionsbar",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "bulkactionsbar()"
     },
     {
@@ -14314,8 +14314,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_rowactionsmenu",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "rowactionsmenu.tsx"
     },
     {
@@ -14325,8 +14325,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_components_ui_rowactionsmenu_rowactionsmenuprops",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "rowactionsmenuprops"
     },
     {
@@ -14336,8 +14336,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_components_ui_rowactionsmenu_rowactionsmenu",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "rowactionsmenu()"
     },
     {
@@ -14611,8 +14611,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapprojectrow",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "mapprojectrow()"
     },
     {
@@ -14644,8 +14644,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapprojectmemberinvitationrow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "mapprojectmemberinvitationrow()"
     },
     {
@@ -14688,8 +14688,8 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestplanrow",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "maptestplanrow()"
     },
     {
@@ -14765,8 +14765,8 @@
       "source_location": "L212",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestrunrow",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "maptestrunrow()"
     },
     {
@@ -14831,8 +14831,8 @@
       "source_location": "L302",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapuserrow",
-      "community": 116,
-      "community_name": "Favicon Assets",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "mapuserrow()"
     },
     {
@@ -14864,8 +14864,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "statuslabels.ts"
     },
     {
@@ -14875,8 +14875,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_tagseverity",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "tagseverity"
     },
     {
@@ -14886,8 +14886,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_status_label",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "project_status_label"
     },
     {
@@ -14897,8 +14897,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_status_severity",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "project_status_severity"
     },
     {
@@ -14974,8 +14974,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_status_label",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "test_case_status_label"
     },
     {
@@ -14985,8 +14985,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_status_severity",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "test_case_status_severity"
     },
     {
@@ -14996,8 +14996,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_priority_label",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "test_case_priority_label"
     },
     {
@@ -15007,8 +15007,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_priority_severity",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "test_case_priority_severity"
     },
     {
@@ -15018,8 +15018,8 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_run_status_label",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_run_status_label"
     },
     {
@@ -15029,8 +15029,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_run_status_severity",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_run_status_severity"
     },
     {
@@ -15040,8 +15040,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_result_status_label",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_result_status_label"
     },
     {
@@ -15051,8 +15051,8 @@
       "source_location": "L112",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_result_status_severity",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_result_status_severity"
     },
     {
@@ -15128,8 +15128,8 @@
       "source_location": "L164",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_user_role_label",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "user_role_label"
     },
     {
@@ -15139,8 +15139,8 @@
       "source_location": "L169",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_user_role_severity",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "user_role_severity"
     },
     {
@@ -15150,8 +15150,8 @@
       "source_location": "L174",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_member_role_label",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "project_member_role_label"
     },
     {
@@ -15161,8 +15161,8 @@
       "source_location": "L181",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_member_role_severity",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "project_member_role_severity"
     },
     {
@@ -15172,8 +15172,8 @@
       "source_location": "L188",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_member_status_label",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "project_member_status_label"
     },
     {
@@ -15183,8 +15183,8 @@
       "source_location": "L194",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_member_status_severity",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "project_member_status_severity"
     },
     {
@@ -15216,8 +15216,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useauth",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "useauth.tsx"
     },
     {
@@ -15227,8 +15227,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_hooks_useauth_authcontextvalue",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "authcontextvalue"
     },
     {
@@ -15238,8 +15238,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_hooks_useauth_authcontext",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "authcontext"
     },
     {
@@ -15249,8 +15249,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_hooks_useauth_authprovider",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "authprovider()"
     },
     {
@@ -15260,8 +15260,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "frontend_src_hooks_useauth_useauthcontext",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "useauthcontext()"
     },
     {
@@ -15271,8 +15271,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedashboard",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "usedashboard.ts"
     },
     {
@@ -15282,8 +15282,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedashboard_usedashboard",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usedashboard()"
     },
     {
@@ -15293,8 +15293,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedialogresizefix",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usedialogresizefix.ts"
     },
     {
@@ -15304,8 +15304,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedialogresizefix_usedialogresizefix",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usedialogresizefix()"
     },
     {
@@ -15337,8 +15337,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "frontend_src_hooks_useissues_useissuesbytestrun",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "useissuesbytestrun()"
     },
     {
@@ -15348,8 +15348,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usemodules",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "usemodules.ts"
     },
     {
@@ -15359,8 +15359,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_usemodules_usemodules",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "usemodules()"
     },
     {
@@ -15414,8 +15414,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojectinvitations",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "useprojectinvitations.ts"
     },
     {
@@ -15425,8 +15425,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojectinvitations_useprojectinvitations",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "useprojectinvitations()"
     },
     {
@@ -15601,8 +15601,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usesettings",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usesettings.ts"
     },
     {
@@ -15612,8 +15612,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_hooks_usesettings_usesettings",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usesettings()"
     },
     {
@@ -15689,8 +15689,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestplandetail_usetestplandetail",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "usetestplandetail()"
     },
     {
@@ -15722,8 +15722,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "usetestrundetail.ts"
     },
     {
@@ -15733,8 +15733,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail_summary",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "summary"
     },
     {
@@ -15744,8 +15744,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail_empty_summary",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "empty_summary"
     },
     {
@@ -15755,8 +15755,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail_usetestrundetail",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "usetestrundetail()"
     },
     {
@@ -15766,8 +15766,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestruns",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "usetestruns.ts"
     },
     {
@@ -15777,8 +15777,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestruns_testrunwithsummary",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrunwithsummary"
     },
     {
@@ -15788,8 +15788,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestruns_usetestruns",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "usetestruns()"
     },
     {
@@ -15909,8 +15909,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useusers",
-      "community": 116,
-      "community_name": "Favicon Assets",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "useusers.ts"
     },
     {
@@ -15920,8 +15920,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_useusers_useusers",
-      "community": 116,
-      "community_name": "Favicon Assets",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "useusers()"
     },
     {
@@ -15931,8 +15931,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_main",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "main.tsx"
     },
     {
@@ -15953,8 +15953,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_auth_loginpage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "loginpage.tsx"
     },
     {
@@ -15964,8 +15964,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_pages_auth_loginpage_loginpage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "loginpage()"
     },
     {
@@ -15975,8 +15975,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homepage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "homepage.tsx"
     },
     {
@@ -15986,8 +15986,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homepage_homepage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "homepage()"
     },
     {
@@ -16030,8 +16030,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_profiles_publicprofilepage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "publicprofilepage.tsx"
     },
     {
@@ -16041,8 +16041,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_pages_profiles_publicprofilepage_publicprofilepage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "publicprofilepage()"
     },
     {
@@ -16107,8 +16107,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectsettingspage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectsettingspage.tsx"
     },
     {
@@ -16118,8 +16118,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectsettingspage_member_role_options",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "member_role_options"
     },
     {
@@ -16382,8 +16382,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_testcasedialog",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "testcasedialog.tsx"
     },
     {
@@ -16393,8 +16393,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_testcasedialog_priority_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "priority_options"
     },
     {
@@ -16404,8 +16404,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_testcasedialog_detailedstep",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "detailedstep"
     },
     {
@@ -16415,8 +16415,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_testcasedialog_testcasedialogprops",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "testcasedialogprops"
     },
     {
@@ -16426,8 +16426,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_testcasedialog_testcasedialog",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "testcasedialog()"
     },
     {
@@ -16536,8 +16536,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testcasetab",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "testcasetab.tsx"
     },
     {
@@ -16547,8 +16547,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testcasetab_priority_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "priority_options"
     },
     {
@@ -16558,8 +16558,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testcasetab_test_case_status_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "test_case_status_options"
     },
     {
@@ -16569,8 +16569,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testcasetab_editablefield",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "editablefield"
     },
     {
@@ -16580,8 +16580,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testcasetab_testcasetabprops",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "testcasetabprops"
     },
     {
@@ -16646,8 +16646,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testruntab",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testruntab.tsx"
     },
     {
@@ -16657,8 +16657,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testruntab_test_run_status_options",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_run_status_options"
     },
     {
@@ -16679,8 +16679,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testruntab_testruntabprops",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testruntabprops"
     },
     {
@@ -16701,8 +16701,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_settings_settingspage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "settingspage.tsx"
     },
     {
@@ -16712,8 +16712,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_pages_settings_settingspage_theme_options",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "theme_options"
     },
     {
@@ -16723,8 +16723,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_pages_settings_settingspage_settingspage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "settingspage()"
     },
     {
@@ -16734,8 +16734,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_cases_testcasedetailpage",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "testcasedetailpage.tsx"
     },
     {
@@ -16745,8 +16745,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_pages_test_cases_testcasedetailpage_priority_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "priority_options"
     },
     {
@@ -16756,8 +16756,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "frontend_src_pages_test_cases_testcasedetailpage_testcasedetail",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "testcasedetail"
     },
     {
@@ -16778,8 +16778,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_cases_testcasespage",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testcasespage.tsx"
     },
     {
@@ -16800,8 +16800,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplandetailpage",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testplandetailpage.tsx"
     },
     {
@@ -16811,8 +16811,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplandetailpage_priority_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "priority_options"
     },
     {
@@ -16822,8 +16822,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplandetailpage_test_run_status_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "test_run_status_options"
     },
     {
@@ -16833,8 +16833,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplandetailpage_test_plan_status_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "test_plan_status_options"
     },
     {
@@ -16844,8 +16844,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplandetailpage_testplandetailpage",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testplandetailpage()"
     },
     {
@@ -16888,8 +16888,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunissuespage",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "testrunissuespage.tsx"
     },
     {
@@ -16899,8 +16899,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunissuespage_status_options",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "status_options"
     },
     {
@@ -16910,8 +16910,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunissuespage_testrunissuespage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "testrunissuespage()"
     },
     {
@@ -16921,8 +16921,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrunresultdetailpage.tsx"
     },
     {
@@ -16932,8 +16932,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage_result_options",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "result_options"
     },
     {
@@ -16943,8 +16943,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage_status_filter_options",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "status_filter_options"
     },
     {
@@ -16954,8 +16954,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage_priority_filter_options",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "priority_filter_options"
     },
     {
@@ -16965,8 +16965,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage_testrunresultdetailpage",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrunresultdetailpage()"
     },
     {
@@ -17042,8 +17042,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_users_userdetailpage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "userdetailpage.tsx"
     },
     {
@@ -17053,8 +17053,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "frontend_src_pages_users_userdetailpage_userdetailpage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "userdetailpage()"
     },
     {
@@ -17108,8 +17108,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_dashboardrepository",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "dashboardrepository.ts"
     },
     {
@@ -17119,8 +17119,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_dashboardrepository_dashboardcounts",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "dashboardcounts"
     },
     {
@@ -17130,8 +17130,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_repositories_dashboardrepository_continueworkingitem",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "continueworkingitem"
     },
     {
@@ -17141,8 +17141,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_repositories_dashboardrepository_dashboardrepository",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "dashboardrepository"
     },
     {
@@ -17185,8 +17185,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_modulerepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "modulerepository.ts"
     },
     {
@@ -17196,8 +17196,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_modulerepository_modulerepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "modulerepository"
     },
     {
@@ -17229,8 +17229,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_profilerepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "profilerepository.ts"
     },
     {
@@ -17240,8 +17240,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_repositories_profilerepository_profilerepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "profilerepository"
     },
     {
@@ -17251,8 +17251,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_projectmemberrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectmemberrepository.ts"
     },
     {
@@ -17262,8 +17262,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_repositories_projectmemberrepository_projectmemberrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectmemberrepository"
     },
     {
@@ -17339,8 +17339,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_tagrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "tagrepository.ts"
     },
     {
@@ -17350,8 +17350,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_tagrepository_tagrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "tagrepository"
     },
     {
@@ -17372,8 +17372,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_testcaserepository_testcaserepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "testcaserepository"
     },
     {
@@ -17405,8 +17405,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_testplanrepository",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testplanrepository.ts"
     },
     {
@@ -17416,8 +17416,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_repositories_testplanrepository_testplanrepository",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testplanrepository"
     },
     {
@@ -17438,8 +17438,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_testresultrepository_testresultrepository",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testresultrepository"
     },
     {
@@ -17471,8 +17471,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_testrunrepository",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrunrepository.ts"
     },
     {
@@ -17482,8 +17482,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_testrunrepository_testrunrepository",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrunrepository"
     },
     {
@@ -17515,8 +17515,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_userrepository",
-      "community": 116,
-      "community_name": "Favicon Assets",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "userrepository.ts"
     },
     {
@@ -17526,8 +17526,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_repositories_userrepository_userrepository",
-      "community": 116,
-      "community_name": "Favicon Assets",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "userrepository"
     },
     {
@@ -17559,8 +17559,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_dashboardservice",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "dashboardservice.ts"
     },
     {
@@ -17570,8 +17570,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_services_dashboardservice_dashboardservice",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "dashboardservice"
     },
     {
@@ -17592,8 +17592,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_services_issueservice_issueservice",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "issueservice"
     },
     {
@@ -17603,8 +17603,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_moduleservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "moduleservice.ts"
     },
     {
@@ -17614,8 +17614,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_services_moduleservice_moduleservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "moduleservice"
     },
     {
@@ -17636,8 +17636,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_services_notificationservice_notificationservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "notificationservice"
     },
     {
@@ -17647,8 +17647,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_profileservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "profileservice.ts"
     },
     {
@@ -17658,8 +17658,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_services_profileservice_profileservice",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "profileservice"
     },
     {
@@ -17669,8 +17669,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_projectduplicateservice",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "projectduplicateservice.ts"
     },
     {
@@ -17680,8 +17680,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_services_projectduplicateservice_projectduplicateselection",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "projectduplicateselection"
     },
     {
@@ -17691,8 +17691,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_services_projectduplicateservice_projectduplicateservice",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "projectduplicateservice"
     },
     {
@@ -17702,8 +17702,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_projectmemberservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectmemberservice.ts"
     },
     {
@@ -17713,8 +17713,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_services_projectmemberservice_projectmemberservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectmemberservice"
     },
     {
@@ -17845,8 +17845,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_tagservice",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "tagservice.ts"
     },
     {
@@ -17856,8 +17856,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_services_tagservice_tagservice",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "tagservice"
     },
     {
@@ -17867,8 +17867,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testcaseimportservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "testcaseimportservice.ts"
     },
     {
@@ -17889,8 +17889,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testcaseservice",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testcaseservice.ts"
     },
     {
@@ -17900,8 +17900,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_services_testcaseservice_testcaseservice",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testcaseservice"
     },
     {
@@ -17977,8 +17977,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testrunservice",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrunservice.ts"
     },
     {
@@ -17988,8 +17988,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_services_testrunservice_testrunservice",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrunservice"
     },
     {
@@ -18010,8 +18010,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_services_testsuiteservice_testsuiteservice",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testsuiteservice"
     },
     {
@@ -18021,8 +18021,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_userservice",
-      "community": 116,
-      "community_name": "Favicon Assets",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "userservice.ts"
     },
     {
@@ -18032,8 +18032,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_services_userservice_userservice",
-      "community": 116,
-      "community_name": "Favicon Assets",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "userservice"
     },
     {
@@ -18054,8 +18054,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_types_domain_userrole",
-      "community": 116,
-      "community_name": "Favicon Assets",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "userrole"
     },
     {
@@ -18065,8 +18065,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_types_domain_user",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "user"
     },
     {
@@ -18153,8 +18153,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "frontend_src_types_domain_projectmemberrole",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectmemberrole"
     },
     {
@@ -18164,8 +18164,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "frontend_src_types_domain_projectmemberstatus",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "projectmemberstatus"
     },
     {
@@ -18241,8 +18241,8 @@
       "source_location": "L110",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testplanstatus",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testplanstatus"
     },
     {
@@ -18252,8 +18252,8 @@
       "source_location": "L112",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testplan",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testplan"
     },
     {
@@ -18263,8 +18263,8 @@
       "source_location": "L125",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testcasepriority",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "testcasepriority"
     },
     {
@@ -18285,8 +18285,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testcasesteptype",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testcasesteptype"
     },
     {
@@ -18296,8 +18296,8 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testcase",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testcase"
     },
     {
@@ -18307,8 +18307,8 @@
       "source_location": "L152",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testcasewithdetails",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "testcasewithdetails"
     },
     {
@@ -18406,8 +18406,8 @@
       "source_location": "L229",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testrunstatus",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrunstatus"
     },
     {
@@ -18417,8 +18417,8 @@
       "source_location": "L231",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testrun",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrun"
     },
     {
@@ -18428,8 +18428,8 @@
       "source_location": "L246",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testresultstatus",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testresultstatus"
     },
     {
@@ -19532,8 +19532,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "testmanager (shiftech-test-mgr)",
-      "community_name": "AGENTS.md Conventions",
-      "id": "agents_testmanager_project"
+      "id": "agents_testmanager_project",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Clean Architecture Layering (Repository\u2192Service\u2192Hook\u2192Component)",
@@ -19547,8 +19547,8 @@
       "rationale": "Eksperimen arsitektur untuk memvalidasi pola clean layering di React SPA yang bisa dipakai ulang di project React lain.",
       "community": 30,
       "norm_label": "clean architecture layering (repository\u2192service\u2192hook\u2192component)",
-      "community_name": "AGENTS.md Conventions",
-      "id": "agents_clean_architecture"
+      "id": "agents_clean_architecture",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Domain Model - Test Management Workflow",
@@ -19561,8 +19561,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "domain model - test management workflow",
-      "community_name": "AGENTS.md Conventions",
-      "id": "agents_domain_model_test_management"
+      "id": "agents_domain_model_test_management",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "PageHeader Convention (Judul Halaman)",
@@ -19576,8 +19576,8 @@
       "rationale": "Sebelumnya tidak konsisten (beda margin/wrapper antar halaman list), dirapikan jadi satu komponen PageHeader.",
       "community": 30,
       "norm_label": "pageheader convention (judul halaman)",
-      "community_name": "AGENTS.md Conventions",
-      "id": "agents_page_header_convention"
+      "id": "agents_page_header_convention",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Module Creation Order convention",
@@ -19590,8 +19590,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "module creation order convention",
-      "community_name": "AGENTS.md Conventions",
-      "id": "agents_module_creation_order"
+      "id": "agents_module_creation_order",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Google OAuth Setup Steps",
@@ -19604,8 +19604,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "google oauth setup steps",
-      "community_name": "AGENTS.md Conventions",
-      "id": "agents_google_oauth_setup"
+      "id": "agents_google_oauth_setup",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "TestManager Project Overview",
@@ -19618,8 +19618,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "testmanager project overview",
-      "community_name": "AGENTS.md Conventions",
-      "id": "claude_testmanager_overview"
+      "id": "claude_testmanager_overview",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Frontend Layered Structure",
@@ -19632,8 +19632,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "frontend layered structure",
-      "community_name": "AGENTS.md Conventions",
-      "id": "claude_layered_structure"
+      "id": "claude_layered_structure",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Why No Controller/API Layer",
@@ -19647,8 +19647,8 @@
       "rationale": "SPA murni, BaaS Supabase menghilangkan kebutuhan SSR/API routes karena tidak ada kebutuhan SEO/first-paint server-side untuk aplikasi internal.",
       "community": 30,
       "norm_label": "why no controller/api layer",
-      "community_name": "AGENTS.md Conventions",
-      "id": "claude_no_controller_api_layer"
+      "id": "claude_no_controller_api_layer",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Auth & RBAC (Google Login)",
@@ -19661,8 +19661,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "auth & rbac (google login)",
-      "community_name": "Architecture & Product Docs",
-      "id": "claude_auth_rbac_google"
+      "id": "claude_auth_rbac_google",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Naming & Convention rules",
@@ -19675,8 +19675,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "naming & convention rules",
-      "community_name": "AGENTS.md Conventions",
-      "id": "claude_naming_convention"
+      "id": "claude_naming_convention",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "PrimeReact UI Library Usage",
@@ -19689,8 +19689,8 @@
       "contributor": null,
       "community": 72,
       "norm_label": "primereact ui library usage",
-      "community_name": "PrimeReact UI Convention",
-      "id": "claude_primereact_usage"
+      "id": "claude_primereact_usage",
+      "community_name": "PrimeReact UI Convention"
     },
     {
       "label": "Projects Feature Module",
@@ -19703,8 +19703,8 @@
       "contributor": null,
       "community": 71,
       "norm_label": "projects feature module",
-      "community_name": "Architecture & Design Review Docs",
-      "id": "features_projects_module"
+      "id": "features_projects_module",
+      "community_name": "Architecture & Design Review Docs"
     },
     {
       "label": "Entity Code Auto-Generate Feature",
@@ -19717,8 +19717,8 @@
       "contributor": null,
       "community": 71,
       "norm_label": "entity code auto-generate feature",
-      "community_name": "Architecture & Design Review Docs",
-      "id": "features_entity_codes"
+      "id": "features_entity_codes",
+      "community_name": "Architecture & Design Review Docs"
     },
     {
       "label": "Modules & Tags Feature",
@@ -19731,8 +19731,8 @@
       "contributor": null,
       "community": 82,
       "norm_label": "modules & tags feature",
-      "community_name": "CSV Import & Test Suite Rationale",
-      "id": "features_modules_tags"
+      "id": "features_modules_tags",
+      "community_name": "CSV Import & Test Suite Rationale"
     },
     {
       "label": "Test Cases Feature",
@@ -19745,8 +19745,8 @@
       "contributor": null,
       "community": 82,
       "norm_label": "test cases feature",
-      "community_name": "CSV Import & Test Suite Rationale",
-      "id": "features_test_cases"
+      "id": "features_test_cases",
+      "community_name": "CSV Import & Test Suite Rationale"
     },
     {
       "label": "Test Suite Library Feature (E17)",
@@ -19759,8 +19759,8 @@
       "contributor": null,
       "community": 82,
       "norm_label": "test suite library feature (e17)",
-      "community_name": "CSV Import & Test Suite Rationale",
-      "id": "features_test_suite_library"
+      "id": "features_test_suite_library",
+      "community_name": "CSV Import & Test Suite Rationale"
     },
     {
       "label": "Test Plans Feature",
@@ -19773,8 +19773,8 @@
       "contributor": null,
       "community": 115,
       "norm_label": "test plans feature",
-      "community_name": "Features Checklist (Test Plans/Runs)",
-      "id": "features_test_plans"
+      "id": "features_test_plans",
+      "community_name": "Features Checklist (Test Plans/Runs)"
     },
     {
       "label": "Test Runs & Test Results Feature",
@@ -19787,8 +19787,8 @@
       "contributor": null,
       "community": 115,
       "norm_label": "test runs & test results feature",
-      "community_name": "Features Checklist (Test Plans/Runs)",
-      "id": "features_test_runs_results"
+      "id": "features_test_runs_results",
+      "community_name": "Features Checklist (Test Plans/Runs)"
     },
     {
       "label": "Issue & Feature Tracking v2 (E12)",
@@ -19801,8 +19801,8 @@
       "contributor": null,
       "community": 64,
       "norm_label": "issue & feature tracking v2 (e12)",
-      "community_name": "PRD Feature Concepts",
-      "id": "features_issue_tracking_v2"
+      "id": "features_issue_tracking_v2",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "Test Case Structured Steps (E12)",
@@ -19815,8 +19815,8 @@
       "contributor": null,
       "community": 64,
       "norm_label": "test case structured steps (e12)",
-      "community_name": "PRD Feature Concepts",
-      "id": "features_structured_steps"
+      "id": "features_structured_steps",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "User Management & Auth (RBAC) Feature",
@@ -19829,8 +19829,8 @@
       "contributor": null,
       "community": 65,
       "norm_label": "user management & auth (rbac) feature",
-      "community_name": "Task Breakdown Docs (Epics)",
-      "id": "features_user_management_rbac"
+      "id": "features_user_management_rbac",
+      "community_name": "Task Breakdown Docs (Epics)"
     },
     {
       "label": "Infrastructure Feature Checklist",
@@ -19843,8 +19843,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "infrastructure feature checklist",
-      "community_name": "AGENTS.md Conventions",
-      "id": "features_infrastructure"
+      "id": "features_infrastructure",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Reporting (not prioritized)",
@@ -19857,8 +19857,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "reporting (not prioritized)",
-      "community_name": "AGENTS.md Conventions",
-      "id": "features_reporting"
+      "id": "features_reporting",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "TestManager README",
@@ -19871,8 +19871,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "testmanager readme",
-      "community_name": "AGENTS.md Conventions",
-      "id": "readme_testmanager"
+      "id": "readme_testmanager",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Repo Structure (landing/frontend/backend/supabase/docs)",
@@ -19885,8 +19885,8 @@
       "contributor": null,
       "community": 72,
       "norm_label": "repo structure (landing/frontend/backend/supabase/docs)",
-      "community_name": "PrimeReact UI Convention",
-      "id": "readme_repo_structure"
+      "id": "readme_repo_structure",
+      "community_name": "PrimeReact UI Convention"
     },
     {
       "label": "TODO Sprint Board",
@@ -19899,8 +19899,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "todo sprint board",
-      "community_name": "Architecture & Product Docs",
-      "id": "todo_sprint_board"
+      "id": "todo_sprint_board",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "V2-P1-T01 Backfill role pending to user",
@@ -19913,8 +19913,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "v2-p1-t01 backfill role pending to user",
-      "community_name": "Architecture & Product Docs",
-      "id": "todo_v2_p1_backfill"
+      "id": "todo_v2_p1_backfill",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "V2-P1-T02..T13 Identity Split",
@@ -19927,8 +19927,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "v2-p1-t02..t13 identity split",
-      "community_name": "Architecture & Product Docs",
-      "id": "todo_v2_p1_identity_split"
+      "id": "todo_v2_p1_identity_split",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Backlog: Activate/Deactivate user",
@@ -19941,8 +19941,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "backlog: activate/deactivate user",
-      "community_name": "Architecture & Product Docs",
-      "id": "todo_backlog_activate_deactivate"
+      "id": "todo_backlog_activate_deactivate",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Backlog: Search/browse Test Suite Template by category",
@@ -19955,8 +19955,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "backlog: search/browse test suite template by category",
-      "community_name": "Architecture & Product Docs",
-      "id": "todo_backlog_test_suite_search"
+      "id": "todo_backlog_test_suite_search",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Open Question: TestPlanCase snapshot/sync",
@@ -19969,8 +19969,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "open question: testplancase snapshot/sync",
-      "community_name": "Architecture & Product Docs",
-      "id": "todo_open_question_testplancase_snapshot"
+      "id": "todo_open_question_testplancase_snapshot",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "backend/ Go Backend PENDING Status",
@@ -19983,8 +19983,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "backend/ go backend pending status",
-      "community_name": "Architecture & Product Docs",
-      "id": "backend_readme_go_pending"
+      "id": "backend_readme_go_pending",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Repository Layer Swappable for Future Backend",
@@ -19998,8 +19998,8 @@
       "rationale": "Frontend's Repository layer kept swappable so a future Go backend can replace Supabase calls with minimal disruption to the Testing Context.",
       "community": 23,
       "norm_label": "repository layer swappable for future backend",
-      "community_name": "Architecture & Product Docs",
-      "id": "backend_repository_swappable_rationale"
+      "id": "backend_repository_swappable_rationale",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "backend docker-compose.yml (mysql+postgres)",
@@ -20012,8 +20012,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "backend docker-compose.yml (mysql+postgres)",
-      "community_name": "Architecture & Product Docs",
-      "id": "backend_docker_compose"
+      "id": "backend_docker_compose",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "MySQL mysql_native_password auth plugin choice",
@@ -20027,8 +20027,8 @@
       "rationale": "MySQL 8.4 defaults to caching_sha2_password which requires TLS or RSA key exchange go-sql-driver doesn't negotiate automatically; forcing mysql_native_password matches typical existing VPS MySQL and avoids handshake errors in local dev.",
       "community": 23,
       "norm_label": "mysql mysql_native_password auth plugin choice",
-      "community_name": "Architecture & Product Docs",
-      "id": "backend_mysql_native_password_rationale"
+      "id": "backend_mysql_native_password_rationale",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "System Architecture - Client-side SPA",
@@ -20041,8 +20041,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "system architecture - client-side spa",
-      "community_name": "AGENTS.md Conventions",
-      "id": "arch_system_architecture"
+      "id": "arch_system_architecture",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Layered Architecture Flow (Page\u2192Hook\u2192Service\u2192Repository\u2192Supabase)",
@@ -20055,8 +20055,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "layered architecture flow (page\u2192hook\u2192service\u2192repository\u2192supabase)",
-      "community_name": "AGENTS.md Conventions",
-      "id": "arch_layered_architecture_flow"
+      "id": "arch_layered_architecture_flow",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "React Query + Supabase Realtime Data Freshness (E14)",
@@ -20070,8 +20070,8 @@
       "rationale": "Fixed staleness bug where ProjectDetailPage's module-level tabDataCache had no way to know when TestRunResultDetailPage completed a run, causing stale views until manual refresh.",
       "community": 30,
       "norm_label": "react query + supabase realtime data freshness (e14)",
-      "community_name": "AGENTS.md Conventions",
-      "id": "arch_react_query_realtime"
+      "id": "arch_react_query_realtime",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Database Schema (Supabase/Postgres)",
@@ -20084,8 +20084,8 @@
       "contributor": null,
       "community": 71,
       "norm_label": "database schema (supabase/postgres)",
-      "community_name": "Architecture & Design Review Docs",
-      "id": "arch_database_schema"
+      "id": "arch_database_schema",
+      "community_name": "Architecture & Design Review Docs"
     },
     {
       "label": "Entity Code Auto-Generate mechanism (next_entity_code)",
@@ -20099,8 +20099,8 @@
       "rationale": "Race-safe via single insert...on conflict do update...returning statement; trigger only fills code when empty/null so user-entered codes are never overwritten.",
       "community": 71,
       "norm_label": "entity code auto-generate mechanism (next_entity_code)",
-      "community_name": "Architecture & Design Review Docs",
-      "id": "arch_entity_code_autogen"
+      "id": "arch_entity_code_autogen",
+      "community_name": "Architecture & Design Review Docs"
     },
     {
       "label": "Test Management Workflow design rationale",
@@ -20114,8 +20114,8 @@
       "rationale": "Test Case never stores results (v1 stored last_result directly and re-runs overwrote it); Test Run creates new session each execution; completion is manual but progress always computed on-the-fly; Issue is N:M to Test Result so repeated failures link to existing issue instead of duplicating.",
       "community": 71,
       "norm_label": "test management workflow design rationale",
-      "community_name": "Architecture & Design Review Docs",
-      "id": "arch_test_management_workflow_rationale"
+      "id": "arch_test_management_workflow_rationale",
+      "community_name": "Architecture & Design Review Docs"
     },
     {
       "label": "Auth & RBAC Detail (project-scoped RLS)",
@@ -20128,8 +20128,8 @@
       "contributor": null,
       "community": 65,
       "norm_label": "auth & rbac detail (project-scoped rls)",
-      "community_name": "Task Breakdown Docs (Epics)",
-      "id": "arch_auth_rbac_detail"
+      "id": "arch_auth_rbac_detail",
+      "community_name": "Task Breakdown Docs (Epics)"
     },
     {
       "label": "UI Architecture - PrimeReact",
@@ -20142,8 +20142,8 @@
       "contributor": null,
       "community": 72,
       "norm_label": "ui architecture - primereact",
-      "community_name": "PrimeReact UI Convention",
-      "id": "arch_ui_primereact"
+      "id": "arch_ui_primereact",
+      "community_name": "PrimeReact UI Convention"
     },
     {
       "label": "Test Suite Library, Import CSV, RBAC Field (E17)",
@@ -20156,8 +20156,8 @@
       "contributor": null,
       "community": 82,
       "norm_label": "test suite library, import csv, rbac field (e17)",
-      "community_name": "CSV Import & Test Suite Rationale",
-      "id": "arch_test_suite_library_e17"
+      "id": "arch_test_suite_library_e17",
+      "community_name": "CSV Import & Test Suite Rationale"
     },
     {
       "label": "CSV Import instead of xlsx dependency",
@@ -20171,8 +20171,8 @@
       "rationale": "xlsx (SheetJS) npm package has high-severity prototype pollution + ReDoS vulnerability with no fix; CSV parser written manually (RFC 4180 minimal) avoids the external dependency.",
       "community": 82,
       "norm_label": "csv import instead of xlsx dependency",
-      "community_name": "CSV Import & Test Suite Rationale",
-      "id": "arch_csv_import_no_xlsx_rationale"
+      "id": "arch_csv_import_no_xlsx_rationale",
+      "community_name": "CSV Import & Test Suite Rationale"
     },
     {
       "label": "Architectural Risks & Notes",
@@ -20185,8 +20185,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "architectural risks & notes",
-      "community_name": "Architecture & Product Docs",
-      "id": "arch_architectural_risks"
+      "id": "arch_architectural_risks",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Testify Platform Evolution - Architecture Redesign",
@@ -20199,8 +20199,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "testify platform evolution - architecture redesign",
-      "community_name": "Architecture & Product Docs",
-      "id": "archv2_platform_evolution"
+      "id": "archv2_platform_evolution",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Entity-by-entity Disposition table",
@@ -20213,8 +20213,8 @@
       "contributor": null,
       "community": 66,
       "norm_label": "entity-by-entity disposition table",
-      "community_name": "Architecture V2 Migration Docs",
-      "id": "archv2_entity_disposition"
+      "id": "archv2_entity_disposition",
+      "community_name": "Architecture V2 Migration Docs"
     },
     {
       "label": "users/profiles Identity Split",
@@ -20228,8 +20228,8 @@
       "rationale": "Old profiles conflated authenticated account (email must stay private) with public identity, so it can't live on the same row joined into public pages (Design Principle 1).",
       "community": 66,
       "norm_label": "users/profiles identity split",
-      "community_name": "Architecture V2 Migration Docs",
-      "id": "archv2_users_profiles_split"
+      "id": "archv2_users_profiles_split",
+      "community_name": "Architecture V2 Migration Docs"
     },
     {
       "label": "Project Ownership + Visibility",
@@ -20242,8 +20242,8 @@
       "contributor": null,
       "community": 66,
       "norm_label": "project ownership + visibility",
-      "community_name": "Architecture V2 Migration Docs",
-      "id": "archv2_project_visibility_ownership"
+      "id": "archv2_project_visibility_ownership",
+      "community_name": "Architecture V2 Migration Docs"
     },
     {
       "label": "project_members Invite/Accept Lifecycle",
@@ -20256,8 +20256,8 @@
       "contributor": null,
       "community": 66,
       "norm_label": "project_members invite/accept lifecycle",
-      "community_name": "Architecture V2 Migration Docs",
-      "id": "archv2_project_members_invite"
+      "id": "archv2_project_members_invite",
+      "community_name": "Architecture V2 Migration Docs"
     },
     {
       "label": "Test Suite Ownership + Visibility",
@@ -20270,8 +20270,8 @@
       "contributor": null,
       "community": 66,
       "norm_label": "test suite ownership + visibility",
-      "community_name": "Architecture V2 Migration Docs",
-      "id": "archv2_test_suite_ownership"
+      "id": "archv2_test_suite_ownership",
+      "community_name": "Architecture V2 Migration Docs"
     },
     {
       "label": "Organization-readiness without building organizations",
@@ -20285,8 +20285,8 @@
       "rationale": "Give projects a polymorphic owner_type/owner_id now even though only 'user' is populated, so orgs can be added later as a zero-downtime additive change without breaking existing project rows.",
       "community": 66,
       "norm_label": "organization-readiness without building organizations",
-      "community_name": "Architecture V2 Migration Docs",
-      "id": "archv2_organization_readiness"
+      "id": "archv2_organization_readiness",
+      "community_name": "Architecture V2 Migration Docs"
     },
     {
       "label": "Updated Bounded Contexts (Platform vs Testing)",
@@ -20299,8 +20299,8 @@
       "contributor": null,
       "community": 66,
       "norm_label": "updated bounded contexts (platform vs testing)",
-      "community_name": "Architecture V2 Migration Docs",
-      "id": "archv2_bounded_contexts"
+      "id": "archv2_bounded_contexts",
+      "community_name": "Architecture V2 Migration Docs"
     },
     {
       "label": "Migration Strategy (8 ordered steps)",
@@ -20313,8 +20313,8 @@
       "contributor": null,
       "community": 66,
       "norm_label": "migration strategy (8 ordered steps)",
-      "community_name": "Architecture V2 Migration Docs",
-      "id": "archv2_migration_strategy"
+      "id": "archv2_migration_strategy",
+      "community_name": "Architecture V2 Migration Docs"
     },
     {
       "label": "API Boundary Proposal for future Go backend",
@@ -20327,8 +20327,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "api boundary proposal for future go backend",
-      "community_name": "Architecture & Product Docs",
-      "id": "archv2_api_boundary_proposal"
+      "id": "archv2_api_boundary_proposal",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "MVP Scope After Redesign",
@@ -20341,8 +20341,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "mvp scope after redesign",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "archv2_mvp_scope"
+      "id": "archv2_mvp_scope",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Testing Domain (unchanged)",
@@ -20353,10 +20353,10 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 66,
+      "community": 71,
       "norm_label": "testing domain (unchanged)",
-      "community_name": "Architecture V2 Migration Docs",
-      "id": "archv2_testing_domain_unchanged"
+      "id": "archv2_testing_domain_unchanged",
+      "community_name": "Architecture & Design Review Docs"
     },
     {
       "label": "Public Profile Rescoped to Functional Identity Only",
@@ -20370,8 +20370,8 @@
       "rationale": "Original brainstorm framed public profiles as GitHub-style portfolio; Constitution rejects Social Network category, so profile scoped down to username+display name+avatar only, kept for Phase 6 as invite-target-picker UI not a portfolio feature.",
       "community": 23,
       "norm_label": "public profile rescoped to functional identity only",
-      "community_name": "Architecture & Product Docs",
-      "id": "archv2_public_profile_rescoping"
+      "id": "archv2_public_profile_rescoping",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "PRD - TestManager",
@@ -20384,8 +20384,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "prd - testmanager",
-      "community_name": "AGENTS.md Conventions",
-      "id": "docs_prd_testmanager"
+      "id": "docs_prd_testmanager",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Konsep Test Management (Project\u2192Module\u2192TestCase\u2192TestPlan\u2192TestRun\u2192TestResult\u2192Issue)",
@@ -20398,8 +20398,8 @@
       "contributor": null,
       "community": 64,
       "norm_label": "konsep test management (project\u2192module\u2192testcase\u2192testplan\u2192testrun\u2192testresult\u2192issue)",
-      "community_name": "PRD Feature Concepts",
-      "id": "docs_prd_test_management_concept"
+      "id": "docs_prd_test_management_concept",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "Sequence (urutan eksekusi) di Test Plan",
@@ -20413,8 +20413,8 @@
       "rationale": "Sengaja tidak dibuat entity Test Suite terpisah untuk sequence - urutan cukup jadi atribut baris relasi Test Plan-Test Case; sequence panduan workflow bukan pembatas eksekusi.",
       "community": 64,
       "norm_label": "sequence (urutan eksekusi) di test plan",
-      "community_name": "PRD Feature Concepts",
-      "id": "docs_prd_sequence_test_plan"
+      "id": "docs_prd_sequence_test_plan",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "Test Case step_type (simple/detailed)",
@@ -20427,8 +20427,8 @@
       "contributor": null,
       "community": 64,
       "norm_label": "test case step_type (simple/detailed)",
-      "community_name": "PRD Feature Concepts",
-      "id": "docs_prd_test_case_step_type"
+      "id": "docs_prd_test_case_step_type",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "Test Run Unplanned/Custom",
@@ -20441,8 +20441,8 @@
       "contributor": null,
       "community": 64,
       "norm_label": "test run unplanned/custom",
-      "community_name": "PRD Feature Concepts",
-      "id": "docs_prd_test_run_unplanned_custom"
+      "id": "docs_prd_test_run_unplanned_custom",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "Issue & Feature Tracking (N:M to Test Result)",
@@ -20455,8 +20455,8 @@
       "contributor": null,
       "community": 64,
       "norm_label": "issue & feature tracking (n:m to test result)",
-      "community_name": "PRD Feature Concepts",
-      "id": "docs_prd_issue_tracking_v2"
+      "id": "docs_prd_issue_tracking_v2",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "Attachment via Storage Adapter",
@@ -20470,8 +20470,8 @@
       "rationale": "Storage adapter interface allows switching providers without changing service/UI - starts with Supabase Storage, slot prepared for internal backend upload adapter.",
       "community": 64,
       "norm_label": "attachment via storage adapter",
-      "community_name": "PRD Feature Concepts",
-      "id": "docs_prd_attachment_storage_adapter"
+      "id": "docs_prd_attachment_storage_adapter",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "RBAC per-project (project_members roles)",
@@ -20484,8 +20484,8 @@
       "contributor": null,
       "community": 65,
       "norm_label": "rbac per-project (project_members roles)",
-      "community_name": "Task Breakdown Docs (Epics)",
-      "id": "docs_prd_rbac_project_members"
+      "id": "docs_prd_rbac_project_members",
+      "community_name": "Task Breakdown Docs (Epics)"
     },
     {
       "label": "Out of Scope items",
@@ -20498,8 +20498,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "out of scope items",
-      "community_name": "AGENTS.md Conventions",
-      "id": "docs_prd_out_of_scope"
+      "id": "docs_prd_out_of_scope",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Roadmap Ideas (Reporting, Excel import/export, PHP+SQLite migration)",
@@ -20512,8 +20512,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "roadmap ideas (reporting, excel import/export, php+sqlite migration)",
-      "community_name": "AGENTS.md Conventions",
-      "id": "docs_prd_roadmap_ideas"
+      "id": "docs_prd_roadmap_ideas",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "Testify Product Constitution",
@@ -20526,8 +20526,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "testify product constitution",
-      "community_name": "Architecture & Product Docs",
-      "id": "constitution_testify"
+      "id": "constitution_testify",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Testify Vision",
@@ -20540,8 +20540,8 @@
       "contributor": null,
       "community": 72,
       "norm_label": "testify vision",
-      "community_name": "PrimeReact UI Convention",
-      "id": "constitution_vision"
+      "id": "constitution_vision",
+      "community_name": "PrimeReact UI Convention"
     },
     {
       "label": "Core Features / Core Domains",
@@ -20554,8 +20554,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "core features / core domains",
-      "community_name": "Architecture & Product Docs",
-      "id": "constitution_core_features"
+      "id": "constitution_core_features",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "What Testify Is NOT (incl. not a Social Network)",
@@ -20568,8 +20568,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "what testify is not (incl. not a social network)",
-      "community_name": "Architecture & Product Docs",
-      "id": "constitution_not_social_network"
+      "id": "constitution_not_social_network",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Simplicity First principle",
@@ -20583,8 +20583,8 @@
       "rationale": "Every screen should remain understandable by a new user within minutes; simple is preferred over powerful.",
       "community": 23,
       "norm_label": "simplicity first principle",
-      "community_name": "Architecture & Product Docs",
-      "id": "constitution_simplicity_first"
+      "id": "constitution_simplicity_first",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Technology Independence principle",
@@ -20598,8 +20598,8 @@
       "rationale": "Business domain must remain independent from any specific backend technology; Supabase used for rapid dev, no business rule should depend directly on it, future Go backend migration should require minimal changes.",
       "community": 23,
       "norm_label": "technology independence principle",
-      "community_name": "Architecture & Product Docs",
-      "id": "constitution_technology_independence"
+      "id": "constitution_technology_independence",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "MVP Success Criteria (9-step golden path)",
@@ -20612,8 +20612,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "mvp success criteria (9-step golden path)",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "constitution_mvp_success_criteria"
+      "id": "constitution_mvp_success_criteria",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Feature Acceptance Rule",
@@ -20627,8 +20627,8 @@
       "rationale": "If more than two of the five acceptance questions answer No, reject the feature.",
       "community": 23,
       "norm_label": "feature acceptance rule",
-      "community_name": "Architecture & Product Docs",
-      "id": "constitution_feature_acceptance_rule"
+      "id": "constitution_feature_acceptance_rule",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Roadmap - Testify Platform Evolution (V2)",
@@ -20641,8 +20641,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "roadmap - testify platform evolution (v2)",
-      "community_name": "Architecture & Product Docs",
-      "id": "roadmapv2_testify"
+      "id": "roadmapv2_testify",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "Golden Path 9-step flow",
@@ -20655,8 +20655,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "golden path 9-step flow",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "roadmapv2_golden_path"
+      "id": "roadmapv2_golden_path",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Phase 1 - Identity Split (users+profiles)",
@@ -20669,8 +20669,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "phase 1 - identity split (users+profiles)",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "roadmapv2_phase1_identity_split"
+      "id": "roadmapv2_phase1_identity_split",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Phase 2 - Drop Approval Gate",
@@ -20683,8 +20683,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "phase 2 - drop approval gate",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "roadmapv2_phase2_drop_approval_gate"
+      "id": "roadmapv2_phase2_drop_approval_gate",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Phase 3 - Project Ownership + Visibility",
@@ -20697,8 +20697,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "phase 3 - project ownership + visibility",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "roadmapv2_phase3_project_ownership"
+      "id": "roadmapv2_phase3_project_ownership",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Phase 4 - Membership Invite/Accept Flow",
@@ -20711,8 +20711,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "phase 4 - membership invite/accept flow",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "roadmapv2_phase4_membership_invite"
+      "id": "roadmapv2_phase4_membership_invite",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Phase 5 - Test Suite Template Ownership + Visibility",
@@ -20725,8 +20725,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "phase 5 - test suite template ownership + visibility",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "roadmapv2_phase5_test_suite_ownership"
+      "id": "roadmapv2_phase5_test_suite_ownership",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Phase 6 - Minimal Public Identity Lookup",
@@ -20739,8 +20739,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "phase 6 - minimal public identity lookup",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "roadmapv2_phase6_public_identity"
+      "id": "roadmapv2_phase6_public_identity",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Phase 7 - Golden-Path Acceptance Walkthrough",
@@ -20753,8 +20753,8 @@
       "contributor": null,
       "community": 58,
       "norm_label": "phase 7 - golden-path acceptance walkthrough",
-      "community_name": "Platform Evolution V2 Roadmap",
-      "id": "roadmapv2_phase7_walkthrough"
+      "id": "roadmapv2_phase7_walkthrough",
+      "community_name": "Platform Evolution V2 Roadmap"
     },
     {
       "label": "Brainstorm: Test Suite Template metadata",
@@ -20767,8 +20767,8 @@
       "contributor": null,
       "community": 23,
       "norm_label": "brainstorm: test suite template metadata",
-      "community_name": "Architecture & Product Docs",
-      "id": "roadmapv2_backlog_metadata_brainstorm"
+      "id": "roadmapv2_backlog_metadata_brainstorm",
+      "community_name": "Architecture & Product Docs"
     },
     {
       "label": "TASKS - TestManager work breakdown",
@@ -20781,8 +20781,8 @@
       "contributor": null,
       "community": 65,
       "norm_label": "tasks - testmanager work breakdown",
-      "community_name": "Task Breakdown Docs (Epics)",
-      "id": "docs_tasks_testmanager"
+      "id": "docs_tasks_testmanager",
+      "community_name": "Task Breakdown Docs (Epics)"
     },
     {
       "label": "E01 - Fondasi Arsitektur",
@@ -20795,8 +20795,8 @@
       "contributor": null,
       "community": 65,
       "norm_label": "e01 - fondasi arsitektur",
-      "community_name": "Task Breakdown Docs (Epics)",
-      "id": "docs_tasks_e01_fondasi"
+      "id": "docs_tasks_e01_fondasi",
+      "community_name": "Task Breakdown Docs (Epics)"
     },
     {
       "label": "E08 - Test Management v2",
@@ -20809,8 +20809,8 @@
       "contributor": null,
       "community": 71,
       "norm_label": "e08 - test management v2",
-      "community_name": "Architecture & Design Review Docs",
-      "id": "docs_tasks_e08_test_management_v2"
+      "id": "docs_tasks_e08_test_management_v2",
+      "community_name": "Architecture & Design Review Docs"
     },
     {
       "label": "E09 - Restrukturisasi Monorepo",
@@ -20823,8 +20823,8 @@
       "contributor": null,
       "community": 65,
       "norm_label": "e09 - restrukturisasi monorepo",
-      "community_name": "Task Breakdown Docs (Epics)",
-      "id": "docs_tasks_e09_restrukturisasi_monorepo"
+      "id": "docs_tasks_e09_restrukturisasi_monorepo",
+      "community_name": "Task Breakdown Docs (Epics)"
     },
     {
       "label": "E12 - Issue & Feature Tracking v2, Structured Steps, Attachment Adapter",
@@ -20837,8 +20837,8 @@
       "contributor": null,
       "community": 64,
       "norm_label": "e12 - issue & feature tracking v2, structured steps, attachment adapter",
-      "community_name": "PRD Feature Concepts",
-      "id": "docs_tasks_e12_issue_tracking_v2"
+      "id": "docs_tasks_e12_issue_tracking_v2",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "E13 - Test Run Detail Page + Sequence",
@@ -20851,8 +20851,8 @@
       "contributor": null,
       "community": 65,
       "norm_label": "e13 - test run detail page + sequence",
-      "community_name": "Task Breakdown Docs (Epics)",
-      "id": "docs_tasks_e13_test_run_detail_sequence"
+      "id": "docs_tasks_e13_test_run_detail_sequence",
+      "community_name": "Task Breakdown Docs (Epics)"
     },
     {
       "label": "E14 - React Query + Realtime Sync",
@@ -20865,8 +20865,8 @@
       "contributor": null,
       "community": 65,
       "norm_label": "e14 - react query + realtime sync",
-      "community_name": "Task Breakdown Docs (Epics)",
-      "id": "docs_tasks_e14_react_query_realtime"
+      "id": "docs_tasks_e14_react_query_realtime",
+      "community_name": "Task Breakdown Docs (Epics)"
     },
     {
       "label": "E15 - RBAC Per-Project",
@@ -20879,8 +20879,8 @@
       "contributor": null,
       "community": 65,
       "norm_label": "e15 - rbac per-project",
-      "community_name": "Task Breakdown Docs (Epics)",
-      "id": "docs_tasks_e15_rbac_per_project"
+      "id": "docs_tasks_e15_rbac_per_project",
+      "community_name": "Task Breakdown Docs (Epics)"
     },
     {
       "label": "E16 - Custom/Unplanned Test Run",
@@ -20893,8 +20893,8 @@
       "contributor": null,
       "community": 64,
       "norm_label": "e16 - custom/unplanned test run",
-      "community_name": "PRD Feature Concepts",
-      "id": "docs_tasks_e16_custom_test_run"
+      "id": "docs_tasks_e16_custom_test_run",
+      "community_name": "PRD Feature Concepts"
     },
     {
       "label": "E17 - Test Case Template Library, Import CSV, RBAC Field",
@@ -20907,8 +20907,8 @@
       "contributor": null,
       "community": 82,
       "norm_label": "e17 - test case template library, import csv, rbac field",
-      "community_name": "CSV Import & Test Suite Rationale",
-      "id": "docs_tasks_e17_test_suite_library_csv"
+      "id": "docs_tasks_e17_test_suite_library_csv",
+      "community_name": "CSV Import & Test Suite Rationale"
     },
     {
       "label": "Design Review - Test Management v2",
@@ -20921,8 +20921,8 @@
       "contributor": null,
       "community": 71,
       "norm_label": "design review - test management v2",
-      "community_name": "Architecture & Design Review Docs",
-      "id": "docs_design_review_test_management_v2"
+      "id": "docs_design_review_test_management_v2",
+      "community_name": "Architecture & Design Review Docs"
     },
     {
       "label": "Decision: Full history instead of last-result",
@@ -20936,8 +20936,8 @@
       "rationale": "Old model stored PASS/FAIL directly on test_plan_cases.last_result which got overwritten on re-run; new model creates a new Test Run each execution session so release-to-release history is preserved.",
       "community": 71,
       "norm_label": "decision: full history instead of last-result",
-      "community_name": "Architecture & Design Review Docs",
-      "id": "design_review_full_history_decision"
+      "id": "design_review_full_history_decision",
+      "community_name": "Architecture & Design Review Docs"
     },
     {
       "label": "E12 Agent Prompt Document",
@@ -20950,8 +20950,8 @@
       "contributor": null,
       "community": 30,
       "norm_label": "e12 agent prompt document",
-      "community_name": "AGENTS.md Conventions",
-      "id": "docs_prompts_e12_agent_prompt"
+      "id": "docs_prompts_e12_agent_prompt",
+      "community_name": "AGENTS.md Conventions"
     },
     {
       "label": "frontend/index.html entry point",
@@ -20964,8 +20964,8 @@
       "contributor": null,
       "community": 72,
       "norm_label": "frontend/index.html entry point",
-      "community_name": "PrimeReact UI Convention",
-      "id": "frontend_index_html"
+      "id": "frontend_index_html",
+      "community_name": "PrimeReact UI Convention"
     },
     {
       "label": "Theme mode switch inline script (dark/light PrimeReact theme)",
@@ -20978,8 +20978,8 @@
       "contributor": null,
       "community": 72,
       "norm_label": "theme mode switch inline script (dark/light primereact theme)",
-      "community_name": "PrimeReact UI Convention",
-      "id": "frontend_theme_switch_script"
+      "id": "frontend_theme_switch_script",
+      "community_name": "PrimeReact UI Convention"
     },
     {
       "label": "Testify Landing Page",
@@ -20992,8 +20992,8 @@
       "contributor": null,
       "community": 72,
       "norm_label": "testify landing page",
-      "community_name": "PrimeReact UI Convention",
-      "id": "landing_index_html"
+      "id": "landing_index_html",
+      "community_name": "PrimeReact UI Convention"
     },
     {
       "label": "landing/robots.txt",
@@ -21006,8 +21006,8 @@
       "contributor": null,
       "community": 72,
       "norm_label": "landing/robots.txt",
-      "community_name": "PrimeReact UI Convention",
-      "id": "landing_robots_txt"
+      "id": "landing_robots_txt",
+      "community_name": "PrimeReact UI Convention"
     },
     {
       "label": "public-docs/AGENTS.md (Astro dev guidance)",
@@ -21020,8 +21020,8 @@
       "contributor": null,
       "community": 117,
       "norm_label": "public-docs/agents.md (astro dev guidance)",
-      "community_name": "Public Docs AGENTS/CLAUDE Boilerplate",
-      "id": "public_docs_agents"
+      "id": "public_docs_agents",
+      "community_name": "Public Docs AGENTS/CLAUDE Boilerplate"
     },
     {
       "label": "public-docs/CLAUDE.md (Astro dev guidance)",
@@ -21034,8 +21034,8 @@
       "contributor": null,
       "community": 117,
       "norm_label": "public-docs/claude.md (astro dev guidance)",
-      "community_name": "Public Docs AGENTS/CLAUDE Boilerplate",
-      "id": "public_docs_claude"
+      "id": "public_docs_claude",
+      "community_name": "Public Docs AGENTS/CLAUDE Boilerplate"
     },
     {
       "label": "public-docs README (Starlight Starter Kit)",
@@ -21048,8 +21048,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "public-docs readme (starlight starter kit)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_readme"
+      "id": "public_docs_readme",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "public-docs robots.txt",
@@ -21062,8 +21062,8 @@
       "contributor": null,
       "community": 118,
       "norm_label": "public-docs robots.txt",
-      "community_name": "Docs Site Robots/Testify",
-      "id": "public_docs_public_robots"
+      "id": "public_docs_public_robots",
+      "community_name": "Docs Site Robots/Testify"
     },
     {
       "label": "Testify Documentation Site (testify.apps.shiftech.my.id)",
@@ -21076,8 +21076,8 @@
       "contributor": null,
       "community": 118,
       "norm_label": "testify documentation site (testify.apps.shiftech.my.id)",
-      "community_name": "Docs Site Robots/Testify",
-      "id": "testify_docs_site"
+      "id": "testify_docs_site",
+      "community_name": "Docs Site Robots/Testify"
     },
     {
       "label": "Core Entities reference doc",
@@ -21090,8 +21090,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "core entities reference doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_data_model_entities"
+      "id": "public_docs_src_content_docs_data_model_entities",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Project (entity)",
@@ -21104,8 +21104,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "project (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_project"
+      "id": "entity_project",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Module (entity)",
@@ -21118,8 +21118,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "module (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_module"
+      "id": "entity_module",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Tag (entity)",
@@ -21132,8 +21132,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "tag (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_tag"
+      "id": "entity_tag",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "TestCase (entity)",
@@ -21146,8 +21146,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "testcase (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_testcase"
+      "id": "entity_testcase",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "TestPlan (entity)",
@@ -21160,8 +21160,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "testplan (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_testplan"
+      "id": "entity_testplan",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "TestPlanCase (junction entity)",
@@ -21174,8 +21174,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "testplancase (junction entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_testplancase"
+      "id": "entity_testplancase",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "TestRun (entity)",
@@ -21188,8 +21188,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "testrun (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_testrun"
+      "id": "entity_testrun",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "TestResult (entity)",
@@ -21202,8 +21202,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "testresult (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_testresult"
+      "id": "entity_testresult",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Issue (entity)",
@@ -21216,8 +21216,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "issue (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_issue"
+      "id": "entity_issue",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "ProjectMember (entity)",
@@ -21230,8 +21230,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "projectmember (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_projectmember"
+      "id": "entity_projectmember",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "User (entity)",
@@ -21244,8 +21244,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "user (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_user"
+      "id": "entity_user",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Profile (entity)",
@@ -21258,8 +21258,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "profile (entity)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "entity_profile"
+      "id": "entity_profile",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Results always live on TestResult, never TestCase/TestPlanCase",
@@ -21273,8 +21273,8 @@
       "rationale": "Keeps the test template (what should be tested) permanently separate from execution history so re-running never overwrites or corrupts prior results, and history stays immutable.",
       "community": 3,
       "norm_label": "results always live on testresult, never testcase/testplancase",
-      "community_name": "Domain Model & Product Rules",
-      "id": "rule_results_never_on_template"
+      "id": "rule_results_never_on_template",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "TestRun progress always derived live from TestResult, never stored",
@@ -21288,8 +21288,8 @@
       "rationale": "Avoids a stale, manually-updated progress number that could drift from the actual underlying test results.",
       "community": 3,
       "norm_label": "testrun progress always derived live from testresult, never stored",
-      "community_name": "Domain Model & Product Rules",
-      "id": "rule_progress_derived_live"
+      "id": "rule_progress_derived_live",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Tester must be a registered user, resolved via Profile",
@@ -21303,8 +21303,8 @@
       "rationale": "Prevents free-text tester names so accountability and identity resolution stay consistent and traceable.",
       "community": 3,
       "norm_label": "tester must be a registered user, resolved via profile",
-      "community_name": "Domain Model & Product Rules",
-      "id": "rule_tester_must_be_registered"
+      "id": "rule_tester_must_be_registered",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Data Model Overview doc",
@@ -21317,8 +21317,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "data model overview doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_data_model_overview"
+      "id": "public_docs_src_content_docs_data_model_overview",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Testify has no custom REST API",
@@ -21332,8 +21332,8 @@
       "rationale": "SPA talks directly to Supabase Postgres via its auto-generated data access layer; access control enforced via Postgres Row-Level Security instead of an application server, so there is no backend server or HTTP endpoint layer to document.",
       "community": 3,
       "norm_label": "testify has no custom rest api",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_no_custom_rest_api"
+      "id": "concept_no_custom_rest_api",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Postgres Row-Level Security (RLS)",
@@ -21346,8 +21346,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "postgres row-level security (rls)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_row_level_security"
+      "id": "concept_row_level_security",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Supabase (Postgres BaaS)",
@@ -21360,8 +21360,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "supabase (postgres baas)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_supabase"
+      "id": "concept_supabase",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Identity split into User (private) and Profile (public)",
@@ -21375,8 +21375,8 @@
       "rationale": "Email addresses must never be exposed outside a user's own account; every user-facing display resolves through Profile instead of User.",
       "community": 3,
       "norm_label": "identity split into user (private) and profile (public)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "rule_identity_split"
+      "id": "rule_identity_split",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Introduction guide doc",
@@ -21389,8 +21389,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "introduction guide doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_guide_introduction"
+      "id": "public_docs_src_content_docs_guide_introduction",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Template vs execution history separation",
@@ -21404,8 +21404,8 @@
       "rationale": "Core design idea of Testify: the test template (what should be tested) and the test execution history (what actually happened) must never be confused, enabling reusable Test Cases and multiple independent Test Run histories without ever losing prior results.",
       "community": 3,
       "norm_label": "template vs execution history separation",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_template_vs_execution_history"
+      "id": "concept_template_vs_execution_history",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Issues guide doc",
@@ -21418,8 +21418,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "issues guide doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_guide_issues"
+      "id": "public_docs_src_content_docs_guide_issues",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Issue is 1-to-many against failed TestResult",
@@ -21433,8 +21433,8 @@
       "rationale": "A single failed test result can surface multiple unrelated problems, so issues are never forced into a strict one-to-one mapping with results.",
       "community": 3,
       "norm_label": "issue is 1-to-many against failed testresult",
-      "community_name": "Domain Model & Product Rules",
-      "id": "rule_issue_one_to_many"
+      "id": "rule_issue_one_to_many",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Projects guide doc",
@@ -21447,8 +21447,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "projects guide doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_guide_projects"
+      "id": "public_docs_src_content_docs_guide_projects",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Project role: manager",
@@ -21461,8 +21461,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "project role: manager",
-      "community_name": "Domain Model & Product Rules",
-      "id": "role_manager"
+      "id": "role_manager",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Project role: supervisor",
@@ -21475,8 +21475,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "project role: supervisor",
-      "community_name": "Domain Model & Product Rules",
-      "id": "role_supervisor"
+      "id": "role_supervisor",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Project role: tester",
@@ -21489,8 +21489,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "project role: tester",
-      "community_name": "Domain Model & Product Rules",
-      "id": "role_tester"
+      "id": "role_tester",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Project role: member",
@@ -21503,8 +21503,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "project role: member",
-      "community_name": "Domain Model & Product Rules",
-      "id": "role_member"
+      "id": "role_member",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Project access controlled by members list, not global account role",
@@ -21518,8 +21518,8 @@
       "rationale": "Global admin role is a platform-ops flag, not an access gate; per-project roles let the same user be a manager on one project and a tester on another, keeping access scoped and independent per project.",
       "community": 3,
       "norm_label": "project access controlled by members list, not global account role",
-      "community_name": "Domain Model & Product Rules",
-      "id": "rule_access_via_membership_not_global_role"
+      "id": "rule_access_via_membership_not_global_role",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Signing In guide doc",
@@ -21532,8 +21532,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "signing in guide doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_guide_signing_in"
+      "id": "public_docs_src_content_docs_guide_signing_in",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Google OAuth-only sign-in",
@@ -21546,8 +21546,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "google oauth-only sign-in",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_google_oauth_only"
+      "id": "concept_google_oauth_only",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Self-serve signup, no approval gate",
@@ -21561,8 +21561,8 @@
       "rationale": "First Google sign-in auto-creates a standard 'user' role account with no pending approval step, per Platform Evolution V2 Phase 2 \u2014 removing the earlier admin gate to reduce onboarding friction.",
       "community": 3,
       "norm_label": "self-serve signup, no approval gate",
-      "community_name": "Domain Model & Product Rules",
-      "id": "rule_self_serve_signup"
+      "id": "rule_self_serve_signup",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Team & Roles guide doc",
@@ -21575,8 +21575,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "team & roles guide doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_guide_team_roles"
+      "id": "public_docs_src_content_docs_guide_team_roles",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Two separate role systems: global account role vs per-project role",
@@ -21590,8 +21590,8 @@
       "rationale": "Global role (user/admin) is a platform-operations flag only, independent from and never confused with per-project roles, so a user's admin status doesn't imply project access and vice versa.",
       "community": 3,
       "norm_label": "two separate role systems: global account role vs per-project role",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_global_role_vs_project_role"
+      "id": "concept_global_role_vs_project_role",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Test Cases guide doc",
@@ -21604,8 +21604,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "test cases guide doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_guide_test_cases"
+      "id": "public_docs_src_content_docs_guide_test_cases",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Step mode: simple",
@@ -21618,8 +21618,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "step mode: simple",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_step_mode_simple"
+      "id": "concept_step_mode_simple",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Step mode: detailed",
@@ -21632,8 +21632,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "step mode: detailed",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_step_mode_detailed"
+      "id": "concept_step_mode_detailed",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Test Plans guide doc",
@@ -21646,8 +21646,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "test plans guide doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_guide_test_plans"
+      "id": "public_docs_src_content_docs_guide_test_plans",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "TestPlan references live TestCase, does not duplicate content",
@@ -21661,8 +21661,8 @@
       "rationale": "Edits to a Test Case's steps propagate immediately to every plan referencing it, while previously completed Test Runs retain their own historical record since results live on TestResult, not the Test Case.",
       "community": 3,
       "norm_label": "testplan references live testcase, does not duplicate content",
-      "community_name": "Domain Model & Product Rules",
-      "id": "rule_testplan_references_live_testcase"
+      "id": "rule_testplan_references_live_testcase",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Test Case sequencing/ordering within a Test Plan",
@@ -21675,8 +21675,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "test case sequencing/ordering within a test plan",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_sequencing"
+      "id": "concept_sequencing",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Test Runs & Results guide doc",
@@ -21689,8 +21689,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "test runs & results guide doc",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_guide_test_runs"
+      "id": "public_docs_src_content_docs_guide_test_runs",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Unplanned/custom Test Run (built directly from Test Cases)",
@@ -21703,8 +21703,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "unplanned/custom test run (built directly from test cases)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "concept_unplanned_custom_run"
+      "id": "concept_unplanned_custom_run",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Progress computed live vs. Completion always manual",
@@ -21718,8 +21718,8 @@
       "rationale": "Progress is deliberately kept as a live computed value so it can never go stale, while completion is a deliberate manual action so a run can be closed even if not every case reached a final result.",
       "community": 3,
       "norm_label": "progress computed live vs. completion always manual",
-      "community_name": "Domain Model & Product Rules",
-      "id": "rule_progress_vs_completion"
+      "id": "rule_progress_vs_completion",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Testify Documentation landing page (index.mdx)",
@@ -21732,8 +21732,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "testify documentation landing page (index.mdx)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_content_docs_index"
+      "id": "public_docs_src_content_docs_index",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Astro Starlight Card/CardGrid components",
@@ -21746,8 +21746,22 @@
       "contributor": null,
       "community": 3,
       "norm_label": "astro starlight card/cardgrid components",
-      "community_name": "Domain Model & Product Rules",
-      "id": "astro_starlight_cardgrid"
+      "id": "astro_starlight_cardgrid",
+      "community_name": "Domain Model & Product Rules"
+    },
+    {
+      "label": "Landing page favicon.svg (checkmark badge logo)",
+      "file_type": "image",
+      "source_file": "landing/favicon.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 116,
+      "norm_label": "landing page favicon.svg (checkmark badge logo)",
+      "id": "landing_favicon_svg",
+      "community_name": "Favicon Assets"
     },
     {
       "label": "public-docs favicon.svg (Starlight/Astro sparkle logo)",
@@ -21760,8 +21774,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "public-docs favicon.svg (starlight/astro sparkle logo)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_public_favicon_svg"
+      "id": "public_docs_public_favicon_svg",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Houston mascot image (Starlight/Astro astronaut character)",
@@ -21774,8 +21788,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "houston mascot image (starlight/astro astronaut character)",
-      "community_name": "Domain Model & Product Rules",
-      "id": "public_docs_src_assets_houston"
+      "id": "public_docs_src_assets_houston",
+      "community_name": "Domain Model & Product Rules"
     },
     {
       "label": "Astro Starlight documentation framework",
@@ -21788,8 +21802,8 @@
       "contributor": null,
       "community": 3,
       "norm_label": "astro starlight documentation framework",
-      "community_name": "Domain Model & Product Rules",
-      "id": "astro_starlight_framework"
+      "id": "astro_starlight_framework",
+      "community_name": "Domain Model & Product Rules"
     }
   ],
   "links": [
