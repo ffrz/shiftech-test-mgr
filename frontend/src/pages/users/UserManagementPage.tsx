@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DataTable, type DataTablePageEvent, type DataTableSortEvent } from 'primereact/datatable';
+import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
@@ -20,6 +20,7 @@ import { formatDateTime } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
+import { ColumnHeaderMenu } from '../../components/ui/ColumnHeaderMenu';
 import { USER_ROLE_LABEL, USER_ROLE_SEVERITY } from '../../helpers/statusLabels';
 
 type EnrichedUser = User & { _displayName: string; _username: string };
@@ -89,9 +90,9 @@ export function UserManagementPage() {
     if (e.rows) setRowsPerPage(e.rows);
   }
 
-  function onSort(e: DataTableSortEvent) {
-    setSortField(e.sortField ?? 'createdAt');
-    setSortOrder(e.sortOrder as -1 | 1);
+  function handleColumnSort(field: string, order: 1 | -1) {
+    setSortField(field);
+    setSortOrder(order);
   }
 
   async function handlePromote(row: EnrichedUser) {
@@ -211,11 +212,11 @@ export function UserManagementPage() {
         sortField={sortField}
         sortOrder={sortOrder}
         onPage={onPage}
-        onSort={onSort}
         emptyMessage="No users yet"
         size="small"
         onRowClick={(e) => navigate(`/users/${(e.data as EnrichedUser).id}`)}
         rowHover
+        showGridlines
         className="cursor-pointer"
       >
         {isMobile && <Column header="User" body={(row: EnrichedUser) => (
@@ -229,11 +230,38 @@ export function UserManagementPage() {
             <span className="text-sm text-color-secondary">{formatDateTime(row.createdAt)}</span>
           </div>
         )} />}
-        {!isMobile && <Column field="_displayName" header="Name" sortable />}
-        {!isMobile && <Column field="_username" header="Username" sortable />}
-        {!isMobile && <Column field="email" header="Email" sortable />}
-        {!isMobile && <Column field="role" header="Role" body={(row: EnrichedUser) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />} sortable />}
-        {!isMobile && <Column field="createdAt" header="Registered" body={(row: EnrichedUser) => formatDateTime(row.createdAt)} sortable />}
+        {!isMobile && (
+          <Column
+            field="_displayName"
+            header={<ColumnHeaderMenu label="Name" field="_displayName" sortField={sortField} sortOrder={sortOrder} onSort={handleColumnSort} />}
+          />
+        )}
+        {!isMobile && (
+          <Column
+            field="_username"
+            header={<ColumnHeaderMenu label="Username" field="_username" sortField={sortField} sortOrder={sortOrder} onSort={handleColumnSort} />}
+          />
+        )}
+        {!isMobile && (
+          <Column
+            field="email"
+            header={<ColumnHeaderMenu label="Email" field="email" sortField={sortField} sortOrder={sortOrder} onSort={handleColumnSort} />}
+          />
+        )}
+        {!isMobile && (
+          <Column
+            field="role"
+            header={<ColumnHeaderMenu label="Role" field="role" sortField={sortField} sortOrder={sortOrder} onSort={handleColumnSort} />}
+            body={(row: EnrichedUser) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />}
+          />
+        )}
+        {!isMobile && (
+          <Column
+            field="createdAt"
+            header={<ColumnHeaderMenu label="Registered" field="createdAt" sortField={sortField} sortOrder={sortOrder} onSort={handleColumnSort} />}
+            body={(row: EnrichedUser) => formatDateTime(row.createdAt)}
+          />
+        )}
         <Column
           header=""
           style={{ width: '4rem' }}

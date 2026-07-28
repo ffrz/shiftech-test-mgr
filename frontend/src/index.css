@@ -143,6 +143,15 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
   font-weight: 600;
 }
 
+/* PrimeReact wraps a custom `header` node in .p-column-title, which shrinks to
+   fit its content by default — a flex `w-full` spacer inside it (used by
+   ColumnHeaderMenu to push the sort icon/kebab menu to the right) has nothing
+   to grow into unless the title itself spans the header cell. */
+.p-datatable .p-column-title {
+  display: block;
+  width: 100%;
+}
+
 /* Sortable column icon: subtle by default, only the actively-sorted column
    should stand out (the theme otherwise renders every sort icon at full
    contrast regardless of whether that column is the active sort). */
@@ -806,6 +815,22 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
 .p-menu .p-menuitem-link {
   font-size: 0.85rem;
   padding: 0.4rem 0.75rem;
+}
+
+/* MenuItem.template renders a plain <button>, which doesn't inherit the
+   theme's flex/full-width layout that <a>.p-menuitem-link gets by default —
+   needed so the active-sort checkmark (ColumnHeaderMenu) lands flush right. */
+.p-menu .p-menuitem-link button.p-menuitem-link,
+button.p-menuitem-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
 
 html.dark .p-menu .p-menuitem-link:not(.p-disabled):hover,

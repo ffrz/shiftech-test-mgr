@@ -33,6 +33,4 @@ supabase/.env.local
 backups/
 /.claude
 /graphify-out/cache
-/graphify-out/cache
 graphify-out/cache/last_query_stamp
-/graphify-out/cache

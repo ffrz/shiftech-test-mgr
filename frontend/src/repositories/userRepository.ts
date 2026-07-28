@@ -61,7 +61,7 @@ export const userRepository = {
 
     const [col, fk] = sortFieldMap[params.sortField ?? 'createdAt'] ?? ['created_at'];
     if (fk) {
-      query = query.order(col, { ascending: params.sortOrder !== 'desc', foreignTable: fk });
+      query = query.order(col, { ascending: params.sortOrder !== 'desc', referencedTable: fk });
     } else {
       query = query.order(col, { ascending: params.sortOrder !== 'desc' });
     }
