@@ -21,7 +21,7 @@ export function useProjectRole(projectId: string | undefined) {
   const canEditContent = role === 'manager' || role === 'supervisor';
   const canDeleteContent = role === 'manager';
   const canManageSettings = role === 'manager';
-  const canRunTests = role === 'manager' || role === 'tester';
+  const canRunTests = role === 'manager' || role === 'supervisor' || role === 'tester';
   const canManageIssues = role === 'manager' || role === 'tester';
   const canArchiveProject = role === 'manager';
   const canDeleteProject = role === 'manager';

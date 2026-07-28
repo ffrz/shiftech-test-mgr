@@ -115,11 +115,16 @@ export function useRealtimeSync() {
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'project_members' }, (payload) => {
-        const p = payload as unknown as ChangePayload<{ id: string; user_id: string }>;
+        const p = payload as unknown as ChangePayload<{ id: string; user_id: string; project_id: string }>;
         const userId = p.new?.user_id ?? p.old?.user_id;
+        const projectId = p.new?.project_id ?? p.old?.project_id;
         if (userId) {
           invalidate(queryClient, queryKeys.ownPendingInvitations(userId));
+          // role/access for this project may have just changed (e.g. removed as a member) —
+          // ProjectDetailPage/useProjectRole key on ['projectRole', projectId, userId].
+          if (projectId) invalidate(queryClient, ['projectRole', projectId, userId]);
         }
+        if (projectId) invalidate(queryClient, queryKeys.projectMembers(projectId));
         invalidate(queryClient, ['dashboard']);
       })
       .subscribe();

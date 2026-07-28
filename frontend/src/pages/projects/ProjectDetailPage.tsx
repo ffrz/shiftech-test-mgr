@@ -34,6 +34,7 @@ import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
 import { testSuiteService } from '../../services/testSuiteService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useProjectAccessGuard } from '../../hooks/useProjectAccessGuard';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
 import { useStoredState } from '../../hooks/useStoredState';
 import { queryKeys } from '../../hooks/queryKeys';
@@ -84,6 +85,9 @@ export function ProjectDetailPage() {
   const toast = useRef<Toast>(null);
   const { canEditContent, canDeleteContent, canManageIssues, canRunTests } = useProjectRole(id);
   const queryClient = useQueryClient();
+  useProjectAccessGuard(id, () => {
+    toast.current?.show({ severity: 'warn', summary: 'Removed from project', detail: 'You no longer have access to this project.' });
+  });
   const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(0);
 
   const projectQuery = useQuery({
