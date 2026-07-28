@@ -118,6 +118,20 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
   border-bottom: none;
 }
 
+/* showGridlines adds cell borders on every side; the wrapper already provides
+   the outer border, so the leftmost and rightmost cells each get a double
+   border on the table edge. Strip those outer cell borders to keep a single
+   clean outline around the table. */
+.p-datatable .p-datatable-thead>tr>th:first-child,
+.p-datatable .p-datatable-tbody>tr>td:first-child {
+  border-left: none;
+}
+
+.p-datatable .p-datatable-thead>tr>th:last-child,
+.p-datatable .p-datatable-tbody>tr>td:last-child {
+  border-right: none;
+}
+
 /* Same lara-light-blue high-contrast bug as the Dropdown/MultiSelect fix above,
    applied to DataTable's checkbox-selected rows — solid teal fill made row
    content (badges, secondary text) hard to read. Tint instead. */
