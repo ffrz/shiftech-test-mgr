@@ -40,7 +40,7 @@ export function HomePage() {
       <Toast ref={toast} />
       <ConfirmDialog />
       <Breadcrumb items={[{ label: 'Home' }]} />
-      <h2 className="m-0 mb-4">Welcome Back{profile?.displayName ? `, ${profile.displayName}` : ''}</h2>
+      <h2 className="m-0 mt-2 mb-4">Welcome Back{profile?.displayName ? `, ${profile.displayName}` : ''}</h2>
 
       {invitations.length > 0 && (
         <div className="mb-4">

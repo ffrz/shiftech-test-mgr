@@ -10,7 +10,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, actions }: PageHeaderProps) {
   return (
     <div className="flex justify-content-between align-items-center pt-1 mb-3">
-      <h2 className="m-0 mt-4">{title}</h2>
+      <h2 className="m-0 mt-2">{title}</h2>
       {actions}
     </div>
   );
