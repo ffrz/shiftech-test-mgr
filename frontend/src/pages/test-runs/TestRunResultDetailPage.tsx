@@ -564,7 +564,7 @@ export function TestRunResultDetailPage() {
           <div
             ref={rightPanelRef}
             className={isMobile ? undefined : 'flex-grow-1'}
-            style={isMobile ? { paddingBottom: activeResult ? '4.5rem' : undefined } : { overflowY: 'auto' }}
+            style={isMobile ? { paddingBottom: activeResult ? '6rem' : undefined } : { overflowY: 'auto' }}
             onScroll={isMobile ? undefined : (e) => setRightPanelScrolled(e.currentTarget.scrollTop > 0)}
           >
             {!activeResult ? (
@@ -800,7 +800,7 @@ export function TestRunResultDetailPage() {
           user has scrolled into the test case detail. --- */}
       {isMobile && activeResult && (
         <div
-          className="flex align-items-center justify-content-between gap-2 p-2"
+          className="flex align-items-center justify-content-between gap-2 p-3"
           style={{
             position: 'fixed',
             left: 0,
@@ -809,31 +809,29 @@ export function TestRunResultDetailPage() {
             zIndex: 1000,
             background: 'var(--surface-card)',
             borderTop: '1px solid var(--surface-border)',
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)',
           }}
         >
           <Button
             icon="pi pi-chevron-left"
-            size="small"
             outlined
             disabled={!prevResult}
             onClick={() => prevResult && selectResult(prevResult.id)}
           />
-          <div className="flex gap-2 align-items-center">
+          <div className="flex gap-3 align-items-center">
             <Button
               icon={isFilterActive ? "pi pi-filter-fill" : "pi pi-list"}
-              size="small"
               text
               severity={isFilterActive ? "warning" : "secondary"}
               onClick={() => setMobileListOpen(true)}
             />
-            <span className="text-color-secondary text-sm">
+            <span className="text-color-secondary text-sm font-medium">
               {activeIndex + 1} / {filteredResults.length}
             </span>
           </div>
           <Button
             icon="pi pi-chevron-right"
             iconPos="right"
-            size="small"
             outlined
             disabled={!nextResult}
             onClick={() => nextResult && selectResult(nextResult.id)}
