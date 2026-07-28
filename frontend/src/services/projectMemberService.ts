@@ -1,4 +1,5 @@
 import { projectMemberRepository } from '../repositories/projectMemberRepository';
+import { notificationService } from './notificationService';
 import type { ProjectMemberRole } from '../types/domain';
 
 export const projectMemberService = {
@@ -10,8 +11,20 @@ export const projectMemberService = {
     return projectMemberRepository.findOwnRole(projectId, userId);
   },
 
-  invite(projectId: string, userId: string, invitedBy: string, role: ProjectMemberRole = 'member') {
-    return projectMemberRepository.invite(projectId, userId, role, invitedBy);
+  async invite(projectId: string, userId: string, invitedBy: string, role: ProjectMemberRole = 'member') {
+    const member = await projectMemberRepository.invite(projectId, userId, role, invitedBy);
+    const projectSnap = await import('../repositories/projectRepository').then((m) =>
+      m.projectRepository.findById(projectId),
+    );
+    await notificationService.create(
+      userId,
+      'project_invite',
+      `You've been invited to ${projectSnap?.name ?? 'a project'}`,
+      `Role: ${role}`,
+      'project_member',
+      member.id,
+    );
+    return member;
   },
 
   listOwnPendingInvitations(userId: string) {

@@ -18,6 +18,7 @@ import type {
   Issue,
   GithubLink,
   Attachment,
+  Notification,
   ProjectMember,
   ProjectMemberWithProfile,
   ProjectMemberInvitation,
@@ -311,7 +312,22 @@ export function mapProfileRow(row: any): Profile {
     displayName: row.display_name,
     avatarUrl: row.avatar_url,
     bio: row.bio,
+    usernameChanged: row.username_changed ?? false,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+export function mapNotificationRow(row: any): Notification {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    type: row.type,
+    title: row.title,
+    body: row.body,
+    referenceType: row.reference_type,
+    referenceId: row.reference_id,
+    isRead: row.is_read,
+    createdAt: row.created_at,
   };
 }

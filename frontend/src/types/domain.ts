@@ -22,6 +22,7 @@ export interface Profile {
   displayName: string | null;
   avatarUrl: string | null;
   bio: string | null;
+  usernameChanged: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -345,5 +346,17 @@ export interface Attachment {
   fileName: string;
   fileSize: number | null;
   contentType: string | null;
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  body: string | null;
+  referenceType: string | null;
+  referenceId: string | null;
+  isRead: boolean;
   createdAt: string;
 }

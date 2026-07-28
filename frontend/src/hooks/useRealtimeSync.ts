@@ -106,6 +106,22 @@ export function useRealtimeSync() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
         invalidate(queryClient, queryKeys.profiles());
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {
+        const p = payload as unknown as ChangePayload<{ id: string; user_id: string }>;
+        const userId = p.new?.user_id ?? p.old?.user_id;
+        if (userId) {
+          invalidate(queryClient, queryKeys.notifications());
+          invalidate(queryClient, queryKeys.notificationsUnreadCount());
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_members' }, (payload) => {
+        const p = payload as unknown as ChangePayload<{ id: string; user_id: string }>;
+        const userId = p.new?.user_id ?? p.old?.user_id;
+        if (userId) {
+          invalidate(queryClient, queryKeys.ownPendingInvitations(userId));
+        }
+        invalidate(queryClient, ['dashboard']);
+      })
       .subscribe();
 
     return () => {

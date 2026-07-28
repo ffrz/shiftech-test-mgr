@@ -43,4 +43,7 @@ export const queryKeys = {
   dashboardCounts: () => ['dashboard', 'counts'] as const,
   dashboardRecentProjects: () => ['dashboard', 'recentProjects'] as const,
   dashboardContinueWorking: () => ['dashboard', 'continueWorking'] as const,
+
+  notifications: () => ['notifications'] as const,
+  notificationsUnreadCount: () => ['notifications', 'unreadCount'] as const,
 } as const;

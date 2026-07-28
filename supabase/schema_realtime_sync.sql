@@ -12,7 +12,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['test_results', 'test_runs', 'issues', 'test_plan_cases', 'test_cases', 'modules', 'tags', 'projects']
+  foreach t in array array['test_results', 'test_runs', 'issues', 'test_plan_cases', 'test_cases', 'modules', 'tags', 'projects', 'notifications', 'project_members']
   loop
     if not exists (
       select 1 from pg_publication_tables
