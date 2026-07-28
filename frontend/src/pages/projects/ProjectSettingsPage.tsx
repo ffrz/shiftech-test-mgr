@@ -549,19 +549,19 @@ export function ProjectSettingsPage() {
       />
 
       <Card className="mb-3">
-        <div className="flex align-items-center justify-content-between flex-wrap gap-2">
-          <div className="flex align-items-center gap-2">
+        <div className="flex align-items-start justify-content-between gap-2">
+          <div className="flex align-items-start gap-2 min-w-0">
             <Button icon="pi pi-arrow-left" text rounded aria-label="Back" severity="secondary" onClick={() => navigate(`/projects/${id}`)} />
-            <div>
-              <h2 className="m-0">Settings - {project.name}</h2>
+            <div className="min-w-0">
+              <h2 className="m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap">Settings - {project.name}</h2>
               {project.description && <p className="m-0 mt-1 text-color-secondary text-sm">{project.description}</p>}
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2 mt-1 flex-wrap">
                 <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
                 <Tag value={project.visibility === 'public' ? 'Public' : project.visibility === 'unlisted' ? 'Unlisted' : 'Private'} severity="info" />
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0 align-self-start">
+          <div className="flex-shrink-0">
             <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={() => setEditDialogOpen(true)} />
           </div>
         </div>
@@ -807,7 +807,7 @@ export function ProjectSettingsPage() {
                       { label: 'Public — visible to everyone', value: 'public' },
                     ]}
                     onChange={(e) => handleChangeVisibility(e.value)}
-                    className="w-full md:w-14rem"
+                    className="w-full md:w-20rem"
                   />
                 </div>
                 <div
@@ -826,7 +826,7 @@ export function ProjectSettingsPage() {
                     icon={project.status === 'active' ? 'pi pi-pause' : 'pi pi-play'}
                     severity="warning"
                     outlined
-                    className="w-full md:w-auto"
+                    className="w-full md:w-12rem"
                     onClick={handleToggleActive}
                   />
                 </div>
@@ -846,7 +846,7 @@ export function ProjectSettingsPage() {
                       icon="pi pi-inbox"
                       severity="warning"
                       outlined
-                      className="w-full md:w-auto"
+                      className="w-full md:w-12rem"
                       onClick={handleArchiveProject}
                     />
                   </div>
@@ -867,7 +867,7 @@ export function ProjectSettingsPage() {
                       icon="pi pi-trash"
                       severity="danger"
                       outlined
-                      className="w-full md:w-auto"
+                      className="w-full md:w-12rem"
                       onClick={handleDeletePermanently}
                     />
                   </div>
