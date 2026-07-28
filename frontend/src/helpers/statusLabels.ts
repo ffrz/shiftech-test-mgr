@@ -186,9 +186,9 @@ export const PROJECT_MEMBER_ROLE_SEVERITY: Record<ProjectMemberRole, TagSeverity
 };
 
 export const PROJECT_MEMBER_STATUS_LABEL: Record<ProjectMemberStatus, string> = {
-  invited: 'Invited',
-  accepted: 'Accepted',
-  declined: 'Declined',
+  invited: 'Pending',
+  accepted: 'Joined',
+  declined: 'Rejected',
 };
 
 export const PROJECT_MEMBER_STATUS_SEVERITY: Record<ProjectMemberStatus, TagSeverity> = {

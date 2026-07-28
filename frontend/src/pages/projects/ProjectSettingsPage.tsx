@@ -26,7 +26,7 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { UsernamePicker } from '../../components/ui/UsernamePicker';
-import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole, ProjectVisibility } from '../../types/domain';
+import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus, ProjectVisibility } from '../../types/domain';
 import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -354,6 +354,7 @@ export function ProjectSettingsPage() {
   // --- Members ---
   const [memberSearch, setMemberSearch] = useState('');
   const [memberRoleFilter, setMemberRoleFilter] = useState<ProjectMemberRole | ''>('');
+  const [memberStatusFilter, setMemberStatusFilter] = useState<ProjectMemberStatus | ''>('');
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [memberProfile, setMemberProfile] = useState<Profile | null>(null);
   const [memberRole, setMemberRole] = useState<ProjectMemberRole>('member');
@@ -364,6 +365,7 @@ export function ProjectSettingsPage() {
     const q = memberSearch.trim().toLowerCase();
     return members.filter((m) => {
       if (memberRoleFilter && m.role !== memberRoleFilter) return false;
+      if (memberStatusFilter && m.status !== memberStatusFilter) return false;
       if (q) {
         const name = (m.profile.displayName ?? '').toLowerCase();
         const username = m.profile.username.toLowerCase();
@@ -372,7 +374,7 @@ export function ProjectSettingsPage() {
       }
       return true;
     });
-  }, [members, memberSearch, memberRoleFilter]);
+  }, [members, memberSearch, memberRoleFilter, memberStatusFilter]);
 
   const existingMemberIds = useMemo(() => members.map((m) => m.userId), [members]);
 
@@ -747,6 +749,18 @@ export function ProjectSettingsPage() {
                   onChange={(e) => setMemberRoleFilter(e.value)}
                   className="w-10rem"
                   showClear={!!memberRoleFilter}
+                />
+                <Dropdown
+                  value={memberStatusFilter}
+                  options={[
+                    { label: 'All Statuses', value: '' as const },
+                    { label: PROJECT_MEMBER_STATUS_LABEL.invited, value: 'invited' as const },
+                    { label: PROJECT_MEMBER_STATUS_LABEL.accepted, value: 'accepted' as const },
+                    { label: PROJECT_MEMBER_STATUS_LABEL.declined, value: 'declined' as const },
+                  ]}
+                  onChange={(e) => setMemberStatusFilter(e.value)}
+                  className="w-10rem"
+                  showClear={!!memberStatusFilter}
                 />
               </div>
               <Button label="Invite Member" icon="pi pi-plus" size="small" onClick={openAddMemberDialog} />
