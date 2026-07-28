@@ -921,10 +921,12 @@ export function ProjectDetailPage() {
           <div className="min-w-0">
             <div className="flex align-items-center gap-2 mb-1">
               <h2 className="m-0">{project.name}</h2>
+            </div>
+            <p className="text-color-secondary text-sm m-0">{project.description || 'No description'}</p>
+            <div className="flex gap-2 mt-2">
               <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
               <Tag value={PROJECT_VISIBILITY_LABEL[project.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[project.visibility]} />
             </div>
-            <p className="text-color-secondary text-sm m-0">{project.description || 'No description'}</p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
             <Button text icon="pi pi-cog" rounded size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
