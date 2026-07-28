@@ -264,10 +264,10 @@ export function TestCaseTab({
         <div className="grid mb-2 p-1">
           <div className="col-6 md:col-2 p-1">
             <MultiSelect
-              value={statusFilter}
-              options={TEST_CASE_STATUS_OPTIONS}
-              onChange={(e) => onStatusFilterChange(e.value)}
-              placeholder="All Statuses"
+              value={moduleFilter}
+              options={moduleOptions}
+              onChange={(e) => onModuleFilterChange(e.value)}
+              placeholder="All Modules"
               className="w-full"
               selectAll
               selectAllLabel="All"
@@ -286,10 +286,10 @@ export function TestCaseTab({
           </div>
           <div className="col-6 md:col-2 p-1">
             <MultiSelect
-              value={moduleFilter}
-              options={moduleOptions}
-              onChange={(e) => onModuleFilterChange(e.value)}
-              placeholder="All Modules"
+              value={statusFilter}
+              options={TEST_CASE_STATUS_OPTIONS}
+              onChange={(e) => onStatusFilterChange(e.value)}
+              placeholder="All Statuses"
               className="w-full"
               selectAll
               selectAllLabel="All"
