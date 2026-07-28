@@ -269,18 +269,16 @@ export const testCaseRepository = {
     return mapTestPlanCaseRow(data);
   },
 
-  // Bulk update after a drag-reorder — each testPlanCaseId gets its array index as its new
-  // `order`. Sequence is a guide for workflow-style test plans, not an execution constraint
-  // (testers can still record results out of order) — this only changes the order rows are
-  // listed/inherited into new Test Runs.
-  async reorderCases(orderedTestPlanCaseIds: string[]): Promise<void> {
-    await Promise.all(
-      orderedTestPlanCaseIds.map((testPlanCaseId, index) =>
-        supabase.from('test_plan_cases').update({ order: index }).eq('id', testPlanCaseId).then(({ error }) => {
-          if (error) throw error;
-        }),
-      ),
-    );
+  // Swaps two rows' `order` directly instead of rewriting a whole page's sequence --
+  // reordering is paginated now (Up/Down only), so we can't assume the caller holds every
+  // test_plan_cases row for this plan the way a full-list drag-reorder would.
+  async swapCaseOrder(testPlanCaseIdA: string, orderA: number, testPlanCaseIdB: string, orderB: number): Promise<void> {
+    const [a, b] = await Promise.all([
+      supabase.from('test_plan_cases').update({ order: orderB }).eq('id', testPlanCaseIdA),
+      supabase.from('test_plan_cases').update({ order: orderA }).eq('id', testPlanCaseIdB),
+    ]);
+    if (a.error) throw a.error;
+    if (b.error) throw b.error;
   },
 
   async detachFromPlan(testPlanCaseId: string): Promise<void> {

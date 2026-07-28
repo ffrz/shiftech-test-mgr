@@ -116,13 +116,7 @@ export function TestPlanDetailPage() {
   const [caseRows, setCaseRows] = useState(10);
   const [selectedCases, setSelectedCases] = useState<TestPlanCaseWithDetails[]>([]);
 
-  const isCaseFilterActive = Boolean(
-    caseSearch.trim() || casePriorityFilters.length > 0 || caseModuleFilters.length > 0 || caseTagFilters.length > 0,
-  );
-
-  // When no filters are active, fetch all rows for reorder; otherwise paginate
-  const caseRowsPerPage = isCaseFilterActive ? caseRows : 0;
-  const casePage = isCaseFilterActive ? Math.floor(caseFirst / caseRows) + 1 : 1;
+  const casePage = Math.floor(caseFirst / caseRows) + 1;
 
   const { cases, total: totalCases, loading: casesLoading, reload: reloadCases } = useTestPlanDetail(id ?? null, {
     search: caseSearch,
@@ -130,7 +124,7 @@ export function TestPlanDetailPage() {
     moduleIds: caseModuleFilters.length > 0 ? caseModuleFilters : undefined,
     tagIds: caseTagFilters.length > 0 ? caseTagFilters : undefined,
     page: casePage,
-    rowsPerPage: caseRowsPerPage,
+    rowsPerPage: caseRows,
   });
 
   function resetCasePage() {
@@ -191,23 +185,19 @@ export function TestPlanDetailPage() {
     });
   }
 
-  async function handleReorderCases(newOrder: TestPlanCaseWithDetails[]) {
-    await testPlanService.reorderCases(newOrder.map((c) => c.id));
+  async function swapCases(a: TestPlanCaseWithDetails, b: TestPlanCaseWithDetails) {
+    await testPlanService.swapCaseOrder(a, b);
     await reloadCases();
   }
 
   function handleMoveUp(index: number) {
     if (index === 0) return;
-    const newOrder = [...cases];
-    [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
-    handleReorderCases(newOrder);
+    swapCases(cases[index - 1], cases[index]);
   }
 
   function handleMoveDown(index: number) {
     if (index === cases.length - 1) return;
-    const newOrder = [...cases];
-    [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
-    handleReorderCases(newOrder);
+    swapCases(cases[index], cases[index + 1]);
   }
 
   // --- Test Run ---
@@ -456,22 +446,22 @@ export function TestPlanDetailPage() {
               actions={<Button label="Remove Selected" icon="pi pi-times" size="small" severity="danger" outlined onClick={handleBulkRemoveCases} />}
             />
           )}
-          {canEditContent && isCaseFilterActive && (
+          {canEditContent && (
             <p className="text-color-secondary text-sm mb-2">
               <i className="pi pi-info-circle mr-1" />
-              Clear filters/search to change execution order (reordering only applies to the full list).
+              Up/Down reordering only applies within the current page.
             </p>
           )}
           <DataTable
             value={cases}
             loading={casesLoading}
-            lazy={isCaseFilterActive}
-            totalRecords={isCaseFilterActive ? totalCases : undefined}
-            first={isCaseFilterActive ? caseFirst : undefined}
-            rows={isCaseFilterActive ? caseRows : undefined}
-            onPage={isCaseFilterActive ? (e) => { setCaseFirst(e.first); setCaseRows(e.rows); } : undefined}
-            paginator={isCaseFilterActive}
-            paginatorTemplate={isCaseFilterActive ? dataTablePaginatorProps.paginatorTemplate : undefined}
+            lazy
+            totalRecords={totalCases}
+            first={caseFirst}
+            rows={caseRows}
+            onPage={(e) => { setCaseFirst(e.first); setCaseRows(e.rows); }}
+            paginator
+            paginatorTemplate={dataTablePaginatorProps.paginatorTemplate}
             rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="No test cases in this plan yet"
             size="small"
@@ -526,11 +516,11 @@ export function TestPlanDetailPage() {
               <Column
                 header=""
                 style={{ width: isMobile ? '3rem' : '7rem' }}
-                body={(row: TestPlanCaseWithDetails) => {
-                  const idx = cases.indexOf(row);
+                body={(row: TestPlanCaseWithDetails, options: { rowIndex: number }) => {
+                  const idx = options.rowIndex;
                   return (
                     <div className="flex flex-column md:flex-row gap-1">
-                      {!isCaseFilterActive && cases.length > 1 && (
+                      {cases.length > 1 && (
                         <>
                           <Button icon="pi pi-angle-up" text rounded size="small" severity="secondary" aria-label="Move up" disabled={idx === 0} onClick={(e) => { e.stopPropagation(); handleMoveUp(idx); }} />
                           <Button icon="pi pi-angle-down" text rounded size="small" severity="secondary" aria-label="Move down" disabled={idx === cases.length - 1} onClick={(e) => { e.stopPropagation(); handleMoveDown(idx); }} />

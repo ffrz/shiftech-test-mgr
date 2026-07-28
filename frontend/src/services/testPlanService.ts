@@ -86,7 +86,7 @@ export const testPlanService = {
     return testCaseRepository.detachFromPlan(testPlanCaseId);
   },
 
-  reorderCases(orderedTestPlanCaseIds: string[]) {
-    return testCaseRepository.reorderCases(orderedTestPlanCaseIds);
+  swapCaseOrder(caseA: { id: string; order: number }, caseB: { id: string; order: number }) {
+    return testCaseRepository.swapCaseOrder(caseA.id, caseA.order, caseB.id, caseB.order);
   },
 };
