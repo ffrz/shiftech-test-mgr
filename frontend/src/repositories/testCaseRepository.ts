@@ -269,6 +269,31 @@ export const testCaseRepository = {
     return mapTestPlanCaseRow(data);
   },
 
+  // Finds the row immediately before/after a given `order` within a plan -- used so Up/Down
+  // at a page boundary can swap across into the neighboring page without loading it.
+  // Always resolved against the plan's full order sequence (ignores list filters), since the
+  // sequence itself is a plan-wide concept, not a property of the current filtered view.
+  async findAdjacentPlanCase(testPlanId: string, order: number, direction: 'before' | 'after'): Promise<TestPlanCase | null> {
+    // `order` is both the sequence column name and PostgREST's reserved sort query key --
+    // .order('order', ...) and .gt('order', ...)/.lt('order', ...) both serialize to an
+    // `order=` query param, and having both present breaks PostgREST's sort parser. Filter via
+    // .or() (raw filter string, doesn't touch the `order=` key) instead and pick the nearest
+    // match client-side, since we can't ask PostgREST to sort+limit for us here.
+    const { data, error } = await supabase
+      .from('test_plan_cases')
+      .select('*')
+      .eq('test_plan_id', testPlanId)
+      .or(direction === 'after' ? `order.gt.${order}` : `order.lt.${order}`);
+
+    if (error) throw error;
+    if (!data || data.length === 0) return null;
+    const rows = data.map(mapTestPlanCaseRow);
+    const nearest = direction === 'after'
+      ? rows.reduce((min, r) => (r.order < min.order ? r : min))
+      : rows.reduce((max, r) => (r.order > max.order ? r : max));
+    return nearest;
+  },
+
   // Swaps two rows' `order` directly instead of rewriting a whole page's sequence --
   // reordering is paginated now (Up/Down only), so we can't assume the caller holds every
   // test_plan_cases row for this plan the way a full-list drag-reorder would.

@@ -1,20 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { TabView, TabPanel } from 'primereact/tabview';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
-import SearchInput from '../../components/ui/SearchInput';
-import { MultiSelect } from 'primereact/multiselect';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
-import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
-import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { useTestPlanDetail } from '../../hooks/useTestPlanDetail';
 import { useTestRuns } from '../../hooks/useTestRuns';
 import { testPlanService } from '../../services/testPlanService';
@@ -28,29 +20,13 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { queryKeys } from '../../hooks/queryKeys';
-import { formatDateTime } from '../../helpers/dateFormatter';
 import { useScreenSize } from '../../hooks/useScreenSize';
-import {
-  TEST_PLAN_STATUS_LABEL,
-  TEST_PLAN_STATUS_SEVERITY,
-  TEST_RUN_STATUS_LABEL,
-  TEST_RUN_STATUS_SEVERITY,
-  TEST_RESULT_STATUS_SEVERITY,
-  TEST_CASE_PRIORITY_LABEL,
-  TEST_CASE_PRIORITY_SEVERITY,
-} from '../../helpers/statusLabels';
-import type { TestRunWithSummary } from '../../hooks/useTestRuns';
-
-const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
-  { label: TEST_CASE_PRIORITY_LABEL.low, value: 'low' },
-  { label: TEST_CASE_PRIORITY_LABEL.medium, value: 'medium' },
-  { label: TEST_CASE_PRIORITY_LABEL.high, value: 'high' },
-  { label: TEST_CASE_PRIORITY_LABEL.critical, value: 'critical' },
-];
-
-const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
-  ['in_progress', 'completed'] as const
-).map((v) => ({ label: TEST_RUN_STATUS_LABEL[v], value: v }));
+import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
+import { PlanTestCasesTab } from './components/tabs/PlanTestCasesTab';
+import { PlanTestRunsTab } from './components/tabs/PlanTestRunsTab';
+import { AddCaseToPlanDialog } from './components/dialogs/AddCaseToPlanDialog';
+import { StartTestRunDialog } from './components/dialogs/StartTestRunDialog';
+import { DuplicateTestPlanDialog } from './components/dialogs/DuplicateTestPlanDialog';
 
 const TEST_PLAN_STATUS_OPTIONS: { label: string; value: TestPlanStatus }[] = (
   ['draft', 'active', 'completed', 'archived'] as const
@@ -117,6 +93,9 @@ export function TestPlanDetailPage() {
   const [selectedCases, setSelectedCases] = useState<TestPlanCaseWithDetails[]>([]);
 
   const casePage = Math.floor(caseFirst / caseRows) + 1;
+  const isCaseFilterActive = Boolean(
+    caseSearch.trim() || casePriorityFilters.length > 0 || caseModuleFilters.length > 0 || caseTagFilters.length > 0,
+  );
 
   const { cases, total: totalCases, loading: casesLoading, reload: reloadCases } = useTestPlanDetail(id ?? null, {
     search: caseSearch,
@@ -129,6 +108,15 @@ export function TestPlanDetailPage() {
 
   function resetCasePage() {
     setCaseFirst(0);
+  }
+
+  function resetCaseFilters() {
+    setCaseSearch('');
+    setCasePriorityFilters([]);
+    setCaseModuleFilters([]);
+    setCaseTagFilters([]);
+    resetCasePage();
+    setSelectedCases([]);
   }
 
   // --- Add test case to plan ---
@@ -185,33 +173,42 @@ export function TestPlanDetailPage() {
     });
   }
 
-  async function swapCases(a: TestPlanCaseWithDetails, b: TestPlanCaseWithDetails) {
+  async function swapCases(a: { id: string; order: number }, b: { id: string; order: number }) {
     await testPlanService.swapCaseOrder(a, b);
     await reloadCases();
   }
 
-  function handleMoveUp(index: number) {
-    if (index === 0) return;
-    swapCases(cases[index - 1], cases[index]);
+  // At a page boundary, the neighbor isn't in the loaded `cases` slice -- fetch it by
+  // plan-wide order sequence (ignores active filters, since sequence is plan-wide) instead of
+  // paginating over.
+  async function handleMoveUp(index: number) {
+    if (!testPlan) return;
+    if (index > 0) {
+      await swapCases(cases[index - 1], cases[index]);
+      return;
+    }
+    const current = cases[index];
+    const prev = await testPlanService.findAdjacentCase(testPlan.id, current.order, 'before');
+    if (!prev) return;
+    await swapCases(prev, current);
   }
 
-  function handleMoveDown(index: number) {
-    if (index === cases.length - 1) return;
-    swapCases(cases[index], cases[index + 1]);
+  async function handleMoveDown(index: number) {
+    if (!testPlan) return;
+    if (index < cases.length - 1) {
+      await swapCases(cases[index], cases[index + 1]);
+      return;
+    }
+    const current = cases[index];
+    const next = await testPlanService.findAdjacentCase(testPlan.id, current.order, 'after');
+    if (!next) return;
+    await swapCases(current, next);
   }
 
   // --- Test Run ---
   const [runDialogOpen, setRunDialogOpen] = useState(false);
   const [runName, setRunName] = useState('');
   const [runError, setRunError] = useState<string | null>(null);
-  const runNameRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (runError && runNameRef.current) {
-      runNameRef.current.focus();
-      runNameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    }
-  }, [runError]);
 
   function openStartRunDialog() {
     setRunName(`Run ${new Date().toLocaleDateString('id-ID')}`);
@@ -244,14 +241,6 @@ export function TestPlanDetailPage() {
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
   const [duplicateName, setDuplicateName] = useState('');
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
-  const duplicateNameRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (duplicateError && duplicateNameRef.current) {
-      duplicateNameRef.current.focus();
-      duplicateNameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    }
-  }, [duplicateError]);
 
   function openDuplicateDialog() {
     if (!testPlan) return;
@@ -291,43 +280,6 @@ export function TestPlanDetailPage() {
     });
   }
 
-  const mobileRunNameBody = useCallback((row: TestRunWithSummary) => (
-    <div className="flex flex-column gap-2 py-1">
-      <span className="font-medium">{row.name}</span>
-      <span className="text-sm text-color-secondary">{row.code}</span>
-      <span><Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} /></span>
-      <div className="flex gap-1 align-items-center">
-        <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
-        <Tag value={String(row.fail)} severity={TEST_RESULT_STATUS_SEVERITY.fail} />
-        <span className="text-color-secondary text-sm">/{row.total}</span>
-      </div>
-      <span className="text-sm text-color-secondary">
-        Tester: {row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-'}
-      </span>
-      <span className="text-sm text-color-secondary">
-        Completed: {row.completedAt ? formatDateTime(row.completedAt) : '-'}
-      </span>
-    </div>
-  ), []);
-
-  const mobileCaseTitleBody = useCallback((row: TestPlanCaseWithDetails) => (
-    <div className="flex flex-column gap-2 py-1">
-      <span className="font-medium">{row.testCase.title}</span>
-      <span className="text-sm text-color-secondary">
-        <a className="entity-link" onClick={(e) => { e.stopPropagation(); navigate(`/test-cases/${row.testCase.id}?projectId=${testPlan?.projectId}`); }}>
-          {row.testCase.code}
-        </a>
-      </span>
-      <span className="text-sm text-color-secondary">Module: {row.testCase.module?.name ?? '-'}</span>
-      <div className="flex flex-wrap gap-1">
-        {row.testCase.tags.map((t) => (
-          <Tag key={t.id} value={t.name} severity="info" />
-        ))}
-      </div>
-      <span><Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} /></span>
-    </div>
-  ), []);
-
   return (
     <div>
       <Toast ref={toast} position="bottom-center" />
@@ -364,310 +316,91 @@ export function TestPlanDetailPage() {
         }
       />
 
-      <Dialog header="Duplicate Test Plan" visible={duplicateDialogOpen} onHide={() => setDuplicateDialogOpen(false)} style={{ width: '28rem' }}>
-        <div className="flex flex-column gap-3">
-          <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-plan-name" className={duplicateError ? 'p-error' : ''}>New Test Plan Name</label>
-            <InputText id="duplicate-plan-name" ref={duplicateNameRef} value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} className={duplicateError ? 'p-invalid' : ''} autoFocus />
-            {duplicateError && <small className="p-error">{duplicateError}</small>}
-          </div>
-          <Button label="Duplicate" size="small" onClick={handleDuplicate} />
-        </div>
-      </Dialog>
+      <DuplicateTestPlanDialog
+        visible={duplicateDialogOpen}
+        onHide={() => setDuplicateDialogOpen(false)}
+        name={duplicateName}
+        onNameChange={setDuplicateName}
+        error={duplicateError}
+        onDuplicate={handleDuplicate}
+      />
 
       <TabView>
         <TabPanel header="Test Cases">
-          <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <div />
-            {canEditContent && (
-              <div className="flex gap-2">
-                <Button
-                  icon={caseFilterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
-                  text
-                  rounded
-                  size="small"
-                  severity={caseFilterVisible ? "warning" : "secondary"}
-                  onClick={() => setCaseFilterVisible(!caseFilterVisible)}
-                  tooltip={caseFilterVisible ? "Hide filters" : "Show filters"}
-                  tooltipOptions={{ position: 'bottom' }}
-                />
-                <Button label="Add Test Case" icon="pi pi-plus" size="small" onClick={openAddCaseDialog} />
-              </div>
-            )}
-          </div>
-          {caseFilterVisible && (
-            <div className="grid mb-2 p-1">
-              <div className="col-12 md:col-2 p-1">
-                <MultiSelect
-                  value={casePriorityFilters}
-                  options={PRIORITY_OPTIONS}
-                  onChange={(e) => { setCasePriorityFilters(e.value); resetCasePage(); }}
-                  placeholder="All Priorities"
-                  className="w-full"
-                  display="chip"
-                />
-              </div>
-              <div className="col-12 md:col-2 p-1">
-                <MultiSelect
-                  value={caseModuleFilters}
-                  options={modules.map((m) => ({ label: m.name, value: m.id }))}
-                  onChange={(e) => { setCaseModuleFilters(e.value); resetCasePage(); }}
-                  placeholder="All Modules"
-                  className="w-full"
-                  display="chip"
-                  filter
-                />
-              </div>
-              <div className="col-12 md:col-2 p-1">
-                <MultiSelect
-                  value={caseTagFilters}
-                  options={tags.map((t) => ({ label: t.name, value: t.id }))}
-                  onChange={(e) => { setCaseTagFilters(e.value); resetCasePage(); }}
-                  placeholder="All Tags"
-                  className="w-full"
-                  display="chip"
-                  filter
-                />
-              </div>
-              <div className="col-12 md:col p-1">
-                <div className="flex gap-2">
-                  <SearchInput value={caseSearch} onChange={(v) => { setCaseSearch(v); resetCasePage(); }} placeholder="Search title/code..." className="flex-1" />
-                  <Button icon="pi pi-refresh" size="small" severity="secondary" outlined
-                    onClick={() => { setCaseSearch(''); setCasePriorityFilters([]); setCaseModuleFilters([]); setCaseTagFilters([]); resetCasePage(); setSelectedCases([]); }}
-                    tooltip="Reset filters" />
-                </div>
-              </div>
-            </div>
-          )}
-          {canEditContent && (
-            <BulkActionsBar
-              selectedCount={selectedCases.length}
-              onClear={() => setSelectedCases([])}
-              actions={<Button label="Remove Selected" icon="pi pi-times" size="small" severity="danger" outlined onClick={handleBulkRemoveCases} />}
-            />
-          )}
-          {canEditContent && (
-            <p className="text-color-secondary text-sm mb-2">
-              <i className="pi pi-info-circle mr-1" />
-              Up/Down reordering only applies within the current page.
-            </p>
-          )}
-          <DataTable
-            value={cases}
+          <PlanTestCasesTab
+            cases={cases}
+            totalCases={totalCases}
             loading={casesLoading}
-            lazy
-            totalRecords={totalCases}
+            isMobile={isMobile}
+            canEditContent={canEditContent}
+            isFilterActive={isCaseFilterActive}
+            projectId={testPlan?.projectId}
+            modules={modules}
+            tags={tags}
+            filterVisible={caseFilterVisible}
+            onToggleFilterVisible={() => setCaseFilterVisible(!caseFilterVisible)}
+            search={caseSearch}
+            onSearchChange={(v) => { setCaseSearch(v); resetCasePage(); }}
+            priorityFilters={casePriorityFilters}
+            onPriorityFiltersChange={(v) => { setCasePriorityFilters(v); resetCasePage(); }}
+            moduleFilters={caseModuleFilters}
+            onModuleFiltersChange={(v) => { setCaseModuleFilters(v); resetCasePage(); }}
+            tagFilters={caseTagFilters}
+            onTagFiltersChange={(v) => { setCaseTagFilters(v); resetCasePage(); }}
+            onResetFilters={resetCaseFilters}
             first={caseFirst}
             rows={caseRows}
-            onPage={(e) => { setCaseFirst(e.first); setCaseRows(e.rows); }}
-            paginator
-            paginatorTemplate={dataTablePaginatorProps.paginatorTemplate}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            emptyMessage="No test cases in this plan yet"
-            size="small"
-            selection={selectedCases}
-            onSelectionChange={(e: { value: TestPlanCaseWithDetails[] }) => setSelectedCases(e.value)}
-            dataKey="id"
-            selectionMode={canEditContent ? 'checkbox' : null}
-          >
-            {canEditContent && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-            {!isMobile && (
-              <Column
-                field="testCase.code"
-                header="Code"
-                style={{ width: '7rem' }}
-                body={(row: TestPlanCaseWithDetails) => (
-                  <a
-                    className="entity-link"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/test-cases/${row.testCase.id}?projectId=${testPlan?.projectId}`);
-                    }}
-                  >
-                    {row.testCase.code}
-                  </a>
-                )}
-              />
-            )}
-            <Column field="testCase.title" header="Test Case" body={isMobile ? mobileCaseTitleBody : undefined} />
-            {!isMobile && <Column field="testCase.module.name" header="Module" body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
-            {!isMobile && (
-              <Column
-                header="Tag"
-                body={(row: TestPlanCaseWithDetails) => (
-                  <div className="flex flex-wrap gap-1">
-                    {row.testCase.tags.map((t) => (
-                      <Tag key={t.id} value={t.name} severity="info" />
-                    ))}
-                  </div>
-                )}
-              />
-            )}
-            {!isMobile && (
-              <Column
-                field="testCase.priority"
-                header="Priority"
-                body={(row: TestPlanCaseWithDetails) => (
-                  <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
-                )}
-              />
-            )}
-            {canEditContent && (
-              <Column
-                header=""
-                style={{ width: isMobile ? '3rem' : '7rem' }}
-                body={(row: TestPlanCaseWithDetails, options: { rowIndex: number }) => {
-                  const idx = options.rowIndex;
-                  return (
-                    <div className="flex flex-column md:flex-row gap-1">
-                      {cases.length > 1 && (
-                        <>
-                          <Button icon="pi pi-angle-up" text rounded size="small" severity="secondary" aria-label="Move up" disabled={idx === 0} onClick={(e) => { e.stopPropagation(); handleMoveUp(idx); }} />
-                          <Button icon="pi pi-angle-down" text rounded size="small" severity="secondary" aria-label="Move down" disabled={idx === cases.length - 1} onClick={(e) => { e.stopPropagation(); handleMoveDown(idx); }} />
-                        </>
-                      )}
-                      <Button icon="pi pi-times" text rounded size="small" severity="danger" aria-label="Remove" onClick={(e) => { e.stopPropagation(); handleRemoveCase(row); }} />
-                    </div>
-                  );
-                }}
-              />
-            )}
-          </DataTable>
+            onPage={(first, rows) => { setCaseFirst(first); setCaseRows(rows); }}
+            selected={selectedCases}
+            onSelectedChange={setSelectedCases}
+            onAddCase={openAddCaseDialog}
+            onBulkRemove={handleBulkRemoveCases}
+            onMoveUp={handleMoveUp}
+            onMoveDown={handleMoveDown}
+            onRemove={handleRemoveCase}
+          />
         </TabPanel>
         <TabPanel header="Test Runs">
-          <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <div />
-            {canRunTests && (
-              <div className="flex gap-2">
-                <Button
-                  icon={runFilterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
-                  text
-                  rounded
-                  size="small"
-                  severity={runFilterVisible ? "warning" : "secondary"}
-                  onClick={() => setRunFilterVisible(!runFilterVisible)}
-                  tooltip={runFilterVisible ? "Hide filters" : "Show filters"}
-                  tooltipOptions={{ position: 'bottom' }}
-                />
-                <Button label="Start Test Run" icon="pi pi-play" size="small" onClick={openStartRunDialog} />
-              </div>
-            )}
-          </div>
-          {runFilterVisible && (
-            <div className="grid mb-2 p-1">
-              <div className="col-12 md:col-2 p-1">
-                <MultiSelect
-                  value={runStatusFilters}
-                  options={TEST_RUN_STATUS_OPTIONS}
-                  onChange={(e) => { setRunStatusFilters(e.value); setRunFirst(0); }}
-                  placeholder="All Statuses"
-                  className="w-full"
-                  display="chip"
-                />
-              </div>
-              <div className="col-12 md:col p-1">
-                <div className="flex gap-2">
-                  <SearchInput value={runSearch} onChange={(v) => { setRunSearch(v); setRunFirst(0); }} placeholder="Search name/code..." className="flex-1" />
-                  <Button icon="pi pi-refresh" outlined size="small" severity="secondary"
-                    onClick={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
-                    tooltip="Reset filters" />
-                </div>
-              </div>
-            </div>
-          )}
-          <DataTable
-            value={testRuns}
+          <PlanTestRunsTab
+            testRuns={testRuns}
+            total={totalRuns}
             loading={runsLoading}
-            lazy
-            {...dataTablePaginatorProps}
-            totalRecords={totalRuns}
+            isMobile={isMobile}
+            canRunTests={canRunTests}
+            canDeleteContent={canDeleteContent}
+            filterVisible={runFilterVisible}
+            onToggleFilterVisible={() => setRunFilterVisible(!runFilterVisible)}
+            search={runSearch}
+            onSearchChange={(v) => { setRunSearch(v); setRunFirst(0); }}
+            statusFilters={runStatusFilters}
+            onStatusFiltersChange={(v) => { setRunStatusFilters(v); setRunFirst(0); }}
+            onResetFilters={() => { setRunSearch(''); setRunStatusFilters([]); setRunFirst(0); }}
             first={runFirst}
             rows={runRows}
-            onPage={(e) => { setRunFirst(e.first); setRunRows(e.rows); }}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            emptyMessage="No test runs yet"
-            onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
-            rowHover
-            className="cursor-pointer"
-            size="small"
-          >
-            {!isMobile && <Column field="code" header="Code" style={{ width: '7rem' }} />}
-            <Column field="name" header="Run Name" body={isMobile ? mobileRunNameBody : undefined} />
-            {!isMobile && <Column field="status" header="Status" body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
-            {!isMobile && (
-              <Column
-                header="Results"
-                body={(row: TestRunWithSummary) => (
-                  <div className="flex gap-1 align-items-center">
-                    <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
-                    <Tag value={String(row.fail)} severity={TEST_RESULT_STATUS_SEVERITY.fail} />
-                    <span className="text-color-secondary text-sm">/{row.total}</span>
-                  </div>
-                )}
-                sortable
-                sortField="pass"
-              />
-            )}
-            {!isMobile && (
-              <Column
-                header="Tester"
-                body={(row: TestRunWithSummary) =>
-                  row.testers.length > 0
-                    ? row.testers.map((t) => t.fullName ?? t.id).join(', ')
-                    : '-'
-                }
-              />
-            )}
-            {!isMobile && <Column field="completedAt" header="Completed" body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
-            {canDeleteContent && (
-              <Column
-                header=""
-                style={{ width: '4rem' }}
-                body={(row: TestRun) => (
-                  <Button
-                    icon="pi pi-trash"
-                    text
-                    rounded
-                    size="small"
-                    severity="danger"
-                    aria-label="Delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteRun(row);
-                    }}
-                  />
-                )}
-              />
-            )}
-          </DataTable>
+            onPage={(first, rows) => { setRunFirst(first); setRunRows(rows); }}
+            onStartRun={openStartRunDialog}
+            onDeleteRun={handleDeleteRun}
+          />
         </TabPanel>
       </TabView>
 
-      <Dialog header="Add Test Case to Plan" visible={addCaseDialogOpen} onHide={() => setAddCaseDialogOpen(false)} style={{ width: '30rem' }}>
-        <div className="flex flex-column gap-3">
-          <MultiSelect
-            value={selectedCaseIds}
-            options={availableCases.map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
-            onChange={(e) => setSelectedCaseIds(e.value)}
-            placeholder="Select test case"
-            filter
-            display="chip"
-            className="w-full"
-          />
-          <Button label="Add" size="small" onClick={handleAddCases} disabled={selectedCaseIds.length === 0} />
-        </div>
-      </Dialog>
+      <AddCaseToPlanDialog
+        visible={addCaseDialogOpen}
+        onHide={() => setAddCaseDialogOpen(false)}
+        availableCases={availableCases}
+        selectedCaseIds={selectedCaseIds}
+        onSelectedCaseIdsChange={setSelectedCaseIds}
+        onAdd={handleAddCases}
+      />
 
-      <Dialog header="Start Test Run" visible={runDialogOpen} onHide={() => setRunDialogOpen(false)} style={{ width: '25rem' }}>
-        <div className="flex flex-column gap-3">
-          <div className="flex flex-column gap-1">
-            <label htmlFor="run-name" className={runError ? 'p-error' : ''}>Test Run Name</label>
-            <InputText id="run-name" ref={runNameRef} value={runName} onChange={(e) => setRunName(e.target.value)} className={runError ? 'p-invalid' : ''} autoFocus />
-            {runError && <small className="p-error">{runError}</small>}
-          </div>
-          <Button label="Start" size="small" onClick={handleStartRun} />
-        </div>
-      </Dialog>
+      <StartTestRunDialog
+        visible={runDialogOpen}
+        onHide={() => setRunDialogOpen(false)}
+        name={runName}
+        onNameChange={setRunName}
+        error={runError}
+        onStart={handleStartRun}
+      />
     </div>
   );
 }

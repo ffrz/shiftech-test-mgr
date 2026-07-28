@@ -89,4 +89,8 @@ export const testPlanService = {
   swapCaseOrder(caseA: { id: string; order: number }, caseB: { id: string; order: number }) {
     return testCaseRepository.swapCaseOrder(caseA.id, caseA.order, caseB.id, caseB.order);
   },
+
+  findAdjacentCase(testPlanId: string, order: number, direction: 'before' | 'after') {
+    return testCaseRepository.findAdjacentPlanCase(testPlanId, order, direction);
+  },
 };
