@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.925rem;
 }
 
 .entity-link {
@@ -53,7 +53,7 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
 .p-button,
 .p-chips .p-chips-multiple-container,
 .p-inputnumber-input {
-  font-size: 0.85rem;
+  font-size: 0.925rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
@@ -89,7 +89,7 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
 .p-datatable .p-datatable-thead>tr>th,
 .p-datatable .p-datatable-tbody>tr>td {
   padding: 0.45rem 0.6rem;
-  font-size: 0.85rem;
+  font-size: 0.925rem;
 }
 
 /* Header text is bold and lacks descenders/padding the body rows get from
@@ -195,7 +195,7 @@ h6 {
 }
 
 .p-tag {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 
 .p-dialog .p-dialog-header {
@@ -223,7 +223,7 @@ h6 {
 
 .p-tabview .p-tabview-nav li .p-tabview-nav-link {
   padding: 0.6rem 1rem;
-  font-size: 0.85rem;
+  font-size: 0.925rem;
 }
 
 /* Icon-field inputs need their built-in left/right padding preserved, or the
@@ -394,7 +394,7 @@ h6 {
   text-decoration: none;
   color: var(--text-color-secondary);
   transition: background 0.15s;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .layout-menuitem-link:hover {
@@ -686,7 +686,7 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   padding: 0 0.5rem;
   display: flex;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 
 .p-paginator .p-dropdown .p-dropdown-trigger {
@@ -760,7 +760,7 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
 .p-tag-value,
 .p-tag-icon.pi {
   line-height: 1em !important;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .p-toast .p-toast-message .p-toast-message-content {
@@ -804,7 +804,7 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
 .p-dropdown-panel .p-dropdown-item,
 .p-multiselect-panel .p-multiselect-item,
 .p-menu .p-menuitem-link {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   padding: 0.4rem 0.75rem;
 }
 
@@ -815,7 +815,7 @@ html.dark .p-menu .p-menuitem-link.p-focus {
 
 .p-menu.p-menu-overlay .p-menuitem-text,
 .p-dropdown-panel .p-dropdown-item-label {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
 .p-dropdown-panel .p-dropdown-header {
@@ -851,14 +851,14 @@ html.dark .p-multiselect-panel .p-multiselect-items .p-multiselect-item:not(.p-h
 .p-button,
 .p-chips .p-chips-multiple-container,
 .p-inputnumber-input {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
 
 .p-button.p-button-icon-only {
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   padding: 0;
 }
 
@@ -893,4 +893,11 @@ h6,
     width: 100%;
     text-align: center;
   }
+}
+
+/* Notification sidebar (slides in from right) — round the left side to match
+   the mobile sidebar's 0 12px 12px 0 on the opposite edge, so both panels
+   have consistent corner radii when overlaid. */
+.p-sidebar-mask.p-sidebar-right .p-sidebar {
+  border-radius: 12px 0 12px 0 !important;
 }
