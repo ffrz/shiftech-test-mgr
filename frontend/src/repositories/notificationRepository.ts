@@ -41,4 +41,17 @@ export const notificationRepository = {
     const { error } = await supabase.from('notifications').delete().eq('id', id);
     if (error) throw error;
   },
+
+  async removeAll(userId: string): Promise<void> {
+    const { error } = await supabase.from('notifications').delete().eq('user_id', userId);
+    if (error) throw error;
+  },
+
+  async removeByReference(referenceType: string, referenceId: string): Promise<void> {
+    const { error } = await supabase.rpc('delete_notifications_by_reference', {
+      p_reference_type: referenceType,
+      p_reference_id: referenceId,
+    });
+    if (error) throw error;
+  },
 };

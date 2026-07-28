@@ -45,6 +45,14 @@ export function useNotifications() {
     },
   });
 
+  const clearAllMutation = useMutation({
+    mutationFn: () => notificationRepository.removeAll(userId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notificationsUnreadCount() });
+    },
+  });
+
   return {
     notifications: listQuery.data ?? [],
     unreadCount: unreadCountQuery.data ?? 0,
@@ -52,5 +60,6 @@ export function useNotifications() {
     markRead: markReadMutation.mutate,
     markAllRead: markAllReadMutation.mutate,
     remove: removeMutation.mutate,
+    clearAll: clearAllMutation.mutate,
   };
 }

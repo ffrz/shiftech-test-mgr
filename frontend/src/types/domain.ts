@@ -69,11 +69,16 @@ export interface ProjectMemberWithProfile extends ProjectMember {
   email: string;
 }
 
-// Used by "My Invitations" (own pending invites) — same shape plus project info for
-// display (@ownerUsername/project-name), since that list spans multiple projects and
-// needs to say which one each invite is for.
-export interface ProjectMemberInvitation extends ProjectMemberWithProfile {
-  project: { id: string; name: string; ownerUsername: string; ownerDisplayName: string | null } | null;
+// Used by "My Invitations" (own pending invites) on Home. Backed by the
+// list_own_pending_invitations() security-definer RPC, not a direct table select -- an
+// invited-but-not-yet-accepted user has no RLS access to `projects`/`users` (that's what
+// accepting grants), so the RPC pre-resolves project name + inviter display name server-side
+// instead of the frontend joining through RLS-gated tables. See
+// 20260728000006_invitation_rpc_security_definer.sql.
+export interface ProjectMemberInvitation extends ProjectMember {
+  project: { id: string; name: string } | null;
+  inviterUsername: string | null;
+  inviterDisplayName: string | null;
 }
 
 export interface Module {

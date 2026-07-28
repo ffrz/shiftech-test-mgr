@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabaseClient';
+import { notificationRepository } from '../repositories/notificationRepository';
 
 // Notifications are mostly read-only for the current user (read/mark/delete/markAll).
 // Creation goes through a security definer Postgres function so the invite flow
@@ -22,5 +23,9 @@ export const notificationService = {
       p_reference_id: referenceId ?? null,
     });
     if (error) throw error;
+  },
+
+  removeByReference(referenceType: string, referenceId: string): Promise<void> {
+    return notificationRepository.removeByReference(referenceType, referenceId);
   },
 };

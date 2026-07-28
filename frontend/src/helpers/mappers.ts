@@ -63,17 +63,22 @@ export function mapProjectMemberWithProfileRow(row: any): ProjectMemberWithProfi
   };
 }
 
-export function mapProjectMemberInvitationRow(row: any): ProjectMemberInvitation {
+// Row shape comes from the list_own_pending_invitations() RPC (flat, pre-resolved), not a
+// nested table select — see 20260728000006_invitation_rpc_security_definer.sql.
+export function mapProjectMemberInvitationRow(row: any, userId: string): ProjectMemberInvitation {
   return {
-    ...mapProjectMemberWithProfileRow(row),
-    project: row.project
-      ? {
-          id: row.project.id,
-          name: row.project.name,
-          ownerUsername: row.project.owner?.profile?.username ?? '',
-          ownerDisplayName: row.project.owner?.profile?.display_name ?? null,
-        }
-      : null,
+    id: row.id,
+    projectId: row.project_id,
+    userId,
+    role: row.role,
+    status: row.status,
+    invitedBy: row.invited_by,
+    invitedAt: row.invited_at,
+    respondedAt: row.responded_at,
+    createdAt: row.created_at,
+    project: row.project_name ? { id: row.project_id, name: row.project_name } : null,
+    inviterUsername: row.inviter_username ?? null,
+    inviterDisplayName: row.inviter_display_name ?? null,
   };
 }
 
