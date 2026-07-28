@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { AppMenu } from './AppMenu';
 import { useLayoutContext } from './LayoutContext';
+import { APP_NAME } from '../../config/app';
 
 export function AppSidebar() {
   const { closeMenu } = useLayoutContext();
@@ -12,8 +13,7 @@ export function AppSidebar() {
           so this header row (duplicate logo + close button) is mobile/tablet-only. */}
       <div className="layout-sidebar-header layout-sidebar-header-mobile">
         <Link to="/" className="layout-sidebar-logo" onClick={closeMenu}>
-          <i className="pi pi-check-square" />
-          <span>Testify</span>
+          <span className="font-bold">{APP_NAME}</span>
         </Link>
         <Button icon="pi pi-times" text rounded aria-label="Close menu" onClick={closeMenu} />
       </div>
