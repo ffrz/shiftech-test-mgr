@@ -817,6 +817,7 @@ export function TestRunResultDetailPage() {
             outlined
             disabled={!prevResult}
             onClick={() => prevResult && selectResult(prevResult.id)}
+            style={{ minWidth: '3rem' }}
           />
           <div className="flex gap-3 align-items-center">
             <Button
@@ -835,6 +836,7 @@ export function TestRunResultDetailPage() {
             outlined
             disabled={!nextResult}
             onClick={() => nextResult && selectResult(nextResult.id)}
+            style={{ minWidth: '3rem' }}
           />
         </div>
       )}
