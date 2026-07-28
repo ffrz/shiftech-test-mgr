@@ -352,11 +352,27 @@ export function ProjectSettingsPage() {
   }
 
   // --- Members ---
+  const [memberSearch, setMemberSearch] = useState('');
+  const [memberRoleFilter, setMemberRoleFilter] = useState<ProjectMemberRole | ''>('');
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [memberProfile, setMemberProfile] = useState<Profile | null>(null);
   const [memberRole, setMemberRole] = useState<ProjectMemberRole>('member');
   const [memberError, setMemberError] = useState<string | null>(null);
   const [selectedMembers, setSelectedMembers] = useState<ProjectMemberWithProfile[]>([]);
+
+  const filteredMembers = useMemo(() => {
+    const q = memberSearch.trim().toLowerCase();
+    return members.filter((m) => {
+      if (memberRoleFilter && m.role !== memberRoleFilter) return false;
+      if (q) {
+        const name = (m.profile.displayName ?? '').toLowerCase();
+        const username = m.profile.username.toLowerCase();
+        const email = m.email.toLowerCase();
+        if (!name.includes(q) && !username.includes(q) && !email.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [members, memberSearch, memberRoleFilter]);
 
   const existingMemberIds = useMemo(() => members.map((m) => m.userId), [members]);
 
@@ -723,7 +739,16 @@ export function ProjectSettingsPage() {
               Only accepted members (or the owner) can access this project. Invited users must accept before they gain access. Managers can manage other members.
             </p>
             <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-              <span />
+              <div className="flex gap-2 flex-wrap">
+                <SearchInput value={memberSearch} onChange={setMemberSearch} placeholder="Search name/username/email..." />
+                <Dropdown
+                  value={memberRoleFilter}
+                  options={[{ label: 'All Roles', value: '' as const }, ...MEMBER_ROLE_OPTIONS]}
+                  onChange={(e) => setMemberRoleFilter(e.value)}
+                  className="w-10rem"
+                  showClear={!!memberRoleFilter}
+                />
+              </div>
               <Button label="Invite Member" icon="pi pi-plus" size="small" onClick={openAddMemberDialog} />
             </div>
             <BulkActionsBar
@@ -732,7 +757,7 @@ export function ProjectSettingsPage() {
               actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkRemoveMembers} />}
             />
             <DataTable
-              value={members}
+              value={filteredMembers}
               size="small"
               emptyMessage="No members yet"
               {...dataTablePaginatorProps}
