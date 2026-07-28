@@ -32,3 +32,5 @@ frontend/.vite/
 supabase/.env.local
 backups/
 /.claude
+/graphify-out/cache
+/graphify-out/cache
