@@ -95,6 +95,11 @@ export function UserManagementPage() {
     setSortOrder(order);
   }
 
+  function handleRoleFilterChange(roles: UserRole[]) {
+    setRoleFilter(roles);
+    setPage(1);
+  }
+
   async function handlePromote(row: EnrichedUser) {
     await userService.promoteToAdmin(row.id);
     await reload();
@@ -251,7 +256,27 @@ export function UserManagementPage() {
         {!isMobile && (
           <Column
             field="role"
-            header={<ColumnHeaderMenu label="Role" field="role" sortField={sortField} sortOrder={sortOrder} onSort={handleColumnSort} />}
+            header={
+              <ColumnHeaderMenu
+                label="Role"
+                field="role"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleColumnSort}
+                isFilterActive={roleFilter.length > 0}
+                filterContent={
+                  <MultiSelect
+                    value={roleFilter}
+                    options={ROLE_OPTIONS}
+                    onChange={(e) => handleRoleFilterChange(e.value)}
+                    placeholder="All Roles"
+                    className="w-full"
+                    selectAll
+                    selectAllLabel="All"
+                  />
+                }
+              />
+            }
             body={(row: EnrichedUser) => <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />}
           />
         )}
