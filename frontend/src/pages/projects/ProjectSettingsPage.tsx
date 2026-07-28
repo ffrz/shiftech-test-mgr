@@ -790,7 +790,7 @@ export function ProjectSettingsPage() {
             <TabPanel header="Danger Zone">
               <div className="flex flex-column gap-3" style={{ maxWidth: '40rem' }}>
                 <div
-                  className="flex align-items-center justify-content-between gap-4 p-3 border-round-md"
+                  className="flex flex-column gap-3 p-3 border-round-md"
                   style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
                 >
                   <div>
@@ -807,11 +807,11 @@ export function ProjectSettingsPage() {
                       { label: 'Public — visible to everyone', value: 'public' },
                     ]}
                     onChange={(e) => handleChangeVisibility(e.value)}
-                    className="w-14rem flex-shrink-0"
+                    className="w-full md:w-14rem"
                   />
                 </div>
                 <div
-                  className="flex align-items-center justify-content-between gap-4 p-3 border-round-md"
+                  className="flex flex-column gap-3 p-3 border-round-md"
                   style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
                 >
                   <div>
@@ -826,13 +826,13 @@ export function ProjectSettingsPage() {
                     icon={project.status === 'active' ? 'pi pi-pause' : 'pi pi-play'}
                     severity="warning"
                     outlined
-                    className="flex-shrink-0 white-space-nowrap"
+                    className="w-full md:w-auto"
                     onClick={handleToggleActive}
                   />
                 </div>
                 {canArchiveProject && project.status !== 'archived' && (
                   <div
-                    className="flex align-items-center justify-content-between gap-4 p-3 border-round-md"
+                    className="flex flex-column gap-3 p-3 border-round-md"
                     style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
                   >
                     <div>
@@ -846,14 +846,14 @@ export function ProjectSettingsPage() {
                       icon="pi pi-inbox"
                       severity="warning"
                       outlined
-                      className="flex-shrink-0 white-space-nowrap"
+                      className="w-full md:w-auto"
                       onClick={handleArchiveProject}
                     />
                   </div>
                 )}
                 {canDeleteProject && (
                   <div
-                    className="flex align-items-center justify-content-between gap-4 p-3 border-round-md"
+                    className="flex flex-column gap-3 p-3 border-round-md"
                     style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
                   >
                     <div>
@@ -867,7 +867,7 @@ export function ProjectSettingsPage() {
                       icon="pi pi-trash"
                       severity="danger"
                       outlined
-                      className="flex-shrink-0 white-space-nowrap"
+                      className="w-full md:w-auto"
                       onClick={handleDeletePermanently}
                     />
                   </div>
