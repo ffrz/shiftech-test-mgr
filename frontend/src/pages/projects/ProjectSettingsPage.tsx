@@ -1,20 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import { TabView, TabPanel } from 'primereact/tabview';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
-import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
-import SearchInput from '../../components/ui/SearchInput';
-import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
-import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
@@ -25,19 +16,19 @@ import { supabase } from '../../config/supabaseClient';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
-import { UsernamePicker } from '../../components/ui/UsernamePicker';
 import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus, ProjectVisibility } from '../../types/domain';
-import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { Tag } from 'primereact/tag';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
-
-const MEMBER_ROLE_OPTIONS: { label: string; value: ProjectMemberRole }[] = [
-  { label: PROJECT_MEMBER_ROLE_LABEL.member, value: 'member' },
-  { label: PROJECT_MEMBER_ROLE_LABEL.supervisor, value: 'supervisor' },
-  { label: PROJECT_MEMBER_ROLE_LABEL.tester, value: 'tester' },
-  { label: PROJECT_MEMBER_ROLE_LABEL.manager, value: 'manager' },
-];
+import { ModulesTab } from './components/tabs/ModulesTab';
+import { TagsTab } from './components/tabs/TagsTab';
+import { TestRolesTab } from './components/tabs/TestRolesTab';
+import { MembersTab } from './components/tabs/MembersTab';
+import { DangerZoneTab } from './components/tabs/DangerZoneTab';
+import { ModuleDialog } from './components/dialogs/ModuleDialog';
+import { TagDialog } from './components/dialogs/TagDialog';
+import { TestRoleDialog } from './components/dialogs/TestRoleDialog';
+import { InviteMemberDialog } from './components/dialogs/InviteMemberDialog';
 
 export function ProjectSettingsPage() {
   const { id } = useParams<{ id: string }>();
@@ -108,7 +99,6 @@ export function ProjectSettingsPage() {
   const [moduleCode, setModuleCode] = useState('');
   const [moduleName, setModuleName] = useState('');
   const [moduleError, setModuleError] = useState<string | null>(null);
-  const moduleNameRef = useRef<HTMLInputElement>(null);
 
   const [moduleSearch, setModuleSearch] = useState('');
   const [moduleSortField, setModuleSortField] = useState('code');
@@ -192,7 +182,6 @@ export function ProjectSettingsPage() {
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [tagName, setTagName] = useState('');
   const [tagError, setTagError] = useState<string | null>(null);
-  const tagNameRef = useRef<HTMLInputElement>(null);
 
   const [tagSearch, setTagSearch] = useState('');
   const [tagSortField, setTagSortField] = useState('name');
@@ -274,7 +263,6 @@ export function ProjectSettingsPage() {
   const [editingTestRoleId, setEditingTestRoleId] = useState<string | null>(null);
   const [testRoleName, setTestRoleName] = useState('');
   const [testRoleError, setTestRoleError] = useState<string | null>(null);
-  const testRoleNameRef = useRef<HTMLInputElement>(null);
 
   const [testRoleSearch, setTestRoleSearch] = useState('');
   const [testRoleSortField, setTestRoleSortField] = useState('name');
@@ -504,51 +492,6 @@ export function ProjectSettingsPage() {
     });
   }
 
-  const modulesMobileBody = useCallback((row: Module) => (
-    <div className="flex flex-column gap-2 py-1">
-      <div className="font-medium">{row.name}</div>
-      <div className="text-sm text-color-secondary">Code: {row.code}</div>
-    </div>
-  ), []);
-
-  const tagsMobileBody = useCallback((row: TagEntity) => (
-    <div className="flex flex-column gap-2 py-1">
-      <div className="font-medium">{row.name}</div>
-    </div>
-  ), []);
-
-  const testRolesMobileBody = useCallback((row: TestRole) => (
-    <div className="flex flex-column gap-2 py-1">
-      <div className="font-medium">{row.name}</div>
-    </div>
-  ), []);
-
-  const membersMobileBody = useCallback((row: ProjectMemberWithProfile) => (
-    <div className="flex align-items-start justify-content-between gap-2 py-1">
-      <div className="flex flex-column gap-2">
-        <div className="font-medium">{row.profile.displayName ?? '-'}</div>
-        <div className="text-sm text-color-secondary">@{row.profile.username}</div>
-        <div className="text-sm text-color-secondary">
-          Status: <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
-        </div>
-        <Dropdown
-          value={row.role}
-          options={MEMBER_ROLE_OPTIONS}
-          onChange={(e) => handleChangeMemberRole(row, e.value)}
-          className="w-10rem"
-        />
-      </div>
-      <RowActionsMenu
-        items={[
-          ...(row.status === 'declined'
-            ? [{ label: 'Reinvite', icon: 'pi pi-send', command: () => handleReinviteMember(row) }]
-            : []),
-          { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleRemoveMember(row) },
-        ]}
-      />
-    </div>
-  ), []);
-
   if (loading || roleLoading) return <p>Loading...</p>;
   if (!canManageSettings) return <Navigate to={`/projects/${id}`} replace />;
   if (!project) return <p>Project not found.</p>;
@@ -588,445 +531,148 @@ export function ProjectSettingsPage() {
       <Card>
         <TabView>
           <TabPanel header="Modules">
-            <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-              <SearchInput value={moduleSearch} onChange={setModuleSearch} placeholder="Search name/code..." />
-              <Button label="New Module" icon="pi pi-plus" size="small" onClick={openCreateModuleDialog} />
-            </div>
-            <BulkActionsBar
-              selectedCount={selectedModules.length}
-              onClear={() => setSelectedModules([])}
-              actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteModules} />}
-            />
-            <DataTable
-              value={filteredModules}
-              size="small"
-              emptyMessage="No modules yet"
-              {...dataTablePaginatorProps}
-              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
+            <ModulesTab
+              modules={filteredModules}
+              isMobile={isMobile}
+              search={moduleSearch}
+              onSearchChange={setModuleSearch}
               sortField={moduleSortField}
               sortOrder={moduleSortOrder}
               onSort={(e) => {
                 setModuleSortField(e.sortField);
                 setModuleSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
-              selection={selectedModules}
-              onSelectionChange={(e: any) => setSelectedModules(e.value as Module[])}
-              dataKey="id"
-              selectionMode="checkbox"
-            >
-              {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-              {isMobile
-                ? <Column header="Nama" body={modulesMobileBody} />
-                : <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
-              }
-              {!isMobile && <Column field="name" header="Nama" sortable />}
-              <Column
-                header=""
-                style={{ width: '3.5rem' }}
-                body={(row: Module) => (
-                  <RowActionsMenu
-                    items={[
-                      { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditModuleDialog(row) },
-                      { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteModule(row) },
-                    ]}
-                  />
-                )}
-              />
-            </DataTable>
+              selected={selectedModules}
+              onSelectedChange={setSelectedModules}
+              onCreate={openCreateModuleDialog}
+              onEdit={openEditModuleDialog}
+              onDelete={handleDeleteModule}
+              onBulkDelete={handleBulkDeleteModules}
+            />
           </TabPanel>
 
           <TabPanel header="Tags">
-            <p className="text-color-secondary text-sm mb-3">
-              Tags are also created automatically when typed in the Test Case form. Manage tags here.
-            </p>
-            <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-              <SearchInput value={tagSearch} onChange={setTagSearch} placeholder="Search name..." />
-              <Button label="New Tag" icon="pi pi-plus" size="small" onClick={openCreateTagDialog} />
-            </div>
-            <BulkActionsBar
-              selectedCount={selectedTags.length}
-              onClear={() => setSelectedTags([])}
-              actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteTags} />}
-            />
-            <DataTable
-              value={filteredTags}
-              size="small"
-              emptyMessage="No tags yet"
-              {...dataTablePaginatorProps}
-              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
+            <TagsTab
+              tags={filteredTags}
+              isMobile={isMobile}
+              search={tagSearch}
+              onSearchChange={setTagSearch}
               sortField={tagSortField}
               sortOrder={tagSortOrder}
               onSort={(e) => {
                 setTagSortField(e.sortField);
                 setTagSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
-              selection={selectedTags}
-              onSelectionChange={(e: any) => setSelectedTags(e.value as TagEntity[])}
-              dataKey="id"
-              selectionMode="checkbox"
-            >
-              {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-              {isMobile
-                ? <Column header="Nama" body={tagsMobileBody} />
-                : <Column field="name" header="Nama" sortable />
-              }
-              <Column
-                header=""
-                style={{ width: '3.5rem' }}
-                body={(row: TagEntity) => (
-                  <RowActionsMenu
-                    items={[
-                      { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditTagDialog(row) },
-                      { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteTag(row) },
-                    ]}
-                  />
-                )}
-              />
-            </DataTable>
+              selected={selectedTags}
+              onSelectedChange={setSelectedTags}
+              onCreate={openCreateTagDialog}
+              onEdit={openEditTagDialog}
+              onDelete={handleDeleteTag}
+              onBulkDelete={handleBulkDeleteTags}
+            />
           </TabPanel>
 
           <TabPanel header="Test Roles">
-            <p className="text-color-secondary text-sm mb-3">
-              Roles within the app under test (e.g. Admin, Manager, Member) — different from a member's role on the "Project Members" tab.
-              Used as the "Target Role" when creating a test case.
-            </p>
-            <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-              <SearchInput value={testRoleSearch} onChange={setTestRoleSearch} placeholder="Search name..." />
-              <Button label="Role Baru" icon="pi pi-plus" size="small" onClick={openCreateTestRoleDialog} />
-            </div>
-            <BulkActionsBar
-              selectedCount={selectedTestRoles.length}
-              onClear={() => setSelectedTestRoles([])}
-              actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteTestRoles} />}
-            />
-            <DataTable
-              value={filteredTestRoles}
-              size="small"
-              emptyMessage="No roles yet"
-              {...dataTablePaginatorProps}
-              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
+            <TestRolesTab
+              testRoles={filteredTestRoles}
+              isMobile={isMobile}
+              search={testRoleSearch}
+              onSearchChange={setTestRoleSearch}
               sortField={testRoleSortField}
               sortOrder={testRoleSortOrder}
               onSort={(e) => {
                 setTestRoleSortField(e.sortField);
                 setTestRoleSortOrder((e.sortOrder ?? 1) as 1 | -1);
               }}
-              selection={selectedTestRoles}
-              onSelectionChange={(e: any) => setSelectedTestRoles(e.value as TestRole[])}
-              dataKey="id"
-              selectionMode="checkbox"
-            >
-              {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-              {isMobile
-                ? <Column header="Nama" body={testRolesMobileBody} />
-                : <Column field="name" header="Nama" sortable />
-              }
-              <Column
-                header=""
-                style={{ width: '3.5rem' }}
-                body={(row: TestRole) => (
-                  <RowActionsMenu
-                    items={[
-                      { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditTestRoleDialog(row) },
-                      { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteTestRole(row) },
-                    ]}
-                  />
-                )}
-              />
-            </DataTable>
+              selected={selectedTestRoles}
+              onSelectedChange={setSelectedTestRoles}
+              onCreate={openCreateTestRoleDialog}
+              onEdit={openEditTestRoleDialog}
+              onDelete={handleDeleteTestRole}
+              onBulkDelete={handleBulkDeleteTestRoles}
+            />
           </TabPanel>
 
           <TabPanel header="Project Members">
-            <p className="text-color-secondary text-sm mb-3">
-              Only accepted members (or the owner) can access this project. Invited users must accept before they gain access. Managers can manage other members.
-            </p>
-            <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-              <div className="flex gap-2 flex-wrap">
-                <SearchInput value={memberSearch} onChange={setMemberSearch} placeholder="Search name/username/email..." />
-                <Dropdown
-                  value={memberRoleFilter}
-                  options={[{ label: 'All Roles', value: '' as const }, ...MEMBER_ROLE_OPTIONS]}
-                  onChange={(e) => setMemberRoleFilter(e.value)}
-                  className="w-10rem"
-                  showClear={!!memberRoleFilter}
-                />
-                <Dropdown
-                  value={memberStatusFilter}
-                  options={[
-                    { label: 'All Statuses', value: '' as const },
-                    { label: PROJECT_MEMBER_STATUS_LABEL.invited, value: 'invited' as const },
-                    { label: PROJECT_MEMBER_STATUS_LABEL.accepted, value: 'accepted' as const },
-                    { label: PROJECT_MEMBER_STATUS_LABEL.declined, value: 'declined' as const },
-                  ]}
-                  onChange={(e) => setMemberStatusFilter(e.value)}
-                  className="w-10rem"
-                  showClear={!!memberStatusFilter}
-                />
-              </div>
-              <Button label="Invite Member" icon="pi pi-plus" size="small" onClick={openAddMemberDialog} />
-            </div>
-            <BulkActionsBar
-              selectedCount={selectedMembers.length}
-              onClear={() => setSelectedMembers([])}
-              actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkRemoveMembers} />}
+            <MembersTab
+              members={filteredMembers}
+              isMobile={isMobile}
+              search={memberSearch}
+              onSearchChange={setMemberSearch}
+              roleFilter={memberRoleFilter}
+              onRoleFilterChange={setMemberRoleFilter}
+              statusFilter={memberStatusFilter}
+              onStatusFilterChange={setMemberStatusFilter}
+              selected={selectedMembers}
+              onSelectedChange={setSelectedMembers}
+              onInvite={openAddMemberDialog}
+              onChangeRole={handleChangeMemberRole}
+              onReinvite={handleReinviteMember}
+              onRemove={handleRemoveMember}
+              onBulkRemove={handleBulkRemoveMembers}
             />
-            <DataTable
-              value={filteredMembers}
-              size="small"
-              emptyMessage="No members yet"
-              {...dataTablePaginatorProps}
-              rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
-              selection={selectedMembers}
-              onSelectionChange={(e: any) => setSelectedMembers(e.value as ProjectMemberWithProfile[])}
-              dataKey="id"
-              selectionMode="checkbox"
-            >
-              {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-              {isMobile && <Column header="Member" body={membersMobileBody} />}
-              {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => row.profile.displayName ?? '-'} />}
-              {!isMobile && <Column header="Username" body={(row: ProjectMemberWithProfile) => `@${row.profile.username}`} />}
-              {!isMobile && (
-                <Column
-                  header="Status"
-                  body={(row: ProjectMemberWithProfile) => (
-                    <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
-                  )}
-                />
-              )}
-              {!isMobile && (
-                <Column
-                  header="Role"
-                  body={(row: ProjectMemberWithProfile) => (
-                    <Dropdown
-                      value={row.role}
-                      options={MEMBER_ROLE_OPTIONS}
-                      onChange={(e) => handleChangeMemberRole(row, e.value)}
-                      className="w-10rem"
-                    />
-                  )}
-                />
-              )}
-              {!isMobile && (
-                <Column
-                  header=""
-                  style={{ width: '3.5rem' }}
-                  body={(row: ProjectMemberWithProfile) => (
-                    <RowActionsMenu
-                      items={[
-                        ...(row.status === 'declined'
-                          ? [{ label: 'Reinvite', icon: 'pi pi-send', command: () => handleReinviteMember(row) }]
-                          : []),
-                        { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleRemoveMember(row) },
-                      ]}
-                    />
-                  )}
-                />
-              )}
-            </DataTable>
           </TabPanel>
 
           {(canArchiveProject || canDeleteProject) && (
             <TabPanel header="Danger Zone">
-              <div className="flex flex-column gap-3" style={{ maxWidth: '40rem' }}>
-                <div
-                  className="flex flex-column gap-3 p-3 border-round-md"
-                  style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
-                >
-                  <div>
-                    <div className="font-medium text-color">Project Visibility</div>
-                    <div className="text-color-secondary text-sm mt-1">
-                      Controls who can see this project. Changing visibility does not affect existing members.
-                    </div>
-                  </div>
-                  <Dropdown
-                    value={projectVisibility}
-                    options={[
-                      { label: 'Private — only invited members', value: 'private' },
-                      { label: 'Unlisted — anyone with the link can view', value: 'unlisted' },
-                      { label: 'Public — visible to everyone', value: 'public' },
-                    ]}
-                    onChange={(e) => handleChangeVisibility(e.value)}
-                    className="w-full md:w-20rem"
-                  />
-                </div>
-                <div
-                  className="flex flex-column gap-3 p-3 border-round-md"
-                  style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
-                >
-                  <div>
-                    <div className="font-medium text-color">Project Status</div>
-                    <div className="text-color-secondary text-sm mt-1">
-                      Current status: <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />.
-                      {project.status === 'active' ? ' Deactivate to hide from active lists.' : ' Activate to make it visible again.'}
-                    </div>
-                  </div>
-                  <Button
-                    label={project.status === 'active' ? 'Set Inactive' : 'Set Active'}
-                    icon={project.status === 'active' ? 'pi pi-pause' : 'pi pi-play'}
-                    severity="warning"
-                    outlined
-                    className="w-full md:w-12rem"
-                    onClick={handleToggleActive}
-                  />
-                </div>
-                {canArchiveProject && project.status !== 'archived' && (
-                  <div
-                    className="flex flex-column gap-3 p-3 border-round-md"
-                    style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
-                  >
-                    <div>
-                      <div className="font-medium text-color">Archive Project</div>
-                      <div className="text-color-secondary text-sm mt-1">
-                        Archived projects do not appear in the active list.
-                      </div>
-                    </div>
-                    <Button
-                      label="Archive"
-                      icon="pi pi-inbox"
-                      severity="warning"
-                      outlined
-                      className="w-full md:w-12rem"
-                      onClick={handleArchiveProject}
-                    />
-                  </div>
-                )}
-                {canDeleteProject && (
-                  <div
-                    className="flex flex-column gap-3 p-3 border-round-md"
-                    style={{ border: '1px solid var(--surface-200)', backgroundColor: 'var(--surface-50)' }}
-                  >
-                    <div>
-                      <div className="font-medium text-color">Permanently Delete</div>
-                      <div className="text-color-secondary text-sm mt-1">
-                        Deletes the project along with all its test plans and test cases. This action cannot be undone.
-                      </div>
-                    </div>
-                    <Button
-                      label="Permanently Delete"
-                      icon="pi pi-trash"
-                      severity="danger"
-                      outlined
-                      className="w-full md:w-12rem"
-                      onClick={handleDeletePermanently}
-                    />
-                  </div>
-                )}
-              </div>
+              <DangerZoneTab
+                project={project}
+                visibility={projectVisibility}
+                onChangeVisibility={handleChangeVisibility}
+                onToggleActive={handleToggleActive}
+                canArchiveProject={canArchiveProject}
+                onArchive={handleArchiveProject}
+                canDeleteProject={canDeleteProject}
+                onDeletePermanently={handleDeletePermanently}
+              />
             </TabPanel>
           )}
         </TabView>
       </Card>
 
-      {/* --- Module Dialog --- */}
-      <Dialog
-        header={editingModuleId ? 'Edit Module' : 'Add Module'}
+      <ModuleDialog
         visible={moduleDialogOpen}
+        editing={!!editingModuleId}
+        code={moduleCode}
+        onCodeChange={setModuleCode}
+        name={moduleName}
+        onNameChange={setModuleName}
+        error={moduleError}
         onHide={() => setModuleDialogOpen(false)}
-        onShow={() => moduleNameRef.current?.focus()}
-        style={{ width: '25rem' }}
-      >
-        <div className="flex flex-column gap-3">
-          {moduleError && <small className="p-error">{moduleError}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="module-code">Code</label>
-            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Automatic if left empty" />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="module-name">Module Name</label>
-            <InputText
-              id="module-name"
-              ref={moduleNameRef}
-              value={moduleName}
-              onChange={(e) => setModuleName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSaveModule();
-              }}
-              placeholder="mis. Autentikasi, Dashboard, Pembelian"
-            />
-          </div>
-          <Button label="Save" size="small" onClick={handleSaveModule} />
-        </div>
-      </Dialog>
+        onSave={handleSaveModule}
+      />
 
-      {/* --- Tag Dialog --- */}
-      <Dialog
-        header={editingTagId ? 'Edit Tag' : 'Tag Baru'}
+      <TagDialog
         visible={tagDialogOpen}
+        editing={!!editingTagId}
+        name={tagName}
+        onNameChange={setTagName}
+        error={tagError}
         onHide={() => setTagDialogOpen(false)}
-        onShow={() => tagNameRef.current?.focus()}
-        style={{ width: '25rem' }}
-      >
-        <div className="flex flex-column gap-3">
-          {tagError && <small className="p-error">{tagError}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="tag-name">Nama Tag</label>
-            <InputText
-              id="tag-name"
-              ref={tagNameRef}
-              value={tagName}
-              onChange={(e) => setTagName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSaveTag();
-              }}
-            />
-          </div>
-          <Button label="Save" size="small" onClick={handleSaveTag} />
-        </div>
-      </Dialog>
+        onSave={handleSaveTag}
+      />
 
-      {/* --- Test Role Dialog --- */}
-      <Dialog
-        header={editingTestRoleId ? 'Edit Role' : 'Add Test Role'}
+      <TestRoleDialog
         visible={testRoleDialogOpen}
+        editing={!!editingTestRoleId}
+        name={testRoleName}
+        onNameChange={setTestRoleName}
+        error={testRoleError}
         onHide={() => setTestRoleDialogOpen(false)}
-        onShow={() => testRoleNameRef.current?.focus()}
-        style={{ width: '25rem' }}
-      >
-        <div className="flex flex-column gap-3">
-          {testRoleError && <small className="p-error">{testRoleError}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="test-role-name">Role Name</label>
-            <InputText
-              id="test-role-name"
-              ref={testRoleNameRef}
-              value={testRoleName}
-              onChange={(e) => setTestRoleName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSaveTestRole();
-              }}
-              placeholder="mis. Admin, Manager, Member"
-            />
-          </div>
-          <Button label="Save" size="small" onClick={handleSaveTestRole} />
-        </div>
-      </Dialog>
+        onSave={handleSaveTestRole}
+      />
 
-      {/* --- Member Dialog --- */}
-      <Dialog
-        header="Invite Member"
+      <InviteMemberDialog
         visible={memberDialogOpen}
+        profile={memberProfile}
+        onProfileChange={setMemberProfile}
+        role={memberRole}
+        onRoleChange={setMemberRole}
+        excludeIds={existingMemberIds}
+        error={memberError}
         onHide={() => setMemberDialogOpen(false)}
-        style={{ width: '25rem' }}
-      >
-        <div className="flex flex-column gap-3">
-          {memberError && <small className="p-error">{memberError}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="member-user">Username</label>
-            <UsernamePicker value={memberProfile} onChange={setMemberProfile} excludeIds={existingMemberIds} />
-          </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="member-role">Role</label>
-            <Dropdown
-              id="member-role"
-              value={memberRole}
-              options={MEMBER_ROLE_OPTIONS}
-              onChange={(e) => setMemberRole(e.value)}
-              className="w-full"
-            />
-          </div>
-          <Button label="Send Invite" size="small" onClick={handleAddMember} />
-        </div>
-      </Dialog>
+        onInvite={handleAddMember}
+      />
 
       <CreateProjectDialog
         visible={editDialogOpen}
