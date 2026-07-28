@@ -1,7 +1,18 @@
-# PRD — TestManager (shiftech-test-mgr)
+# PRD — Testify (shiftech-test-mgr)
 
-**Companion to:** [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) (technical view).
-Dokumen ini adalah **product/business** view.
+**Companion to:** [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) (technical view,
+Testing Domain). Dokumen ini adalah **product/business** view untuk Testing
+Domain (§3 di bawah — Project → Module → Test Case → Test Plan → Test Run →
+Test Result → Issue), yang tidak berubah oleh Platform Evolution V2.
+
+> **Governed by [`docs/PRODUCT_CONSTITUTION.md`](PRODUCT_CONSTITUTION.md)**
+> (visi produk, scope MVP, aturan penerimaan fitur — dokumen tertinggi kalau
+> ada konflik). Untuk Platform Context (auth, project ownership/visibility,
+> membership invite/accept, identity publik) yang jadi fokus evolusi produk
+> saat ini, lihat [`docs/ARCHITECTURE_V2.md`](ARCHITECTURE_V2.md) dan
+> [`docs/ROADMAP_V2.md`](ROADMAP_V2.md) — §4.7/§4.8 di bawah ini
+> mendeskripsikan model **sebelum** V2 (approval-gated signup), disimpan
+> sebagai konteks historis.
 
 ## 1. Latar Belakang & Tujuan
 
@@ -223,12 +234,14 @@ skema penomoran kaku.
   baru, tapi riwayat hasil lama tetap ada)
 - Test case bersifat reusable — bisa dipakai di banyak test plan berbeda, dan
   **tidak pernah menyimpan hasil PASS/FAIL sendiri**
-- **Role Target (RBAC testing, E17)** — field teks bebas opsional (mis.
-  "Admin", "Manager", "Member") untuk menguji test case yang sama secara
-  konsep tapi perlu diverifikasi ulang per role aplikasi yang ditest. Bukan
+- **Role Target (RBAC testing, E17)** — dropdown ke master **Test Role**
+  per project (awalnya teks bebas, sejak E17 lanjutan jadi master list mirip
+  Module, supaya konsisten & bisa direname tanpa mengubah tiap row) untuk
+  menguji test case yang sama secara konsep tapi perlu diverifikasi ulang
+  per role aplikasi yang ditest (mis. "Admin", "Manager", "Member"). Bukan
   sistem varian otomatis — kalau steps/expected result berbeda per role,
-  user membuat test case terpisah secara manual dan sekadar melabeli masing-
-  masing dengan Role Target yang sesuai
+  user membuat test case terpisah secara manual dan sekadar memilih Test
+  Role yang sesuai
 - **Import dari Excel/CSV (E17)** — impor banyak test case sekaligus dari
   file CSV (kolom: Module, Title, Objective, Preconditions, Steps, Expected
   Result, Priority, Tags, Target Role — hanya Title wajib). Preview baris
@@ -310,11 +323,24 @@ rancu dengan "Test Case" biasa) — kode dan skema tabel mengikuti nama ini
 
 ### 4.7 User Management & Akses (RBAC)
 
+> **Bagian ini sudah superseded oleh Platform Evolution V2** (Phase 1/2/4,
+> semua `done` — lihat `docs/ARCHITECTURE_V2.md`, `docs/ROADMAP_V2.md`).
+> Ringkasan model saat ini:
+> - Signup **self-serve** — TIDAK ADA lagi status `pending`/approval admin.
+>   User baru langsung bisa pakai aplikasi begitu login Google pertama kali
+> - Identity di-split: `users` (privat — email, role) + `profiles` (publik —
+>   username, display name, avatar, bio)
+> - Akses ke project sekarang lewat **invite/accept**, bukan direct-add oleh
+>   admin — lihat §4.7.1 di bawah
+>
+> Poin-poin di bawah ini (alur `pending`/approval) dipertahankan sebagai
+> konteks historis kenapa modelnya dulu begitu.
+
 - **Login**: hanya via **Google OAuth** (Supabase Auth) — tidak ada login
   email/password
-- **Role global** (`profiles.role`): `pending` (default saat baru daftar) →
+- **Role global** (`profiles.role`, versi lama): `pending` (default saat baru daftar) →
   `user` (disetujui admin) → `admin` (hak penuh, akses semua project)
-- **Alur onboarding**: user baru sign-in dengan akun Google mana pun → masuk
+- **Alur onboarding (lama)**: user baru sign-in dengan akun Google mana pun → masuk
   sebagai `pending` → diarahkan ke halaman "Menunggu Persetujuan" → tidak bisa
   akses modul apa pun sampai seorang **admin** meng-approve lewat halaman **User
   Management**. Perubahan role terdeteksi **live** (Supabase Realtime) — user
@@ -322,7 +348,31 @@ rancu dengan "Test Case" biasa) — kode dan skema tabel mengikuti nama ini
   admin approve, tanpa perlu logout/login ulang
 - **Admin pertama**: tidak ada UI untuk ini secara sengaja — di-set manual lewat
   Supabase Table Editor (ubah kolom `role` jadi `admin` untuk user yang login
-  pertama kali). Ini cukup untuk aplikasi internal skala kecil.
+  pertama kali, sekarang di tabel `users`). Ini masih berlaku di model baru.
+
+#### 4.7.1 Project Membership: Invite/Accept (V2 Phase 4, current)
+
+- Akses ke sebuah project TIDAK LAGI lewat direct-add oleh admin/manager —
+  sekarang lewat lifecycle **invite → accept/decline**:
+  1. Manager/owner project buka Project Settings → tab Members → cari user
+     lewat username (typeahead) → kirim undangan dengan role tertentu
+     (`manager`/`supervisor`/`tester`/`member`)
+  2. Invitee melihat undangan di dua tempat: bell notifikasi dan card
+     "Pending Invitations" di halaman Home — accept atau decline
+  3. Baru setelah **accept**, user itu benar-benar punya akses ke data
+     project (test plan, test case, test run, dst) — status `invited` belum
+     memberi akses apa pun
+- **Notifikasi**: user diberi tahu (bell + badge unread) saat diundang ke
+  project atau saat dikeluarkan dari project — dua tipe notifikasi yang ada
+  saat ini. Belum ada notifikasi untuk kejadian lain (test run selesai, issue
+  baru, dst) — di luar scope MVP saat ini, lihat `docs/ROADMAP_V2.md`
+- **Visibility project**: `private` (default) / `unlisted` / `public` — diatur
+  pemilik project dari tab Danger Zone. Public/unlisted project bisa dibaca
+  tanpa jadi member; private tetap wajib invite+accept. Belum ada halaman
+  browse/discover project public — sengaja tidak dibangun (lihat
+  `docs/PRODUCT_CONSTITUTION.md`, Testify bukan social network/showcase)
+- **Identity publik** (`/@username`): halaman lookup minimal (nama, avatar,
+  bio) — berguna untuk verifikasi target undangan, bukan halaman portofolio
 
 **Role per-project** (`project_members.role`) — lapisan RBAC kedua, di atas
 role global, mengatur hak aksi *dalam* satu project tertentu:
@@ -343,22 +393,29 @@ role global, mengatur hak aksi *dalam* satu project tertentu:
 
 ### 4.8 User Management — Detail Aksi
 
+> **V2 Phase 2**: aksi **Approve** dan **Cabut Akses** di bawah sudah
+> **dihapus** dari halaman ini (tidak ada lagi konsep `pending` untuk
+> di-approve/dicabut) — dipertahankan sebagai catatan historis. Aksi yang
+> tersisa saat ini: List, Promote/Demote, Hapus (soft-delete), Detail.
+
 Diadaptasi dari pola modul User di [amanah-pos](../amanah-pos), disesuaikan
 untuk konteks Google OAuth (tidak ada password di sistem ini):
 
 - **List**: email, nama, role (badge), tanggal terdaftar, sortable
-- **Approve**: `pending` → `user`
-- **Cabut Akses** (pengganti "reset password" amanah-pos, karena tidak ada
-  password untuk di-reset di alur Google OAuth): role dikembalikan ke `pending`,
-  user harus di-approve ulang untuk bisa akses lagi
+- ~~**Approve**: `pending` → `user`~~ — dihapus (V2 Phase 2), tidak ada lagi
+  gate approval
+- ~~**Cabut Akses** (pengganti "reset password" amanah-pos)~~ — dihapus (V2
+  Phase 2), tidak relevan lagi tanpa status `pending`
 - **Promote/Demote**: toggle role `user` ↔ `admin`
-- **Hapus**: soft-delete (`profiles.deleted_at`) — user tidak muncul lagi di
-  daftar dan langsung kehilangan akses (RLS mengecek `deleted_at is null`),
-  walau sesi Supabase Auth-nya sendiri tidak dihapus
+- **Hapus**: soft-delete (`users.deleted_at`, tabel identity privat sejak V2
+  Phase 1) — user tidak muncul lagi di daftar dan langsung kehilangan akses
+  (RLS mengecek `deleted_at is null`), walau sesi Supabase Auth-nya sendiri
+  tidak dihapus
 - **Detail** (`/users/:id`): avatar, nama, email, role, tanggal terdaftar &
   update terakhir, User ID
-- Admin tidak bisa melakukan cabut akses/hapus/demote pada akunnya sendiri
-  (diproteksi di UI)
+- Admin tidak bisa melakukan hapus/demote pada akunnya sendiri (diproteksi
+  di UI, dan sejak migrasi `20260725000011_prevent_self_role_change.sql`
+  juga di RLS)
 
 ## 5. Out of Scope (sengaja tidak dibuat)
 
@@ -370,9 +427,13 @@ untuk konteks Google OAuth (tidak ada password di sistem ini):
   delete") — dua level role (admin/user) dianggap cukup
 - Login email/password sebagai alternatif Google — sengaja dibatasi satu
   provider untuk kesederhanaan
-- Notifikasi email/webhook (mis. notifikasi ke admin saat ada user baru
-  mendaftar)
-- Multi-tenant / organization
+- Notifikasi email/webhook — di luar scope, tapi catatan: notifikasi in-app
+  minimal (bell + panel) SUDAH ada sejak V2 Phase 4, khusus untuk lifecycle
+  undangan project (`project_invite`/`project_member_removed`). Notifikasi
+  untuk kejadian lain (test run selesai, issue baru, dll) tetap di luar scope
+- Multi-tenant / organization — schema-ready (`projects.owner_type`) tapi
+  tabel `organizations` dan UI-nya belum dibangun, lihat
+  `docs/ARCHITECTURE_V2.md` §4
 - **Integrasi GitHub Issues dua arah** (buat/sync issue via API GitHub) — yang
   dibuat hanya link URL yang bisa diklik, tanpa panggilan API GitHub sama
   sekali (lihat §3 Issue)

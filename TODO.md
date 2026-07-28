@@ -4,17 +4,26 @@ Titik mulai sesi kerja. Update file ini setiap kali mulai/selesai mengerjakan se
 
 ## Siap Dikerjakan (next up)
 
-**Platform Evolution V2 sedang jadi prioritas utama** — governed by
-[`docs/PRODUCT_CONSTITUTION.md`](docs/PRODUCT_CONSTITUTION.md) (product rules, MVP
-success criteria), lihat [`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md) (desain)
-dan [`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) (fase + task detail, framed di sekitar
-golden path 9-langkah dari Constitution). Backend Go (`backend/`) **di-pending** selama
-roadmap ini berjalan — lihat `backend/README.md`.
+**Platform Evolution V2 — Phase 1–6 done, Phase 7 (closing phase) sedang berjalan.**
+Governed by [`docs/PRODUCT_CONSTITUTION.md`](docs/PRODUCT_CONSTITUTION.md) (product
+rules, MVP success criteria), lihat [`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md)
+(desain) dan [`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) (fase + task detail, framed di
+sekitar golden path 9-langkah dari Constitution). Backend Go (`backend/`) **tetap
+di-pending** selama roadmap ini berjalan — lihat `backend/README.md`.
 
-- [ ] V2-P1-T01 — Backfill `role = 'pending'` → `'user'` (lihat ROADMAP_V2 Phase 1)
-- [ ] V2-P1-T02..T13 — Split `profiles` → `users` + `profiles` (identity split), lihat ROADMAP_V2 Phase 1 untuk detail lengkap
+- [ ] V2-P7-T01 — Golden-path walkthrough (2 akun real, Account A/B) — lihat checklist
+      lengkap di `docs/ROADMAP_V2.md` Phase 7
+- [ ] V2-P7-T02 — Regresi penuh Testing Domain (test case/plan/run/result/issue) —
+      konfirmasi zero behavior change
+- [ ] V2-P7-T03 — Sinkronisasi dokumen ke model V2 yang sudah shipped (CLAUDE.md,
+      AGENTS.md, README.md, docs/ARCHITECTURE.md, docs/PRD.md, FEATURES.md — **sudah
+      dikerjakan 2026-07-28**, lihat "Selesai (recent)" di bawah)
+- [ ] V2-P7-T04 — Bersihkan TODO.md dari item V2 roadmap setelah walkthrough (T01)
+      lolos, kembali ke sprint board normal
+- [ ] V2-P7-T05 — Merge `feature/platform-foundation` → `master` (hanya setelah
+      T01–T04 semua lolos)
 
-**Backlog baru (2026-07-25, dari Phase 7 walkthrough)** — belum di-scope, lihat
+**Backlog (2026-07-25, dari Phase 7 walkthrough)** — belum di-scope, lihat
 `docs/ROADMAP_V2.md` bagian "Backlog — captured, not yet scoped or scheduled":
 - [ ] Fitur activate/deactivate user (banned sementara/permanen) — butuh diskusi dulu
 - [ ] Search/browse Test Suite Template berdasarkan kategori
@@ -30,7 +39,8 @@ Item lama (non-V2), tetap terbuka tapi bukan prioritas saat ini:
 
 ## Sedang Dikerjakan
 
-_(kosong)_
+- [ ] V2 Phase 7 — Golden-path walkthrough belum dijalankan (butuh 2 akun browser real,
+      tidak bisa diverifikasi lewat CLI/agent) — lihat checklist di `docs/ROADMAP_V2.md`
 
 ## Diblokir
 
@@ -52,3 +62,13 @@ _(kosong)_
 - [x] E14.1 — Gabung halaman list+detail Test Run jadi satu komponen (`TestRunResultDetailPage`, item terpilih via `?resultId=`) — fix bug breadcrumb kosong sesaat akibat React Router remount; ganti Link Issue dari inline tab jadi Browse Issues (paginated) + Create dialog bertingkat; beberapa polish UI (summary selalu terlihat, filter collapsible, nomor urut, Prev/Next pinned, status "Belum Dites", link ke test case asli, info modul/tag/tester di detail) (2026-07-22)
 - [x] E14.2 — Migrasi seluruh app dari `useState`+`useEffect` manual ke React Query (`hooks/queryKeys.ts` sebagai registry key terpusat) — memperbaiki bug utama: menyelesaikan Test Run dari halaman detailnya tidak lagi butuh refresh manual untuk terlihat update di tab "Test Runs" `ProjectDetailPage` (2026-07-22)
 - [x] E14.3 — Supabase Realtime sync (`useRealtimeSync`, satu subscriber terpusat di `AppLayout`) — perubahan dari user/tab browser lain juga otomatis ter-refresh, bukan cuma lintas halaman di sesi yang sama (2026-07-22)
+- [x] E17 lanjutan — Test Role master per project (`test_roles`), `test_cases.target_role` (teks bebas) → `target_role_id` FK (2026-07-23)
+- [x] Rebrand internal tool → produk **Testify** (`docs/PRODUCT_CONSTITUTION.md`), rename Test Case Template → Test Suite, tambah `landing/` + `public-docs/` (Astro Starlight) + `deploy/deploy-vps.sh` (2026-07-25)
+- [x] V2 Phase 1 — Identity split `profiles`→`users`+`profiles`, verified staging, zero discrepancy (2026-07-25)
+- [x] V2 Phase 2 — Drop approval gate, signup self-serve (2026-07-25)
+- [x] V2 Phase 3 — Project ownership (`owner_id`/`owner_type`) + visibility (`private`/`unlisted`/`public`) (2026-07-25)
+- [x] V2 Phase 4 — Membership invite/accept flow (`project_members.status`), "Pending Invitations" card di Home, notifikasi bell + panel untuk lifecycle undangan (2026-07-25 s.d. 2026-07-28, termasuk beberapa iterasi fix RLS/RPC untuk invited user melihat nama project — lihat migrasi `20260727000013`, `20260728000005`–`007`)
+- [x] V2 Phase 5 — Test Suite Template ownership + visibility, buka create/edit/delete ke semua user (2026-07-25)
+- [x] V2 Phase 6 — Minimal public identity lookup `/@username` + `UsernamePicker` (2026-07-25)
+- [x] PWA setup — manifest.json, icon generator (`frontend/scripts/generate-icons.mjs`, sharp-based, generate dari `testify-logo.png`), one-time username change guard (2026-07-28)
+- [x] Sinkronisasi dokumentasi menyeluruh ke state kode saat ini (README, CLAUDE.md, AGENTS.md, docs/ARCHITECTURE.md, docs/PRD.md, FEATURES.md, TODO.md) — bagian dari V2-P7-T03, ditemukan banyak drift: rebrand Testify belum konsisten di semua file, backend Go ternyata jauh lebih lengkap dari sekadar "kosong", `public-docs/`/`landing/`/`deploy/` belum terdokumentasi sama sekali, notifications sudah shipped padahal ROADMAP_V2 masih bilang "deferred" (2026-07-28)

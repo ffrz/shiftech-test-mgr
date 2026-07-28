@@ -1,7 +1,12 @@
-# TestManager (shiftech-test-mgr)
+# Testify (shiftech-test-mgr)
 
-Aplikasi internal sederhana untuk manajemen **Test Plan** dan **Test Case**
-suatu project.
+Aplikasi (sedang bertransisi dari internal tool menjadi produk self-serve)
+untuk manajemen **Test Plan** dan **Test Case** suatu project — nama produk
+**Testify**, nama repo tetap `shiftech-test-mgr`. Lihat
+[`docs/PRODUCT_CONSTITUTION.md`](docs/PRODUCT_CONSTITUTION.md) untuk visi
+produk dan [`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md) untuk
+redesign platform (identity split, self-serve signup, project
+ownership/visibility, invite/accept membership) yang sedang berjalan.
 
 ## Stack
 
@@ -11,23 +16,28 @@ suatu project.
 - **Supabase** — Postgres BaaS untuk storage + Auth (Google OAuth)
 - **react-router-dom** — routing client-side
 - Clean architecture: **Repository → Service → Hook → Component/Page**
-- **Auth & RBAC**: login Google (self-serve signup), role `user`/`admin` sebagai
-  platform-ops flag — akses per-project diatur lewat `project_members` (lihat
-  `docs/ARCHITECTURE_V2.md`)
+- **Auth & RBAC**: login Google (self-serve signup, tidak ada lagi gate
+  approval admin), role `user`/`admin` sebagai platform-ops flag — akses
+  per-project diatur lewat `project_members` dengan status
+  `invited`/`accepted`/`declined` (lihat `docs/ARCHITECTURE_V2.md`)
 
 ## Struktur Repo
 
 ```
-landing/    → Landing page publik (HTML/CSS statis, di-serve di path "/")
-frontend/   → Aplikasi React + Vite (SPA, di-serve di path "/app" — lihat vite.config.ts base + main.tsx basename)
-backend/    → (eksperimental, di-pending — lihat backend/README.md) backend custom, terpisah dari frontend
-supabase/   → Schema SQL shared
-docs/       → PRD, arsitektur, task breakdown
+landing/      → Landing page publik (HTML/CSS statis, di-serve di path "/")
+frontend/     → Aplikasi React + Vite (SPA, di-serve di path "/app" — lihat vite.config.ts base + main.tsx basename)
+public-docs/  → Docs site publik (Astro Starlight, di-serve di path "/docs" — user guide + data model)
+backend/      → (eksperimental, di-pending — lihat backend/README.md) backend Go, terpisah dari frontend
+supabase/     → Schema SQL shared (dikelola via Supabase CLI, lihat supabase/migrations/)
+docs/         → PRD, arsitektur (v1 + v2 redesign), roadmap, product constitution, task breakdown
 ```
 
-Production di-deploy di belakang reverse-proxy: `/` → `landing/index.html` (statis),
-`/app/*` → hasil build `frontend/` (lihat `deploy/deploy-vps.sh`). Semua link "Sign In"/
-"Get Started" di landing page mengarah ke `/app/login`, bukan `/login`.
+Production di-deploy di belakang reverse-proxy lewat satu release directory
+(rsync + symlink swap atomik, lihat `deploy/deploy-vps.sh`):
+`/` → `landing/index.html` (statis), `/app/*` → hasil build `frontend/`,
+`/docs/*` → hasil build `public-docs/` (Astro). Backend Go tidak ikut deploy
+(masih di-pending). Semua link "Sign In"/"Get Started" di landing page
+mengarah ke `/app/login`, bukan `/login`.
 
 ## Getting Started
 
@@ -72,8 +82,15 @@ Dijalankan dari dalam folder `frontend/`:
 
 - [`CLAUDE.md`](./CLAUDE.md) / [`AGENTS.md`](./AGENTS.md) — panduan untuk AI
   coding agent
-- [`docs/PRD.md`](docs/PRD.md) — kebutuhan produk
+- [`docs/PRODUCT_CONSTITUTION.md`](docs/PRODUCT_CONSTITUTION.md) — visi
+  produk, scope MVP, aturan penerimaan fitur (dokumen tertinggi — kalau
+  konflik dengan dokumen lain, dokumen ini menang)
+- [`docs/PRD.md`](docs/PRD.md) — kebutuhan produk (Testing Domain, v1)
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arsitektur teknis
-- [`docs/TASKS.md`](docs/TASKS.md) — breakdown pekerjaan
+  (Testing Domain: layering, schema, RLS)
+- [`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md) — redesign Platform
+  Context (identity split, ownership, visibility, membership)
+- [`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) — fase eksekusi redesign V2
+- [`docs/TASKS.md`](docs/TASKS.md) — breakdown pekerjaan (v1 epics)
 - [`FEATURES.md`](./FEATURES.md) — status fitur
 - [`TODO.md`](./TODO.md) — sprint board aktif

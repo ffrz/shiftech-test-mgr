@@ -1,17 +1,39 @@
-# ARCHITECTURE — TestManager (shiftech-test-mgr)
+# ARCHITECTURE — Testify (shiftech-test-mgr)
 
-**Companion to:** [`docs/PRD.md`](PRD.md) (product/business view). Dokumen ini
-adalah **technical/architectural** view: layering, data flow, dan skema
-database.
+**Scope of this document: Testing Domain only** (Project → Module → Test
+Case → Test Plan → Test Run → Test Result → Issue → Attachment) — layering,
+data flow, and this domain's database schema. This is the part of the app
+that **Platform Evolution V2 explicitly does not change** (see
+[`docs/ARCHITECTURE_V2.md`](ARCHITECTURE_V2.md)'s "Testing Domain unchanged"
+guarantee).
 
-**Stack (as built):** React 19 (TypeScript) · Vite 8 (SPA, tanpa SSR) ·
+**For Platform Context** (identity/auth, project ownership & visibility,
+membership invite/accept, Test Suite ownership) — the model described here in
+§4.1 (Auth & RBAC) is the **pre-V2** shape. See
+[`docs/ARCHITECTURE_V2.md`](ARCHITECTURE_V2.md) for the current shape
+(`users`+`profiles` split, self-serve signup, `project_members.status`,
+project `visibility`) and [`docs/ROADMAP_V2.md`](ROADMAP_V2.md) for what has
+actually shipped. §4.1 below is kept for historical context on *why* the
+original model looked the way it did; treat ARCHITECTURE_V2 as authoritative
+for current Platform Context behavior.
+
+**Companion to:** [`docs/PRD.md`](PRD.md) (product/business view, v1) and
+[`docs/PRODUCT_CONSTITUTION.md`](PRODUCT_CONSTITUTION.md) (product vision,
+highest authority).
+
+**Stack (as built):** React 19 (TypeScript) · Vite (SPA, tanpa SSR) ·
 PrimeReact 10 · PrimeFlex · react-router-dom · Supabase (Postgres + auto REST
 via `supabase-js`).
 
-**Struktur repo:** monorepo `frontend/` (aplikasi React, `package.json` ada di
-sini — semua command dijalankan dari dalam folder ini) + `backend/` (disiapkan
-untuk migrasi masa depan ke PHP + SQLite, saat ini kosong) + `supabase/` (schema
-SQL) + `docs/`.
+**Struktur repo:** `landing/` (static landing page, served at `/`) +
+`frontend/` (aplikasi React, `package.json` ada di sini — semua command
+dijalankan dari dalam folder ini, served at `/app`) + `public-docs/` (Astro
+Starlight docs site, served at `/docs` — user guide + data model, real
+authored content) + `backend/` (Go backend, **PENDING/paused** — far more
+built-out than a stub, see §7 and `backend/README.md`) + `supabase/` (schema
+SQL + `migrations/`, the actual source of truth) + `docs/`. Deploy via
+`deploy/deploy-vps.sh` (rsync + atomic symlink swap of all three built
+outputs into one release directory).
 
 ---
 
@@ -286,15 +308,52 @@ timestamp:
     (kolom `template_item_id` → `suite_item_id`). Dipicu oleh rename menu UI
     "Test Case Templates" → "Test Suite" — nama tabel/kolom/kode disamakan
     supaya tidak drift dari label yang dilihat user (lihat §6.7)
+21. `20260723000002_test_roles.sql` — tabel `test_roles` (master per project,
+    pola sama seperti `modules`): `test_cases.target_role` (teks bebas)
+    diganti jadi `target_role_id` (FK `test_roles`), backfill satu row
+    `test_roles` per nilai teks distinct yang pernah ada per project. RLS
+    "approved users, akses penuh" sama seperti `modules`/`tags`
+22–29. **Migrasi Platform Evolution V2** (`20260725000002` s.d.
+    `20260725000012`, lalu `20260727000013` s.d. `20260728000008`) — lihat
+    [`docs/ARCHITECTURE_V2.md`](ARCHITECTURE_V2.md) §6/§7 dan
+    [`docs/ROADMAP_V2.md`](ROADMAP_V2.md) untuk daftar lengkap & rationale per
+    file (identity split `profiles`→`users`+`profiles`, drop approval gate,
+    project `owner_id`/`visibility`, `project_members` invite/accept, Test
+    Suite ownership/visibility, one-time username, notifications). Ringkasan
+    migrasi terbaru yang menyentuh Testing Domain secara langsung:
+    - `20260725000012_fix_test_suite_privacy_rls.sql` — perbaikan RLS
+      visibility Test Suite (lihat ARCHITECTURE_V2 Phase 5)
+    - `20260727000013_invited_user_project_read_access.sql` — user berstatus
+      `invited` (belum accept) bisa baca `id`/`name`/`owner_id` project supaya
+      kartu undangan tidak menampilkan "Unknown project"
+    - `20260728000001_notifications.sql` — tabel `notifications` + RPC
+      `create_notification()` (security definer) — lihat §6.8
+    - `20260728000002_project_members_realtime.sql` — enable Realtime untuk
+      `project_members` (invite/accept/remove ter-refresh lintas sesi)
+    - `20260728000003_one_time_username.sql` — `profiles.username_changed` +
+      trigger yang menolak perubahan username kedua kalinya
+    - `20260728000004_delete_notifications_by_reference.sql` — RPC
+      `delete_notifications_by_reference()` (bersihkan notifikasi undangan
+      basi saat member di-remove)
+    - `20260728000005`–`007` — debug RPC sementara untuk investigasi bug
+      "invited user lihat Unknown project", lalu fix permanen
+      (`20260728000006_invitation_rpc_security_definer.sql`: RPC
+      `list_own_pending_invitations()`/`respond_to_project_invitation()`
+      security definer, menggantikan ketergantungan langsung ke RLS table
+      select/update untuk user yang belum accept), lalu drop RPC debug-nya
+    - `20260728000008_supervisor_can_run_tests.sql` — `can_run_tests()`
+      sekarang juga meng-grant role `supervisor` (label UI "Manager"),
+      sejalan dengan perubahan `useProjectRole.ts`
 
 | Tabel                   | Keterangan                                                                                                                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `projects`              | Container utama: id, name, description, `status` (`active`\|`inactive`\|`archived`), timestamps. Index pada `status` dan `lower(name)`                                                                                       |
-| `project_members`       | Junction `project_id` ↔ `user_id` + `role` (`manager`\|`supervisor`\|`tester`\|`member`) — akses & hak aksi per project, terpisah dari role global `profiles.role`. Lihat §4.1                                                |
+| `projects`              | Container utama: id, name, description, `status` (`active`\|`inactive`\|`archived`), **`owner_id`**/**`owner_type`** (V2 — polymorphic-ready, hanya `'user'` yang dipakai saat ini), **`visibility`** (`private`\|`unlisted`\|`public`, V2), timestamps. Index pada `status`, `lower(name)`, `owner_id`, dan `visibility` (partial, hanya `public`)                     |
+| `project_members`       | Junction `project_id` ↔ `user_id` + `role` (`manager`\|`supervisor`\|`tester`\|`member`) + **`status`** (`invited`\|`accepted`\|`declined`, V2) + **`invited_by`**/**`invited_at`**/**`responded_at`** (V2) — akses & hak aksi per project, terpisah dari role global `users.role`. Hanya member `status='accepted'` (atau owner) yang dihitung `has_project_access()`. Lihat §4.1 dan `docs/ARCHITECTURE_V2.md` Phase 4                          |
 | `modules`               | Master per project: id, project_id, `code` (auto, editable), name. Unique per `(project_id, code)` dan `(project_id, name)`                                                                                                  |
 | `tags`                  | Master per project: id, project_id, name. Unique per `(project_id, name)`. Dikelola dari tab "Tags" (rename/hapus) — pembuatan baru terjadi on-the-fly dari form Test Case                                                   |
 | `test_case_tags`        | Junction many-to-many `test_case_id` ↔ `tag_id`                                                                                                                                                                              |
-| `test_cases`            | Template pengujian: project_id, module_id (nullable), `code` (auto, editable), title, objective, preconditions, steps, expected_result, priority, `status` (`active`\|`archived`), notes, **`step_type`** (`simple`\|`detailed`, default `simple`), **`target_role`** (teks bebas, E17 — label RBAC testing, mis. "Admin"/"Manager", bukan enum/varian otomatis). **Tidak pernah punya kolom hasil** |
+| `test_roles`            | Master per project (migrasi #21): id, project_id, name — role APLIKASI YANG DITEST (mis. "Admin", "Manager"), bukan role internal. Menggantikan `test_cases.target_role` (dulu teks bebas) — pola & RLS sama seperti `modules`                                                    |
+| `test_cases`            | Template pengujian: project_id, module_id (nullable), `code` (auto, editable), title, objective, preconditions, steps, expected_result, priority, `status` (`active`\|`archived`), notes, **`step_type`** (`simple`\|`detailed`, default `simple`), **`target_role_id`** (FK `test_roles`, nullable — sebelumnya teks bebas `target_role`, lihat migrasi #21). **Tidak pernah punya kolom hasil** |
 | `test_case_steps`       | Template step, hanya relevan jika `step_type = 'detailed'`: test_case_id, step_number, action, expected_result                                                                                                                |
 | `test_plans`            | Rencana pengujian: `code` (auto, editable), name, description, status. Terikat ke `project_id`                                                                                                                               |
 | `test_plan_cases`       | Junction `test_plan_id` ↔ `test_case_id` + **`order`** (sequence — urutan eksekusi, diubah via drag & drop di tab Test Cases) — HANYA cakupan, tanpa kolom hasil                                                             |
@@ -309,7 +368,9 @@ timestamp:
 | `test_suites`           | **Global (E17), TIDAK project-scoped** — library reusable ("Test Suite" di UI), dikelola admin: name, description. Nama tabel semula `test_case_templates` (lihat migrasi #20). Lihat §6.7                                  |
 | `test_suite_items`      | Item di dalam suite: `suite_id`, `module_name`/`tag_names` (teks bebas, di-resolve find-or-create ke project nyata saat clone), title, objective, preconditions, steps, expected_result, priority, `step_type`, `target_role`, `order_index`. Semula `test_case_template_items` |
 | `test_suite_item_steps` | Step detail untuk item `step_type='detailed'`, sama seperti `test_case_steps` tapi untuk suite item. Semula `test_case_template_item_steps`                                                                                  |
-| `profiles`              | 1:1 dengan `auth.users` (Supabase Auth). Kolom: `email`, `full_name`, `avatar_url`, `role` (`pending`\|`user`\|`admin`), `deleted_at` (soft-delete)                                                                          |
+| `users`                 | **V2 (rename dari `profiles` lama)** — 1:1 dengan `auth.users` (Supabase Auth), privat: `email`, `role` (`user`\|`admin`, platform-ops flag — TIDAK ADA lagi `pending`), `deleted_at` (soft-delete). Tidak pernah di-join ke tampilan publik |
+| `profiles`              | **V2 (tabel baru, bukan lagi identity privat)** — 1:1 dengan `users`, publik: `username` (unique, sekali ganti — lihat `username_changed` + trigger `check_username_change`), `display_name`, `avatar_url`, `bio`. Ini yang di-resolve untuk nama/avatar tampilan di seluruh app |
+| `notifications`         | Per-user (migrasi #24): `user_id` (FK `profiles`), `type` (`project_invite`\|`project_member_removed`), `title`, `body`, `reference_type`/`reference_id`, `is_read`. Dibuat **client-side** lewat RPC `create_notification()` (security definer) — BUKAN trigger DB. Lihat §6.8 |
 
 Semua tabel punya trigger `updated_at` otomatis kecuali `test_plan_cases` dan
 `tags` (tidak perlu — hanya insert/delete, tidak pernah update in-place) dan
@@ -401,19 +462,42 @@ Keputusan desain inti (lihat `docs/PRD.md` §3 untuk rationale produk lengkap):
 
 ### 4.1 Auth & RBAC
 
+> **Superseded by Platform Evolution V2** (lihat `docs/ARCHITECTURE_V2.md`,
+> `docs/ROADMAP_V2.md` — Phase 1/2/4, semua `done`). Poin-poin di bawah ini
+> mendeskripsikan model **sebelum** V2 dan disimpan sebagai konteks historis
+> (kenapa modelnya dulu begitu). Perubahan aktual yang sudah shipped:
+> - `profiles` (lama, gabungan email+role+identity) di-**split** jadi `users`
+>   (privat: email/role) + `profiles` (publik: username/displayName/
+>   avatarUrl/bio, tabel baru)
+> - Status `pending` **dihapus total** — signup self-serve, `role` langsung
+>   `user`. `is_approved()` sekarang berarti "akun aktif (belum soft-delete)",
+>   bukan lagi "sudah di-approve admin"
+> - `project_members` dapat kolom `status` (`invited`\|`accepted`\|
+>   `declined`) — `has_project_access()` dan semua capability helper di bawah
+>   HANYA menghitung member `status='accepted'` (atau project owner)
+> - `can_run_tests()` juga meng-grant role `supervisor` sejak migrasi
+>   `20260728000008_supervisor_can_run_tests.sql` (semula hanya
+>   `manager`/`tester`)
+>
+> Sisa bagian §4.1 ini akurat untuk detail yang TIDAK berubah (mis. pola
+> `security definer` untuk hindari RLS recursion, split policy per-operasi).
+
 - **Provider**: Google OAuth via Supabase Auth
   (`supabase.auth.signInWithOAuth({ provider: 'google' })`)
 - **Auto-provisioning**: trigger `handle_new_user()` di `auth.users` (AFTER
-  INSERT) otomatis membuat row `profiles` dengan `role = 'pending'` setiap ada
-  signup baru — tidak ada langkah manual untuk ini
-- **Role check helpers**: dua fungsi SQL `security definer` untuk menghindari
-  RLS recursion saat query `profiles` dari dalam policy tabel lain:
-  - `is_admin()` — true jika `profiles.role = 'admin'` untuk `auth.uid()` saat
-    ini
-  - `is_approved()` — true jika role `user` atau `admin`
+  INSERT) otomatis membuat row `users` + `profiles` (V2 — dulu satu row
+  `profiles` dengan `role = 'pending'`) setiap ada signup baru — tidak ada
+  langkah manual untuk ini, dan tidak ada lagi status `pending` yang perlu
+  di-approve
+- **Role check helpers**: fungsi SQL `security definer` untuk menghindari
+  RLS recursion saat query identity dari dalam policy tabel lain:
+  - `is_admin()` — true jika `users.role = 'admin'` untuk `auth.uid()` saat
+    ini (V2: dulu mengecek `profiles.role`)
+  - `is_approved()` — true jika akun aktif (V2: dulu berarti role `user` atau
+    `admin`, sekarang tidak ada lagi konsep `pending` untuk dicek)
 - **Admin pertama**: TIDAK ada mekanisme otomatis (sengaja) — di-set manual via
   Supabase Table Editor
-  (`update profiles set role = 'admin' where email = '...'`) setelah user tsb
+  (`update users set role = 'admin' where email = '...'`) setelah user tsb
   login sekali
 
 **Row Level Security — sekarang project-scoped, bukan lagi role global saja:**
@@ -725,14 +809,84 @@ ProjectDetailPage (tab Test Cases) → tombol "Import dari Template" (cloneItems
   Preconditions/Steps/Expected Result/Priority/Tags/Target Role, hanya Title
   wajib. Dialog preview baris valid vs invalid (dengan alasan gagal) sebelum
   commit, bukan insert langsung buta
-- **RBAC test case field (`test_cases.target_role`)**: teks bebas (bukan
-  enum) karena role aplikasi yang ditest bervariasi per project — TIDAK sama
-  dengan `project_members.role` (role internal TestManager). Test case yang
-  konsep-nya sama tapi perlu diuji ulang per role (mis. "Buka Settings" untuk
-  Admin vs Member) di-duplikasi **manual** oleh user sebagai row terpisah;
-  field ini murni label/filter, bukan sistem varian otomatis — keputusan
-  eksplisit user untuk menghindari kompleksitas sistem custom-fields generik
-  ala GitHub Projects
+- **RBAC test case field (`test_cases.target_role_id`)**: awalnya teks bebas
+  (`target_role`), sejak migrasi `20260723000002_test_roles.sql` jadi FK ke
+  tabel master `test_roles` per project (pola sama seperti `modules`) — masih
+  bukan enum aplikasi-lebar, karena role aplikasi yang ditest bervariasi per
+  project, dan TIDAK sama dengan `project_members.role` (role internal
+  Testify). Test case yang konsep-nya sama tapi perlu diuji ulang per role
+  (mis. "Buka Settings" untuk Admin vs Member) di-duplikasi **manual** oleh
+  user sebagai row terpisah; field ini murni label/filter, bukan sistem
+  varian otomatis — keputusan eksplisit user untuk menghindari kompleksitas
+  sistem custom-fields generik ala GitHub Projects
+
+### 6.8 Project Membership (Invite/Accept) & Notifications (V2 Phase 4)
+
+> Detail lengkap rationale & migration trail ada di `docs/ARCHITECTURE_V2.md`
+> §1/§6/§7 dan `docs/ROADMAP_V2.md` Phase 4. Bagian ini merangkum bentuk
+> akhirnya untuk kebutuhan sehari-hari mengembangkan modul ini.
+
+```
+ProjectSettingsPage (tab Members) → UsernamePicker (search) → projectMemberService.invite() → project_members (status='invited') + notification
+HomePage ("Pending Invitations" card) / AppTopbar (bell) → useProjectInvitations / useNotifications → respond_to_project_invitation RPC
+```
+
+- **`project_members.status`**: `invited` → `accepted`/`declined`. Hanya
+  member `accepted` (atau project owner) yang dihitung `has_project_access()`
+  dan seluruh capability helper — invited user belum punya akses apa pun ke
+  data project selain baca nama project itu sendiri (lihat migrasi #22 di
+  §4)
+- **Kenapa lewat RPC `security definer`, bukan RLS table select biasa**:
+  seorang invited user (belum accept) tidak punya akses RLS ke `projects`
+  atau `profiles` lewat jalur normal, sehingga resolusi nama project/inviter
+  untuk kartu undangan tidak bisa mengandalkan join biasa. Ditangani dua
+  fungsi: `list_own_pending_invitations()` (resolve nama project + inviter
+  dalam satu panggilan, bypass RLS) dan `respond_to_project_invitation()`
+  (accept/decline)
+- **Notifications** (`notifications` table, migrasi #24): dibuat
+  **client-side** dari `projectMemberService` (`invite`/`reinvite`/`remove`)
+  lewat RPC `create_notification()` — **bukan trigger database**. Baru dua
+  tipe yang ada: `project_invite` dan `project_member_removed`; tidak ada
+  notifikasi untuk test run/issue/dll saat ini. UI: bell + unread badge di
+  `AppTopbar.tsx`, `NotificationPanel.tsx` (PrimeReact `Sidebar` slide-out) —
+  di-refresh via polling 30 detik (`useNotifications`'s `refetchInterval`),
+  bukan realtime push (meski tabel `notifications` ada di publikasi
+  Realtime, belum ada subscriber dedicated di frontend untuk itu)
+- **`useProjectAccessGuard.ts`**: BUKAN gate visibility — ini guard "kamu
+  baru saja kehilangan akses sambil sedang membuka halaman project ini"
+  (mis. manager me-remove kamu di tengah sesi). Watch `useProjectRole`, kalau
+  role hilang → redirect ke `/`. Bergantung pada `useRealtimeSync`
+  meng-invalidate cache `['projectRole', projectId, userId]` saat
+  `project_members` berubah
+- **Project `visibility`** (`private`\|`unlisted`\|`public`, kolom di
+  `projects`): diatur dari tab **Danger Zone** di `ProjectSettingsPage.tsx`.
+  Public/unlisted project bisa dibaca tanpa membership; private tetap wajib
+  `has_project_access()`. Belum ada UI browse/discover project public — hanya
+  kontrol visibility itu sendiri (lihat ARCHITECTURE_V2 §9 kenapa showcase
+  publik sengaja tidak dibangun)
+
+### 6.9 Settings (Identity Publik) & Duplicate Project
+
+- **`pages/settings/SettingsPage.tsx`** + **`hooks/useSettings.ts`**: user
+  edit `username` (unique, **sekali seumur hidup** — trigger DB
+  `check_username_change` menolak percobaan kedua), `displayName`,
+  `avatarUrl`, `bio`, plus toggle tema (`useThemeContext`). Lewat
+  `profileRepository`/`profileService` — jalur yang sama dengan identity
+  publik lainnya (bukan `userRepository`/`userService`, yang untuk
+  email/role admin-only)
+- **`/@:username`** (`PublicProfilePage`, V2 Phase 6): lookup identitas
+  minimal (display name, avatar, bio) — sengaja BUKAN halaman portofolio
+  (tanpa daftar project/suite publik), karena Constitution eksplisit
+  menolak framing "social network". Berguna sebagai target invite-by-username
+  dan verifikasi kepemilikan project
+- **`services/projectDuplicateService.ts`**: clone sebagian struktur project
+  (Test Plan/Test Case/Issue terpilih user) ke project baru. **Test
+  Run/Test Result (riwayat eksekusi) tidak pernah ikut ter-copy** — hanya
+  struktur/template, bukan histori. Memilih sebuah Test Plan otomatis
+  meng-union test case-nya sendiri ke seleksi (supaya plan yang di-duplicate
+  tidak berakhir dengan cakupan kosong). Sequential (bukan `Promise.all`) di
+  semua tahap supaya id-remapping antar entity benar dan find-or-create
+  module/tag tidak race
 
 ---
 
@@ -745,7 +899,8 @@ ProjectDetailPage (tab Test Cases) → tombol "Import dari Template" (cloneItems
 | Bundle size                                                 | Build menghasilkan chunk >1MB (belum code-split) — cukup untuk skala aplikasi internal ini, revisit kalau modul terus bertambah                                                                                                                                                                                                                                      |
 | Admin pertama manual                                        | Tidak ada seed/CLI untuk assign admin pertama — harus lewat Supabase Table Editor. Didokumentasikan, bukan bug                                                                                                                                                                                                                                                       |
 | Google OAuth redirect                                       | `redirectTo: window.location.origin` — pastikan URL ini terdaftar di Supabase Auth settings (Site URL & Redirect URLs) dan Google Cloud Console OAuth client, terutama saat deploy ke domain lain dari localhost                                                                                                                                                     |
-| Migrasi ke backend PHP + SQLite (rencana, belum dikerjakan) | Repository layer sengaja jadi satu-satunya titik yang tahu tentang Supabase supaya migrasi ini nanti tinggal ganti isi repository (mis. jadi `fetch()` ke endpoint PHP) tanpa menyentuh service/hook/component. RLS Supabase (aturan akses per role) perlu direplikasi manual jadi authorization check di sisi PHP saat migrasi terjadi — tidak otomatis ikut pindah |
+| Backend Go (`backend/`) — PENDING/paused, jauh lebih lengkap dari sekadar rencana | Bukan sekadar folder kosong: domain/repository (dual MySQL+Postgres)/service/transport HTTP layer sudah lengkap dan mem-porting business rule frontend 1:1 (lihat header comment `internal/service/testrun/service.go`). Sengaja di-pause sampai Platform Evolution V2 selesai (lihat `backend/README.md`, `docs/ARCHITECTURE_V2.md` §8). Repository layer frontend sengaja jadi satu-satunya titik yang tahu tentang Supabase supaya migrasi nanti tinggal ganti implementasi repository tanpa menyentuh service/hook/component. RLS Supabase perlu direplikasi manual jadi authorization check di sisi Go saat migrasi terjadi — tidak otomatis ikut pindah |
+| Tiga build statis independen, tanpa workspace root | `landing/` (statis, tanpa build step), `frontend/` (Vite), `public-docs/` (Astro Starlight) masing-masing punya toolchain sendiri, tidak ada root `package.json`/workspaces. Disatukan hanya saat deploy (`deploy/deploy-vps.sh` — rsync + symlink swap ke satu release dir: `/`, `/app`, `/docs`). Root `README.md` sempat tidak menyebut `public-docs/` sama sekali di struktur repo — perbaiki kalau menemukan drift serupa lagi |
 | Tag junction full-replace                                   | `tagService.saveTagsForTestCase` selalu delete+insert ulang seluruh `test_case_tags` untuk test case tsb saat disimpan — sederhana tapi berarti setiap save test case menyentuh baris junction meski tag tidak berubah. Cukup untuk skala saat ini (jumlah tag per test case kecil)                                                                                  |
 | Storage adapter (E12) pola baru di codebase                  | Interface + implementasi terpisah (`StorageAdapter`) belum ada contohnya di layer lain (Repository saat ini langsung bicara ke Supabase, bukan lewat interface) — jadi validasi pertama pola "swappable provider" di luar rencana migrasi backend PHP                                                                                                                |
 | Realtime invalidation pakai prefix luas untuk sebagian tabel (E14) | `test_runs` dan `test_plan_cases` tidak punya `project_id` di payload Realtime (cuma `test_plan_id`), jadi event tabel itu invalidate prefix `['testRuns']` penuh (semua varian `testRunsByProject`/`testRunsByPlan` yang sedang ter-cache), bukan key spesifik — sedikit overfetch tapi menghindari query lookup tambahan di jalur event handler. Keputusan produk, bukan bug |

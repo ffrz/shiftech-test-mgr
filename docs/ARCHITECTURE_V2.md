@@ -51,7 +51,7 @@ Phase 6 for the current scope.
 | `issues`, `attachments` | **Keep** for MVP; visibility inheritance **deferred** | Design Principle 7 lists Issues/Attachments as future visibility-aware resources. Not required for MVP since they're always inside a project, and project visibility already gates them via `has_project_access()`. Revisit only if issues need to be independently public (e.g. public bug tracker) — out of scope now. |
 | `entity_code_sequences` | **Keep** | Internal bookkeeping, untouched. |
 | — (new) `organizations` | **Deferred, schema-ready only** | See §4. Not created in this MVP; `projects.owner_id` is shaped so it can be repointed later without a breaking migration. |
-| — (new) `notifications` | **Deferred entirely** | Listed in the vision's Platform Context but has no concrete requirement yet (no invite-accepted email, no in-app inbox requested). Out of MVP scope; note it as a known gap, don't build a stub table for it. |
+| — (new) `notifications` | **Built anyway, scoped minimal** — originally planned as deferred here, but shipped 2026-07-28 (`20260728000001_notifications.sql`) once Phase 4's invite/accept flow needed a way to surface "you were invited" / "you were removed" to the invitee | Two types only: `project_invite`, `project_member_removed`, created client-side via a `create_notification()` security-definer RPC (not a DB trigger) from `projectMemberService`. UI: bell + unread badge in `AppTopbar`, a `NotificationPanel` slide-out, polled every 30s (not realtime-pushed despite the table being in the realtime publication). No notification exists yet for Testing Domain events (test run completed, issue created, etc.) — that part of the original deferral still holds. |
 
 ---
 
@@ -379,7 +379,7 @@ No REST API design is proposed yet — premature until the Go backend work resum
 **Explicitly out of scope (deferred, not forgotten — and some rejected outright per Constitution):**
 - Organizations/Workspaces (tables + UI) — deferred
 - Test Suite forking/lineage (`forked_from_id`), versioning — deferred
-- Notifications (in-app or email) — deferred
+- Notifications (in-app or email) — **partially built anyway**: a minimal in-app bell + panel shipped 2026-07-28 to support Phase 4's invite/remove lifecycle (see §1 entity table above). Notifications for Testing Domain events (test run completed, issue created, etc.) and email notifications remain deferred.
 - Visibility on Issues/Attachments independent of their parent Project — deferred
 - Public project/suite showcase, contributions, statistics on profile pages — **rejected**,
   conflicts with Constitution's "not a social network" / "not a portfolio" stance, not merely postponed

@@ -7,7 +7,10 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] Create & Edit project (Dialog form)
 - [x] Status lifecycle: Aktif / Nonaktif / Arsip (menu aksi per baris)
 - [x] Hapus Permanen (dengan konfirmasi, cascade ke module/test plan/test case/test run/test result/issue)
-- [x] Halaman detail project (`/projects/:id`) — info + tab Test Plans / Test Cases / Modules / Tags
+- [x] Halaman detail project (`/projects/:id`) — info + tab Test Plans / Test Cases / Modules / Tags / Test Runs / Issues
+- [x] **Ownership + Visibility** (V2 Phase 3) — `owner_id`/`owner_type`, `visibility` (`private`/`unlisted`/`public`) diatur di `ProjectSettingsPage` tab Danger Zone
+- [x] `ProjectSettingsPage` — tab Members (invite/reinvite/remove) terpisah dari detail page
+- [x] Duplicate project (`projectDuplicateService`) — clone struktur (test plan/case/issue pilihan) tanpa riwayat run
 - [ ] Project selector global (dipakai lintas halaman)
 
 ## Kode Entity (Module, Test Case, Test Plan, Test Run)
@@ -30,8 +33,8 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [ ] Filter by priority/status di list
 
 ## Test Suite Library (E17, renamed from "Test Case Template Library")
-- [x] Library global (bukan per-project), dikelola admin — `TestSuitesPage`/`TestSuiteDetailPage`, sidebar "Test Suite"
-- [x] Semua approved user bisa lihat & clone suite ke project mereka; hanya admin yang bisa create/edit/delete suite (RLS `is_approved()` select, `is_admin()` write)
+- [x] Library global (bukan per-project) — `TestSuitesPage`/`TestSuiteDetailPage`, sidebar "Test Suite"
+- [x] **V2 Phase 5**: kepemilikan per-user (`owner_id`) + `visibility` (`private`/`unlisted`/`public`) — TIDAK LAGI admin-only. Siapa pun bisa create suite privat; publish `public` membuatnya terlihat & bisa di-clone user lain. Filter "My Templates" vs "All Visible Templates" di `TestSuitesPage`
 - [x] Item suite mendukung `simple`/`detailed` step_type sama seperti Test Case biasa, plus Role Target dan Tag (teks bebas — module/tag di-resolve find-or-create ke project nyata saat clone)
 - [x] Clone saat inisialisasi project baru (dropdown "Mulai dari Template" opsional di dialog Project Baru) atau kapan saja lewat tombol "Import dari Template" di tab Test Cases (pilih sebagian item, bukan wajib semua)
 
@@ -68,17 +71,36 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 
 ## User Management & Auth (RBAC)
 - [x] Login via Google OAuth (Supabase Auth)
-- [x] Auto-provisioning profile (role default `pending`) saat signup
-- [x] RLS berbasis role global (`pending`/`user`/`admin`) di semua tabel
-- [x] RBAC per-project (E15): tabel `project_members`, role `manager`/`supervisor`/`tester`/`member` — hak edit/hapus/jalankan-test/kelola-issue berbeda per role, independen dari role global. Creator project otomatis jadi `manager`
+- [x] **Self-serve signup** (V2 Phase 2) — TIDAK ADA lagi status `pending`/approval admin; role langsung `user` saat signup
+- [x] **Identity split** (V2 Phase 1) — `users` (privat: email/role) + `profiles` (publik: username/displayName/avatarUrl/bio), auto-provisioning keduanya saat signup
+- [x] RLS berbasis role global (`user`/`admin`) + akses per-project via `project_members.status='accepted'`
+- [x] RBAC per-project (E15): tabel `project_members`, role `manager`/`supervisor`/`tester`/`member` — hak edit/hapus/jalankan-test/kelola-issue berbeda per role, independen dari role global. Creator project otomatis jadi `manager`. `supervisor` juga bisa jalankan test sejak migrasi `20260728000008`
 - [x] `useProjectRole` hook — dipakai semua halaman detail untuk tampilkan/sembunyikan aksi sesuai role per-project
-- [x] Halaman Login & Pending Approval — perubahan role approval terdeteksi **live** via Supabase Realtime (auto-redirect tanpa logout/login ulang)
-- [x] Route guard (`ProtectedRoute`, `AdminRoute`)
-- [x] Halaman User Management: approve, promote/demote admin↔user, cabut akses, hapus (soft-delete), lihat detail
+- [x] Halaman Login — `PendingApprovalPage` sudah **dihapus** (V2 Phase 2, tidak ada lagi gate approval untuk di-redirect)
+- [x] Route guard (`ProtectedRoute` — hanya cek login, `AdminRoute` — hanya screen admin-ops)
+- [x] Halaman User Management: promote/demote admin↔user, hapus (soft-delete), lihat detail — aksi **Approve**/**Cabut Akses** sudah dihapus (V2 Phase 2, tidak relevan lagi)
 - [x] Halaman detail user (`/users/:id`)
-- [x] Layout: avatar, nama user, logout, menu khusus admin, dark mode toggle
+- [x] Halaman Settings (`/settings`) — edit `username` (sekali ganti seumur hidup), `displayName`, `avatarUrl`, `bio`, toggle tema
+- [x] Halaman `/@:username` — lookup identitas publik minimal (nama, avatar, bio), dipakai juga sebagai target-picker undangan (V2 Phase 6)
+- [x] Layout: avatar, nama user, logout, menu khusus admin, dark mode toggle, bell notifikasi
 - [x] Konfigurasi Google OAuth di Supabase Dashboard — selesai
 - [x] Set admin pertama — selesai
+
+## Platform Evolution V2 (identity, ownership, membership — lihat `docs/ARCHITECTURE_V2.md`/`docs/ROADMAP_V2.md`)
+- [x] Phase 1 — Identity split `profiles`→`users`+`profiles`
+- [x] Phase 2 — Drop approval gate (self-serve signup)
+- [x] Phase 3 — Project ownership (`owner_id`/`owner_type`) + visibility (`private`/`unlisted`/`public`)
+- [x] Phase 4 — Membership invite/accept flow (`project_members.status`), notifications (bell + panel), "Pending Invitations" card di Home
+- [x] Phase 5 — Test Suite Template ownership (`owner_id`) + visibility, buka create/edit/delete ke semua user (bukan admin-only)
+- [x] Phase 6 — Minimal public identity lookup (`/@username`), `UsernamePicker` component
+- [ ] Phase 7 — Golden-path acceptance walkthrough (2 akun real) + regresi Testing Domain + dokumentasi sinkron (dokumen ini adalah bagian dari itu) — **in progress**
+
+## Test Cases — Test Role (lanjutan E17)
+- [x] `test_cases.target_role` (dulu teks bebas) diganti `target_role_id` FK ke tabel master `test_roles` per project (pola sama seperti Module) — migrasi `20260723000002_test_roles.sql`
+
+## Project — Duplicate & Settings
+- [x] `projectDuplicateService.duplicateProject()` — clone Test Plan/Test Case/Issue terpilih ke project baru, TANPA riwayat Test Run/Test Result
+- [x] `ProjectSettingsPage` — tab Members (invite/reinvite/remove + status badge) dan Danger Zone (visibility, active/inactive, archive, hapus permanen)
 
 ## Infrastruktur
 - [x] Supabase schema domain + RLS berbasis role — 16 migrasi berurutan, dikelola via **Supabase CLI** (`supabase/migrations/`, `supabase db push`), bukan lagi copy-paste manual ke SQL Editor

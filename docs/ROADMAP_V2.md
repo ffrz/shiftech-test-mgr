@@ -262,10 +262,10 @@ what T01's walkthrough below covers. **Ready to execute T01.**
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P7-T01 | Golden-path walkthrough (see step-by-step checklist below) | todo |
+| V2-P7-T01 | Golden-path walkthrough (see step-by-step checklist below) | todo — needs two real browser sessions, not agent-verifiable |
 | V2-P7-T02 | Full regression pass across Testing Context (test cases/plans/runs/results/issues) — confirm zero behavior change per ARCHITECTURE_V2 "Testing Domain unchanged" guarantee | todo |
-| V2-P7-T03 | Update `CLAUDE.md`, `docs/PRD.md`, `FEATURES.md` to reflect the shipped V2 model (mark ARCHITECTURE_V2 as the current architecture, fold key parts into ARCHITECTURE.md or cross-link) | todo |
-| V2-P7-T04 | Update `TODO.md` — clear V2 roadmap items, resume normal sprint board | todo |
+| V2-P7-T03 | Update `CLAUDE.md`, `AGENTS.md`, root `README.md`, `docs/ARCHITECTURE.md`, `docs/PRD.md`, `FEATURES.md`, `TODO.md` to reflect the shipped V2 model | done (2026-07-28) — cross-links added, ARCHITECTURE.md/PRD.md sections marked "superseded" with pointers to ARCHITECTURE_V2 rather than fully rewritten (Testing Domain sections there are untouched and still accurate). Also caught and fixed drift beyond V2 scope: notifications (this doc's §1 said "deferred entirely, don't build a stub table" — a full notification stack shipped anyway for the invite/remove lifecycle, see migration `20260728000001`), `test_roles` master table replacing free-text `target_role`, Testify rebrand, `landing/`+`public-docs/`+`deploy/` undocumented, `backend/` far more built-out than "empty" |
+| V2-P7-T04 | Update `TODO.md` — clear V2 roadmap items, resume normal sprint board | todo — waiting on T01/T02 (walkthrough + regression) before clearing |
 | V2-P7-T05 | Merge `feature/platform-foundation` → `master` (only after T01–T04 all pass) | todo |
 
 ### V2-P7-T01 — Golden-path walkthrough checklist
@@ -379,7 +379,7 @@ sub-app.
 
 - Organizations/Workspaces (tables + UI) — deferred, schema-ready only
 - Test Suite Template forking/lineage (`forked_from_id`), versioning — deferred
-- Notifications (in-app or email) — deferred
+- Notifications (in-app or email) — **partially built anyway**: minimal bell + panel shipped 2026-07-28 for Phase 4's invite/remove lifecycle only (see `ARCHITECTURE_V2.md` §1). Testing Domain notifications (test run/issue events) and email remain deferred.
 - Visibility on Issues/Attachments independent of parent Project — deferred
 - Public project/suite showcase, contributions, statistics on profile pages —
   **rejected**, conflicts with the Constitution's "not a social network" stance

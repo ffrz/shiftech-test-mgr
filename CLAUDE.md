@@ -4,17 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**TestManager** adalah aplikasi internal untuk manajemen **Test Plan** dan **Test Case** suatu project. Dibangun sebagai eksperimen arsitektur: **React 19 + TypeScript (Vite, SPA murni)** + **PrimeReact** (UI library, setara PrimeVue) + **Supabase** (Postgres BaaS) sebagai storage, saat ini tanpa backend custom (backend custom sedang dieksplorasi, lihat folder `backend/`).
+**Testify** (nama repo tetap `shiftech-test-mgr`) adalah aplikasi manajemen **Test Plan** dan **Test Case** suatu project — sedang bertransisi dari internal tool menjadi produk self-serve (lihat `docs/PRODUCT_CONSTITUTION.md`). Dibangun sebagai eksperimen arsitektur: **React 19 + TypeScript (Vite, SPA murni)** + **PrimeReact** (UI library, setara PrimeVue) + **Supabase** (Postgres BaaS) sebagai storage. Backend Go custom ada di `backend/` tapi statusnya **PENDING/paused** (lihat `backend/README.md`) — jauh lebih lengkap dari sekadar model DB (domain/repository/service/transport layer sudah ada, dual MySQL+Postgres), tapi sengaja tidak dipakai sampai Platform Evolution V2 (lihat di bawah) selesai.
 
 Tujuan utama repo ini adalah memvalidasi pola **clean architecture di sisi frontend** (Repository → Service → Hook → Component) yang bisa dipakai ulang di project React lain, bukan untuk fitur test management yang lengkap secara production-grade.
+
+**Platform Evolution V2 sedang berjalan** (lihat `docs/PRODUCT_CONSTITUTION.md`, `docs/ARCHITECTURE_V2.md`, `docs/ROADMAP_V2.md`): identity split (`profiles` → `users` + `profiles`), self-serve signup (drop approval gate), project ownership + visibility (`private`/`unlisted`/`public`), dan membership invite/accept flow. Phase 1–6 sudah `done`; Phase 7 (golden-path walkthrough + docs sync — dokumen ini adalah bagian dari itu) sedang berjalan. Testing Domain (Project → Module → Test Case → Test Plan → Test Run → Test Result → Issue) **tidak berubah** oleh redesign ini.
 
 ### Struktur repo
 
 ```
-frontend/     → Aplikasi React + Vite (SPA) — lihat detail layering di bawah
-backend/      → (eksperimental) backend custom, terpisah dari frontend
-supabase/     → Schema SQL shared, dipakai frontend (dan nanti backend)
-docs/         → PRD, arsitektur, task breakdown
+landing/      → Landing page publik (HTML/CSS statis, di-serve di path "/")
+frontend/     → Aplikasi React + Vite (SPA, di-serve di path "/app") — lihat detail layering di bawah
+public-docs/  → Docs site publik (Astro Starlight, di-serve di path "/docs" — user guide + data model, sudah berisi konten asli bukan starter scaffold)
+backend/      → Backend Go (PENDING/paused) — dual MySQL/Postgres, layer domain/repository/service/transport lengkap, lihat backend/README.md
+supabase/     → Schema SQL + migrations (dikelola via Supabase CLI, lihat supabase/migrations/), dipakai frontend
+docs/         → PRD (v1), ARCHITECTURE (v1), ARCHITECTURE_V2 + ROADMAP_V2 (redesign platform), PRODUCT_CONSTITUTION, task breakdown
+deploy/       → deploy-vps.sh — rsync + atomic symlink swap: landing/ → "/", frontend/dist/ → "/app", public-docs/dist/ → "/docs"
 ```
 
 ---
@@ -35,12 +40,14 @@ npm run lint      # ESLint
 
 ### Database (Supabase)
 
-Tidak ada migration runner otomatis. Schema dikelola manual via file SQL:
+Dikelola via **Supabase CLI**, bukan copy-paste manual ke SQL Editor:
 
 ```bash
-# Jalankan isi supabase/schema.sql di Supabase SQL Editor (project dashboard)
-# Jalankan supabase/seed.sql (opsional) untuk data contoh
+# Migrasi baru: tambah file .sql ke supabase/migrations/ dengan nama <timestamp>_<deskripsi>.sql
+supabase db push --yes
 ```
+
+`supabase/schema*.sql` di root folder adalah source historis awal (sudah tidak jadi source of truth sejak migrasi `20260722000001_auto_approve_signup.sql`) — perubahan skema terbaru **hanya** ada di `supabase/migrations/`.
 
 Environment variable di `frontend/.env` (lihat `frontend/.env.example`):
 ```
@@ -110,19 +117,22 @@ Project
 
 | Entity | Deskripsi |
 |---|---|
-| `Project` | Container utama — status `active`\|`inactive`\|`archived` |
+| `Project` | Container utama — status `active`\|`inactive`\|`archived`, `ownerId`/`ownerType` (V2), `visibility` `private`\|`unlisted`\|`public` (V2) |
 | `Module` | Master per project — satu per Test Case |
 | `Tag` | Label bebas per project, many-to-many ke Test Case |
-| `TestCase` | Template pengujian — title, objective, preconditions, steps, expectedResult, priority, status (`active`\|`archived`), notes |
+| `TestRole` | Master per project (mis. "Admin", "Manager") — role APLIKASI YANG DITEST, bukan role TestManager. Menggantikan `test_cases.target_role` (dulu teks bebas) — sekarang FK `target_role_id`, pola sama seperti Module |
+| `TestCase` | Template pengujian — title, objective, preconditions, steps, expectedResult, priority, status (`active`\|`archived`), notes, `targetRoleId` (opsional, FK `TestRole`) |
 | `TestPlan` | Cakupan test case untuk suatu rilis/siklus |
 | `TestPlanCase` | Junction — HANYA "test case mana masuk plan ini", tanpa kolom hasil |
 | `TestRun` | Satu sesi eksekusi — `status`: `in_progress`\|`completed` (manual) |
 | `TestResult` | Satu baris per (TestRun × TestCase) — `status`, `testerId`, `executedAt`, `notes` |
 | `Issue` | 0..N per TestResult FAIL — title, description, actualResult, expectedResult, priority, status, assignedTo |
 | `User` | 1:1 dengan `auth.users` Supabase — privat: `email`, `role` (`user`\|`admin`, platform-ops flag) |
-| `Profile` | 1:1 dengan `User` — publik: `username`, `displayName`, `avatarUrl`, `bio` (lihat `docs/ARCHITECTURE_V2.md` §1/§3) |
+| `Profile` | 1:1 dengan `User` — publik: `username` (one-time change, lihat trigger `check_username_change`), `displayName`, `avatarUrl`, `bio` (lihat `docs/ARCHITECTURE_V2.md` §1/§3) |
+| `ProjectMember` | Akses per-project — `role` (`manager`\|`supervisor`\|`tester`\|`member`) + `status` (`invited`\|`accepted`\|`declined`, V2) + `invitedBy`/`invitedAt`/`respondedAt` |
+| `Notification` | Per-user — `type` (`project_invite`\|`project_member_removed`), `title`, `body`, `referenceType`/`referenceId`, `isRead`. Dibuat client-side (bukan DB trigger) lewat RPC `create_notification`, hanya dipakai untuk lifecycle project membership saat ini |
 
-Lihat `frontend/src/types/domain.ts` untuk tipe lengkap, dan `supabase/schema*.sql` (dijalankan berurutan: `schema.sql` → `schema_auth.sql` → `schema_project_lifecycle.sql` → `schema_test_management_v2.sql`) untuk skema tabel.
+Lihat `frontend/src/types/domain.ts` untuk tipe lengkap, dan `supabase/migrations/` (urut berdasarkan timestamp file) untuk skema tabel terkini — `supabase/schema*.sql` di root sudah usang, jangan jadikan acuan.
 
 ### Auth & RBAC (Google Login)
 
@@ -137,6 +147,28 @@ signup **self-serve**, tidak ada lagi gate approval admin.
 - State auth global ada di `AuthProvider` (`frontend/src/hooks/useAuth.tsx`), expose `user` (role) dan `profile` (identity) terpisah, dikonsumsi via `useAuthContext()` — jangan query `supabase.auth` langsung dari component
 - Route guard: `components/auth/ProtectedRoute.tsx` (wajib login saja — tidak ada lagi cek approval), `components/auth/AdminRoute.tsx` (wajib admin, untuk layar admin-ops seperti User Management) — **ini hanya UX**, keamanan sebenarnya ada di RLS
 - Modul User Management (`pages/users/UserManagementPage.tsx`) baca `users` (email/role) lewat `userRepository` → `userService` → `useUsers` hook → page. Modul identity publik (Settings, `/@username`) baca `profiles` lewat `profileRepository` → `profileService` — dua jalur terpisah, jangan dicampur
+- **Settings** (`pages/settings/SettingsPage.tsx` + `hooks/useSettings.ts`): user edit `username` (sekali seumur hidup — trigger DB `check_username_change` menolak perubahan kedua), `displayName`, `avatarUrl`, `bio`, plus toggle tema (system/light/dark via `useThemeContext`)
+
+### Project Membership: Invite/Accept (V2 Phase 4)
+
+- `project_members` bukan lagi direct-add — punya lifecycle `status`: `invited` → `accepted`/`declined`, plus `invitedBy`/`invitedAt`/`respondedAt`
+- Alur: manager/owner buka **Project Settings → Members tab** (`ProjectSettingsPage.tsx`) → pilih user via `components/ui/UsernamePicker.tsx` (debounced search `profileService.search()`) → `projectMemberService.invite()` → insert `project_members` (`status='invited'`) + notifikasi ke invitee
+- Invitee melihat undangan di dua tempat: bell notifikasi (`AppTopbar`) dan card **"Pending Invitations"** di `HomePage.tsx` (`useProjectInvitations` hook) — accept/decline lewat RPC `respond_to_project_invitation` (security definer, karena invited user belum py akses RLS ke `projects`/`profiles` biasa)
+- `has_project_access()` dan seluruh capability helper (`can_edit_project_content`, dst) HANYA menghitung member `status='accepted'` — invited user tidak dapat akses apa pun sampai accept
+- `hooks/useProjectAccessGuard.ts` — bukan gate visibility, tapi guard "kamu baru saja di-remove sambil sedang buka halaman project ini": watch `useProjectRole`, kalau role hilang saat user masih di halaman project → redirect ke `/`
+- Project punya `visibility` (`private`\|`unlisted`\|`public`) — diatur di tab **Danger Zone** `ProjectSettingsPage.tsx`; public/unlisted project bisa dibaca tanpa membership, private tetap butuh `has_project_access()`
+
+### Notifications
+
+- Tabel `notifications` (per-user, `type`/`title`/`body`/`referenceType`/`referenceId`/`isRead`) — **dibuat client-side lewat RPC `create_notification`** (security definer), BUKAN trigger database
+- Dua tipe saat ini: `project_invite` dan `project_member_removed` — keduanya dipicu dari `projectMemberService.invite()`/`reinvite()`/`remove()`. Belum ada notifikasi untuk test run/issue/dll
+- UI: bell icon + `Badge` unread count di `AppTopbar.tsx`, buka `NotificationPanel.tsx` (PrimeReact `Sidebar` slide-out kanan) — polling 30 detik (`refetchInterval`) lewat `useNotifications`, bukan realtime push
+- Kalau menambah tipe notifikasi baru: ikuti pola yang sama (panggil `notificationService.create()` dari service layer yang relevan, jangan buat trigger DB)
+
+### Duplicate Project
+
+- `services/projectDuplicateService.ts` — clone sebagian struktur project (Test Plan/Test Case/Issue terpilih) ke project baru. Test Run/Test Result (riwayat eksekusi) TIDAK PERNAH ikut di-copy — hanya struktur, bukan histori
+- Sequential (bukan `Promise.all`) di semua tahap supaya id-remapping benar dan module/tag find-or-create tidak race
 
 ### Naming & Convention
 
@@ -163,15 +195,18 @@ signup **self-serve**, tidak ada lagi gate approval admin.
 6. Hook di `frontend/src/hooks/use{Module}.ts` — state + lifecycle
 7. Halaman di `frontend/src/pages/{module}/`
 8. Route di `frontend/src/App.tsx`
-9. Menu item di `frontend/src/components/layout/AppLayout.tsx`
+9. Menu item di `frontend/src/components/layout/AppMenu.tsx` (jika perlu entri sidebar baru)
 
 ---
 
 ## Dokumentasi Tambahan
 
-- [`docs/PRD.md`](docs/PRD.md) — Product Requirements: scope, modul, target pengguna, out-of-scope. **Baca sebelum mendiskusikan fitur baru.**
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Arsitektur teknis detail: layering, data flow, skema database, keputusan desain. **Baca sebelum membuat modul baru atau menyentuh layer service/repository.**
-- [`docs/TASKS.md`](docs/TASKS.md) — Work breakdown (Epic → Feature → Task) dengan status.
+- [`docs/PRODUCT_CONSTITUTION.md`](docs/PRODUCT_CONSTITUTION.md) — Visi produk, scope MVP, Feature Acceptance Rule. **Dokumen tertinggi** — kalau ada konflik dengan dokumen lain, dokumen ini yang menang.
+- [`docs/PRD.md`](docs/PRD.md) — Product Requirements (Testing Domain, v1): scope, modul, target pengguna, out-of-scope. **Baca sebelum mendiskusikan fitur baru.**
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Arsitektur teknis Testing Domain: layering, data flow, skema database, keputusan desain. **Baca sebelum membuat modul baru atau menyentuh layer service/repository.**
+- [`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md) — Redesign Platform Context (identity split, ownership, visibility, membership) — governed by PRODUCT_CONSTITUTION.
+- [`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) — Fase eksekusi redesign V2, status per task.
+- [`docs/TASKS.md`](docs/TASKS.md) — Work breakdown v1 (Epic → Feature → Task) dengan status.
 - [`FEATURES.md`](./FEATURES.md) — Checklist status fitur per modul.
 - [`TODO.md`](./TODO.md) — Sprint board aktif. **Titik mulai sesi kerja.**
 
@@ -179,8 +214,11 @@ signup **self-serve**, tidak ada lagi gate approval admin.
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+
 Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists — this includes before reading source files to answer an architecture/design question, not just before editing code. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
