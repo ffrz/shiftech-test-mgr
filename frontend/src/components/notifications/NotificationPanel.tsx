@@ -12,6 +12,9 @@ interface NotificationPanelProps {
   unreadCount: number;
   onMarkRead: (id: string) => void;
   onMarkAllRead: () => void;
+  onRemove: (id: string) => void;
+  onClearAll: () => void;
+  onNotificationClick?: (notification: Notification) => void;
 }
 
 export function NotificationPanel({
@@ -21,6 +24,9 @@ export function NotificationPanel({
   unreadCount,
   onMarkRead,
   onMarkAllRead,
+  onRemove,
+  onClearAll,
+  onNotificationClick,
 }: NotificationPanelProps) {
   return (
     <Sidebar
@@ -36,14 +42,22 @@ export function NotificationPanel({
       }
       className="w-25rem"
     >
-      {unreadCount > 0 && (
-        <div className="mb-3">
+      {notifications.length > 0 && (
+        <div className="mb-3 flex gap-2">
           <Button
             label="Mark all as read"
             icon="pi pi-check"
             text
             size="small"
             onClick={onMarkAllRead}
+          />
+          <Button
+            label="Clear all"
+            icon="pi pi-trash"
+            text
+            size="small"
+            severity="danger"
+            onClick={onClearAll}
           />
         </div>
       )}
@@ -58,34 +72,56 @@ export function NotificationPanel({
             <div
               key={n.id}
               className={classNames(
-                'flex align-items-start gap-2 p-2 border-round cursor-pointer transition-colors',
+                'flex align-items-start gap-2 p-2 border-round transition-colors',
                 {
                   'surface-ground': !n.isRead,
                   'hover:surface-hover': true,
                 }
               )}
-              onClick={() => { if (!n.isRead) onMarkRead(n.id); }}
             >
-              <i
-                className={classNames(
-                  'pi mt-1',
-                  n.isRead ? 'pi-envelope-open text-color-secondary' : 'pi-envelope text-primary'
-                )}
-                style={{ fontSize: '1rem' }}
-              />
-              <div className="flex-1" style={{ minWidth: 0 }}>
-                <div className={classNames('text-sm', { 'font-semibold': !n.isRead })}>
-                  {n.title}
-                </div>
-                {n.body && (
-                  <div className="text-xs text-color-secondary mt-1 line-height-3">
-                    {n.body}
+              <div
+                className="flex align-items-start gap-2 flex-1 cursor-pointer"
+                style={{ minWidth: 0 }}
+                onClick={() => {
+                  if (!n.isRead) onMarkRead(n.id);
+                  onNotificationClick?.(n);
+                }}
+              >
+                <i
+                  className={classNames(
+                    'pi mt-1',
+                    n.isRead ? 'pi-envelope-open text-color-secondary' : 'pi-envelope text-primary'
+                  )}
+                  style={{ fontSize: '1rem' }}
+                />
+                <div className="flex-1" style={{ minWidth: 0 }}>
+                  <div className={classNames('text-sm', { 'font-semibold': !n.isRead })}>
+                    {n.title}
                   </div>
-                )}
-                <div className="text-xs text-color-secondary mt-1">
-                  {formatDateTime(n.createdAt)}
+                  {n.body && (
+                    <div className="text-xs text-color-secondary mt-1 line-height-3">
+                      {n.body}
+                    </div>
+                  )}
+                  <div className="text-xs text-color-secondary mt-1">
+                    {formatDateTime(n.createdAt)}
+                  </div>
                 </div>
               </div>
+              <Button
+                icon="pi pi-times"
+                text
+                rounded
+                severity="secondary"
+                className="p-1"
+                style={{ width: '1.5rem', height: '1.5rem', flexShrink: 0 }}
+                tooltip="Dismiss"
+                tooltipOptions={{ position: 'left' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove(n.id);
+                }}
+              />
             </div>
           ))}
         </div>

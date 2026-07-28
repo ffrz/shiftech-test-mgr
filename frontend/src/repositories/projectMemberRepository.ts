@@ -40,28 +40,44 @@ export const projectMemberRepository = {
     return mapProjectMemberWithProfileRow(data);
   },
 
+  // Uses a security-definer RPC rather than a direct table select -- an invited-but-not-yet-
+  // accepted user has no RLS access to `projects`/`users` (correctly, since accepting is what
+  // grants access), so resolving the project name and inviter display name for the
+  // invitation card can't rely on regular RLS-gated embeds. See
+  // 20260728000006_invitation_rpc_security_definer.sql.
   async listPendingInvitationsForUser(userId: string): Promise<ProjectMemberInvitation[]> {
-    const { data, error } = await supabase
-      .from('project_members')
-      .select(`${MEMBER_WITH_PROFILE_SELECT}, project:projects(id, name, owner:users!projects_owner_id_fkey(profile:profiles(username, display_name)))`)
-      .eq('user_id', userId)
-      .eq('status', 'invited')
-      .order('invited_at', { ascending: false });
+    const { data, error } = await supabase.rpc('list_own_pending_invitations');
     if (error) throw error;
-    return (data ?? []).map(mapProjectMemberInvitationRow);
+    return (data ?? []).map((row: any) => mapProjectMemberInvitationRow(row, userId));
   },
 
+  // Uses a security-definer RPC for the same reason as above -- also sidesteps ever having to
+  // debug "did the direct-table RLS UPDATE policy actually match" again.
   async respond(id: string, status: 'accepted' | 'declined'): Promise<void> {
-    const { error } = await supabase
-      .from('project_members')
-      .update({ status, responded_at: new Date().toISOString() })
-      .eq('id', id);
+    const { error } = await supabase.rpc('respond_to_project_invitation', { p_id: id, p_status: status });
     if (error) throw error;
   },
 
   async updateRole(id: string, role: ProjectMemberRole): Promise<void> {
     const { error } = await supabase.from('project_members').update({ role }).eq('id', id);
     if (error) throw error;
+  },
+
+  async reinvite(id: string, role: ProjectMemberRole, invitedBy: string): Promise<ProjectMemberWithProfile> {
+    const { data, error } = await supabase
+      .from('project_members')
+      .update({
+        status: 'invited',
+        role,
+        invited_by: invitedBy,
+        invited_at: new Date().toISOString(),
+        responded_at: null,
+      })
+      .eq('id', id)
+      .select(MEMBER_WITH_PROFILE_SELECT)
+      .single();
+    if (error) throw error;
+    return mapProjectMemberWithProfileRow(data);
   },
 
   async remove(id: string): Promise<void> {

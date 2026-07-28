@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
@@ -20,8 +20,9 @@ function getUserInitial(displayName: string | null | undefined, username?: strin
 }
 
 export function AppTopbar() {
+  const navigate = useNavigate();
   const { profile, user, signOut } = useAuthContext();
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const { notifications, unreadCount, markRead, markAllRead, remove, clearAll } = useNotifications();
   const { onMenuToggle } = useLayoutContext();
   const { items } = useBreadcrumbContext();
   const userMenuRef = useRef<Menu>(null);
@@ -79,6 +80,12 @@ export function AppTopbar() {
           unreadCount={unreadCount}
           onMarkRead={markRead}
           onMarkAllRead={markAllRead}
+          onRemove={remove}
+          onClearAll={clearAll}
+          onNotificationClick={() => {
+            setNotifPanelVisible(false);
+            navigate('/');
+          }}
         />
         <Button
           text

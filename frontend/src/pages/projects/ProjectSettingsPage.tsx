@@ -21,6 +21,7 @@ import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
 import { projectMemberService } from '../../services/projectMemberService';
+import { supabase } from '../../config/supabaseClient';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
@@ -78,6 +79,26 @@ export function ProjectSettingsPage() {
 
   useEffect(() => {
     loadAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // Member list here is plain useState, not React Query, so it doesn't pick up
+  // useRealtimeSync's cache invalidation -- a member accepting/declining/being removed
+  // happens from a different browser session (theirs), so this page needs its own realtime
+  // subscription to reflect that without a manual refresh.
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`project-settings-members-${id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'project_members', filter: `project_id=eq.${id}` },
+        () => loadAll(false),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -369,6 +390,7 @@ export function ProjectSettingsPage() {
   }
 
   function handleRemoveMember(row: ProjectMemberWithProfile) {
+    if (!id) return;
     confirmDialog({
       header: 'Remove Member',
       message: `"${row.profile.displayName ?? row.profile.username}" will be removed from this project and lose access. Continue?`,
@@ -377,14 +399,22 @@ export function ProjectSettingsPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await projectMemberService.remove(row.id);
+        await projectMemberService.remove(row.id, id, row.userId);
         await loadAll(false);
         toast.current?.show({ severity: 'success', summary: 'Member removed' });
       },
     });
   }
 
+  async function handleReinviteMember(row: ProjectMemberWithProfile) {
+    if (!id || !currentUser) return;
+    await projectMemberService.reinvite(row.id, id, row.userId, row.role, currentUser.id);
+    await loadAll(false);
+    toast.current?.show({ severity: 'success', summary: 'Invitation re-sent' });
+  }
+
   function handleBulkRemoveMembers() {
+    if (!id) return;
     confirmDialog({
       header: 'Remove Selected Members',
       message: `${selectedMembers.length} members will be removed from this project. Continue?`,
@@ -393,7 +423,7 @@ export function ProjectSettingsPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await Promise.all(selectedMembers.map((m) => projectMemberService.remove(m.id)));
+        await Promise.all(selectedMembers.map((m) => projectMemberService.remove(m.id, id, m.userId)));
         setSelectedMembers([]);
         await loadAll(false);
         toast.current?.show({ severity: 'success', summary: 'Selected members removed' });
@@ -476,13 +506,28 @@ export function ProjectSettingsPage() {
   ), []);
 
   const membersMobileBody = useCallback((row: ProjectMemberWithProfile) => (
-    <div className="flex flex-column gap-2 py-1">
-      <div className="font-medium">{row.profile.displayName ?? '-'}</div>
-      <div className="text-sm text-color-secondary">@{row.profile.username}</div>
-      <div className="text-sm text-color-secondary">Role: {PROJECT_MEMBER_ROLE_LABEL[row.role]}</div>
-      <div className="text-sm text-color-secondary">
-        Status: <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
+    <div className="flex align-items-start justify-content-between gap-2 py-1">
+      <div className="flex flex-column gap-2">
+        <div className="font-medium">{row.profile.displayName ?? '-'}</div>
+        <div className="text-sm text-color-secondary">@{row.profile.username}</div>
+        <div className="text-sm text-color-secondary">
+          Status: <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
+        </div>
+        <Dropdown
+          value={row.role}
+          options={MEMBER_ROLE_OPTIONS}
+          onChange={(e) => handleChangeMemberRole(row, e.value)}
+          className="w-10rem"
+        />
       </div>
+      <RowActionsMenu
+        items={[
+          ...(row.status === 'declined'
+            ? [{ label: 'Reinvite', icon: 'pi pi-send', command: () => handleReinviteMember(row) }]
+            : []),
+          { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleRemoveMember(row) },
+        ]}
+      />
     </div>
   ), []);
 
@@ -720,15 +765,22 @@ export function ProjectSettingsPage() {
                   )}
                 />
               )}
-              <Column
-                header=""
-                style={{ width: '3.5rem' }}
-                body={(row: ProjectMemberWithProfile) => (
-                  <RowActionsMenu
-                    items={[{ label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleRemoveMember(row) }]}
-                  />
-                )}
-              />
+              {!isMobile && (
+                <Column
+                  header=""
+                  style={{ width: '3.5rem' }}
+                  body={(row: ProjectMemberWithProfile) => (
+                    <RowActionsMenu
+                      items={[
+                        ...(row.status === 'declined'
+                          ? [{ label: 'Reinvite', icon: 'pi pi-send', command: () => handleReinviteMember(row) }]
+                          : []),
+                        { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleRemoveMember(row) },
+                      ]}
+                    />
+                  )}
+                />
+              )}
             </DataTable>
           </TabPanel>
 
