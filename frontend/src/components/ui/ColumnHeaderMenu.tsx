@@ -32,7 +32,7 @@ export function ColumnHeaderMenu({ label, field, sortField, sortOrder, onSort, e
       label,
       icon,
       template: (item, options) => (
-        <button type="button" className={options.className} onClick={options.onClick}>
+        <button type="button" className={`${options.className} flex align-items-center gap-2`} onClick={options.onClick}>
           <span className={`${item.icon} p-menuitem-icon`} />
           <span className={options.labelClassName}>{item.label}</span>
           {active && <i className="pi pi-check ml-auto" />}
