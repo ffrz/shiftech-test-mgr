@@ -561,7 +561,9 @@ export function ProjectSettingsPage() {
               </div>
             </div>
           </div>
-          <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={() => setEditDialogOpen(true)} />
+          <div className="flex-shrink-0 align-self-start">
+            <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={() => setEditDialogOpen(true)} />
+          </div>
         </div>
       </Card>
 
