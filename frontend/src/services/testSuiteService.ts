@@ -236,6 +236,10 @@ export const testSuiteService = {
     return testSuiteRepository.removeItem(id);
   },
 
+  removeItemsMany(ids: string[]) {
+    return testSuiteRepository.removeItemsMany(ids);
+  },
+
   async cloneItemsToSuite(suiteId: string, itemIds: string[]): Promise<void> {
     if (itemIds.length === 0) return;
     const existingItems = await testSuiteRepository.findItemsBySuite(suiteId);

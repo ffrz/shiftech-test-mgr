@@ -149,6 +149,12 @@ export const testSuiteRepository = {
     if (error) throw error;
   },
 
+  async removeItemsMany(ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
+    const { error } = await supabase.from('test_suite_items').delete().in('id', ids);
+    if (error) throw error;
+  },
+
   async createItemsMany(
     inputs: Omit<TestSuiteItem, 'id' | 'createdAt' | 'updatedAt'>[],
   ): Promise<TestSuiteItem[]> {

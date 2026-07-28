@@ -21,6 +21,7 @@ import { queryKeys } from '../../hooks/queryKeys';
 import type { TestCasePriority, TestCaseStepType, TestSuiteItem } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
+import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
@@ -50,6 +51,26 @@ export function TestSuiteDetailPage() {
 
   const canEdit = isAdmin || suite?.ownerId === user?.id;
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  // --- Bulk selection ---
+  const [selectedItems, setSelectedItems] = useState<TestSuiteItem[]>([]);
+
+  function handleBulkDeleteItems() {
+    confirmDialog({
+      header: 'Delete Selected Items',
+      message: `${selectedItems.length} item(s) will be permanently removed from this suite. Continue?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptClassName: 'p-button-danger',
+      accept: async () => {
+        await testSuiteService.removeItemsMany(selectedItems.map((i) => i.id));
+        setSelectedItems([]);
+        await reloadItems();
+        toast.current?.show({ severity: 'success', summary: `${selectedItems.length} item(s) deleted` });
+      },
+    });
+  }
 
   // --- Import from Template ---
   const [importTemplateDialogOpen, setImportTemplateDialogOpen] = useState(false);
@@ -441,7 +462,29 @@ export function TestSuiteDetailPage() {
         ) : undefined}
       />
 
-      <DataTable value={items} loading={loading} {...dataTablePaginatorProps} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No items yet" size="small" cellMemo={false}>
+      {canEdit && (
+        <BulkActionsBar
+          selectedCount={selectedItems.length}
+          onClear={() => setSelectedItems([])}
+          actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={handleBulkDeleteItems} />}
+        />
+      )}
+
+      <DataTable
+        value={items}
+        loading={loading}
+        selection={selectedItems}
+        onSelectionChange={(e: any) => setSelectedItems(e.value as TestSuiteItem[])}
+        dataKey="id"
+        selectionMode={isMobile ? null : 'checkbox'}
+        {...dataTablePaginatorProps}
+        rows={10}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        emptyMessage="No items yet"
+        size="small"
+        cellMemo={false}
+      >
+        {canEdit && <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />}
         {isMobile
           ? <Column header="Title" body={mobileBodyTemplate} />
           : <Column field="title" header="Title" sortable body={(row: TestSuiteItem) => {
