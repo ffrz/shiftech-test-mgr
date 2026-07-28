@@ -74,6 +74,7 @@ type IssueTabProps = {
   lazy?: boolean;
   totalRecords?: number;
   first?: number;
+  rows?: number;
   onPage?: (e: DataTablePageEvent) => void;
 };
 
@@ -116,6 +117,7 @@ export function IssueTab({
   lazy,
   totalRecords,
   first,
+  rows,
   onPage,
 }: IssueTabProps) {
   const navigate = useNavigate();
@@ -357,7 +359,7 @@ export function IssueTab({
         first={lazy ? first : undefined}
         onPage={lazy ? onPage : undefined}
         {...dataTablePaginatorProps}
-        rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
+        rows={rows ?? 10} rowsPerPageOptions={[5, 10, 25, 50]}
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : sortOrder}
         onSort={isMobile ? undefined : onSort}

@@ -1081,6 +1081,7 @@ export function ProjectDetailPage() {
             lazy
             totalRecords={totalIssues}
             first={(issuePage - 1) * issueRowsPerPage}
+            rows={issueRowsPerPage}
             onPage={onIssuePage}
           />
         </TabPanel>
