@@ -58,15 +58,76 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
   padding-bottom: 0.5rem;
 }
 
+/* .p-dropdown-label/.p-multiselect-label are `display: block` (theme
+   default) stretched to the trigger's height by their inline-flex parent —
+   the label box itself gets taller, but a block element's text content stays
+   top-aligned inside it rather than following that extra height, so the text
+   visibly sits above center once the box is taller than one text line. */
+.p-dropdown .p-dropdown-label,
+.p-multiselect .p-multiselect-label {
+  display: flex !important;
+  align-items: center;
+}
+
+/* Each of these builds its height from a different combination of
+   padding/font-size/line-height depending on its own DOM structure
+   (.p-inputtext is a single <input>; .p-multiselect/.p-dropdown wrap a block
+   label inside an inline-flex shell; .p-button has its own icon+label flex
+   layout) — matching padding alone doesn't guarantee matching height once
+   the box models differ. Pin every form control to the same explicit height
+   instead, so a SearchInput next to a MultiSelect next to a reset Button are
+   guaranteed pixel-identical instead of "usually close." */
+/* .p-inputtext,
+.p-multiselect,
+.p-dropdown,
+.p-button {
+  min-height: 2.5rem;
+} */
+
 .p-button {
   padding-left: 0.75rem;
   padding-right: 0.75rem;
 }
 
 .p-button.p-button-icon-only {
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  padding: 0 !important;
+}
+
+.p-column-header-content .p-button,
+.layout-topbar .p-button.p-button-icon-only {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+.p-column-header-content .p-button {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+
+/* Theme bug: .p-button-secondary.p-button-outlined sets `border: 1px solid`
+   with no border-color, so it inherits `color` (a muted slate, #64748b) —
+   visibly darker/bluer than the border every input (SearchInput, Dropdown,
+   MultiSelect, ...) uses. Every "reset filters" button across the app uses
+   this exact variant next to a SearchInput, so the mismatch was showing up
+   everywhere at once — fixed centrally here instead of a border-color
+   override on each button.
+   Note: matched against .p-inputtext's own border color, not --surface-border
+   — the theme hardcodes .p-inputtext's border per light/dark variant (#d1d5db /
+   #424b57) rather than sourcing it from --surface-border, so --surface-border
+   alone (rgba(255,255,255,0.1) in dark mode) reads far too faint here. */
+.p-button.p-button-secondary.p-button-outlined,
+.p-button.p-button-secondary.p-button-outlined:not(:disabled):hover,
+.p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
+  border-color: #d1d5db;
+}
+
+html.dark .p-button.p-button-secondary.p-button-outlined,
+html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):hover,
+html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
+  border-color: #424b57;
 }
 
 .p-dropdown .p-dropdown-trigger,
@@ -102,9 +163,15 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
 
 /* Rounded table shell to match .p-card and other surfaces (dialogs, dropdowns)
    which already use rounded corners — the theme's default table is square,
-   which stood out as inconsistent. Corners are clipped on the wrapper since
-   border-radius on table/thead/tbody elements doesn't clip cell backgrounds. */
-.p-datatable .p-datatable-wrapper {
+   which stood out as inconsistent. This has to live on the DataTable root, not
+   just .p-datatable-wrapper: PrimeReact renders paginatorTop/content(wrapper)/
+   paginatorBottom as siblings (see datatable.esm.js createContent), so a
+   border/radius on the wrapper alone leaves the paginator square and outside
+   the outline. Clipping on the root also requires the root to establish a new
+   stacking context (position: relative) or overflow:hidden can clip overlays
+   like the loading spinner that portal inside the table in some PrimeReact
+   versions — root already does that by default here, so no extra rule needed. */
+.p-datatable {
   border: 1px solid var(--surface-border);
   border-radius: 6px;
   overflow: hidden;
@@ -118,10 +185,10 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
   border-bottom: none;
 }
 
-/* showGridlines adds cell borders on every side; the wrapper already provides
-   the outer border, so the leftmost and rightmost cells each get a double
-   border on the table edge. Strip those outer cell borders to keep a single
-   clean outline around the table. */
+/* showGridlines adds cell borders on every side; the outer shell already
+   provides the outer border, so the leftmost and rightmost cells each get a
+   double border on the table edge. Strip those outer cell borders to keep a
+   single clean outline around the table. */
 .p-datatable .p-datatable-thead>tr>th:first-child,
 .p-datatable .p-datatable-tbody>tr>td:first-child {
   border-left: none;
@@ -144,11 +211,15 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
   background: var(--primary-100, var(--surface-200));
 }
 
-/* Paginator sits inside the same rounded, bordered table shell — the theme's
-   own top border on the paginator duplicated the wrapper's border, showing
-   as a stray line above the pagination controls. */
+/* Paginator sits inside the same rounded, bordered table shell as the table
+   body (see the .p-datatable rule above) — give it a top divider so the body/
+   paginator boundary reads clearly, without the theme's own left/right/bottom
+   borders that would double up against the shell's outer border. */
 .p-datatable .p-paginator {
-  border-top: none;
+  border-width: 1px 0 0 0;
+  border-style: solid;
+  border-color: var(--surface-border);
+  border-radius: 0;
 }
 
 .p-datatable .p-datatable-thead>tr>th,
@@ -164,6 +235,18 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
 .p-datatable .p-column-title {
   display: block;
   width: 100%;
+}
+
+/* The selectionMode="multiple" checkbox column's <th> renders an empty
+   .p-column-title span as a sibling of the header checkbox inside
+   .p-column-header-content (display:flex, per PrimeReact's createHeader).
+   The empty title still claims layout space as a flex item, nudging the
+   checkbox out of alignment with its <td> counterpart below (confirmed via
+   DevTools — removing display:flex here fixes it). Only override it for the
+   selection column ([data-p-selection-column]), not header cells in general,
+   since ColumnHeaderMenu's own sort/filter layout still needs flex there. */
+.p-datatable .p-datatable-thead>tr>th[data-p-selection-column="true"] .p-column-header-content {
+  display: block;
 }
 
 /* Sortable column icon: subtle by default, only the actively-sorted column
@@ -822,13 +905,16 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   font-size: 0.75rem;
 }
 
-/* Compact context menu / dropdown popup text */
+/* Context menu / dropdown popup items: text stays compact, but padding is
+   tall enough for a comfortable touch target (~40px total) — 0.4rem was too
+   tight, making these hard to tap accurately on touchscreens where every
+   RowActionsMenu/ColumnHeaderMenu popup in the app uses this same class. */
 .p-menu.p-menu-overlay .p-menuitem-link,
 .p-dropdown-panel .p-dropdown-item,
 .p-multiselect-panel .p-multiselect-item,
 .p-menu .p-menuitem-link {
   font-size: 0.85rem;
-  padding: 0.4rem 0.75rem;
+  padding: 0.7rem 0.75rem;
 }
 
 /* MenuItem.template renders a plain <button>, which doesn't inherit the
@@ -850,6 +936,21 @@ button.p-menuitem-link {
 html.dark .p-menu .p-menuitem-link:not(.p-disabled):hover,
 html.dark .p-menu .p-menuitem-link.p-focus {
   background: rgba(96, 165, 250, 0.08);
+}
+
+/* ColumnHeaderMenu's popup: a plain PrimeReact Menu with a filter section
+   appended as its own item (see ColumnHeaderMenu.tsx) — needs a minimum width
+   so a MultiSelect/etc rendered there has room, and its own padding since it
+   isn't a <button class="p-menuitem-link"> like the sort items above it. */
+.column-header-menu-panel {
+  min-width: 12rem;
+}
+
+.column-header-menu-filter {
+  padding: 0.4rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .p-menu.p-menu-overlay .p-menuitem-text,
@@ -884,23 +985,6 @@ html.dark .p-multiselect-panel .p-multiselect-items .p-multiselect-item:not(.p-h
   background: rgba(96, 165, 250, 0.08);
 }
 
-.p-inputtext,
-.p-dropdown .p-dropdown-label,
-.p-multiselect .p-multiselect-label,
-.p-button,
-.p-chips .p-chips-multiple-container,
-.p-inputnumber-input {
-  font-size: 0.85rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-}
-
-.p-button.p-button-icon-only {
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
-}
-
 h1,
 h2,
 h3,
@@ -913,10 +997,6 @@ h6,
 
 .font-medium {
   font-weight: 400 !important;
-}
-
-.p-datatable .p-paginator-bottom {
-  border-width: 0;
 }
 
 /* Mobile: paginator — row 1: info + rows-per-page, row 2: nav buttons */
@@ -939,4 +1019,19 @@ h6,
    have consistent corner radii when overlaid. */
 .p-sidebar-mask.p-sidebar-right .p-sidebar {
   border-radius: 12px 0 12px 0 !important;
+}
+
+.p-inputtext,
+.p-multiselect,
+.p-dropdown,
+.p-button {
+  line-height: 1.4em;
+}
+
+.p-multiselect-panel .p-multiselect-header {
+  padding: 0.75rem;
+}
+
+.p-selection-column .p-column-header-content {
+  display: block;
 }

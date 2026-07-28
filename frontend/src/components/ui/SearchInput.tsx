@@ -9,7 +9,7 @@ interface SearchInputProps {
 
 export default function SearchInput({ value, onChange, placeholder = 'Search...', className }: SearchInputProps) {
   return (
-    <span className={`p-icon-field p-icon-field-left${value ? ' p-icon-field-right' : ''}${className ? ` ${className}` : ''}`}>
+    <span className={`p-icon-field p-icon-field-left inline-flex${value ? ' p-icon-field-right' : ''}${className ? ` ${className}` : ''}`}>
       <i className="pi pi-search p-input-icon" />
       <InputText
         className="w-full"
