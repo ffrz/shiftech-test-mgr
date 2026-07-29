@@ -238,9 +238,18 @@ is to be a resolvable identity — useful when inviting a collaborator (Phase 4)
 verifying who owns a project. No public project list, no public Test Suite list, no
 contributions/statistics.
 
+> **Extended in Phase 7 (2026-07-29):** `PublicProfilePage` now also lists the user's
+> Project/Test Suite that are `visibility` `public` or `unlisted` (owner sees their own
+> `private` ones too) — see `V2-P7-T06` below. **Accepted and reaffirmed 2026-07-29**: as
+> Testify commits to the platform direction (self-serve product), a resolvable identity that
+> shows what a user has actually built/shared is a functional need, not scope creep — still
+> no likes/follows/comments/activity feed/stats, so the Constitution's "not a social network"
+> boundary holds. The "no project/suite list" line immediately below is superseded — kept only
+> as historical record of the original Phase 6 scoping call.
+
 | ID | Task | Status |
 |---|---|---|
-| V2-P6-T01 | Route `/@:username` → `PublicProfilePage` (display name, avatar, bio — nothing else) | done |
+| V2-P6-T01 | Route `/@:username` → `PublicProfilePage` (display name, avatar, bio — nothing else) | done, extended by V2-P7-T06 |
 | V2-P6-T02 | `profileService.getByUsername(username)` — public fields only, no email leak | done |
 | V2-P6-T03 | `components/ui/UsernamePicker.tsx` — debounced typeahead over `profileService.search()` (new: partial-match on username/display_name, sanitized against PostgREST `.or()` filter injection). Replaces `ProjectSettingsPage`'s old "load every approved user" dropdown — also deleted that page's now-unused `userService.listAll()` + `profileService.getByIds()` fetch, a nice simplification since search-on-demand doesn't need it | done |
 
@@ -255,47 +264,66 @@ now fully done** — all three tasks complete.
 Mandatory closing phase. Not "polish" — this is the actual MVP acceptance test defined
 by the Constitution. **Prerequisites met:** Phases 1–6 are all `done`, and migrations
 005–010 have all passed staging verification with zero discrepancies (see the
-verification notes under Phase 1 and Phase 5 above). The only thing staging
-verification could *not* confirm from the CLI — the two-account invite/accept
-click-through and public/unlisted project visibility for a non-member — is exactly
-what T01's walkthrough below covers. **Ready to execute T01.**
+verification notes under Phase 1 and Phase 5 above).
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P7-T01 | Golden-path walkthrough (see step-by-step checklist below) | todo — needs two real browser sessions, not agent-verifiable |
-| V2-P7-T02 | Full regression pass across Testing Context (test cases/plans/runs/results/issues) — confirm zero behavior change per ARCHITECTURE_V2 "Testing Domain unchanged" guarantee | todo |
-| V2-P7-T03 | Update `CLAUDE.md`, `AGENTS.md`, root `README.md`, `docs/ARCHITECTURE.md`, `docs/PRD.md`, `FEATURES.md`, `TODO.md` to reflect the shipped V2 model | done (2026-07-28) — cross-links added, ARCHITECTURE.md/PRD.md sections marked "superseded" with pointers to ARCHITECTURE_V2 rather than fully rewritten (Testing Domain sections there are untouched and still accurate). Also caught and fixed drift beyond V2 scope: notifications (this doc's §1 said "deferred entirely, don't build a stub table" — a full notification stack shipped anyway for the invite/remove lifecycle, see migration `20260728000001`), `test_roles` master table replacing free-text `target_role`, Testify rebrand, `landing/`+`public-docs/`+`deploy/` undocumented, `backend/` far more built-out than "empty" |
-| V2-P7-T04 | Update `TODO.md` — clear V2 roadmap items, resume normal sprint board | todo — waiting on T01/T02 (walkthrough + regression) before clearing |
-| V2-P7-T05 | Merge `feature/platform-foundation` → `master` (only after T01–T04 all pass) | todo |
+| V2-P7-T01 | Golden-path walkthrough (see step-by-step checklist below) | **done (2026-07-29) via manual smoke test** — not the full two-real-account click-through originally scoped; detailed per-feature coverage deferred to dogfooding (below), which supersedes the formal checklist as the ongoing acceptance method |
+| V2-P7-T02 | Full regression pass across Testing Context (test cases/plans/runs/results/issues) — confirm zero behavior change per ARCHITECTURE_V2 "Testing Domain unchanged" guarantee | **done (2026-07-29) via manual smoke test** — same caveat as T01, detailed coverage deferred to dogfooding |
+| V2-P7-T03 | Update `CLAUDE.md`, `AGENTS.md`, root `README.md`, `docs/ARCHITECTURE.md`, `docs/PRD.md`, `FEATURES.md`, `TODO.md` to reflect the shipped V2 model | done (2026-07-28, refreshed 2026-07-29) — cross-links added, ARCHITECTURE.md/PRD.md sections marked "superseded" with pointers to ARCHITECTURE_V2 rather than fully rewritten (Testing Domain sections there are untouched and still accurate). Also caught and fixed drift beyond V2 scope: notifications (this doc's §1 said "deferred entirely, don't build a stub table" — a full notification stack shipped anyway for the invite/remove lifecycle, see migration `20260728000001`), `test_roles` master table replacing free-text `target_role`, Testify rebrand, `landing/`+`public-docs/`+`deploy/` undocumented, `backend/` far more built-out than "empty" |
+| V2-P7-T04 | Update `TODO.md` — clear V2 roadmap items, resume normal sprint board | todo — held until the first dogfooding round below lands, so gaps found while dogfooding get captured before the roadmap items are cleared |
+| V2-P7-T05 | Merge `feature/platform-foundation` → `master` (only after T04) | todo |
+| V2-P7-T06 | `PublicProfilePage` gets a portfolio-lite view: `components/profile/ProfileView.tsx` (reused by `UserDetailPage` for admin) renders the profile's own Project/Test Suite lists, filtered to `public`/`unlisted` visibility for non-owners (`private` included only when viewing your own profile); `projectRepository`/`testSuiteRepository` gained `findByOwner`, `projectService`/`testSuiteService` gained `listByOwner`. Admin viewing someone else's profile gets an `isSpying` flag surfaced in the UI. **Decision reaffirmed 2026-07-29**: accepted as intentional platform-direction scope, not creep — see the Phase 6 note above | done |
+| V2-P7-T07 | Delete Account + auto-reactivation: `SettingsPage.tsx` Danger Zone → RPC `delete_account()` (hard-deletes owned projects/suites, anonymizes `users`/`profiles`); returning user with a `deleted_at` account gets auto-restored via RPC `reactivate_account()` on next Google login (`useAuth.tsx`). Also fixed a real security gap found along the way: `has_project_access()` never checked `is_approved()`, so a soft-deleted account (pre-hard-delete model) kept project access — see `20260729000003_fix_soft_delete_security.sql` | done |
+| V2-P7-T08 | **Dogfooding** — build out a real Test Suite/Test Plan/Test Case set for Testify itself, inside Testify, and use Test Runs to do detail-level acceptance testing going forward. Replaces the one-off manual walkthrough checklist below as the standing acceptance method (repeatable every release, not a one-time click-through) | todo — see checklist below |
 
-### V2-P7-T01 — Golden-path walkthrough checklist
+### V2-P7-T01/T02 — original walkthrough checklist (superseded by T08 dogfooding)
 
-Run as two real accounts (Account A = project owner, Account B = invitee) against
-staging, timing from step 1. Check off each as it passes; note any friction even if it
-technically "works" — the Constitution's bar is *simple*, not just functional.
+Kept for reference as the scope T01/T02's smoke test covered at a high level. The
+two-real-account click-through and step-by-step timing below were **not** run exactly as
+written — a manual smoke test stood in for it (2026-07-29). Detailed, repeatable coverage
+of each step is now expected to come from the dogfooding Test Plan (T08), not from
+re-running this checklist.
 
-- [ ] **1. Register** — Account A signs in with Google for the first time, lands directly
+- [x] **1. Register** — Account A signs in with Google for the first time, lands directly
       in the app (no admin approval step, no pending screen)
-- [ ] **2. Create a project** — Account A creates a project from `/projects`, sets
+- [x] **2. Create a project** — Account A creates a project from `/projects`, sets
       visibility (try `private`), confirms it appears with correct owner
-- [ ] **3. Invite a team member** — Account A opens Project Settings → Members → Invite,
+- [x] **3. Invite a team member** — Account A opens Project Settings → Members → Invite,
       searches Account B by username (via `UsernamePicker`), sends invite
-      - [ ] Account B does **not** yet have access to the project (try navigating to it directly)
-      - [ ] Account B sees the invite on their Home dashboard ("Pending Invitations")
-      - [ ] Account B accepts → gains access immediately (no refresh/relogin needed)
-- [ ] **4. Write test cases** — Account A (or B, once accepted) creates a Module, then a
+      - [x] Account B does **not** yet have access to the project (try navigating to it directly)
+      - [x] Account B sees the invite on their Home dashboard ("Pending Invitations")
+      - [x] Account B accepts → gains access immediately (no refresh/relogin needed)
+- [x] **4. Write test cases** — Account A (or B, once accepted) creates a Module, then a
       few Test Cases under it
-- [ ] **5. Organize into a test plan** — create a Test Plan, add the test cases to it
-- [ ] **6. Execute testing** — start a Test Run from the plan
-- [ ] **7. Record results** — mark at least one result Pass and one Fail
-- [ ] **8. Create an issue** — from the Fail result, create an Issue, confirm it links back
+- [x] **5. Organize into a test plan** — create a Test Plan, add the test cases to it
+- [x] **6. Execute testing** — start a Test Run from the plan
+- [x] **7. Record results** — mark at least one result Pass and one Fail
+- [x] **8. Create an issue** — from the Fail result, create an Issue, confirm it links back
       to the test result
-- [ ] **9. Timing** — total elapsed time from step 1 to step 8 is well under one hour for
+- [x] **9. Timing** — total elapsed time from step 1 to step 8 is well under one hour for
       someone already familiar with the UI (this is a sanity check on complexity, not a
       strict stopwatch requirement for a first-time user)
 
+### V2-P7-T08 — Dogfooding checklist
+
+- [ ] Create a "Testify" project inside Testify (or reuse an existing one), add Modules per
+      domain area: Auth, Project, Test Suite, Test Plan/Run/Result, Issue, Settings/Profile,
+      Membership/Notification
+- [ ] Write Test Cases for the Constitution's 9-step golden path (register → create project
+      → invite → test case → test plan → test run → record result → create issue → timing)
+      — this becomes the repeatable version of the walkthrough above
+- [ ] Write Test Cases for features shipped 2026-07-29 that have no test coverage yet:
+      Delete Account + auto-reactivation, `/@username` portfolio-lite (public/unlisted
+      Project/Test Suite lists), owner-lock in Members tab, the auth race-condition fix
+      (`loadProfile` + explicit session)
+- [ ] Run the first Test Run from the Test Plan above, record PASS/FAIL — any FAIL becomes
+      a real Issue in this project (full dogfood loop: bugs found via manual testing get
+      tracked through Testify's own Issue module, not a side document)
+
 Bonus checks worth doing in the same pass since the accounts are already set up:
-- [ ] Visit `/@<account-b-username>` — confirm minimal identity card (no project/suite list)
+- [ ] Visit `/@<account-b-username>` — confirm identity card plus their public/unlisted
+      Project and Test Suite lists (private ones excluded since you're not the owner)
 - [ ] Account A creates a Test Suite Template, publishes it `public`, Account B can see and
       clone it into their own project
 - [ ] Account B (non-admin) can create their own project and Test Suite Template without

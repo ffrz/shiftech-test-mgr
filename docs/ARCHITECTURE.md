@@ -807,10 +807,25 @@ ProjectDetailPage (tab Test Cases) → tombol "Import dari Template" (cloneItems
   eksternal (`helpers/csvImport.ts`, parser RFC 4180 minimal ditulis manual).
   Excel/Google Sheets tetap bisa export/import CSV native, jadi "Import dari
   Excel" di UI tetap berfungsi end-to-end, hanya user perlu save-as CSV dulu.
-  Scope awal **`step_type = 'simple'` saja** — kolom Module/Title/Objective/
-  Preconditions/Steps/Expected Result/Priority/Tags/Target Role, hanya Title
-  wajib. Dialog preview baris valid vs invalid (dengan alasan gagal) sebelum
-  commit, bukan insert langsung buta
+  Kolom Module/Title/Objective/Preconditions/Steps/Expected Result/Priority/
+  Tags/Target Role, hanya Title wajib. Dialog preview baris valid vs invalid
+  (dengan alasan gagal) sebelum commit, bukan insert langsung buta
+- **Import CSV — dukungan `step_type = 'detailed'` (multi-step)**: kolom
+  Steps dobel fungsi sebagai carrier detailed-step. Kalau cell mengandung
+  karakter `|`, baris di-parse sebagai `detailed`: pisah per-step dengan `;`,
+  lalu tiap segmen dipisah `action | expected result` (`ordinal "N."` di
+  depan segmen opsional, dibuang kalau ada). Kalau cell TIDAK mengandung `|`
+  sama sekali, tetap `simple` (teks bebas) — backward compatible dengan
+  format lama, tidak ada kolom header baru. Baris yang mengandung `|` tapi
+  tidak menghasilkan action valid ditandai invalid ("Steps contains \\| but
+  no valid action found"). Diterapkan di dua jalur import yang keduanya
+  memakai parser sama (`helpers/csvImport.ts` `parseStepsCell`): Test Case
+  import di `ExcelImportPanel.tsx`/`testCaseImportService.ts` (insert ke
+  `test_case_steps` via `testCaseStepRepository.createMany` per test case
+  setelah batch-insert test case-nya) dan Test Suite item import di
+  `TestSuiteDetailPage.tsx` (`testSuiteService.addItemsMany` yang sudah
+  menerima `detailedSteps` sejak awal — hanya jalur CSV yang tadinya
+  hardcode `stepType: 'simple'`)
 - **RBAC test case field (`test_cases.target_role_id`)**: awalnya teks bebas
   (`target_role`), sejak migrasi `20260723000002_test_roles.sql` jadi FK ke
   tabel master `test_roles` per project (pola sama seperti `modules`) — masih
@@ -876,19 +891,53 @@ HomePage ("Pending Invitations" card) / AppTopbar (bell) → useProjectInvitatio
   `profileRepository`/`profileService` — jalur yang sama dengan identity
   publik lainnya (bukan `userRepository`/`userService`, yang untuk
   email/role admin-only)
-- **`/@:username`** (`PublicProfilePage`, V2 Phase 6): lookup identitas
-  minimal (display name, avatar, bio) — sengaja BUKAN halaman portofolio
-  (tanpa daftar project/suite publik), karena Constitution eksplisit
-  menolak framing "social network". Berguna sebagai target invite-by-username
-  dan verifikasi kepemilikan project
+- **`/@:username`** (`PublicProfilePage`, V2 Phase 6/7): lookup identitas
+  (display name, avatar, bio) lewat `components/profile/ProfileView.tsx`
+  (reusable — dipakai juga oleh `UserDetailPage` untuk admin). **Update Phase
+  7**: halaman ini sekarang juga menampilkan daftar Project dan Test Suite
+  milik user tsb yang `visibility` `public`/`unlisted` (lewat
+  `projectService.listByOwner`/`testSuiteService.listByOwner`, resolve query
+  `findByOwner` di masing-masing repository) — bukan lagi identitas polos
+  tanpa daftar. Kalau `isOwnProfile`, filter visibility dilewati (lihat semua
+  milik sendiri termasuk `private`). Admin yang membuka profil user lain
+  dapat flag `isSpying` (ditampilkan di `ProfileView`) supaya jelas ini mode
+  admin-lihat-punya-orang-lain, bukan spoofing. Tetap berguna sebagai target
+  invite-by-username dan verifikasi kepemilikan project — belum berubah
+  menjadi social feed (tidak ada follow/like/comment)
+- **Delete & Reactivate Account** (`SettingsPage.tsx` Danger Zone →
+  `userService.deleteAccount()`/RPC `delete_account()`): hapus permanen
+  (bukan soft-delete) semua `projects` dan `test_suites` milik user
+  (cascade ke isinya), hapus `notifications` dan `project_members` miliknya,
+  null-kan kontribusi ke project/suite ORANG LAIN (`test_results.tester_id`,
+  `issues.assigned_to`), lalu **anonymize** row `users`/`profiles` (username
+  → `deleted_<unix_ts>`, email → `deleted_<unix_ts>@deleted.local`,
+  `users.deleted_at = now()`) — bukan hard-delete row `users`/`profiles`
+  supaya FK history (mis. `test_results.tester_id` yang di-null-kan) tetap
+  konsisten dan re-signup dengan email sama tidak kebentur unique constraint.
+  Kalau user yang sudah "delete" login lagi via Google dengan email sama,
+  `useAuth.tsx` mendeteksi `deleted_at` terisi dan memanggil RPC
+  `reactivate_account()` (security definer) yang restore `users`/`profiles`
+  dengan identitas fresh (email/nama/avatar dari session Google saat itu,
+  username baru di-generate dari local-part email, `role` balik ke `user`)
+  — bukan mengembalikan data lama (project/suite lama sudah terhapus
+  permanen saat delete). Lihat migrasi
+  `20260729000003_fix_soft_delete_security.sql` (gate `is_approved()` di
+  `has_project_access()` — sebelumnya soft-delete tidak benar-benar memblokir
+  akses), `20260729000004_delete_account_rpc.sql`,
+  `20260729000005_reactivate_account_rpc.sql`,
+  `20260729000006_fix_delete_account_username_trigger.sql` (bypass trigger
+  `check_username_change` supaya anonymize/reactivate boleh ganti username
+  meski sudah pernah diganti sekali)
 - **`services/projectDuplicateService.ts`**: clone sebagian struktur project
   (Test Plan/Test Case/Issue terpilih user) ke project baru. **Test
   Run/Test Result (riwayat eksekusi) tidak pernah ikut ter-copy** — hanya
   struktur/template, bukan histori. Memilih sebuah Test Plan otomatis
   meng-union test case-nya sendiri ke seleksi (supaya plan yang di-duplicate
-  tidak berakhir dengan cakupan kosong). Sequential (bukan `Promise.all`) di
-  semua tahap supaya id-remapping antar entity benar dan find-or-create
-  module/tag tidak race
+  tidak berakhir dengan cakupan kosong). Batch insert (bukan loop per-row)
+  untuk module/role/test case/step/plan-case/issue — 7 round-trip alih-alih
+  N, tapi tetap sequential ANTAR tahap (bukan `Promise.all` antar tahap)
+  supaya id-remapping antar entity benar dan find-or-create module/tag
+  tidak race
 
 ---
 

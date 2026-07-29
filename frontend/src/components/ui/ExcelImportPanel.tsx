@@ -8,10 +8,10 @@ import { Toast } from 'primereact/toast';
 import { parseTestCaseCsv, type InvalidRow, type ParsedTestCaseRow } from '../../helpers/csvImport';
 import { testCaseImportService } from '../../services/testCaseImportService';
 
-// Reads a CSV file client-side (title/steps/expected result/etc — step_type 'simple' only,
-// per product decision), previews parsed + invalid rows, and commits only the valid ones on
-// confirm. "Excel" in the button label because Excel/Sheets both export CSV natively — no
-// server round-trip or xlsx dependency needed for this.
+// Reads a CSV file client-side (title/steps/expected result/etc), previews parsed + invalid
+// rows, and commits only the valid ones on confirm. "Excel" in the button label because
+// Excel/Sheets both export CSV natively — no server round-trip or xlsx dependency needed for
+// this. Steps column doubles as the detailed-step carrier — see csvImport.ts.
 export function ExcelImportPanel({ projectId, onImported }: { projectId: string; onImported: () => void | Promise<void> }) {
   const toast = useRef<Toast>(null);
   const [validRows, setValidRows] = useState<ParsedTestCaseRow[]>([]);
@@ -55,6 +55,11 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
             CSV file with header: Module, Title, Objective, Preconditions, Steps, Expected Result, Priority, Tags,
             Target Role. Only <strong>Title</strong> is required. Tags are comma-separated. Save your Excel file as
             CSV first.
+            <br />
+            <strong>Steps</strong> is free text by default (simple). To import detailed, per-step
+            results, format the cell as <code>Action | Expected;Action | Expected</code> (steps
+            separated by <code>;</code>, action/expected separated by <code>|</code>) — a leading
+            "1." on each step is optional.
           </p>
           <FileUpload mode="basic" chooseLabel="Choose CSV File" accept=".csv" customUpload uploadHandler={handleFile} auto />
         </>
@@ -80,6 +85,11 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
             <Column field="title" header="Title" />
             <Column field="moduleName" header="Module" body={(row: ParsedTestCaseRow) => row.moduleName ?? '-'} />
             <Column field="priority" header="Priority" />
+            <Column
+              field="stepType"
+              header="Step Type"
+              body={(row: ParsedTestCaseRow) => (row.stepType === 'detailed' ? `Detailed (${row.detailedSteps.length})` : 'Simple')}
+            />
             <Column field="targetRole" header="Target Role" body={(row: ParsedTestCaseRow) => row.targetRole ?? '-'} />
           </DataTable>
 

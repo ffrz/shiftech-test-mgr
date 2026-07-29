@@ -29,7 +29,8 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] List lintas project (`TestCasesPage`, read-only, pilih project via dropdown)
 - [x] Delete + konfirmasi
 - [x] Field **Role Target** (E17) — teks bebas (mis. "Admin", "Manager") untuk RBAC testing; test case yang sama secara konsep diuji ulang manual per role (duplikasi manual, bukan sistem varian). Tampil di tabel, detail, dan Test Run Result Detail
-- [x] **Import dari Excel/CSV** (E17) — tombol di tab Test Cases, baca file CSV client-side (tanpa dependency `xlsx` karena vulnerability terbuka di npm — Excel/Sheets tetap bisa export CSV native), preview baris valid/invalid sebelum commit, hanya `step_type=simple`
+- [x] **Import dari Excel/CSV** (E17) — tombol di tab Test Cases, baca file CSV client-side (tanpa dependency `xlsx` karena vulnerability terbuka di npm — Excel/Sheets tetap bisa export CSV native), preview baris valid/invalid sebelum commit
+- [x] **Import CSV mendukung `step_type=detailed`** (2026-07-29) — kolom Steps format `Aksi | Expected;Aksi | Expected` diparse jadi step ternormalisasi (`test_case_steps`); tanpa karakter `|` tetap `simple` (backward compatible). Berlaku untuk import Test Case maupun import item Test Suite
 - [ ] Filter by priority/status di list
 
 ## Test Suite Library (E17, renamed from "Test Case Template Library")
@@ -37,6 +38,7 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] **V2 Phase 5**: kepemilikan per-user (`owner_id`) + `visibility` (`private`/`unlisted`/`public`) — TIDAK LAGI admin-only. Siapa pun bisa create suite privat; publish `public` membuatnya terlihat & bisa di-clone user lain. Filter "My Templates" vs "All Visible Templates" di `TestSuitesPage`
 - [x] Item suite mendukung `simple`/`detailed` step_type sama seperti Test Case biasa, plus Role Target dan Tag (teks bebas — module/tag di-resolve find-or-create ke project nyata saat clone)
 - [x] Clone saat inisialisasi project baru (dropdown "Mulai dari Template" opsional di dialog Project Baru) atau kapan saja lewat tombol "Import dari Template" di tab Test Cases (pilih sebagian item, bukan wajib semua)
+- [x] `TestSuitesPage` tampilkan username author (owner) per baris, link ke `/@username`
 
 ## Test Plans
 - [x] CRUD test plan per project (tab "Test Plans" di Project Detail)
@@ -81,7 +83,9 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] Halaman User Management: promote/demote admin↔user, hapus (soft-delete), lihat detail — aksi **Approve**/**Cabut Akses** sudah dihapus (V2 Phase 2, tidak relevan lagi)
 - [x] Halaman detail user (`/users/:id`)
 - [x] Halaman Settings (`/settings`) — edit `username` (sekali ganti seumur hidup), `displayName`, `avatarUrl`, `bio`, toggle tema
-- [x] Halaman `/@:username` — lookup identitas publik minimal (nama, avatar, bio), dipakai juga sebagai target-picker undangan (V2 Phase 6)
+- [x] Settings Danger Zone — **Delete Account**: hapus permanen project & test suite milik sendiri, anonymize `users`/`profiles`; login ulang via Google dengan email sama otomatis **reactivate** akun (identitas baru, data lama tidak kembali) — RPC `delete_account()`/`reactivate_account()`
+- [x] Halaman `/@:username` (`PublicProfilePage`, via `ProfileView` reusable) — identitas (nama, avatar, bio) + daftar Project & Test Suite milik user yang `public`/`unlisted` (semua termasuk `private` kalau lihat profil sendiri), dipakai juga sebagai target-picker undangan (V2 Phase 6). Admin lihat profil orang lain dapat flag "spying" di UI
+- [x] `UserDetailPage` (admin) pakai `ProfileView` yang sama + card info akun (email/role)
 - [x] Layout: avatar, nama user, logout, menu khusus admin, dark mode toggle, bell notifikasi
 - [x] Konfigurasi Google OAuth di Supabase Dashboard — selesai
 - [x] Set admin pertama — selesai
@@ -93,7 +97,7 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] Phase 4 — Membership invite/accept flow (`project_members.status`), notifications (bell + panel), "Pending Invitations" card di Home
 - [x] Phase 5 — Test Suite Template ownership (`owner_id`) + visibility, buka create/edit/delete ke semua user (bukan admin-only)
 - [x] Phase 6 — Minimal public identity lookup (`/@username`), `UsernamePicker` component
-- [ ] Phase 7 — Golden-path acceptance walkthrough (2 akun real) + regresi Testing Domain + dokumentasi sinkron (dokumen ini adalah bagian dari itu) — **in progress**
+- [ ] Phase 7 — Golden-path walkthrough + regresi Testing Domain **dianggap selesai lewat smoke test manual (2026-07-29)**, dokumentasi sinkron sudah selesai. Sudah landed di Phase 7: `/@username` portfolio-lite (daftar Project/Test Suite publik/unlisted — keputusan sadar, bukan scope creep), Delete Account + auto-reactivation, fix keamanan soft-delete (`has_project_access()` kini benar-benar cek `is_approved()`). Sisa: **dogfooding** — susun Test Suite/Test Plan/Test Case Testify di dalam Testify sendiri untuk detail testing berkelanjutan (gantikan checklist walkthrough manual satu-kali)
 
 ## Test Cases — Test Role (lanjutan E17)
 - [x] `test_cases.target_role` (dulu teks bebas) diganti `target_role_id` FK ke tabel master `test_roles` per project (pola sama seperti Module) — migrasi `20260723000002_test_roles.sql`

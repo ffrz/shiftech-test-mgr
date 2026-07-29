@@ -1,4 +1,5 @@
 import { testCaseRepository } from '../repositories/testCaseRepository';
+import { testCaseStepRepository } from '../repositories/testCaseStepRepository';
 import { moduleService } from './moduleService';
 import { testRoleService } from './testRoleService';
 import { tagService } from './tagService';
@@ -50,7 +51,7 @@ export const testCaseImportService = {
         priority: row.priority,
         status: 'active' as const,
         notes: null,
-        stepType: 'simple' as const,
+        stepType: row.stepType,
         targetRoleId: row.targetRole ? roleIdByName.get(row.targetRole.toLowerCase()) ?? null : null,
       })),
     );
@@ -63,5 +64,23 @@ export const testCaseImportService = {
         tagNames: rows[i]?.tagNames ?? [],
       })),
     );
+
+    // 4. Detailed-step rows: create test_case_steps for each (sequential per test case, since
+    // testCaseStepRepository has no batch-across-multiple-test-cases variant — row counts here
+    // are small, this isn't the batch-optimization path createMany above is).
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const testCase = testCases[i];
+      if (row.stepType === 'detailed' && row.detailedSteps.length > 0 && testCase) {
+        await testCaseStepRepository.createMany(
+          row.detailedSteps.map((step, index) => ({
+            testCaseId: testCase.id,
+            action: step.action,
+            expectedResult: step.expectedResult,
+            stepNumber: index + 1,
+          })),
+        );
+      }
+    }
   },
 };

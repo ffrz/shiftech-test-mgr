@@ -152,7 +152,8 @@ export function TestSuiteDetailPage() {
           priority: row.priority,
           targetRole: row.targetRole ?? undefined,
           tagNames: row.tagNames ?? [],
-          stepType: 'simple' as const,
+          stepType: row.stepType,
+          detailedSteps: row.detailedSteps,
           orderIndex: existingItems.length + i,
         })),
       );

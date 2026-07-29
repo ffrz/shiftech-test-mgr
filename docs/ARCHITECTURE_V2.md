@@ -5,8 +5,9 @@ Scope: Platform Context redesign only. Testing Context (Project → Module → T
 
 > **Governed by [`docs/PRODUCT_CONSTITUTION.md`](./PRODUCT_CONSTITUTION.md).** Every decision
 > in this document must trace back to a Core Feature or the MVP Success Criteria in that file.
-> Testify is explicitly **not** a social network — see the "revised 2026-07-25" note below for
-> the one place that changed as a result of re-checking against the Constitution.
+> Testify is explicitly **not** a social network — see the "revised 2026-07-25" and
+> "reaffirmed 2026-07-29" notes below for how public-profile scope was checked (twice) against
+> the Constitution.
 
 > **Go backend (`backend/`) is PENDING.** This redesign and its MVP are executed entirely on
 > the existing Supabase-backed frontend. The custom Go backend (see [`backend/README.md`](../backend/README.md))
@@ -31,6 +32,16 @@ other and so names render correctly across the app. A bare `/@username` lookup p
 avatar, bio — no project/suite showcase) is kept for Phase 6 because it doubles as the
 "invite by username" target-picker UI; it is not a portfolio feature. See §9 and ROADMAP_V2
 Phase 6 for the current scope.
+
+> **Superseded (Phase 7, 2026-07-29):** `/@username` was extended to also list the profile's
+> `public`/`unlisted` Project and Test Suite (see ROADMAP_V2 `V2-P7-T06`). This is a
+> **deliberate, accepted decision** — reaffirmed 2026-07-29 as Testify commits to being a
+> platform (self-serve product, not just an internal tool), where a resolvable identity
+> that shows what a user has actually built/shared is a functional need (evaluating a
+> collaborator, browsing template authors), not vanity. It still respects the Constitution's
+> "not a social network" line: no likes/follows/comments/activity feed/stats — a page listing
+> owned public artifacts is closer to a package registry's "packages by this author" than to
+> a social profile. Treat this as the current, intended scope of `/@username`, not drift.
 
 ---
 

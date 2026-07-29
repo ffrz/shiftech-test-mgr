@@ -1,9 +1,20 @@
-import type { TestCasePriority } from '../types/domain';
+import type { TestCasePriority, TestCaseStepType } from '../types/domain';
 
-// Test case import (simple step_type only, per product decision) — no external dependency,
-// CSV instead of Excel to avoid the xlsx npm package's open, unpatched vulnerabilities.
-// Excel/Google Sheets both export/import CSV natively, so "import from Excel" in the UI still
-// works end-to-end for users — they just save as CSV first.
+// Test case import — no external dependency, CSV instead of Excel to avoid the xlsx npm
+// package's open, unpatched vulnerabilities. Excel/Google Sheets both export/import CSV
+// natively, so "import from Excel" in the UI still works end-to-end for users — they just
+// save as CSV first.
+//
+// Step Type detection: the Steps column doubles as the detailed-step carrier. If it contains
+// "|" (action | expected result, steps separated by ";"), the row imports as step_type
+// 'detailed' and each "action | expected" pair becomes one test_case_steps row. Otherwise the
+// whole cell is stored as free text on TestCase.steps (step_type 'simple') — this keeps the
+// old CSV format working unchanged.
+
+export interface ParsedTestCaseStep {
+  action: string;
+  expectedResult: string | null;
+}
 
 export interface ParsedTestCaseRow {
   rowNumber: number;
@@ -12,6 +23,8 @@ export interface ParsedTestCaseRow {
   objective: string | null;
   preconditions: string | null;
   steps: string;
+  stepType: TestCaseStepType;
+  detailedSteps: ParsedTestCaseStep[];
   expectedResult: string;
   priority: TestCasePriority;
   tagNames: string[];
@@ -25,6 +38,31 @@ export interface InvalidRow {
 
 const EXPECTED_HEADERS = ['module', 'title', 'objective', 'preconditions', 'steps', 'expected result', 'priority', 'tags', 'target role'];
 const PRIORITIES: TestCasePriority[] = ['low', 'medium', 'high', 'critical'];
+
+// "1. Aksi | Expected;2. Aksi | Expected" -> detailed steps. A leading "N." ordinal on each
+// segment is optional and stripped if present (matches how the simple-format examples in the
+// UI hint text are written); the '|' is what actually decides detailed vs simple.
+function parseStepsCell(raw: string): { stepType: TestCaseStepType; detailedSteps: ParsedTestCaseStep[] } {
+  if (!raw.includes('|')) {
+    return { stepType: 'simple', detailedSteps: [] };
+  }
+
+  const detailedSteps = raw
+    .split(';')
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map((segment) => {
+      const withoutOrdinal = segment.replace(/^\d+\.\s*/, '');
+      const [actionPart, ...expectedParts] = withoutOrdinal.split('|');
+      return {
+        action: actionPart.trim(),
+        expectedResult: expectedParts.join('|').trim() || null,
+      };
+    })
+    .filter((step) => step.action !== '');
+
+  return { stepType: 'detailed', detailedSteps };
+}
 
 // Minimal RFC 4180 parser: handles quoted fields containing commas, newlines, and escaped
 // quotes ("") — the common cases spreadsheet software actually produces.
@@ -109,13 +147,22 @@ export async function parseTestCaseCsv(file: File): Promise<{ valid: ParsedTestC
     const priorityRaw = cell(idx.priority).toLowerCase();
     const priority = (PRIORITIES.includes(priorityRaw as TestCasePriority) ? priorityRaw : 'medium') as TestCasePriority;
 
+    const stepsCell = cell(idx.steps);
+    const { stepType, detailedSteps } = parseStepsCell(stepsCell);
+    if (stepType === 'detailed' && detailedSteps.length === 0) {
+      invalid.push({ rowNumber, reason: 'Steps contains "|" but no valid action found' });
+      continue;
+    }
+
     valid.push({
       rowNumber,
       moduleName: cell(idx.module) || null,
       title,
       objective: cell(idx.objective) || null,
       preconditions: cell(idx.preconditions) || null,
-      steps: cell(idx.steps),
+      steps: stepType === 'simple' ? stepsCell : '',
+      stepType,
+      detailedSteps,
       expectedResult: cell(idx.expectedResult),
       priority,
       tagNames: cell(idx.tags).split(',').map((t) => t.trim()).filter(Boolean),
