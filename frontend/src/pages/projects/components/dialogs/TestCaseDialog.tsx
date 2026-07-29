@@ -209,12 +209,12 @@ export function TestCaseDialog({
           <>
             <div className="flex flex-column gap-1">
               <label htmlFor="case-steps">Test Steps</label>
-              <InputTextarea id="case-steps" value={steps} onChange={(e) => onStepsChange(e.target.value)} rows={4} autoResize />
+              <InputTextarea id="case-steps" value={steps} onChange={(e) => onStepsChange(e.target.value)} rows={2} autoResize />
             </div>
 
             <div className="flex flex-column gap-1">
               <label htmlFor="case-expected">Expected Result</label>
-              <InputTextarea id="case-expected" value={expectedResult} onChange={(e) => onExpectedResultChange(e.target.value)} rows={3} autoResize />
+              <InputTextarea id="case-expected" value={expectedResult} onChange={(e) => onExpectedResultChange(e.target.value)} rows={2} autoResize />
             </div>
           </>
         ) : (

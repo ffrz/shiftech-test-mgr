@@ -428,12 +428,12 @@ export function TestCaseDetailPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-steps">Test Steps</label>
-            <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={4} autoResize />
+            <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={2} autoResize />
           </div>
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-expected">Expected Result</label>
-            <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={3} autoResize />
+            <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={2} autoResize />
           </div>
 
           <div className="flex flex-column gap-1">
