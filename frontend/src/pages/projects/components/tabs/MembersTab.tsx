@@ -21,6 +21,7 @@ const MEMBER_ROLE_OPTIONS: { label: string; value: ProjectMemberRole }[] = [
 type MembersTabProps = {
   members: ProjectMemberWithProfile[];
   isMobile: boolean;
+  ownerId: string;
   search: string;
   onSearchChange: (value: string) => void;
   roleFilter: ProjectMemberRole | '';
@@ -41,6 +42,7 @@ export { MEMBER_ROLE_OPTIONS };
 export function MembersTab({
   members,
   isMobile,
+  ownerId,
   search,
   onSearchChange,
   roleFilter,
@@ -56,6 +58,8 @@ export function MembersTab({
   onBulkRemove,
 }: MembersTabProps) {
   const navigate = useNavigate();
+
+  function isOwner(userId: string) { return userId === ownerId; }
 
   function goToUser(userId: string) {
     return (e: React.MouseEvent) => {
@@ -75,18 +79,21 @@ export function MembersTab({
         <Dropdown
           value={row.role}
           options={MEMBER_ROLE_OPTIONS}
+          disabled={isOwner(row.userId)}
           onChange={(e) => onChangeRole(row, e.value)}
           className="w-10rem"
         />
       </div>
-      <RowActionsMenu
-        items={[
-          ...(row.status === 'declined'
-            ? [{ label: 'Reinvite', icon: 'pi pi-send', command: () => onReinvite(row) }]
-            : []),
-          { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => onRemove(row) },
-        ]}
-      />
+      {!isOwner(row.userId) && (
+        <RowActionsMenu
+          items={[
+            ...(row.status === 'declined'
+              ? [{ label: 'Reinvite', icon: 'pi pi-send', command: () => onReinvite(row) }]
+              : []),
+            { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => onRemove(row) },
+          ]}
+        />
+      )}
     </div>
   );
 
@@ -155,6 +162,7 @@ export function MembersTab({
               <Dropdown
                 value={row.role}
                 options={MEMBER_ROLE_OPTIONS}
+                disabled={isOwner(row.userId)}
                 onChange={(e) => onChangeRole(row, e.value)}
                 className="w-10rem"
               />
@@ -166,14 +174,16 @@ export function MembersTab({
             header=""
             style={{ width: '3.5rem' }}
             body={(row: ProjectMemberWithProfile) => (
-              <RowActionsMenu
-                items={[
-                  ...(row.status === 'declined'
-                    ? [{ label: 'Reinvite', icon: 'pi pi-send', command: () => onReinvite(row) }]
-                    : []),
-                  { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => onRemove(row) },
-                ]}
-              />
+              !isOwner(row.userId) ? (
+                <RowActionsMenu
+                  items={[
+                    ...(row.status === 'declined'
+                      ? [{ label: 'Reinvite', icon: 'pi pi-send', command: () => onReinvite(row) }]
+                      : []),
+                    { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => onRemove(row) },
+                  ]}
+                />
+              ) : null
             )}
           />
         )}

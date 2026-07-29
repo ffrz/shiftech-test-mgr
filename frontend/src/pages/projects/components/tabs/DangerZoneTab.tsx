@@ -45,7 +45,7 @@ export function DangerZoneTab({
             { label: 'Public — visible to everyone', value: 'public' },
           ]}
           onChange={(e) => onChangeVisibility(e.value)}
-          className="w-full md:w-20rem"
+          className="w-full md:w-22rem"
         />
       </div>
       <div className={SECTION_CLASS} style={SECTION_STYLE}>
@@ -61,7 +61,7 @@ export function DangerZoneTab({
           icon={project.status === 'active' ? 'pi pi-pause' : 'pi pi-play'}
           severity="warning"
           outlined
-          className="w-full md:w-12rem"
+          className="w-full md:w-15rem"
           onClick={onToggleActive}
         />
       </div>
@@ -78,7 +78,7 @@ export function DangerZoneTab({
             icon="pi pi-inbox"
             severity="warning"
             outlined
-            className="w-full md:w-12rem"
+            className="w-full md:w-15rem"
             onClick={onArchive}
           />
         </div>
@@ -96,7 +96,7 @@ export function DangerZoneTab({
             icon="pi pi-trash"
             severity="danger"
             outlined
-            className="w-full md:w-12rem"
+            className="w-full md:w-15rem"
             onClick={onDeletePermanently}
           />
         </div>

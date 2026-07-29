@@ -599,6 +599,7 @@ export function ProjectSettingsPage() {
             <MembersTab
               members={filteredMembers}
               isMobile={isMobile}
+              ownerId={project?.ownerId ?? ''}
               search={memberSearch}
               onSearchChange={setMemberSearch}
               roleFilter={memberRoleFilter}
