@@ -30,6 +30,11 @@ export function AppTopbar() {
 
   const userMenuItems: any[] = [
     {
+      label: 'My Profile',
+      icon: 'pi pi-user',
+      command: () => { if (profile?.username) navigate(`/@${profile.username}`); },
+    },
+    {
       label: 'Settings',
       icon: 'pi pi-cog',
       command: () => window.location.assign('/app/settings'),
