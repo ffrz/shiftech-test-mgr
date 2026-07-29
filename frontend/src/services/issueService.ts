@@ -1,6 +1,6 @@
 import { issueRepository } from '../repositories/issueRepository';
 import { tagService } from './tagService';
-import type { ExternalLink, Issue, IssuePriority, IssueType } from '../types/domain';
+import type { ExternalLink, Issue, IssuePriority, IssueStatus, IssueType } from '../types/domain';
 
 export const issueService = {
   getById(id: string) {
@@ -80,6 +80,51 @@ export const issueService = {
     }
 
     return issue;
+  },
+
+  async createMany(inputs: {
+    projectId: string;
+    moduleId?: string | null;
+    type?: IssueType;
+    title: string;
+    description?: string;
+    actualResult?: string;
+    expectedResult?: string;
+    priority?: IssuePriority;
+    externalLinks?: ExternalLink[];
+    tagNames?: string[];
+  }[]): Promise<Issue[]> {
+    for (const input of inputs) {
+      if (!input.title.trim()) throw new Error('Issue title cannot be empty');
+    }
+
+    const issues = await issueRepository.createMany(
+      inputs.map((input) => ({
+        projectId: input.projectId,
+        moduleId: input.moduleId ?? null,
+        type: input.type ?? 'bug',
+        title: input.title.trim(),
+        description: input.description?.trim() || null,
+        actualResult: input.actualResult?.trim() || null,
+        expectedResult: input.expectedResult?.trim() || null,
+        priority: input.priority ?? 'medium',
+        status: 'open' as IssueStatus,
+        assignedTo: null,
+        externalLinks: input.externalLinks ?? [],
+      })),
+    );
+
+    const withTags = issues
+      .map((issue, i) => ({ issue, tagNames: inputs[i]?.tagNames ?? [] }))
+      .filter((x) => x.tagNames.length > 0);
+    if (withTags.length > 0) {
+      await tagService.saveTagsForIssueMany(
+        inputs[0].projectId,
+        withTags.map((x) => ({ issueId: x.issue.id, tagNames: x.tagNames })),
+      );
+    }
+
+    return issues;
   },
 
   async update(

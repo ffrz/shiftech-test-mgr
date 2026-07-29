@@ -98,6 +98,15 @@ export const tagRepository = {
     return result;
   },
 
+  // Batch insert junction rows for issues (no delete needed — fresh inserts only).
+  async insertIssueTags(rows: { issueId: string; tagId: string }[]): Promise<void> {
+    if (rows.length === 0) return;
+    const { error } = await supabase
+      .from('issue_tags')
+      .insert(rows.map((r) => ({ issue_id: r.issueId, tag_id: r.tagId })));
+    if (error) throw error;
+  },
+
   // Batch insert junction rows for newly created test cases (no delete needed).
   async insertTestCaseTags(rows: { testCaseId: string; tagId: string }[]): Promise<void> {
     if (rows.length === 0) return;

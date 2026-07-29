@@ -79,6 +79,10 @@ export const testPlanService = {
     return testCaseRepository.findCasesForPlanPaginated(testPlanId, options);
   },
 
+  addCasesMany(inputs: { testPlanId: string; testCaseId: string; order: number }[]) {
+    return testCaseRepository.attachToPlanMany(inputs);
+  },
+
   addCase(testPlanId: string, testCaseId: string, order: number) {
     return testCaseRepository.attachToPlan(testPlanId, testCaseId, order);
   },

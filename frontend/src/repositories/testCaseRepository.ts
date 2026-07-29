@@ -258,6 +258,18 @@ export const testCaseRepository = {
     };
   },
 
+  async attachToPlanMany(
+    inputs: { testPlanId: string; testCaseId: string; order: number }[],
+  ): Promise<TestPlanCase[]> {
+    if (inputs.length === 0) return [];
+    const { data, error } = await supabase
+      .from('test_plan_cases')
+      .insert(inputs.map((i) => ({ test_plan_id: i.testPlanId, test_case_id: i.testCaseId, order: i.order })))
+      .select('*');
+    if (error) throw error;
+    return (data ?? []).map(mapTestPlanCaseRow);
+  },
+
   async attachToPlan(testPlanId: string, testCaseId: string, order: number): Promise<TestPlanCase> {
     const { data, error } = await supabase
       .from('test_plan_cases')

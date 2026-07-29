@@ -188,6 +188,42 @@ export const issueRepository = {
     return mapIssueRow(data);
   },
 
+  async createMany(
+    inputs: {
+      projectId: string;
+      moduleId: string | null;
+      type: IssueType;
+      title: string;
+      description: string | null;
+      actualResult: string | null;
+      expectedResult: string | null;
+      priority: Issue['priority'];
+      status: IssueStatus;
+      assignedTo: string | null;
+      externalLinks: ExternalLink[];
+    }[],
+  ): Promise<Issue[]> {
+    if (inputs.length === 0) return [];
+    const { data, error } = await supabase
+      .from('issues')
+      .insert(inputs.map((i) => ({
+        project_id: i.projectId,
+        module_id: i.moduleId,
+        type: i.type,
+        title: i.title,
+        description: i.description,
+        actual_result: i.actualResult,
+        expected_result: i.expectedResult,
+        priority: i.priority,
+        status: i.status,
+        assigned_to: i.assignedTo,
+        external_links: i.externalLinks,
+      })))
+      .select('*');
+    if (error) throw error;
+    return (data ?? []).map(mapIssueRow);
+  },
+
   async update(
     id: string,
     changes: Partial<
