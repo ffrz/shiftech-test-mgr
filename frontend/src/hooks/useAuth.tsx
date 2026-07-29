@@ -29,7 +29,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   async function loadProfile(userId: string) {
-    const [u, p] = await Promise.all([userService.getOwn(userId), profileService.getOwnProfile(userId)]);
+    let [u, p] = await Promise.all([userService.getOwn(userId), profileService.getOwnProfile(userId)]);
+
+    // If the user was previously deleted (deleted_at set), auto-reactivate so they can
+    // use the app again with a fresh identity — same Google account, new username etc.
+    if (!u && session?.user) {
+      const { error: reactivateError } = await supabase.rpc('reactivate_account', {
+        p_email: session.user.email ?? '',
+        p_full_name: session.user.user_metadata?.full_name ?? null,
+        p_avatar_url: session.user.user_metadata?.avatar_url ?? null,
+      });
+      if (!reactivateError) {
+        [u, p] = await Promise.all([userService.getOwn(userId), profileService.getOwnProfile(userId)]);
+      }
+    }
+
     setUser(u);
     setProfile(p);
   }

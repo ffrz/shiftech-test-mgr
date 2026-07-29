@@ -1,3 +1,4 @@
+import { supabase } from '../config/supabaseClient';
 import { userRepository } from '../repositories/userRepository';
 import { mapUserRow } from '../helpers/mappers';
 
@@ -45,5 +46,12 @@ export const userService = {
 
   remove(id: string) {
     return userRepository.softDelete(id);
+  },
+
+  // Permanently deletes the current user's account via security-definer RPC.
+  // The RPC handles owned-data cleanup and anonymisation server-side.
+  async deleteAccount() {
+    const { error } = await supabase.rpc('delete_account');
+    if (error) throw error;
   },
 };
