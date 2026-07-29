@@ -887,7 +887,7 @@ export function ProjectDetailPage() {
         <Breadcrumb
           items={[
             { label: 'Projects', path: '/projects' },
-            { label: projectLoading ? '…' : 'Project not found' },
+            { label: projectLoading ? '' : 'Project not found' },
           ]}
         />
         {!projectLoading && <p>Project not found.</p>}

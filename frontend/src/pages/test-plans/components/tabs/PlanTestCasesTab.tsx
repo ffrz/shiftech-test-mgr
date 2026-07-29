@@ -181,6 +181,8 @@ export function PlanTestCasesTab({
         onPage={(e) => onPage(e.first, e.rows)}
         paginator
         paginatorTemplate={dataTablePaginatorProps.paginatorTemplate}
+        scrollable={dataTablePaginatorProps.scrollable}
+        scrollHeight={dataTablePaginatorProps.scrollHeight}
         rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="No test cases in this plan yet"
         size="small"

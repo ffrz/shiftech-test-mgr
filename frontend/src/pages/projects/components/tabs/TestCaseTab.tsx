@@ -243,19 +243,21 @@ export function TestCaseTab({
       <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div />
         {canEditContent && (
-          <div className="flex gap-2">
-            <Button
-              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
-              text
-              rounded
-              size="small"
-              severity={filterVisible ? "warning" : "secondary"}
-              onClick={() => setFilterVisible(!filterVisible)}
-              tooltip={filterVisible ? "Hide filters" : "Show filters"}
-              tooltipOptions={{ position: 'bottom' }}
-            />
-            <Button icon="pi pi-copy" size="small" text onClick={onImportTemplate} />
-            <Button icon="pi pi-file-excel" size="small" text onClick={onImportExcel} tooltip="Import CSV" tooltipOptions={{ position: 'bottom' }} />
+          <div className="flex gap-3">
+            <div className="flex gap-2 align-items-center header-actions">
+              <Button rounded icon="pi pi-copy" size="small" text onClick={onImportTemplate} />
+              <Button rounded icon="pi pi-file-excel" size="small" text onClick={onImportExcel} tooltip="Import CSV" tooltipOptions={{ position: 'bottom' }} />
+              <Button
+                icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
+                text
+                rounded
+                size="small"
+                severity={filterVisible ? "warning" : "secondary"}
+                onClick={() => setFilterVisible(!filterVisible)}
+                tooltip={filterVisible ? "Hide filters" : "Show filters"}
+                tooltipOptions={{ position: 'bottom' }}
+              />
+            </div>
             <Button label="New Test Case" icon="pi pi-plus" size="small" onClick={onCreate} />
           </div>
         )}

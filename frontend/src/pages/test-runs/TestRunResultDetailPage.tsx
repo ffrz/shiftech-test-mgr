@@ -408,13 +408,13 @@ export function TestRunResultDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: projectId ? (projectName ?? '…') : '…', path: projectId ? `/projects/${projectId}` : undefined },
+          { label: projectId ? (projectName ?? '') : '', path: projectId ? `/projects/${projectId}` : undefined },
           // Custom/unplanned runs (E16) have no test_plan_id — skip this crumb entirely
-          // instead of showing a permanently-unresolved "…".
+          // instead of showing a permanently-unresolved placeholder.
           ...(testRun?.testPlanId
-            ? [{ label: testPlan ? testPlan.code : '…', path: testPlan ? `/test-plans/${testPlan.id}` : undefined }]
+            ? [{ label: testPlan ? testPlan.code : '', path: testPlan ? `/test-plans/${testPlan.id}` : undefined }]
             : []),
-          { label: testRun ? testRun.code : '…', path: testRun ? `/test-runs/${testRun.id}` : undefined },
+          { label: testRun ? testRun.code : '', path: testRun ? `/test-runs/${testRun.id}` : undefined },
         ]}
       />
 

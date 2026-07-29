@@ -22,7 +22,16 @@ export const dataTablePaginatorTemplate: PaginatorTemplate = {
   ),
 };
 
+// Body height clamps between a floor (short/mobile viewports) and a ceiling
+// (tall desktop viewports), tracking 60vh in between — keeps the table from
+// visibly resizing/jumping while it goes loading -> populated -> re-loading,
+// and gives a stable internal scrollbar instead of pushing the paginator/
+// page content up and down as row count changes across page navigations.
+export const DATA_TABLE_SCROLL_HEIGHT = 'clamp(20rem, 60vh, 42rem)';
+
 export const dataTablePaginatorProps = {
   paginator: true,
   paginatorTemplate: dataTablePaginatorTemplate,
+  scrollable: true,
+  scrollHeight: DATA_TABLE_SCROLL_HEIGHT,
 } as const;

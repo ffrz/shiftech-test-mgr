@@ -282,8 +282,8 @@ export function TestPlanDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: testPlan ? (projectName ?? '…') : '…', path: testPlan ? `/projects/${testPlan.projectId}` : undefined },
-          { label: testPlan ? testPlan.code : '…' },
+          { label: testPlan ? (projectName ?? '') : '', path: testPlan ? `/projects/${testPlan.projectId}` : undefined },
+          { label: testPlan ? testPlan.code : '' },
         ]}
       />
 

@@ -285,8 +285,8 @@ export function IssueDetailPage() {
   if (loading || !issue) {
     const breadcrumbItems: BreadcrumbItem[] = [
       { label: 'Projects', path: '/projects' },
-      { label: issue ? (projectName ?? '…') : '…', path: issue?.projectId ? `/projects/${issue.projectId}` : undefined },
-      { label: loading ? '…' : 'Issue not found' },
+      { label: issue ? (projectName ?? '') : '', path: issue?.projectId ? `/projects/${issue.projectId}` : undefined },
+      { label: loading ? '' : 'Issue not found' },
     ];
     return (
       <div>
@@ -298,7 +298,7 @@ export function IssueDetailPage() {
 
   const breadcrumbItems: BreadcrumbItem[] = [
     { label: 'Projects', path: '/projects' },
-    { label: projectName ?? '…', path: `/projects/${issue.projectId}` },
+    { label: projectName ?? '', path: `/projects/${issue.projectId}` },
     { label: issue.code, path: `/issues/${issue.id}` },
   ];
 
