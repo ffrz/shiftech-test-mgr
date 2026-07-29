@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { CharacterCount } from '../ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import type { TestPlanStatus } from '../../types/domain';
@@ -65,7 +66,8 @@ export function TestPlanDialog({
         </div>
         <div className="flex flex-column gap-1">
           <label htmlFor="plan-description">Description</label>
-          <InputTextarea id="plan-description" value={description} onChange={(e) => onDescriptionChange(e.target.value)} rows={3} />
+          <InputTextarea id="plan-description" value={description} onChange={(e) => onDescriptionChange(e.target.value)} rows={1} autoResize maxLength={1000} />
+          <CharacterCount value={description} maxLength={1000} />
         </div>
         {editing && (
           <div className="flex flex-column gap-1">

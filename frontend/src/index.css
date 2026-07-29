@@ -342,13 +342,16 @@ h6 {
   padding-right: 2.25rem;
 }
 
-/* Textarea: only vertical resize, clamped so it can't collapse to nothing or
-   grow past a reasonable height, and never resizes wider than its container
-   (which was letting the dialog's content overflow horizontally). */
+/* Textarea: default height matches a single-line text input, autoResize
+   (see InputTextarea usages) grows it as content wraps, capped at ~3 lines
+   before switching to internal scroll instead of growing further. Manual
+   resize handle stays vertical-only, and is clamped to the same max so it
+   can't collapse to nothing or grow past a reasonable height. */
 .p-inputtextarea {
   resize: vertical;
-  min-height: 6rem;
-  max-height: 20rem;
+  min-height: 2.5rem;
+  max-height: 6rem;
+  overflow-y: auto;
 }
 
 /* ===== Admin layout (Sakai-style: fixed topbar + sidebar) ===== */
@@ -1040,3 +1043,4 @@ h6,
   width: 1.5rem !important;
   height: 1.5rem !important;
 }
+

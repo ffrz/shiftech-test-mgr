@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { CharacterCount } from '../../../components/ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { projectService } from '../../../services/projectService';
@@ -108,7 +109,8 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
         </div>
         <div className="flex flex-column gap-1">
           <label htmlFor="create-project-description">Description</label>
-          <InputTextarea id="create-project-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+          <InputTextarea id="create-project-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={1} autoResize maxLength={1000} />
+          <CharacterCount value={description} maxLength={1000} />
         </div>
         {!editingProject && (
           <div className="flex flex-column gap-1">

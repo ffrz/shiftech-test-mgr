@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { CharacterCount } from '../ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
@@ -276,17 +277,20 @@ export function IssueEditor({
 
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-description">Description</label>
-            <InputTextarea id="issue-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} autoResize />
+            <InputTextarea id="issue-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <CharacterCount value={description} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-actual">Actual Result</label>
-            <InputTextarea id="issue-actual" value={actualResult} onChange={(e) => setActualResult(e.target.value)} rows={2} autoResize />
+            <InputTextarea id="issue-actual" value={actualResult} onChange={(e) => setActualResult(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <CharacterCount value={actualResult} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-expected">Expected Result</label>
-            <InputTextarea id="issue-expected" value={expectedResult} onChange={(e) => setExpectedResult(e.target.value)} rows={2} autoResize />
+            <InputTextarea id="issue-expected" value={expectedResult} onChange={(e) => setExpectedResult(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <CharacterCount value={expectedResult} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-2">

@@ -9,6 +9,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { SelectButton } from 'primereact/selectbutton';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
@@ -432,31 +433,30 @@ export function TestSuiteDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Test Suite', path: '/test-suites' },
-          { label: suite ? suite.name : '…' },
+          { label: suite ? suite.name : '' },
         ]}
       />
 
       <Card className="mb-3">
-        <div className="flex align-items-center justify-content-between gap-2">
-          <div>
-            <div className="flex align-items-center gap-2 mb-1">
-              <h2 className="m-0">{suite?.name ?? '…'}</h2>
-            </div>
-            <p className="text-color-secondary text-sm m-0 my-2">{suite?.description || 'No description'}</p>
-            <div className="flex align-items-center gap-2 my-2">
-              {suite && <Tag value={TEST_SUITE_VISIBILITY_LABEL[suite.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[suite.visibility]} />}
-            </div>
+
+        <div className="flex align-items-center justify-content-between gap-2 mb-1">
+          <h2 className="m-0">{suite?.name ?? ''}</h2>
+          <div className="header-actions">
+            {canEdit && (
+              <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />
+            )}
           </div>
-          {canEdit && (
-            <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />
-          )}
+        </div>
+        <p className="text-color-secondary text-sm m-0 my-2">{suite?.description || 'No description'}</p>
+        <div className="flex align-items-center gap-2 my-2">
+          {suite && <Tag value={TEST_SUITE_VISIBILITY_LABEL[suite.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[suite.visibility]} />}
         </div>
       </Card>
 
       <PageHeader
-        title="Item Test Case"
+        title="Test Cases"
         actions={canEdit ? (
-          <div className="flex gap-2">
+          <div className="flex gap-2 align-items-center">
             <Button icon="pi pi-copy" size="small" text onClick={openImportTemplateDialog} tooltip="Import from Template" />
             <Button icon="pi pi-file-excel" size="small" text onClick={() => setImportCsvDialogOpen(true)} tooltip="Import from CSV" />
             <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} />
@@ -596,7 +596,8 @@ export function TestSuiteDetailPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="item-preconditions">Prerequisites</label>
-            <InputTextarea id="item-preconditions" value={itemPreconditions} onChange={(e) => setItemPreconditions(e.target.value)} rows={2} />
+            <InputTextarea id="item-preconditions" value={itemPreconditions} onChange={(e) => setItemPreconditions(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <CharacterCount value={itemPreconditions} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
@@ -615,11 +616,13 @@ export function TestSuiteDetailPage() {
             <>
               <div className="flex flex-column gap-1">
                 <label htmlFor="item-steps">Test Steps</label>
-                <InputTextarea id="item-steps" value={itemSteps} onChange={(e) => setItemSteps(e.target.value)} rows={4} />
+                <InputTextarea id="item-steps" value={itemSteps} onChange={(e) => setItemSteps(e.target.value)} rows={1} autoResize maxLength={1000} />
+                <CharacterCount value={itemSteps} maxLength={1000} />
               </div>
               <div className="flex flex-column gap-1">
                 <label htmlFor="item-expected">Expected Result</label>
-                <InputTextarea id="item-expected" value={itemExpectedResult} onChange={(e) => setItemExpectedResult(e.target.value)} rows={3} />
+                <InputTextarea id="item-expected" value={itemExpectedResult} onChange={(e) => setItemExpectedResult(e.target.value)} rows={1} autoResize maxLength={1000} />
+                <CharacterCount value={itemExpectedResult} maxLength={1000} />
               </div>
             </>
           ) : (

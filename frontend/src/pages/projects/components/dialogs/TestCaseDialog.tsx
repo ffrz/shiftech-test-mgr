@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { CharacterCount } from '../../../../components/ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
 import { SelectButton } from 'primereact/selectbutton';
@@ -190,7 +191,8 @@ export function TestCaseDialog({
 
         <div className="flex flex-column gap-1">
           <label htmlFor="case-preconditions">Preconditions</label>
-          <InputTextarea id="case-preconditions" value={preconditions} onChange={(e) => onPreconditionsChange(e.target.value)} rows={2} autoResize />
+          <InputTextarea id="case-preconditions" value={preconditions} onChange={(e) => onPreconditionsChange(e.target.value)} rows={1} autoResize maxLength={1000} />
+          <CharacterCount value={preconditions} maxLength={1000} />
         </div>
 
         <div className="flex flex-column gap-1">
@@ -209,12 +211,14 @@ export function TestCaseDialog({
           <>
             <div className="flex flex-column gap-1">
               <label htmlFor="case-steps">Test Steps</label>
-              <InputTextarea id="case-steps" value={steps} onChange={(e) => onStepsChange(e.target.value)} rows={2} autoResize />
+              <InputTextarea id="case-steps" value={steps} onChange={(e) => onStepsChange(e.target.value)} rows={1} autoResize maxLength={1000} />
+              <CharacterCount value={steps} maxLength={1000} />
             </div>
 
             <div className="flex flex-column gap-1">
               <label htmlFor="case-expected">Expected Result</label>
-              <InputTextarea id="case-expected" value={expectedResult} onChange={(e) => onExpectedResultChange(e.target.value)} rows={2} autoResize />
+              <InputTextarea id="case-expected" value={expectedResult} onChange={(e) => onExpectedResultChange(e.target.value)} rows={1} autoResize maxLength={1000} />
+              <CharacterCount value={expectedResult} maxLength={1000} />
             </div>
           </>
         ) : (
@@ -271,7 +275,8 @@ export function TestCaseDialog({
 
         <div className="flex flex-column gap-1">
           <label htmlFor="case-notes">Notes (optional)</label>
-          <InputTextarea id="case-notes" value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={2} autoResize />
+          <InputTextarea id="case-notes" value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={1} autoResize maxLength={1000} />
+          <CharacterCount value={notes} maxLength={1000} />
         </div>
 
         <Button label="Save" size="small" onClick={onSave} />

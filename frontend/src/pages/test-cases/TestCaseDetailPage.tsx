@@ -9,6 +9,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
@@ -253,8 +254,8 @@ export function TestCaseDetailPage() {
         <Breadcrumb
           items={[
             { label: 'Projects', path: '/projects' },
-            { label: testCase ? testCase.project.name : '…', path: testCase ? `/projects/${testCase.project.id}` : undefined },
-            { label: loading ? '…' : 'Test case not found' },
+            { label: testCase ? testCase.project.name : '', path: testCase ? `/projects/${testCase.project.id}` : undefined },
+            { label: loading ? '' : 'Test case not found' },
           ]}
         />
         {!loading && <p>Test case not found.</p>}
@@ -423,17 +424,20 @@ export function TestCaseDetailPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-preconditions">Preconditions</label>
-            <InputTextarea id="edit-case-preconditions" value={editPreconditions} onChange={(e) => setEditPreconditions(e.target.value)} rows={2} autoResize />
+            <InputTextarea id="edit-case-preconditions" value={editPreconditions} onChange={(e) => setEditPreconditions(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <CharacterCount value={editPreconditions} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-steps">Test Steps</label>
-            <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={2} autoResize />
+            <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <CharacterCount value={editSteps} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-expected">Expected Result</label>
-            <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={2} autoResize />
+            <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <CharacterCount value={editExpectedResult} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
@@ -455,7 +459,8 @@ export function TestCaseDetailPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-notes">Notes (optional)</label>
-            <InputTextarea id="edit-case-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} autoResize />
+            <InputTextarea id="edit-case-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <CharacterCount value={editNotes} maxLength={1000} />
           </div>
 
           {editError && <small className="p-error">{editError}</small>}

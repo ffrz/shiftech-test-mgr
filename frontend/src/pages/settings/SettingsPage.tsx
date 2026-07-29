@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
@@ -109,7 +110,8 @@ export function SettingsPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="bio">Bio</label>
-            <InputTextarea id="bio" value={bio} onChange={(e) => { setBio(e.target.value); setSuccess(false); }} rows={4} />
+            <InputTextarea id="bio" value={bio} onChange={(e) => { setBio(e.target.value); setSuccess(false); }} rows={1} autoResize maxLength={1000} />
+            <CharacterCount value={bio} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-2">
