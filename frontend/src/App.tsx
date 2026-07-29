@@ -45,7 +45,7 @@ function App() {
           <Route path="/test-runs/:id/issues" element={<TestRunIssuesPage />} />
           <Route path="/test-runs/:id" element={<TestRunResultDetailPage />} />
           <Route path="/issues/:id" element={<IssueDetailPage />} />
-          <Route path="/@:username" element={<PublicProfilePage />} />
+          <Route path="/:usernameWithAt" element={<PublicProfilePage />} />
 
           <Route element={<AdminRoute />}>
             <Route path="/users" element={<UserManagementPage />} />

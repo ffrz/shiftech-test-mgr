@@ -78,6 +78,16 @@ export const projectRepository = {
     return { data: (data ?? []).map(mapProjectRow), total: count ?? 0 };
   },
 
+  async findByOwner(ownerId: string, visibilityFilter?: string[]): Promise<Project[]> {
+    let builder = supabase.from('projects').select('*').eq('owner_id', ownerId);
+    if (visibilityFilter?.length) {
+      builder = builder.in('visibility', visibilityFilter);
+    }
+    const { data, error } = await builder.order('name');
+    if (error) throw error;
+    return (data ?? []).map(mapProjectRow);
+  },
+
   async findById(id: string): Promise<Project | null> {
     const { data, error } = await supabase.from('projects').select('*').eq('id', id).maybeSingle();
     if (error) throw error;

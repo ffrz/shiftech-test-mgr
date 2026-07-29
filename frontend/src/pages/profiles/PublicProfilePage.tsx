@@ -1,22 +1,55 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card } from 'primereact/card';
-import { Avatar } from 'primereact/avatar';
 import { profileService } from '../../services/profileService';
-import type { Profile } from '../../types/domain';
+import { projectService } from '../../services/projectService';
+import { testSuiteService } from '../../services/testSuiteService';
+import { ProfileView } from '../../components/profile/ProfileView';
+import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { useAuthContext } from '../../hooks/useAuth';
+import type { Profile, Project, TestSuite } from '../../types/domain';
 
 export function PublicProfilePage() {
-  const { username } = useParams<{ username: string }>();
+  const { usernameWithAt = '' } = useParams();
+  const username = usernameWithAt.startsWith('@') ? usernameWithAt.slice(1) : '';
+  const { profile: currentProfile, isAdmin } = useAuthContext();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [suites, setSuites] = useState<TestSuite[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isOwnProfile = currentProfile?.username === username;
+  const isSpying = isAdmin && !isOwnProfile;
 
   useEffect(() => {
     if (!username) return;
-    profileService.getByUsername(username).then((p) => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      const p = await profileService.getByUsername(username).catch(() => null);
+      if (cancelled) return;
       setProfile(p);
+
+      if (!p) {
+        setLoading(false);
+        return;
+      }
+
+      const visFilter = isOwnProfile ? undefined : ['public', 'unlisted'];
+      const [proj, su] = await Promise.all([
+        projectService.listByOwner(p.id, visFilter).catch(() => [] as Project[]),
+        testSuiteService.listByOwner(p.id, visFilter).catch(() => [] as TestSuite[]),
+      ]);
+      if (cancelled) return;
+      setProjects(proj);
+      setSuites(su);
       setLoading(false);
-    });
-  }, [username]);
+    }
+
+    load();
+
+    return () => { cancelled = true; };
+  }, [username, isOwnProfile]);
 
   if (loading) return <p>Loading...</p>;
   if (!profile) return <p>User not found.</p>;
@@ -24,22 +57,9 @@ export function PublicProfilePage() {
   const displayName = profile.displayName ?? profile.username;
 
   return (
-    <div className="flex justify-content-center">
-      <Card className="w-full md:w-6 lg:w-4">
-        <div className="flex flex-column align-items-center text-center gap-3">
-          <Avatar
-            image={profile.avatarUrl ?? undefined}
-            icon={profile.avatarUrl ? undefined : 'pi pi-user'}
-            shape="circle"
-            size="xlarge"
-          />
-          <h2 className="m-0">{displayName}</h2>
-          {profile.displayName && (
-            <p className="m-0 text-color-secondary">@{profile.username}</p>
-          )}
-          {profile.bio && <p className="m-0">{profile.bio}</p>}
-        </div>
-      </Card>
+    <div className="p-3">
+      <Breadcrumb items={[{ label: displayName }]} />
+      <ProfileView profile={profile} projects={projects} suites={suites} isSpying={isSpying} />
     </div>
   );
 }

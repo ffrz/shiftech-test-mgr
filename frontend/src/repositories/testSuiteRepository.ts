@@ -16,7 +16,7 @@ export const testSuiteRepository = {
     pageSize: number;
     sortField?: string;
     sortOrder?: 'asc' | 'desc';
-  }): Promise<{ data: TestSuite[]; total: number }> {
+  }): Promise<{ data: any[]; total: number }> {
     let query = supabase.from('test_suites').select('*', { count: 'exact' });
 
     if (params.ownership === 'mine' && params.userId) {
@@ -45,11 +45,21 @@ export const testSuiteRepository = {
 
     const { data, error, count } = await query;
     if (error) throw error;
-    return { data: (data ?? []).map(mapTestSuiteRow), total: count ?? 0 };
+    return { data: data ?? [], total: count ?? 0 };
   },
 
   async findAll(): Promise<TestSuite[]> {
     const { data, error } = await supabase.from('test_suites').select('*').order('name');
+    if (error) throw error;
+    return (data ?? []).map(mapTestSuiteRow);
+  },
+
+  async findByOwner(ownerId: string, visibilityFilter?: string[]): Promise<TestSuite[]> {
+    let builder = supabase.from('test_suites').select('*').eq('owner_id', ownerId);
+    if (visibilityFilter?.length) {
+      builder = builder.in('visibility', visibilityFilter);
+    }
+    const { data, error } = await builder.order('name');
     if (error) throw error;
     return (data ?? []).map(mapTestSuiteRow);
   },

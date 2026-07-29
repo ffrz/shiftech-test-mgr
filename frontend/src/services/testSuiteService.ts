@@ -1,8 +1,10 @@
 import { testSuiteRepository } from '../repositories/testSuiteRepository';
 import { testCaseRepository } from '../repositories/testCaseRepository';
+import { profileRepository } from '../repositories/profileRepository';
 import { moduleService } from './moduleService';
 import { testRoleService } from './testRoleService';
 import { tagService } from './tagService';
+import { mapTestSuiteRow } from '../helpers/mappers';
 import type { TestSuite, TestSuiteItem, TestSuiteItemStep, TestSuiteItemWithSteps, TestSuiteVisibility } from '../types/domain';
 
 export const testSuiteService = {
@@ -10,7 +12,7 @@ export const testSuiteService = {
     return testSuiteRepository.findAll();
   },
 
-  listPaginated(params: {
+  async listPaginated(params: {
     search?: string;
     ownership?: 'mine' | 'all';
     visibilityFilter?: string[];
@@ -20,7 +22,22 @@ export const testSuiteService = {
     sortField?: string;
     sortOrder?: 'asc' | 'desc';
   }) {
-    return testSuiteRepository.findAllPaginated(params);
+    const result = await testSuiteRepository.findAllPaginated(params);
+    const ownerIds = [...new Set(result.data.map((r: any) => r.owner_id).filter(Boolean))] as string[];
+    const profiles = ownerIds.length ? await profileRepository.findByIds(ownerIds) : [];
+    const profileMap = new Map(profiles.map((p) => [p.id, p]));
+    return {
+      data: result.data.map((row: any) => ({
+        ...mapTestSuiteRow(row),
+        _authorUsername: profileMap.get(row.owner_id)?.username ?? '—',
+        _authorDisplayName: profileMap.get(row.owner_id)?.displayName ?? '—',
+      })),
+      total: result.total,
+    };
+  },
+
+  listByOwner(ownerId: string, visibilityFilter?: string[]) {
+    return testSuiteRepository.findByOwner(ownerId, visibilityFilter);
   },
 
   getSuite(id: string) {

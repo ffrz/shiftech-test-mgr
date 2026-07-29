@@ -10,6 +10,10 @@ export const projectService = {
     return projectRepository.findAllPaginated(query);
   },
 
+  listByOwner(ownerId: string, visibilityFilter?: string[]) {
+    return projectRepository.findByOwner(ownerId, visibilityFilter);
+  },
+
   getById(id: string) {
     return projectRepository.findById(id);
   },
