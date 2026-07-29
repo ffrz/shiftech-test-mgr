@@ -24,9 +24,9 @@ export const profileService = {
   },
 
   async updateOwnProfile(userId: string, changes: Parameters<typeof profileRepository.update>[1]) {
-    if ('username' in changes) {
+    if ('username' in changes && changes.username !== undefined) {
       const current = await profileRepository.findById(userId);
-      if (current?.usernameChanged) {
+      if (current?.usernameChanged && changes.username !== current.username) {
         throw new Error('Username can only be changed once.');
       }
     }

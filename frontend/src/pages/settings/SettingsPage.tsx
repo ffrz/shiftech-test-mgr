@@ -5,6 +5,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
+import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
@@ -28,9 +29,9 @@ export function SettingsPage() {
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bio, setBio] = useState('');
-  const [success, setSuccess] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
+  const toast = useRef<Toast>(null);
 
   useEffect(() => {
     if (error && usernameRef.current) {
@@ -50,7 +51,6 @@ export function SettingsPage() {
 
   async function handleSave() {
     clearError();
-    setSuccess(false);
     try {
       await updateProfile({
         username: username.trim() || undefined,
@@ -58,7 +58,7 @@ export function SettingsPage() {
         avatarUrl: avatarUrl.trim() || null,
         bio: bio.trim() || null,
       });
-      setSuccess(true);
+      toast.current?.show({ severity: 'success', summary: 'Profile updated successfully.', life: 3000 });
     } catch {
       // error is managed by the hook
     }
@@ -102,8 +102,6 @@ export function SettingsPage() {
         <PageHeader title="Settings" />
         <div className="card">
           <div className="flex flex-column gap-3" style={{ maxWidth: '32rem' }}>
-            {success && <small className="p-text-secondary" style={{ color: 'var(--green-600)' }}>Profile updated successfully.</small>}
-
             <div className="flex flex-column gap-1">
               <label htmlFor="username" className={error ? 'p-error' : ''}>
                 Username *
@@ -116,7 +114,7 @@ export function SettingsPage() {
                 ref={usernameRef}
                 value={username}
                 disabled={profile.usernameChanged}
-                onChange={(e) => { setUsername(e.target.value); setSuccess(false); }}
+                onChange={(e) => { setUsername(e.target.value); }}
                 className={error ? 'p-invalid' : ''}
               />
               <small className="text-color-secondary">
@@ -128,17 +126,17 @@ export function SettingsPage() {
 
             <div className="flex flex-column gap-1">
               <label htmlFor="displayName">Display Name</label>
-              <InputText id="displayName" value={displayName} onChange={(e) => { setDisplayName(e.target.value); setSuccess(false); }} />
+              <InputText id="displayName" value={displayName} onChange={(e) => { setDisplayName(e.target.value); }} />
             </div>
 
             <div className="flex flex-column gap-1">
               <label htmlFor="avatarUrl">Avatar URL</label>
-              <InputText id="avatarUrl" value={avatarUrl} onChange={(e) => { setAvatarUrl(e.target.value); setSuccess(false); }} placeholder="https://example.com/avatar.jpg" />
+              <InputText id="avatarUrl" value={avatarUrl} onChange={(e) => { setAvatarUrl(e.target.value); }} placeholder="https://example.com/avatar.jpg" />
             </div>
 
             <div className="flex flex-column gap-1">
               <label htmlFor="bio">Bio</label>
-              <InputTextarea id="bio" value={bio} onChange={(e) => { setBio(e.target.value); setSuccess(false); }} rows={1} autoResize maxLength={1000} />
+              <InputTextarea id="bio" value={bio} onChange={(e) => { setBio(e.target.value); }} rows={1} autoResize maxLength={1000} />
               <CharacterCount value={bio} maxLength={1000} />
             </div>
 
@@ -175,6 +173,7 @@ export function SettingsPage() {
       </Card>
 
       <ConfirmDialog />
+      <Toast ref={toast} position="bottom-center" />
     </div >
   );
 }
