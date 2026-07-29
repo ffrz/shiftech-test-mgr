@@ -115,10 +115,17 @@ export function TestCaseDialog({
           <InputText id="case-code" value={code} onChange={(e) => onCodeChange(e.target.value)} placeholder="Automatic if left empty" className="w-10rem" />
         </div>
 
+        <div className="flex flex-column gap-1">
+          <label htmlFor="case-title" className={error ? 'p-error' : ''}>Title</label>
+          <InputText id="case-title" ref={titleRef} value={title} onChange={(e) => onTitleChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          {error && <small className="p-error">{error}</small>}
+        </div>
+
+
         <div className="grid">
           <div className="col-12 md:col-6 flex flex-column gap-1">
             <label htmlFor="case-module">Module</label>
-            <div className="flex align-items-center gap-1">
+            <div className="flex align-items-center gap-2">
               <Dropdown
                 id="case-module"
                 value={moduleId}
@@ -136,6 +143,7 @@ export function TestCaseDialog({
                 rounded
                 size="small"
                 aria-label="Add Module"
+                className="btn-xs"
                 onClick={onQuickAddModule}
                 style={{ width: '2rem', height: '2rem', flexShrink: 0 }}
               />
@@ -153,7 +161,7 @@ export function TestCaseDialog({
           </div>
           <div className="col-12 md:col-6 flex flex-column gap-1">
             <label htmlFor="case-target-role">Target Role (optional)</label>
-            <div className="flex align-items-center gap-1">
+            <div className="flex align-items-center gap-2">
               <Dropdown
                 id="case-target-role"
                 value={targetRoleId}
@@ -171,17 +179,12 @@ export function TestCaseDialog({
                 rounded
                 size="small"
                 aria-label="Add Role"
+                className="btn-xs"
                 onClick={onQuickAddTestRole}
                 style={{ width: '2rem', height: '2rem', flexShrink: 0 }}
               />
             </div>
           </div>
-        </div>
-
-        <div className="flex flex-column gap-1">
-          <label htmlFor="case-title" className={error ? 'p-error' : ''}>Title</label>
-          <InputText id="case-title" ref={titleRef} value={title} onChange={(e) => onTitleChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
-          {error && <small className="p-error">{error}</small>}
         </div>
 
         <div className="flex flex-column gap-1">
@@ -225,7 +228,7 @@ export function TestCaseDialog({
           <div className="flex flex-column gap-2">
             <label>Test Steps (Detailed)</label>
             {detailedSteps.map((step, i) => (
-              <div key={i} className="flex gap-2 align-items-start p-2 border-round surface-100">
+              <div key={i} className="flex gap-2 align-items- p-2 border-round surface-100">
                 <span className="text-color-secondary text-sm mt-2">{i + 1}.</span>
                 <div className="flex flex-column gap-1 flex-grow-1">
                   <InputText
@@ -243,7 +246,7 @@ export function TestCaseDialog({
                     }
                   />
                 </div>
-                <Button icon="pi pi-times" text size="small" onClick={() => onDetailedStepsChange(detailedSteps.filter((_, idx) => idx !== i))} />
+                <Button icon="pi pi-times" text size="small" rounded className="btn-xs" onClick={() => onDetailedStepsChange(detailedSteps.filter((_, idx) => idx !== i))} />
               </div>
             ))}
             <Button
@@ -258,7 +261,7 @@ export function TestCaseDialog({
 
         <div className="flex flex-column gap-1">
           <label htmlFor="case-tags">Tag</label>
-          <div className="flex align-items-center gap-1">
+          <div className="flex align-items-center gap-2">
             <MultiSelect
               id="case-tags"
               value={tags}
@@ -269,7 +272,7 @@ export function TestCaseDialog({
               filter
               className="w-full"
             />
-            <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="New Tag" onClick={onQuickAddTag} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
+            <Button icon="pi pi-plus" type="button" text rounded size="small" className="btn-xs" aria-label="New Tag" onClick={onQuickAddTag} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
           </div>
         </div>
 

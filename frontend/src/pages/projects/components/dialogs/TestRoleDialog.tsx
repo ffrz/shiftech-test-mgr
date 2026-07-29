@@ -36,7 +36,7 @@ export function TestRoleDialog({ visible, editing, name, onNameChange, error, on
             onKeyDown={(e) => {
               if (e.key === 'Enter') onSave();
             }}
-            placeholder="mis. Admin, Manager, Member"
+            placeholder="ex. Admin, Manager, Member"
           />
         </div>
         <Button label="Save" size="small" onClick={onSave} />

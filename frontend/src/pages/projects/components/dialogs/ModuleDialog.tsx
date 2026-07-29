@@ -42,7 +42,7 @@ export function ModuleDialog({ visible, editing, code, onCodeChange, name, onNam
             onKeyDown={(e) => {
               if (e.key === 'Enter') onSave();
             }}
-            placeholder="mis. Autentikasi, Dashboard, Pembelian"
+            placeholder="ex. Auth, Dashboard"
           />
         </div>
         <Button label="Save" size="small" onClick={onSave} />
