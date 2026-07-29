@@ -101,9 +101,9 @@ invoke_ssh() {
 }
 
 if [ "$SKIP_BUILD" -eq 1 ]; then
-    echo "==> [1/4] Skip build (tanpa --build) -- pakai frontend/dist/ dan public-docs/dist/ yang sudah ada"
+    echo "==> [1/5] Skip build (tanpa --build) -- pakai frontend/dist/ dan public-docs/dist/ yang sudah ada"
 else
-    echo "==> [1/4] Build lokal (frontend/ dan public-docs/)"
+    echo "==> [1/5] Build lokal (frontend/ dan public-docs/)"
     cd "$FRONTEND_DIR"
     if [ "$SKIP_INSTALL" -eq 1 ]; then
         echo "    frontend: skip npm ci (tanpa --install)"
@@ -138,10 +138,22 @@ if [ ! -f "${LANDING_DIR}/index.html" ]; then
     exit 1
 fi
 
-echo "==> [2/4] Buat direktori release baru di server"
+echo "==> [2/5] Cari release sebelumnya buat incremental --link-dest"
+PREV_RELEASE="$(ssh "${SSH_OPTS[@]}" "root@${SERVER_HOST}" "readlink -f ${APP_DIR}/current 2>/dev/null" || true)"
+LINK_DEST_APP=""
+LINK_DEST_DOCS=""
+if [ -n "$PREV_RELEASE" ] && [ "$PREV_RELEASE" != "${APP_DIR}/releases/${RELEASE}" ] && ssh "${SSH_OPTS[@]}" "root@${SERVER_HOST}" "test -d '${PREV_RELEASE}'"; then
+    LINK_DEST_APP="--link-dest=${PREV_RELEASE}/app/"
+    LINK_DEST_DOCS="--link-dest=${PREV_RELEASE}/docs/"
+    echo "    Previous release: ${PREV_RELEASE}"
+else
+    echo "    Tidak ada release sebelumnya -- full rsync"
+fi
+
+echo "==> [3/5] Buat direktori release baru di server"
 invoke_ssh "mkdir -p ${APP_DIR}/releases/${RELEASE}/app ${APP_DIR}/releases/${RELEASE}/docs"
 
-echo "==> [3/4] Rsync hasil build -> release baru"
+echo "==> [4/5] Rsync hasil build -> release baru"
 # --delete aman di sini -- setiap release adalah folder baru yang belum
 # pernah diisi apa pun sebelumnya (bukan staging persisten yang dipakai
 # ulang tiap deploy seperti app Laravel), jadi tidak ada risiko menghapus
@@ -155,17 +167,17 @@ rsync "${RSYNC_OPTS[@]}" \
     "${LANDING_DIR}/" \
     "root@${SERVER_HOST}:${APP_DIR}/releases/${RELEASE}/"
 
-echo "    frontend/dist/ -> release/app/"
-rsync "${RSYNC_OPTS[@]}" \
+echo "    frontend/dist/ -> release/app/ (link-dest: ${PREV_RELEASE:-none})"
+rsync "${RSYNC_OPTS[@]}" ${LINK_DEST_APP:+"$LINK_DEST_APP"} \
     "${FRONTEND_DIR}/dist/" \
     "root@${SERVER_HOST}:${APP_DIR}/releases/${RELEASE}/app/"
 
-echo "    public-docs/dist/ -> release/docs/"
-rsync "${RSYNC_OPTS[@]}" \
+echo "    public-docs/dist/ -> release/docs/ (link-dest: ${PREV_RELEASE:-none})"
+rsync "${RSYNC_OPTS[@]}" ${LINK_DEST_DOCS:+"$LINK_DEST_DOCS"} \
     "${DOCS_DIR}/dist/" \
     "root@${SERVER_HOST}:${APP_DIR}/releases/${RELEASE}/docs/"
 
-echo "==> [4/4] Aktifkan release (symlink current) & bersihkan release lama"
+echo "==> [5/5] Aktifkan release (symlink current) & bersihkan release lama"
 POST_DEPLOY_SCRIPT="$(cat <<EOF
 set -e
 APP=${APP_DIR}/releases/${RELEASE}
