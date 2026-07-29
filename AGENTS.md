@@ -76,6 +76,7 @@ frontend/                      # Aplikasi React + Vite (SPA, di-serve di "/app")
       notifications/NotificationPanel.tsx # Sidebar slide-out kanan
       ui/PageHeader.tsx            # WAJIB dipakai di semua halaman list (lihat Coding Conventions)
       ui/UsernamePicker.tsx         # Debounced search untuk invite-by-username
+      profile/ProfileView.tsx       # Reusable card identitas (avatar, nama, bio, daftar project/suite) — dipakai PublicProfilePage + UserDetailPage
     pages/
       projects/ProjectsPage.tsx, ProjectDetailPage.tsx, ProjectSettingsPage.tsx # Settings: tab Members (invite) + Danger Zone (visibility/archive/delete)
       test-plans/TestPlansPage.tsx, TestPlanDetailPage.tsx
@@ -85,6 +86,7 @@ frontend/                      # Aplikasi React + Vite (SPA, di-serve di "/app")
       issues/IssueDetailPage.tsx
       auth/LoginPage.tsx           # PendingApprovalPage sudah DIHAPUS (V2 Phase 2, tidak ada lagi gate approval)
       users/UserManagementPage.tsx, UserDetailPage.tsx
+      profiles/PublicProfilePage.tsx # /@:username — lihat profil publik user
       settings/SettingsPage.tsx    # Edit profil sendiri + theme toggle
       home/HomePage.tsx            # + card "Pending Invitations"
     App.tsx                       # Route definitions (public: /login; protected: rest; /@:username lookup)

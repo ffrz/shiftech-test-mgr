@@ -11,17 +11,36 @@ rules, MVP success criteria), lihat [`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTUR
 sekitar golden path 9-langkah dari Constitution). Backend Go (`backend/`) **tetap
 di-pending** selama roadmap ini berjalan — lihat `backend/README.md`.
 
-- [ ] V2-P7-T01 — Golden-path walkthrough (2 akun real, Account A/B) — lihat checklist
-      lengkap di `docs/ROADMAP_V2.md` Phase 7
-- [ ] V2-P7-T02 — Regresi penuh Testing Domain (test case/plan/run/result/issue) —
-      konfirmasi zero behavior change
-- [ ] V2-P7-T03 — Sinkronisasi dokumen ke model V2 yang sudah shipped (CLAUDE.md,
-      AGENTS.md, README.md, docs/ARCHITECTURE.md, docs/PRD.md, FEATURES.md — **sudah
-      dikerjakan 2026-07-28**, lihat "Selesai (recent)" di bawah)
-- [ ] V2-P7-T04 — Bersihkan TODO.md dari item V2 roadmap setelah walkthrough (T01)
-      lolos, kembali ke sprint board normal
-- [ ] V2-P7-T05 — Merge `feature/platform-foundation` → `master` (hanya setelah
-      T01–T04 semua lolos)
+- [x] V2-P7-T01 — Golden-path walkthrough — **dianggap selesai via smoke test manual
+      (2026-07-29)**, bukan checklist 9-langkah penuh dengan 2 akun terpisah. Detail
+      per-fitur (test case granular) menyusul lewat dogfooding di bawah
+- [x] V2-P7-T02 — Regresi Testing Domain — **dianggap selesai via smoke test manual
+      (2026-07-29)**, sama seperti T01: coverage detail menyusul dari dogfooding, bukan
+      dari checklist regresi terpisah
+- [x] V2-P7-T03 — Sinkronisasi dokumen ke model V2 yang sudah shipped (CLAUDE.md,
+      AGENTS.md, README.md, docs/ARCHITECTURE.md, docs/PRD.md, FEATURES.md — selesai
+      2026-07-28, disegarkan lagi 2026-07-29), lihat "Selesai (recent)" di bawah
+- [ ] V2-P7-T04 — Bersihkan TODO.md dari item V2 roadmap, kembali ke sprint board normal
+      — tunda sampai dogfooding round pertama (lihat item baru di bawah) selesai, supaya
+      gap yang ketemu saat dogfood sempat masuk backlog dulu
+- [ ] V2-P7-T05 — Merge `feature/platform-foundation` → `master` (setelah T04)
+
+**Dogfooding — susun Test Suite/Test Plan untuk Testify sendiri, pakai app ini untuk
+uji app ini:**
+- [ ] Buat project "Testify" di Testify sendiri (atau pakai project existing), isi Module
+      sesuai domain: Auth, Project, Test Suite, Test Plan/Run/Result, Issue, Settings/
+      Profile, Membership/Notification
+- [ ] Tulis Test Case untuk golden-path 9-langkah Constitution (register → create project →
+      invite → test case → test plan → test run → record result → create issue → timing)
+      — ini gantinya walkthrough manual T01, tapi terekam sebagai Test Case beneran,
+      bisa di-run ulang tiap rilis
+- [ ] Tulis Test Case untuk fitur yang baru landed 2026-07-29 dan belum pernah ditest
+      end-to-end: Delete Account + auto-reactivation, `/@username` portfolio-lite (list
+      Project/Test Suite publik/unlisted), owner-lock di Members tab, auth race fix
+      (`loadProfile` + session)
+- [ ] Jalankan Test Run pertama dari Test Plan di atas, catat hasil PASS/FAIL — FAIL jadi
+      Issue asli di project ini (dogfood penuh: temuan bug dari testing manual masuk
+      lewat modul Issue Testify sendiri, bukan catatan terpisah)
 
 **Backlog (2026-07-25, dari Phase 7 walkthrough)** — belum di-scope, lihat
 `docs/ROADMAP_V2.md` bagian "Backlog — captured, not yet scoped or scheduled":
@@ -39,8 +58,9 @@ Item lama (non-V2), tetap terbuka tapi bukan prioritas saat ini:
 
 ## Sedang Dikerjakan
 
-- [ ] V2 Phase 7 — Golden-path walkthrough belum dijalankan (butuh 2 akun browser real,
-      tidak bisa diverifikasi lewat CLI/agent) — lihat checklist di `docs/ROADMAP_V2.md`
+- [ ] Dogfooding — susun Test Suite/Test Plan/Test Case untuk Testify sendiri di dalam
+      Testify, jalankan Test Run untuk detail testing (menggantikan checklist walkthrough
+      manual T01/T02 yang formal) — lihat item di "Siap Dikerjakan" di atas
 
 ## Diblokir
 
@@ -72,3 +92,13 @@ _(kosong)_
 - [x] V2 Phase 6 — Minimal public identity lookup `/@username` + `UsernamePicker` (2026-07-25)
 - [x] PWA setup — manifest.json, icon generator (`frontend/scripts/generate-icons.mjs`, sharp-based, generate dari `testify-logo.png`), one-time username change guard (2026-07-28)
 - [x] Sinkronisasi dokumentasi menyeluruh ke state kode saat ini (README, CLAUDE.md, AGENTS.md, docs/ARCHITECTURE.md, docs/PRD.md, FEATURES.md, TODO.md) — bagian dari V2-P7-T03, ditemukan banyak drift: rebrand Testify belum konsisten di semua file, backend Go ternyata jauh lebih lengkap dari sekadar "kosong", `public-docs/`/`landing/`/`deploy/` belum terdokumentasi sama sekali, notifications sudah shipped padahal ROADMAP_V2 masih bilang "deferred" (2026-07-28)
+- [x] rename `github_links` → `external_links` di kolom Issue + docs (FEATURES.md, ARCHITECTURE.md, PRD.md) (2026-07-29)
+- [x] optimize `projectDuplicateService` — batch insert (bukan loop per-row) untuk module/role/test case/step/plan-case/issue (2026-07-29)
+- [x] Delete Account (Settings Danger Zone) + auto-reactivation saat login ulang — RPC `delete_account()`/`reactivate_account()`; sekalian fix security gap `has_project_access()` yang belum cek `is_approved()` (2026-07-29)
+- [x] `PublicProfilePage`/`UserDetailPage` pakai `ProfileView` reusable, `/@username` sekarang tampilkan daftar Project/Test Suite publik/unlisted milik user (portfolio-lite, extend Phase 6) (2026-07-29)
+- [x] `TestSuitesPage` tampilkan username author per baris; fix validation error mapping di `TestSuiteDetailPage` item dialog (2026-07-29)
+- [x] Fix auth race condition — `useAuth.tsx` `loadProfile` sekarang terima `session` eksplisit (2026-07-29)
+- [x] Fix owner role/action changes di project Members tab (owner tidak boleh diubah/dihapus lewat UI biasa) (2026-07-29)
+- [x] `deploy/deploy-vps.sh` — incremental rsync dengan `--link-dest` untuk deploy lebih cepat (2026-07-29)
+
+- [x] Keputusan: `/@username` portfolio-lite (list Project/Test Suite publik/unlisted) **diterima secara sadar**, bukan scope creep — Testify berkomitmen ke arah platform self-serve, identitas yang menampilkan project/suite yang benar-benar dimiliki user adalah kebutuhan fungsional (evaluasi kolaborator, browse author template), bukan vanity metric. Tetap bukan social network (tanpa like/follow/comment/feed/stats). Lihat catatan "reaffirmed 2026-07-29" di `docs/ARCHITECTURE_V2.md` dan `docs/ROADMAP_V2.md` Phase 6 (2026-07-29)
