@@ -887,7 +887,9 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
 
 .p-toast .p-toast-message .p-toast-message-text {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
 }
 
 .p-toast .p-toast-message .p-toast-summary {

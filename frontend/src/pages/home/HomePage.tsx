@@ -98,7 +98,6 @@ export function HomePage() {
                     </div>
                   </div>
                   <Button
-                    label="Open"
                     icon="pi pi-arrow-right"
                     iconPos="right"
                     text

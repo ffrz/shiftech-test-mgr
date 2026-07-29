@@ -1136,7 +1136,7 @@ export function ProjectDetailPage() {
         visible={moduleDialogOpen}
         title="New Module"
         label="Module Name"
-        placeholder="mis. Autentikasi, Dashboard, Pembelian"
+        placeholder="ex. Auth, Dashboard"
         showCode
         codeValue={moduleCode}
         onCodeChange={setModuleCode}
@@ -1151,7 +1151,7 @@ export function ProjectDetailPage() {
         visible={tagDialogOpen}
         title="New Tag"
         label="Tag"
-        placeholder="mis. Regression, Smoke, UI"
+        placeholder="ex. Regression, Smoke, UI"
         name={newTagName}
         onNameChange={setNewTagName}
         error={tagError}
@@ -1163,7 +1163,7 @@ export function ProjectDetailPage() {
         visible={testRoleDialogOpen}
         title="New Test Role"
         label="Role Name"
-        placeholder="mis. Admin, Manager, Member"
+        placeholder="ex. Admin, Manager, Member"
         name={testRoleName}
         onNameChange={setTestRoleName}
         error={testRoleError}
