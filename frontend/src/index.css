@@ -1035,3 +1035,8 @@ h6,
 .p-selection-column .p-column-header-content {
   display: block;
 }
+
+.header-actions .p-button.p-button-icon-only {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}

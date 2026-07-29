@@ -425,7 +425,7 @@ export function TestRunResultDetailPage() {
             testRun?.status === 'completed' ? (
               <Button label="Reopen" icon="pi pi-replay" size="small" severity="secondary" outlined onClick={handleReopenRun} />
             ) : (
-              <Button label="Complete Run" icon="pi pi-check" size="small" onClick={openCompleteDialog} />
+              <Button label="Complete" icon="pi pi-check" size="small" onClick={openCompleteDialog} />
             )
           ) : undefined
         }
@@ -577,13 +577,15 @@ export function TestRunResultDetailPage() {
                   <div className="flex align-items-center justify-content-between gap-2 mb-1">
                     <div className="flex align-items-center gap-2">
                       <h2 className="m-0">{activeResult.testCaseCode} — {activeResult.testCaseTitle}</h2>
-                      <Tag value={TEST_CASE_PRIORITY_LABEL[activeResult.testCasePriority]} severity={TEST_CASE_PRIORITY_SEVERITY[activeResult.testCasePriority]} />
-                      <Tag value={TEST_RESULT_STATUS_LABEL[activeResult.status]} severity={TEST_RESULT_STATUS_SEVERITY[activeResult.status]} />
                     </div>
                   </div>
 
                   <div className="flex flex-wrap align-items-center justify-content-between gap-2 mt-2 mb-1 text-sm">
                     <div className="flex flex-wrap align-items-center gap-4">
+                      <div className="flex flex-wrap align-items-center gap-2">
+                        <Tag value={TEST_CASE_PRIORITY_LABEL[activeResult.testCasePriority]} severity={TEST_CASE_PRIORITY_SEVERITY[activeResult.testCasePriority]} />
+                        <Tag value={TEST_RESULT_STATUS_LABEL[activeResult.status]} severity={TEST_RESULT_STATUS_SEVERITY[activeResult.status]} />
+                      </div>
                       <span className="text-color-secondary">
                         Module: <span className="text-color">{activeResult.testCase?.module?.name ?? '-'}</span>
                       </span>

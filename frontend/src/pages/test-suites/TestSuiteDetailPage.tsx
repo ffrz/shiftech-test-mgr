@@ -441,9 +441,11 @@ export function TestSuiteDetailPage() {
           <div>
             <div className="flex align-items-center gap-2 mb-1">
               <h2 className="m-0">{suite?.name ?? '…'}</h2>
+            </div>
+            <p className="text-color-secondary text-sm m-0 my-2">{suite?.description || 'No description'}</p>
+            <div className="flex align-items-center gap-2 my-2">
               {suite && <Tag value={TEST_SUITE_VISIBILITY_LABEL[suite.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[suite.visibility]} />}
             </div>
-            <p className="text-color-secondary text-sm m-0">{suite?.description || 'No description'}</p>
           </div>
           {canEdit && (
             <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />

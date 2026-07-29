@@ -281,21 +281,25 @@ export function TestCaseDetailPage() {
         <div>
           <h2>Test Case Detail</h2>
         </div>
-        <div className="flex">
-          {canEditContent && <Button icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
-          {canEditContent && <Button icon="pi pi-copy" size="small" text severity="secondary" onClick={handleDuplicate} />}
-          {canDeleteContent && <Button icon="pi pi-trash" size="small" severity="danger" text onClick={handleDelete} />}
-        </div>
       </div>
 
       <Card className="mb-3">
         <div className="flex align-items-start justify-content-between">
           <div className="flex align-items-center gap-2 mb-1">
             <h2 className="m-0">{testCase.code} — {testCase.title}</h2>
-            <Tag value={TEST_CASE_PRIORITY_LABEL[testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[testCase.priority]} />
-            <Tag value={TEST_CASE_STATUS_LABEL[testCase.status]} severity={TEST_CASE_STATUS_SEVERITY[testCase.status]} />
-            {testCase.targetRole && <Tag value={testCase.targetRole.name} severity="secondary" />}
           </div>
+          <div className="flex header-actions gap-1">
+            {canEditContent && <Button icon="pi pi-pencil" rounded size="small" text severity="secondary" onClick={openEditDialog} />}
+            {canEditContent && <Button icon="pi pi-copy" rounded size="small" text severity="secondary" onClick={handleDuplicate} />}
+            {canDeleteContent && <Button icon="pi pi-trash" rounded size="small" severity="danger" text onClick={handleDelete} />}
+          </div>
+        </div>
+
+        <div className="flex align-items-center gap-2 mt-3">
+
+          <Tag value={TEST_CASE_PRIORITY_LABEL[testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[testCase.priority]} />
+          <Tag value={TEST_CASE_STATUS_LABEL[testCase.status]} severity={TEST_CASE_STATUS_SEVERITY[testCase.status]} />
+          {testCase.targetRole && <Tag value={testCase.targetRole.name} severity="secondary" />}
         </div>
 
         <div className="grid mt-3">

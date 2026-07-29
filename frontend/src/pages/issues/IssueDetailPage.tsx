@@ -309,35 +309,34 @@ export function IssueDetailPage() {
 
       <Breadcrumb items={breadcrumbItems} />
 
-      <div className="flex justify-content-between align-items-center mb-3">
-        <div>
-          <h2>Issue Detail</h2>
-        </div>
-        <div className="flex gap-0">
-          {canManageIssues && <Button icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
-          {canManageIssues && <Button icon="pi pi-copy" size="small" text severity="secondary" onClick={handleDuplicate} />}
-          {canDeleteContent ? (
-            <Button icon="pi pi-trash" size="small" text severity="danger" onClick={handleDelete} />
-          ) : (
-            canManageIssues &&
-            issue.status !== 'closed' && (
-              <Button icon="pi pi-inbox" size="small" text severity="secondary" onClick={handleArchive} />
-            )
-          )}
-        </div>
-      </div>
-
       <Card className="mb-3">
-        <div className="flex align-items-center gap-2 mb-1">
+        <div className="flex align-items-center gap-2 mb-1 justify-content-between">
           <h2 className="m-0">{issue.code} — {issue.title}</h2>
+          <div className="flex align-items-center gap-1 header-actions">
+            {canManageIssues && <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
+            {canManageIssues && <Button rounded icon="pi pi-copy" size="small" text severity="secondary" onClick={handleDuplicate} />}
+            {canDeleteContent ? (
+              <Button rounded icon="pi pi-trash" size="small" text severity="danger" onClick={handleDelete} />
+            ) : (
+              canManageIssues &&
+              issue.status !== 'closed' && (
+                <Button rounded icon="pi pi-inbox" size="small" text severity="secondary" onClick={handleArchive} />
+              )
+            )}
+          </div>
+        </div>
+
+        <div className="flex align-items-center gap-2 my-2">
           <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} />
           <Tag value={ISSUE_PRIORITY_LABEL[issue.priority]} severity={ISSUE_PRIORITY_SEVERITY[issue.priority]} />
         </div>
 
-        <div className="flex flex-wrap gap-4 mt-3 text-sm">
-          <span className="text-color-secondary">
-            Module: <span className="text-color">{issue.module?.name ?? '-'}</span>
-          </span>
+        <div className="flex flex-wrap gap-4 my-2 text-sm">
+          {issue?.module && (
+            <span className="text-color-secondary">
+              Module: <span className="text-color">{issue.module.name}</span>
+            </span>
+          )}
           {issue.tags.length > 0 && (
             <span className="text-color-secondary flex align-items-center gap-2">
               Tags:
@@ -353,7 +352,7 @@ export function IssueDetailPage() {
         </div>
 
         {issue.linkedTestResults.length > 0 && (
-          <div className="mt-2 text-sm">
+          <div className="my-2 text-sm">
             <span className="text-color-secondary">Linked to Test Result: </span>
             <span className="flex flex-wrap gap-2 mt-1">
               {issue.linkedTestResults.map((link) => (
@@ -365,7 +364,7 @@ export function IssueDetailPage() {
           </div>
         )}
 
-        <div className="grid mt-3">
+        <div className="grid">
           <div className="col-12 md:col-6 flex flex-column gap-1">
             <label className="text-color-secondary text-sm">Status</label>
             <Dropdown value={issue.status} options={STATUS_OPTIONS} onChange={(e) => handleChangeStatus(e.value)} disabled={!canManageIssues} className="w-full" />
