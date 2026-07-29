@@ -3,14 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { DataTable, type DataTablePageEvent, type DataTableSortEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import SearchInput from '../../components/ui/SearchInput';
 import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import { Menu } from 'primereact/menu';
-import { Checkbox } from 'primereact/checkbox';
 import { Toast } from 'primereact/toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useScreenSize } from '../../hooks/useScreenSize';
@@ -18,12 +15,9 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { useStoredState } from '../../hooks/useStoredState';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
-import { testPlanService } from '../../services/testPlanService';
-import { testCaseService } from '../../services/testCaseService';
-import { issueService } from '../../services/issueService';
-import { projectDuplicateService } from '../../services/projectDuplicateService';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
-import type { IssueWithDetails, Project, ProjectStatus, ProjectVisibility, TestCaseWithDetails, TestPlan } from '../../types/domain';
+import { DuplicateProjectDialog } from './components/dialogs/DuplicateProjectDialog';
+import type { Project, ProjectStatus, ProjectVisibility } from '../../types/domain';
 import type { ProjectOwnerFilter } from '../../repositories/projectRepository';
 import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -113,74 +107,13 @@ export function ProjectsPage() {
     setDialogOpen(true);
   }
 
-  // --- Duplicate Project ---
-  const [duplicateSourceProject, setDuplicateSourceProject] = useState<Project | null>(null);
-  const [duplicateName, setDuplicateName] = useState('');
-  const [duplicateError, setDuplicateError] = useState<string | null>(null);
-  const [duplicateLoading, setDuplicateLoading] = useState(false);
-  const duplicateProjectNameRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (duplicateError && duplicateProjectNameRef.current) {
-      duplicateProjectNameRef.current.focus();
-      duplicateProjectNameRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    }
-  }, [duplicateError]);
-  const [sourceTestPlans, setSourceTestPlans] = useState<TestPlan[]>([]);
-  const [sourceTestCases, setSourceTestCases] = useState<TestCaseWithDetails[]>([]);
-  const [sourceIssues, setSourceIssues] = useState<IssueWithDetails[]>([]);
   const [filterVisible, setFilterVisible] = useState(true);
-  const [selectedTestPlanIds, setSelectedTestPlanIds] = useState<Set<string>>(new Set());
-  const [selectedTestCaseIds, setSelectedTestCaseIds] = useState<Set<string>>(new Set());
-  const [selectedIssueIds, setSelectedIssueIds] = useState<Set<string>>(new Set());
 
-  async function openDuplicateDialog(row: Project) {
-    setDuplicateSourceProject(row);
-    setDuplicateName(`${row.name} (Copy)`);
-    setDuplicateError(null);
-    const [plans, cases, issues] = await Promise.all([
-      testPlanService.listByProject(row.id),
-      testCaseService.listByProjectWithDetails(row.id),
-      issueService.listByProject(row.id),
-    ]);
-    setSourceTestPlans(plans);
-    setSourceTestCases(cases);
-    setSourceIssues(issues);
-    setSelectedTestPlanIds(new Set(plans.map((p) => p.id)));
-    setSelectedTestCaseIds(new Set(cases.map((c) => c.id)));
-    setSelectedIssueIds(new Set(issues.map((i) => i.id)));
-  }
+  // --- Duplicate Project ---
+  const [duplicateSource, setDuplicateSource] = useState<Project | null>(null);
 
-  function toggleSelection(set: Set<string>, setSet: (s: Set<string>) => void, id: string, checked: boolean) {
-    const next = new Set(set);
-    if (checked) next.add(id);
-    else next.delete(id);
-    setSet(next);
-  }
-
-  async function handleDuplicateProject() {
-    if (!duplicateSourceProject) return;
-    setDuplicateError(null);
-    setDuplicateLoading(true);
-    try {
-      const created = await projectDuplicateService.duplicateProject(
-        duplicateName,
-        {
-          testPlanIds: [...selectedTestPlanIds],
-          testCaseIds: [...selectedTestCaseIds],
-          issueIds: [...selectedIssueIds],
-        },
-        { testPlans: sourceTestPlans, testCases: sourceTestCases, issues: sourceIssues },
-      );
-      setDuplicateSourceProject(null);
-      await reload();
-      toast.current?.show({ severity: 'success', summary: 'Project duplicated' });
-      navigate(`/projects/${created.id}`);
-    } catch (err) {
-      setDuplicateError(err instanceof Error ? err.message : 'Failed to duplicate project');
-    } finally {
-      setDuplicateLoading(false);
-    }
+  function openDuplicateDialog(row: Project) {
+    setDuplicateSource(row);
   }
 
   async function handleChangeStatus(row: Project, status: ProjectStatus) {
@@ -254,7 +187,7 @@ export function ProjectsPage() {
       <PageHeader
         title="Projects"
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-3 align-items-center">
             <Button
               icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
               text
@@ -398,100 +331,16 @@ export function ProjectsPage() {
         onSaved={() => { reload(); toast.current?.show({ severity: 'success', summary: editingProject ? 'Project updated' : 'Project created' }); }}
       />
 
-      <Dialog
-        header="Duplicate Project"
-        visible={!!duplicateSourceProject}
-        onHide={() => setDuplicateSourceProject(null)}
-        style={{ width: '40rem' }}
-      >
-        <div className="flex flex-column gap-3">
-          <div className="flex flex-column gap-1">
-            <label htmlFor="duplicate-project-name" className={duplicateError ? 'p-error' : ''}>New Project Name</label>
-            <InputText id="duplicate-project-name" ref={duplicateProjectNameRef} value={duplicateName} onChange={(e) => setDuplicateName(e.target.value)} className={duplicateError ? 'p-invalid' : ''} autoFocus />
-            {duplicateError && <small className="p-error">{duplicateError}</small>}
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <div className="flex align-items-center justify-content-between">
-              <label className="font-medium">Test Plan ({selectedTestPlanIds.size}/{sourceTestPlans.length})</label>
-              <div className="flex align-items-center gap-2">
-                <Checkbox
-                  checked={sourceTestPlans.length > 0 && selectedTestPlanIds.size === sourceTestPlans.length}
-                  onChange={(e) => setSelectedTestPlanIds(e.checked ? new Set(sourceTestPlans.map((p) => p.id)) : new Set())}
-                />
-                <span className="text-sm text-color-secondary">Select All</span>
-              </div>
-            </div>
-            <div className="flex flex-column gap-1 p-2 border-round" style={{ border: '1px solid var(--surface-border)', maxHeight: '10rem', overflowY: 'auto' }}>
-              {sourceTestPlans.length === 0 && <span className="text-sm text-color-secondary">No test plans.</span>}
-              {sourceTestPlans.map((p) => (
-                <div key={p.id} className="flex align-items-center gap-2">
-                  <Checkbox
-                    inputId={`plan-${p.id}`}
-                    checked={selectedTestPlanIds.has(p.id)}
-                    onChange={(e) => toggleSelection(selectedTestPlanIds, setSelectedTestPlanIds, p.id, e.checked ?? false)}
-                  />
-                  <label htmlFor={`plan-${p.id}`} className="text-sm">{p.code} — {p.name}</label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <div className="flex align-items-center justify-content-between">
-              <label className="font-medium">Test Case ({selectedTestCaseIds.size}/{sourceTestCases.length})</label>
-              <div className="flex align-items-center gap-2">
-                <Checkbox
-                  checked={sourceTestCases.length > 0 && selectedTestCaseIds.size === sourceTestCases.length}
-                  onChange={(e) => setSelectedTestCaseIds(e.checked ? new Set(sourceTestCases.map((c) => c.id)) : new Set())}
-                />
-                <span className="text-sm text-color-secondary">Select All</span>
-              </div>
-            </div>
-            <div className="flex flex-column gap-1 p-2 border-round" style={{ border: '1px solid var(--surface-border)', maxHeight: '10rem', overflowY: 'auto' }}>
-              {sourceTestCases.length === 0 && <span className="text-sm text-color-secondary">No test cases.</span>}
-              {sourceTestCases.map((c) => (
-                <div key={c.id} className="flex align-items-center gap-2">
-                  <Checkbox
-                    inputId={`case-${c.id}`}
-                    checked={selectedTestCaseIds.has(c.id)}
-                    onChange={(e) => toggleSelection(selectedTestCaseIds, setSelectedTestCaseIds, c.id, e.checked ?? false)}
-                  />
-                  <label htmlFor={`case-${c.id}`} className="text-sm">{c.code} — {c.title}</label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <div className="flex align-items-center justify-content-between">
-              <label className="font-medium">Issue ({selectedIssueIds.size}/{sourceIssues.length})</label>
-              <div className="flex align-items-center gap-2">
-                <Checkbox
-                  checked={sourceIssues.length > 0 && selectedIssueIds.size === sourceIssues.length}
-                  onChange={(e) => setSelectedIssueIds(e.checked ? new Set(sourceIssues.map((i) => i.id)) : new Set())}
-                />
-                <span className="text-sm text-color-secondary">Select All</span>
-              </div>
-            </div>
-            <div className="flex flex-column gap-1 p-2 border-round" style={{ border: '1px solid var(--surface-border)', maxHeight: '10rem', overflowY: 'auto' }}>
-              {sourceIssues.length === 0 && <span className="text-sm text-color-secondary">No issues.</span>}
-              {sourceIssues.map((i) => (
-                <div key={i.id} className="flex align-items-center gap-2">
-                  <Checkbox
-                    inputId={`issue-${i.id}`}
-                    checked={selectedIssueIds.has(i.id)}
-                    onChange={(e) => toggleSelection(selectedIssueIds, setSelectedIssueIds, i.id, e.checked ?? false)}
-                  />
-                  <label htmlFor={`issue-${i.id}`} className="text-sm">{i.code} — {i.title}</label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Button label="Duplicate Project" size="small" loading={duplicateLoading} onClick={handleDuplicateProject} />
-        </div>
-      </Dialog>
+      <DuplicateProjectDialog
+        source={duplicateSource}
+        onHide={() => setDuplicateSource(null)}
+        onDuplicated={(newProjectId) => {
+          setDuplicateSource(null);
+          reload();
+          toast.current?.show({ severity: 'success', summary: 'Project duplicated' });
+          navigate(`/projects/${newProjectId}`);
+        }}
+      />
     </div>
   );
 }
