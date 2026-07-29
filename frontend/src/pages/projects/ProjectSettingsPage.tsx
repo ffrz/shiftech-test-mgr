@@ -524,7 +524,7 @@ export function ProjectSettingsPage() {
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 header-actions">
             <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={() => setEditDialogOpen(true)} />
           </div>
         </div>

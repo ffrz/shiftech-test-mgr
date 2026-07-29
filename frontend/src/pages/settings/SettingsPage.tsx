@@ -104,7 +104,7 @@ export function SettingsPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="avatarUrl">URL Avatar</label>
+            <label htmlFor="avatarUrl">Avatar URL</label>
             <InputText id="avatarUrl" value={avatarUrl} onChange={(e) => { setAvatarUrl(e.target.value); setSuccess(false); }} placeholder="https://example.com/avatar.jpg" />
           </div>
 
@@ -115,8 +115,8 @@ export function SettingsPage() {
           </div>
 
           <div className="flex flex-column gap-2">
-            <span className="text-sm font-medium">Tema</span>
-            <SelectButton value={mode} options={THEME_OPTIONS} onChange={(e) => setMode(e.value)} />
+            <span className="text-sm font-medium">Theme</span>
+            <SelectButton value={mode} options={THEME_OPTIONS} onChange={(e) => { if (e.value !== null) setMode(e.value); }} />
 
           </div>
 

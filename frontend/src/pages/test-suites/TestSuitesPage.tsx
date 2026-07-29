@@ -175,7 +175,7 @@ export function TestSuitesPage() {
       <PageHeader
         title="Test Suite"
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-3 align-items-center">
             <Button
               icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
               text
