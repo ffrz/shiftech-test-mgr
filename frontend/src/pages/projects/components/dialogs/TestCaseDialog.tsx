@@ -190,7 +190,7 @@ export function TestCaseDialog({
 
         <div className="flex flex-column gap-1">
           <label htmlFor="case-preconditions">Preconditions</label>
-          <InputTextarea id="case-preconditions" value={preconditions} onChange={(e) => onPreconditionsChange(e.target.value)} rows={2} />
+          <InputTextarea id="case-preconditions" value={preconditions} onChange={(e) => onPreconditionsChange(e.target.value)} rows={2} autoResize />
         </div>
 
         <div className="flex flex-column gap-1">
@@ -209,12 +209,12 @@ export function TestCaseDialog({
           <>
             <div className="flex flex-column gap-1">
               <label htmlFor="case-steps">Test Steps</label>
-              <InputTextarea id="case-steps" value={steps} onChange={(e) => onStepsChange(e.target.value)} rows={4} />
+              <InputTextarea id="case-steps" value={steps} onChange={(e) => onStepsChange(e.target.value)} rows={4} autoResize />
             </div>
 
             <div className="flex flex-column gap-1">
               <label htmlFor="case-expected">Expected Result</label>
-              <InputTextarea id="case-expected" value={expectedResult} onChange={(e) => onExpectedResultChange(e.target.value)} rows={3} />
+              <InputTextarea id="case-expected" value={expectedResult} onChange={(e) => onExpectedResultChange(e.target.value)} rows={3} autoResize />
             </div>
           </>
         ) : (
@@ -271,7 +271,7 @@ export function TestCaseDialog({
 
         <div className="flex flex-column gap-1">
           <label htmlFor="case-notes">Notes (optional)</label>
-          <InputTextarea id="case-notes" value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={2} />
+          <InputTextarea id="case-notes" value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={2} autoResize />
         </div>
 
         <Button label="Save" size="small" onClick={onSave} />

@@ -276,17 +276,17 @@ export function IssueEditor({
 
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-description">Description</label>
-            <InputTextarea id="issue-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+            <InputTextarea id="issue-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} autoResize />
           </div>
 
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-actual">Actual Result</label>
-            <InputTextarea id="issue-actual" value={actualResult} onChange={(e) => setActualResult(e.target.value)} rows={2} />
+            <InputTextarea id="issue-actual" value={actualResult} onChange={(e) => setActualResult(e.target.value)} rows={2} autoResize />
           </div>
 
           <div className="flex flex-column gap-1">
             <label htmlFor="issue-expected">Expected Result</label>
-            <InputTextarea id="issue-expected" value={expectedResult} onChange={(e) => setExpectedResult(e.target.value)} rows={2} />
+            <InputTextarea id="issue-expected" value={expectedResult} onChange={(e) => setExpectedResult(e.target.value)} rows={2} autoResize />
           </div>
 
           <div className="flex flex-column gap-2">

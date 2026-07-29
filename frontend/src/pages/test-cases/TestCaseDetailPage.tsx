@@ -423,17 +423,17 @@ export function TestCaseDetailPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-preconditions">Preconditions</label>
-            <InputTextarea id="edit-case-preconditions" value={editPreconditions} onChange={(e) => setEditPreconditions(e.target.value)} rows={2} />
+            <InputTextarea id="edit-case-preconditions" value={editPreconditions} onChange={(e) => setEditPreconditions(e.target.value)} rows={2} autoResize />
           </div>
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-steps">Test Steps</label>
-            <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={4} />
+            <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={4} autoResize />
           </div>
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-expected">Expected Result</label>
-            <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={3} />
+            <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={3} autoResize />
           </div>
 
           <div className="flex flex-column gap-1">
@@ -455,7 +455,7 @@ export function TestCaseDetailPage() {
 
           <div className="flex flex-column gap-1">
             <label htmlFor="edit-case-notes">Notes (optional)</label>
-            <InputTextarea id="edit-case-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} />
+            <InputTextarea id="edit-case-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} autoResize />
           </div>
 
           {editError && <small className="p-error">{editError}</small>}
