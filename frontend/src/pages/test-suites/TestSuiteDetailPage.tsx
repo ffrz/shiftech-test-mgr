@@ -271,15 +271,31 @@ export function TestSuiteDetailPage() {
   const [itemTagNames, setItemTagNames] = useState('');
   const [itemStepType, setItemStepType] = useState<TestCaseStepType>('simple');
   const [itemDetailedSteps, setItemDetailedSteps] = useState<{ action: string; expectedResult: string }[]>([]);
-  const [itemError, setItemError] = useState<string | null>(null);
+  const [itemErrors, setItemErrors] = useState<Record<string, string>>({});
   const itemTitleRef = useRef<HTMLInputElement>(null);
+  const itemStepsRef = useRef<HTMLTextAreaElement>(null);
+  const itemExpectedRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (itemError && itemTitleRef.current) {
+    if (itemErrors.title && itemTitleRef.current) {
       itemTitleRef.current.focus();
       itemTitleRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    } else if (itemErrors.steps && itemStepsRef.current) {
+      itemStepsRef.current.focus();
+      itemStepsRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    } else if (itemErrors.expectedResult && itemExpectedRef.current) {
+      itemExpectedRef.current.focus();
+      itemExpectedRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
     }
-  }, [itemError]);
+  }, [itemErrors]);
+
+  function mapServiceError(msg: string): Record<string, string> {
+    if (msg.includes('title cannot be empty')) return { title: msg };
+    if (msg.includes('Test steps cannot be empty')) return { steps: msg };
+    if (msg.includes('Expected result cannot be empty')) return { expectedResult: msg };
+    if (msg.includes('must have at least one step')) return { detailedSteps: msg };
+    return { title: msg };
+  }
 
   function openCreateItemDialog() {
     setItemDialogMode('create');
@@ -295,7 +311,7 @@ export function TestSuiteDetailPage() {
     setItemTagNames('');
     setItemStepType('simple');
     setItemDetailedSteps([]);
-    setItemError(null);
+    setItemErrors({});
     setItemDialogOpen(true);
   }
 
@@ -312,7 +328,7 @@ export function TestSuiteDetailPage() {
     setItemTargetRole(row.targetRole ?? '');
     setItemTagNames(row.tagNames.join(', '));
     setItemStepType(row.stepType);
-    setItemError(null);
+    setItemErrors({});
     setItemDialogOpen(true);
     if (row.stepType === 'detailed') {
       const withSteps = await testSuiteService.getItemWithSteps(row);
@@ -335,7 +351,7 @@ export function TestSuiteDetailPage() {
     setItemTargetRole(row.targetRole ?? '');
     setItemTagNames(row.tagNames.join(', '));
     setItemStepType(row.stepType);
-    setItemError(null);
+    setItemErrors({});
     setItemDialogOpen(true);
     if (row.stepType === 'detailed') {
       const withSteps = await testSuiteService.getItemWithSteps(row);
@@ -347,7 +363,7 @@ export function TestSuiteDetailPage() {
 
   async function handleSaveItem() {
     if (!id) return;
-    setItemError(null);
+    setItemErrors({});
     const tagNames = itemTagNames.split(',').map((t) => t.trim()).filter(Boolean);
     try {
       if (editingItemId) {
@@ -393,7 +409,8 @@ export function TestSuiteDetailPage() {
       };
       toast.current?.show({ severity: 'success', summary: summaryMap[itemDialogMode] });
     } catch (err) {
-      setItemError(err instanceof Error ? err.message : 'Failed to save item');
+      const msg = err instanceof Error ? err.message : 'Failed to save item';
+      setItemErrors(mapServiceError(msg));
     }
   }
 
@@ -584,9 +601,9 @@ export function TestSuiteDetailPage() {
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="item-title" className={itemError ? 'p-error' : ''}>Title</label>
-            <InputText id="item-title" ref={itemTitleRef} value={itemTitle} onChange={(e) => setItemTitle(e.target.value)} className={itemError ? 'p-invalid' : ''} autoFocus />
-            {itemError && <small className="p-error">{itemError}</small>}
+            <label htmlFor="item-title" className={itemErrors.title ? 'p-error' : ''}>Title</label>
+            <InputText id="item-title" ref={itemTitleRef} value={itemTitle} onChange={(e) => { setItemTitle(e.target.value); setItemErrors({}); }} className={itemErrors.title ? 'p-invalid' : ''} autoFocus />
+            {itemErrors.title && <small className="p-error">{itemErrors.title}</small>}
           </div>
 
           <div className="flex flex-column gap-1">
@@ -608,21 +625,23 @@ export function TestSuiteDetailPage() {
                 { label: 'Simple', value: 'simple' },
                 { label: 'Detailed', value: 'detailed' },
               ]}
-              onChange={(e) => e.value && setItemStepType(e.value)}
+              onChange={(e) => { if (e.value) { setItemStepType(e.value); setItemErrors({}); } }}
             />
           </div>
 
           {itemStepType === 'simple' ? (
             <>
               <div className="flex flex-column gap-1">
-                <label htmlFor="item-steps">Test Steps</label>
-                <InputTextarea id="item-steps" value={itemSteps} onChange={(e) => setItemSteps(e.target.value)} rows={1} autoResize maxLength={1000} />
+                <label htmlFor="item-steps" className={itemErrors.steps ? 'p-error' : ''}>Test Steps</label>
+                <InputTextarea id="item-steps" ref={itemStepsRef} value={itemSteps} onChange={(e) => { setItemSteps(e.target.value); setItemErrors({}); }} rows={1} autoResize maxLength={1000} className={itemErrors.steps ? 'p-invalid' : ''} />
                 <CharacterCount value={itemSteps} maxLength={1000} />
+                {itemErrors.steps && <small className="p-error">{itemErrors.steps}</small>}
               </div>
               <div className="flex flex-column gap-1">
-                <label htmlFor="item-expected">Expected Result</label>
-                <InputTextarea id="item-expected" value={itemExpectedResult} onChange={(e) => setItemExpectedResult(e.target.value)} rows={1} autoResize maxLength={1000} />
+                <label htmlFor="item-expected" className={itemErrors.expectedResult ? 'p-error' : ''}>Expected Result</label>
+                <InputTextarea id="item-expected" ref={itemExpectedRef} value={itemExpectedResult} onChange={(e) => { setItemExpectedResult(e.target.value); setItemErrors({}); }} rows={1} autoResize maxLength={1000} className={itemErrors.expectedResult ? 'p-invalid' : ''} />
                 <CharacterCount value={itemExpectedResult} maxLength={1000} />
+                {itemErrors.expectedResult && <small className="p-error">{itemErrors.expectedResult}</small>}
               </div>
             </>
           ) : (
