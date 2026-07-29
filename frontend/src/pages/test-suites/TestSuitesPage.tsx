@@ -25,6 +25,11 @@ import { TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../
 
 type OwnershipFilter = 'mine' | 'all';
 
+type EnrichedTestSuite = TestSuite & {
+  _authorUsername: string;
+  _authorDisplayName: string;
+};
+
 // User-owned reusable test case library — any user can create their own Test Suite
 // Template, keep it private, or publish it (unlisted/public) for others to browse and
 // clone from into their own project. Ownership/visibility enforced by RLS; the UI's
@@ -78,7 +83,7 @@ export function TestSuitesPage() {
     }),
   });
 
-  const suites = data?.data ?? [];
+  const suites = (data?.data ?? []) as EnrichedTestSuite[];
   const totalRecords = data?.total ?? 0;
 
   function onPage(e: DataTablePageEvent) {
@@ -91,7 +96,7 @@ export function TestSuitesPage() {
     setSortOrder(e.sortOrder as -1 | 1);
   }
 
-  function isOwnerOrAdmin(row: TestSuite) {
+  function isOwnerOrAdmin(row: EnrichedTestSuite) {
     return isAdmin || row.ownerId === user?.id;
   }
 
@@ -158,9 +163,10 @@ export function TestSuitesPage() {
     });
   }
 
-  const mobileBodyTemplate = useCallback((row: TestSuite) => (
+  const mobileBodyTemplate = useCallback((row: EnrichedTestSuite) => (
     <div className="flex flex-column gap-2 py-1">
       <span className="font-bold">{row.name}</span>
+      <span className="text-xs text-color-secondary">by {row._authorUsername}</span>
       <span className="text-sm text-color-secondary">{row.description || '-'}</span>
       <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} />
       <span className="text-sm text-color-secondary">{formatDateTime(row.updatedAt)}</span>
@@ -260,20 +266,32 @@ export function TestSuitesPage() {
         className="cursor-pointer"
       >
         {isMobile && <Column body={mobileBodyTemplate} />}
-        {!isMobile && <Column field="name" header="Name" sortable />}
-        {!isMobile && <Column field="description" header="Description" body={(row: TestSuite) => row.description || '-'} />}
+        {!isMobile && (
+          <Column
+            field="name"
+            header="Name"
+            sortable
+            body={(row: EnrichedTestSuite) => (
+              <div className="flex flex-column">
+                <span>{row.name}</span>
+                <span className="text-xs text-color-secondary">by {row._authorUsername}</span>
+              </div>
+            )}
+          />
+        )}
+        {!isMobile && <Column field="description" header="Description" body={(row: EnrichedTestSuite) => row.description || '-'} />}
         {!isMobile && (
           <Column
             field="visibility"
             header="Visibility"
-            body={(row: TestSuite) => <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} />}
+            body={(row: EnrichedTestSuite) => <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} />}
           />
         )}
-        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: TestSuite) => formatDateTime(row.updatedAt)} sortable />}
+        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: EnrichedTestSuite) => formatDateTime(row.updatedAt)} sortable />}
         <Column
           header=""
           style={{ width: '3.5rem' }}
-          body={(row: TestSuite) => (
+          body={(row: EnrichedTestSuite) => (
             <RowActionsMenu
               items={[
                 { label: 'View Details', icon: 'pi pi-external-link', command: () => navigate(`/test-suites/${row.id}`) },
