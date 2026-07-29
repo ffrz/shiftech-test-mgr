@@ -512,7 +512,9 @@ export function ProjectSettingsPage() {
       <Card className="mb-3">
         <div className="flex align-items-start justify-content-between gap-2">
           <div className="flex align-items-start gap-2 min-w-0">
-            <Button icon="pi pi-arrow-left" text rounded aria-label="Back" severity="secondary" onClick={() => navigate(`/projects/${id}`)} />
+            <div className="header-actions">
+              <Button icon="pi pi-arrow-left" text rounded aria-label="Back" severity="secondary" onClick={() => navigate(`/projects/${id}`)} />
+            </div>
             <div className="min-w-0">
               <h2 className="m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap">Settings - {project.name}</h2>
               {project.description && <p className="m-0 mt-1 text-color-secondary text-sm">{project.description}</p>}
