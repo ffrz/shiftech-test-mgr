@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { TabView, TabPanel } from 'primereact/tabview';
-import { Dropdown } from 'primereact/dropdown';
+import { Card } from 'primereact/card';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useTestPlanDetail } from '../../hooks/useTestPlanDetail';
@@ -17,6 +17,7 @@ import { tagService } from '../../services/tagService';
 import type { TestCase, TestCasePriority, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { TestPlanDialog } from '../../components/dialogs/TestPlanDialog';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { queryKeys } from '../../hooks/queryKeys';
@@ -26,11 +27,6 @@ import { PlanTestCasesTab } from './components/tabs/PlanTestCasesTab';
 import { PlanTestRunsTab } from './components/tabs/PlanTestRunsTab';
 import { AddCaseToPlanDialog } from './components/dialogs/AddCaseToPlanDialog';
 import { StartTestRunDialog } from './components/dialogs/StartTestRunDialog';
-import { DuplicateTestPlanDialog } from './components/dialogs/DuplicateTestPlanDialog';
-
-const TEST_PLAN_STATUS_OPTIONS: { label: string; value: TestPlanStatus }[] = (
-  ['draft', 'active', 'completed', 'archived'] as const
-).map((v) => ({ label: TEST_PLAN_STATUS_LABEL[v], value: v }));
 
 export function TestPlanDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -47,6 +43,37 @@ export function TestPlanDetailPage() {
 
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+
+  // --- Edit Test Plan dialog ---
+  const [planDialogOpen, setPlanDialogOpen] = useState(false);
+  const [planCode, setPlanCode] = useState('');
+  const [planName, setPlanName] = useState('');
+  const [planDescription, setPlanDescription] = useState('');
+  const [planStatus, setPlanStatus] = useState<TestPlanStatus>('draft');
+  const [planError, setPlanError] = useState<string | null>(null);
+
+  function openEditPlanDialog() {
+    if (!testPlan) return;
+    setPlanCode(testPlan.code);
+    setPlanName(testPlan.name);
+    setPlanDescription(testPlan.description ?? '');
+    setPlanStatus(testPlan.status);
+    setPlanError(null);
+    setPlanDialogOpen(true);
+  }
+
+  async function handleSavePlanEdit() {
+    if (!testPlan) return;
+    setPlanError(null);
+    try {
+      const updated = await testPlanService.update(testPlan.id, { name: planName, description: planDescription, code: planCode, status: planStatus });
+      queryClient.setQueryData(queryKeys.testPlan(testPlan.id), updated);
+      setPlanDialogOpen(false);
+      toast.current?.show({ severity: 'success', summary: 'Test plan updated' });
+    } catch (err) {
+      setPlanError(err instanceof Error ? err.message : 'Failed to save test plan');
+    }
+  }
 
   const { data: project } = useQuery({
     queryKey: queryKeys.project(testPlan?.projectId ?? ''),
@@ -230,39 +257,6 @@ export function TestPlanDetailPage() {
     }
   }
 
-  async function handleChangeStatus(status: TestPlanStatus) {
-    if (!testPlan || status === testPlan.status) return;
-    const updated = await testPlanService.changeStatus(testPlan.id, status);
-    queryClient.setQueryData(queryKeys.testPlan(testPlan.id), updated);
-    toast.current?.show({ severity: 'success', summary: `Status changed to ${TEST_PLAN_STATUS_LABEL[status]}` });
-  }
-
-  // --- Duplicate ---
-  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
-  const [duplicateName, setDuplicateName] = useState('');
-  const [duplicateError, setDuplicateError] = useState<string | null>(null);
-
-  function openDuplicateDialog() {
-    if (!testPlan) return;
-    setDuplicateName(`${testPlan.name} (Copy)`);
-    setDuplicateError(null);
-    setDuplicateDialogOpen(true);
-  }
-
-  async function handleDuplicate() {
-    if (!testPlan) return;
-    setDuplicateError(null);
-    try {
-      const newPlan = await testPlanService.duplicate(testPlan.id, duplicateName);
-      setDuplicateDialogOpen(false);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.testPlans(testPlan.projectId) });
-      toast.current?.show({ severity: 'success', summary: 'Test plan diduplikat' });
-      navigate(`/test-plans/${newPlan.id}`);
-    } catch (err) {
-      setDuplicateError(err instanceof Error ? err.message : 'Failed to duplicate test plan');
-    }
-  }
-
   function handleDeleteRun(row: TestRun) {
     confirmDialog({
       header: 'Delete Test Run',
@@ -293,37 +287,28 @@ export function TestPlanDetailPage() {
         ]}
       />
 
-      <PageHeader
-        title={testPlan ? `${testPlan.code} — ${testPlan.name}` : 'Test Plan Detail'}
-        actions={
-          testPlan && (
-            <div className="flex align-items-center gap-2">
-              {canEditContent && (
-                <Button text icon="pi pi-copy" size="small" outlined onClick={openDuplicateDialog} />
-              )}
-              {canEditContent ? (
-                <Dropdown
-                  value={testPlan.status}
-                  options={TEST_PLAN_STATUS_OPTIONS}
-                  onChange={(e) => handleChangeStatus(e.value)}
-                  className="w-10rem"
-                />
-              ) : (
-                <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />
-              )}
-            </div>
-          )
-        }
-      />
+      <Card className="mb-3">
+        <PageHeader
+          title={testPlan ? `${testPlan.code} — ${testPlan.name}` : 'Test Plan Detail'}
+          actions={
+            testPlan && canEditContent && (
+              <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={openEditPlanDialog} />
+            )
+          }
+        />
 
-      <DuplicateTestPlanDialog
-        visible={duplicateDialogOpen}
-        onHide={() => setDuplicateDialogOpen(false)}
-        name={duplicateName}
-        onNameChange={setDuplicateName}
-        error={duplicateError}
-        onDuplicate={handleDuplicate}
-      />
+        {testPlan && (
+          <p className="text-sm m-0 mb-3">
+            {testPlan.description && <span className="text-color-secondary">{testPlan.description}</span>}
+          </p>
+        )}
+
+        {testPlan && (
+          <div className="flex align-items-center gap-3 m-0 text-sm">
+            <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />
+          </div>
+        )}
+      </Card>
 
       <TabView>
         <TabPanel header="Test Cases">
@@ -400,6 +385,22 @@ export function TestPlanDetailPage() {
         onNameChange={setRunName}
         error={runError}
         onStart={handleStartRun}
+      />
+
+      <TestPlanDialog
+        visible={planDialogOpen}
+        editing
+        code={planCode}
+        onCodeChange={setPlanCode}
+        name={planName}
+        onNameChange={setPlanName}
+        description={planDescription}
+        onDescriptionChange={setPlanDescription}
+        status={planStatus}
+        onStatusChange={setPlanStatus}
+        error={planError}
+        onHide={() => setPlanDialogOpen(false)}
+        onSave={handleSavePlanEdit}
       />
     </div>
   );

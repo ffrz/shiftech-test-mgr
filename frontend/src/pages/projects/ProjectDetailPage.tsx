@@ -14,7 +14,7 @@ import { TestPlanTab } from './components/tabs/TestPlanTab';
 import { TestCaseTab } from './components/tabs/TestCaseTab';
 import { TestRunTab, type TestRunWithSummary } from './components/tabs/TestRunTab';
 import { IssueTab } from './components/tabs/IssueTab';
-import { TestPlanDialog } from './components/dialogs/TestPlanDialog';
+import { TestPlanDialog } from '../../components/dialogs/TestPlanDialog';
 import { DuplicateTestPlanDialog } from './components/dialogs/DuplicateTestPlanDialog';
 import { CreateTestRunDialog } from './components/dialogs/CreateTestRunDialog';
 import { QuickAddDialog } from './components/dialogs/QuickAddDialog';
@@ -294,6 +294,7 @@ export function ProjectDetailPage() {
   const [planCode, setPlanCode] = useState('');
   const [planName, setPlanName] = useState('');
   const [planDescription, setPlanDescription] = useState('');
+  const [planStatus, setPlanStatus] = useState<TestPlanStatus>('draft');
   const [planError, setPlanError] = useState<string | null>(null);
 
   // --- Duplicate test plan from the project's test plan list ---
@@ -307,6 +308,7 @@ export function ProjectDetailPage() {
     setPlanCode('');
     setPlanName('');
     setPlanDescription('');
+    setPlanStatus('draft');
     setPlanError(null);
     setPlanDialogOpen(true);
   }
@@ -316,6 +318,7 @@ export function ProjectDetailPage() {
     setPlanCode(row.code);
     setPlanName(row.name);
     setPlanDescription(row.description ?? '');
+    setPlanStatus(row.status);
     setPlanError(null);
     setPlanDialogOpen(true);
   }
@@ -325,7 +328,7 @@ export function ProjectDetailPage() {
     setPlanError(null);
     try {
       if (editingPlanId) {
-        await testPlanService.update(editingPlanId, { name: planName, description: planDescription, code: planCode });
+        await testPlanService.update(editingPlanId, { name: planName, description: planDescription, code: planCode, status: planStatus });
       } else {
         await testPlanService.create({ projectId: id, name: planName, description: planDescription, code: planCode });
       }
@@ -928,7 +931,7 @@ export function ProjectDetailPage() {
               <Tag value={PROJECT_VISIBILITY_LABEL[project.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[project.visibility]} />
             </div>
           </div>
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex gap-2 flex-shrink-0 header-actions">
             <Button text icon="pi pi-cog" rounded size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
           </div>
         </div>
@@ -1096,6 +1099,8 @@ export function ProjectDetailPage() {
         onNameChange={setPlanName}
         description={planDescription}
         onDescriptionChange={setPlanDescription}
+        status={planStatus}
+        onStatusChange={setPlanStatus}
         error={planError}
         onHide={() => setPlanDialogOpen(false)}
         onSave={handleSavePlan}

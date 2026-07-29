@@ -1,6 +1,6 @@
 import { testPlanRepository } from '../repositories/testPlanRepository';
 import { testCaseRepository } from '../repositories/testCaseRepository';
-import type { TestPlan } from '../types/domain';
+import type { TestPlan, TestPlanStatus } from '../types/domain';
 
 // Service layer: business rules, validation, orchestration across repositories.
 // Pages/components call services — never repositories directly.
@@ -31,12 +31,13 @@ export const testPlanService = {
     return testPlanRepository.update(id, { name: name.trim() });
   },
 
-  update(id: string, input: { name: string; description?: string; code?: string }) {
+  update(id: string, input: { name: string; description?: string; code?: string; status?: TestPlanStatus }) {
     if (!input.name.trim()) throw new Error('Test plan name cannot be empty');
     return testPlanRepository.update(id, {
       name: input.name.trim(),
       description: input.description?.trim() || null,
       ...(input.code !== undefined ? { code: input.code.trim() } : {}),
+      ...(input.status !== undefined ? { status: input.status } : {}),
     });
   },
 

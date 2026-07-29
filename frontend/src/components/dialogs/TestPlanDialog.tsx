@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
+import type { TestPlanStatus } from '../../types/domain';
+import { TEST_PLAN_STATUS_LABEL } from '../../helpers/statusLabels';
 
 type TestPlanDialogProps = {
   visible: boolean;
@@ -13,10 +16,16 @@ type TestPlanDialogProps = {
   onNameChange: (value: string) => void;
   description: string;
   onDescriptionChange: (value: string) => void;
+  status: TestPlanStatus;
+  onStatusChange: (value: TestPlanStatus) => void;
   error: string | null;
   onHide: () => void;
   onSave: () => void;
 };
+
+const STATUS_OPTIONS: { label: string; value: TestPlanStatus }[] = (
+  ['draft', 'active', 'completed', 'archived'] as const
+).map((v) => ({ label: TEST_PLAN_STATUS_LABEL[v], value: v }));
 
 export function TestPlanDialog({
   visible,
@@ -27,6 +36,8 @@ export function TestPlanDialog({
   onNameChange,
   description,
   onDescriptionChange,
+  status,
+  onStatusChange,
   error,
   onHide,
   onSave,
@@ -56,6 +67,12 @@ export function TestPlanDialog({
           <label htmlFor="plan-description">Description</label>
           <InputTextarea id="plan-description" value={description} onChange={(e) => onDescriptionChange(e.target.value)} rows={3} />
         </div>
+        {editing && (
+          <div className="flex flex-column gap-1">
+            <label htmlFor="plan-status">Status</label>
+            <Dropdown id="plan-status" value={status} options={STATUS_OPTIONS} onChange={(e) => onStatusChange(e.value)} className="w-full" />
+          </div>
+        )}
         <Button label="Save" size="small" onClick={onSave} />
       </div>
     </Dialog>
