@@ -1047,3 +1047,9 @@ h6,
   width: 1.5rem !important;
   height: 1.5rem !important;
 }
+
+/* Confirm dialog: constrain width so long messages don't stretch across the
+   whole screen on large displays. */
+.p-confirm-dialog {
+  max-width: 450px;
+}
