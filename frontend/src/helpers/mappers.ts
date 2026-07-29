@@ -16,7 +16,7 @@ import type {
   TestResult,
   TestResultStep,
   Issue,
-  GithubLink,
+  ExternalLink,
   Attachment,
   Notification,
   ProjectMember,
@@ -259,7 +259,7 @@ export function mapTestResultStepRow(row: any): TestResultStep {
   };
 }
 
-function mapGithubLinks(value: unknown): GithubLink[] {
+function mapExternalLinks(value: unknown): ExternalLink[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((v): v is { url: string; label?: string } => typeof v === 'object' && v !== null && typeof (v as any).url === 'string')
@@ -280,7 +280,7 @@ export function mapIssueRow(row: any): Issue {
     priority: row.priority,
     status: row.status,
     assignedTo: row.assigned_to,
-    githubLinks: mapGithubLinks(row.github_links),
+    externalLinks: mapExternalLinks(row.external_links),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

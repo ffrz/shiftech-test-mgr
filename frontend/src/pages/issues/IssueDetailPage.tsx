@@ -92,20 +92,20 @@ export function IssueDetailPage() {
     }
   }
 
-  // --- Inline GitHub link management ---
-  const [newGithubUrl, setNewGithubUrl] = useState('');
-  const [newGithubLabel, setNewGithubLabel] = useState('');
-  const [githubAdding, setGithubAdding] = useState(false);
+  // --- Inline external link management ---
+  const [newExternalUrl, setNewExternalUrl] = useState('');
+  const [newExternalLabel, setNewExternalLabel] = useState('');
+  const [externalAdding, setExternalAdding] = useState(false);
 
-  function resetGithubForm() {
-    setNewGithubUrl('');
-    setNewGithubLabel('');
-    setGithubAdding(false);
+  function resetExternalForm() {
+    setNewExternalUrl('');
+    setNewExternalLabel('');
+    setExternalAdding(false);
   }
 
-  async function handleAddGithubLink() {
-    if (!issue || !newGithubUrl.trim()) return;
-    const updatedLinks = [...issue.githubLinks, { url: newGithubUrl.trim(), label: newGithubLabel.trim() || undefined }];
+  async function handleAddExternalLink() {
+    if (!issue || !newExternalUrl.trim()) return;
+    const updatedLinks = [...issue.externalLinks, { url: newExternalUrl.trim(), label: newExternalLabel.trim() || undefined }];
     await issueService.update(
       issue.id,
       issue.projectId,
@@ -117,18 +117,18 @@ export function IssueDetailPage() {
         priority: issue.priority,
         type: issue.type,
         moduleId: issue.moduleId,
-        githubLinks: updatedLinks,
+        externalLinks: updatedLinks,
       },
       undefined,
     );
-    resetGithubForm();
+    resetExternalForm();
     await reload();
-    toast.current?.show({ severity: 'success', summary: 'GitHub link added' });
+    toast.current?.show({ severity: 'success', summary: 'Link added' });
   }
 
-  async function handleRemoveGithubLink(index: number) {
+  async function handleRemoveExternalLink(index: number) {
     if (!issue) return;
-    const updatedLinks = issue.githubLinks.filter((_, i) => i !== index);
+    const updatedLinks = issue.externalLinks.filter((_, i) => i !== index);
     await issueService.update(
       issue.id,
       issue.projectId,
@@ -140,12 +140,12 @@ export function IssueDetailPage() {
         priority: issue.priority,
         type: issue.type,
         moduleId: issue.moduleId,
-        githubLinks: updatedLinks,
+        externalLinks: updatedLinks,
       },
       undefined,
     );
     await reload();
-    toast.current?.show({ severity: 'success', summary: 'GitHub link removed' });
+    toast.current?.show({ severity: 'success', summary: 'Link removed' });
   }
 
   // --- Edit via shared IssueEditor ---
@@ -168,7 +168,7 @@ export function IssueDetailPage() {
         priority: data.priority,
         type: data.type,
         moduleId: data.moduleId,
-        githubLinks: data.githubLinks.filter((l) => l.url.trim()),
+        externalLinks: data.externalLinks.filter((l) => l.url.trim()),
       },
       data.tagNames,
     );
@@ -197,7 +197,7 @@ export function IssueDetailPage() {
   }
 
   // Full-fidelity duplicate (no dialog here, unlike ProjectDetailPage's "New Issue" dialog
-  // which doesn't expose actualResult/expectedResult/githubLinks) — new issue always starts
+  // which doesn't expose actualResult/expectedResult/externalLinks) — new issue always starts
   // open/unassigned, same as issueService.create's own defaults.
   async function handleDuplicate() {
     if (!issue) return;
@@ -210,7 +210,7 @@ export function IssueDetailPage() {
       actualResult: issue.actualResult ?? undefined,
       expectedResult: issue.expectedResult ?? undefined,
       priority: issue.priority,
-      githubLinks: issue.githubLinks,
+      externalLinks: issue.externalLinks,
       tagNames: issue.tags.map((t) => t.name),
     });
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
@@ -422,9 +422,9 @@ export function IssueDetailPage() {
         </div>
       </Card>
 
-      <Card title="GitHub Links" className="mb-3">
+      <Card title="External Links" className="mb-3">
         <div className="flex flex-column gap-2">
-          {issue.githubLinks.map((link, i) => (
+          {issue.externalLinks.map((link, i) => (
             <div key={i} className="flex align-items-center justify-content-between p-2 border-round surface-100">
               <div className="flex align-items-center gap-2">
                 <i className="pi pi-external-link" style={{ fontSize: '1rem' }} />
@@ -436,33 +436,33 @@ export function IssueDetailPage() {
                 )}
               </div>
               {canManageIssues && (
-                <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveGithubLink(i)} />
+                <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveExternalLink(i)} />
               )}
             </div>
           ))}
-          {issue.githubLinks.length === 0 && <p className="text-color-secondary text-sm m-0">No GitHub links yet.</p>}
+          {issue.externalLinks.length === 0 && <p className="text-color-secondary text-sm m-0">No external links yet.</p>}
           {canManageIssues && (
             <>
-              {githubAdding ? (
+              {externalAdding ? (
                 <div className="flex flex-column gap-2 p-2 border-round surface-100">
                   <InputText
                     placeholder="URL"
-                    value={newGithubUrl}
-                    onChange={(e) => setNewGithubUrl(e.target.value)}
+                    value={newExternalUrl}
+                    onChange={(e) => setNewExternalUrl(e.target.value)}
                     autoFocus
                   />
                   <InputText
                     placeholder="Label (optional)"
-                    value={newGithubLabel}
-                    onChange={(e) => setNewGithubLabel(e.target.value)}
+                    value={newExternalLabel}
+                    onChange={(e) => setNewExternalLabel(e.target.value)}
                   />
                   <div className="flex gap-2">
-                    <Button label="Add" size="small" onClick={handleAddGithubLink} disabled={!newGithubUrl.trim()} />
-                    <Button label="Cancel" size="small" text severity="secondary" onClick={resetGithubForm} />
+                    <Button label="Add" size="small" onClick={handleAddExternalLink} disabled={!newExternalUrl.trim()} />
+                    <Button label="Cancel" size="small" text severity="secondary" onClick={resetExternalForm} />
                   </div>
                 </div>
               ) : (
-                <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit" onClick={() => setGithubAdding(true)} />
+                <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit" onClick={() => setExternalAdding(true)} />
               )}
             </>
           )}
@@ -489,7 +489,7 @@ export function IssueDetailPage() {
             actualResult: issue.actualResult ?? '',
             expectedResult: issue.expectedResult ?? '',
             tagNames: issue.tags.map((t) => t.name),
-            githubLinks: issue.githubLinks.length ? issue.githubLinks : [],
+            externalLinks: issue.externalLinks.length ? issue.externalLinks : [],
           }}
           modules={modules}
           tags={projectTags}

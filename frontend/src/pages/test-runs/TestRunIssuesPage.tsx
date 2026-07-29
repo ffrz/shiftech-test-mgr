@@ -121,7 +121,7 @@ export function TestRunIssuesPage() {
         priority: data.priority,
         type: data.type,
         moduleId: data.moduleId,
-        githubLinks: data.githubLinks,
+        externalLinks: data.externalLinks,
       },
       data.tagNames,
     );
@@ -157,7 +157,7 @@ export function TestRunIssuesPage() {
       actualResult: row.actualResult ?? undefined,
       expectedResult: row.expectedResult ?? undefined,
       priority: row.priority,
-      githubLinks: row.githubLinks,
+      externalLinks: row.externalLinks,
       tagNames: row.tags.map((t) => t.name),
     });
     await invalidateProjectIssues();
@@ -324,7 +324,7 @@ export function TestRunIssuesPage() {
           actualResult: editIssue.actualResult ?? '',
           expectedResult: editIssue.expectedResult ?? '',
           tagNames: editIssue.tags.map((t) => t.name),
-          githubLinks: editIssue.githubLinks,
+          externalLinks: editIssue.externalLinks,
         } : null}
         modules={editableModules}
         tags={editableTags}

@@ -127,7 +127,7 @@ export const projectDuplicateService = {
         actualResult: issue.actualResult ?? undefined,
         expectedResult: issue.expectedResult ?? undefined,
         priority: issue.priority,
-        githubLinks: issue.githubLinks,
+        externalLinks: issue.externalLinks,
         tagNames: issue.tags.map((t) => t.name),
       });
     }

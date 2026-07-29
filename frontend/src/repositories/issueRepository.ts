@@ -1,6 +1,6 @@
 import { supabase } from '../config/supabaseClient';
 import { mapAttachmentRow, mapIssueRow, mapModuleRow, mapProfileRow, mapTagRow } from '../helpers/mappers';
-import type { Attachment, GithubLink, Issue, IssueStatus, IssueType, IssueWithDetails } from '../types/domain';
+import type { Attachment, ExternalLink, Issue, IssueStatus, IssueType, IssueWithDetails } from '../types/domain';
 
 const ISSUE_DETAIL_SELECT =
   '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), issue_tags(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
@@ -164,7 +164,7 @@ export const issueRepository = {
     priority: Issue['priority'];
     status: IssueStatus;
     assignedTo: string | null;
-    githubLinks: GithubLink[];
+    externalLinks: ExternalLink[];
   }): Promise<Issue> {
     const { data, error } = await supabase
       .from('issues')
@@ -179,7 +179,7 @@ export const issueRepository = {
         priority: input.priority,
         status: input.status,
         assigned_to: input.assignedTo,
-        github_links: input.githubLinks,
+        external_links: input.externalLinks,
       })
       .select('*')
       .single();
@@ -191,7 +191,7 @@ export const issueRepository = {
   async update(
     id: string,
     changes: Partial<
-      Pick<Issue, 'title' | 'description' | 'actualResult' | 'expectedResult' | 'priority' | 'type' | 'moduleId' | 'githubLinks'>
+      Pick<Issue, 'title' | 'description' | 'actualResult' | 'expectedResult' | 'priority' | 'type' | 'moduleId' | 'externalLinks'>
     >,
   ): Promise<Issue> {
     const payload: Record<string, unknown> = {};
@@ -202,7 +202,7 @@ export const issueRepository = {
     if (changes.priority !== undefined) payload.priority = changes.priority;
     if (changes.type !== undefined) payload.type = changes.type;
     if (changes.moduleId !== undefined) payload.module_id = changes.moduleId;
-    if (changes.githubLinks !== undefined) payload.github_links = changes.githubLinks;
+    if (changes.externalLinks !== undefined) payload.external_links = changes.externalLinks;
 
     const { data, error } = await supabase.from('issues').update(payload).eq('id', id).select('*').single();
     if (error) throw error;

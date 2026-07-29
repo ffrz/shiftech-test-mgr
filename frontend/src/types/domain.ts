@@ -304,7 +304,7 @@ export type IssueStatus = 'open' | 'in_progress' | 'resolved' | 'verified' | 'cl
 // not just bugs surfaced from failed test results.
 export type IssueType = 'bug' | 'feature' | 'improvement' | 'task';
 
-export interface GithubLink {
+export interface ExternalLink {
   url: string;
   label?: string;
 }
@@ -325,7 +325,7 @@ export interface Issue {
   priority: IssuePriority;
   status: IssueStatus;
   assignedTo: string | null;
-  githubLinks: GithubLink[];
+  externalLinks: ExternalLink[];
   createdAt: string;
   updatedAt: string;
 }

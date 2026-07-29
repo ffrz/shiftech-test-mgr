@@ -62,7 +62,7 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] Tab Issues di Project Detail + `IssueDetailPage` — direshape untuk model project-level (filter type/status/priority/module/tag, dialog create standalone, menu row **Arsipkan** dan **Hapus** independen)
 - [x] Card "Link Issue" di detail Test Run: daftar issue yang sudah tertaut + tombol "Browse Issues" → dialog paginated (checkbox tautkan/lepas, update instan) → tombol "Buat Issue" di dalamnya buka dialog form lengkap yang auto-link ke test result saat disimpan
 - [x] Badge jumlah issue tertaut per test case
-- [x] GitHub links (`{url, label?}[]`) — link klik saja, bukan integrasi API, dikelola di dialog Edit Issue
+- [x] External links (`{url, label?}[]`) — link klik saja, bukan integrasi API, dikelola di dialog Edit Issue
 - [x] Attachment via storage adapter — upload/hapus di `IssueDetailPage`
 
 ## Test Case — Structured Steps (E12)

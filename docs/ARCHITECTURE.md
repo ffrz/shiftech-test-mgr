@@ -267,7 +267,8 @@ timestamp:
     level-project (`project_id` wajib, `module_id` nullable, `test_result_id`
     **dihapus**), tabel `issue_test_results` (junction N:M ke `test_results`),
     `issue_tags` (junction ke `tags`), kolom `type` (enum) dan `github_links`
-    (`jsonb`)
+    (`jsonb`, kolom ini di-rename jadi `external_links` di
+    `20260729000002_rename_github_links_to_external_links.sql`)
 12. **`schema_test_case_steps.sql`** (E12) — kolom `test_cases.step_type`
     (`simple`|`detailed`), tabel `test_case_steps` (template step per test
     case), tabel `test_result_steps` (hasil per step per Test Result)
@@ -360,7 +361,7 @@ timestamp:
 | `test_runs`             | Satu sesi eksekusi: `project_id` (wajib, langsung — E16), `test_plan_id` (**nullable** — kosong berarti run "unplanned/custom", dibuat langsung dari Test Case tanpa Test Plan), `code` (auto, editable, unique per `project_id`), name, `status` (`in_progress`\|`completed`, manual), started_at, completed_at, notes |
 | `test_results`          | Satu baris per (test_run_id × test_case_id) — unique constraint pada pasangan ini. Kolom: tester_id (FK `profiles`), `status` (`pass`\|`fail`\|`skip`\|`blocked`\|`not_run`), executed_at, notes, snapshot konten test case (`test_case_title`, `test_case_steps`, dst), **`order`** (snapshot `test_plan_cases.order` saat run dimulai — lihat §4.0). **Di sinilah hasil hidup** |
 | `test_result_steps`     | Hasil per-step untuk Test Case `detailed`: test_result_id, test_case_step_id, status (`pass`\|`fail`\|`not_run`), actual_result                                                                                              |
-| `issues`                | Entity level-project (reshape E12): `project_id` (wajib), `module_id` (nullable), `type` (`bug`\|`feature`\|`improvement`\|`task`), title, description, actual_result, expected_result, priority, status, assigned_to (FK `profiles`), `github_links` (`jsonb`). Tidak lagi punya `test_result_id` — relasi ke Test Result lewat junction `issue_test_results` |
+| `issues`                | Entity level-project (reshape E12): `project_id` (wajib), `module_id` (nullable), `type` (`bug`\|`feature`\|`improvement`\|`task`), title, description, actual_result, expected_result, priority, status, assigned_to (FK `profiles`), `external_links` (`jsonb`, awalnya bernama `github_links` — lihat §Migration Log). Tidak lagi punya `test_result_id` — relasi ke Test Result lewat junction `issue_test_results` |
 | `issue_test_results`    | Junction N:M `issue_id` ↔ `test_result_id`                                                                                                                                                                                   |
 | `issue_tags`            | Junction many-to-many `issue_id` ↔ `tag_id`, reuse tabel `tags`                                                                                                                                                              |
 | `attachments`           | `issue_id`, `storage_provider`, `url`, `file_name`, `file_size`, `content_type` — lihat §6.6 untuk `StorageAdapter`                                                                                                          |
@@ -711,9 +712,10 @@ TestRunResultDetailPage (Link Issue) → issueService.listByProject (browse) ata
   Test Run mulai, `testResultRepository.seedForRun()` ikut men-seed
   `test_result_steps` (`not_run`) untuk tiap step dari test case `detailed`
   dalam cakupan — mirip pola seeding `test_results` yang sudah ada
-- **GitHub links**: kolom `github_links` (`jsonb` array `{url, label?}`) di
-  form Issue — input dinamis (tambah/hapus baris), murni teks, tidak ada
-  validasi format atau panggilan API GitHub sama sekali
+- **External links**: kolom `external_links` (`jsonb` array `{url, label?}`,
+  awalnya bernama `github_links`) di form Issue — input dinamis (tambah/hapus
+  baris), murni teks, tidak ada validasi format atau panggilan API eksternal
+  sama sekali
 
 ### 6.4 Modul Module & Tag
 

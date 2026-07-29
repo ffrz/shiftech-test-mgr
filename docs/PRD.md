@@ -167,9 +167,10 @@ berdiri sendiri — tidak lagi wajib lahir dari satu Test Result tertentu.
 - **Field lain**: title, description, actual result, expected result, priority,
   status (`open`/`in_progress`/`resolved`/`verified`/`closed`), assigned to
   (user terdaftar).
-- **GitHub links**: array link eksternal (`{url, label?}`) — sekadar tautan
-  yang bisa diklik ke issue GitHub terkait, bukan integrasi API dua arah (lihat
-  §Out of Scope). Satu Issue bisa punya beberapa link.
+- **External links**: array link eksternal (`{url, label?}`) — sekadar tautan
+  yang bisa diklik ke resource terkait (issue tracker, PR, dokumen, dll),
+  bukan integrasi API dua arah (lihat §Out of Scope). Satu Issue bisa punya
+  beberapa link.
 - Attachment/screenshot: lihat §Attachment di bawah — tidak lagi out of scope,
   tapi lewat storage adapter, bukan langsung Supabase Storage hardcoded.
 
@@ -310,7 +311,7 @@ rancu dengan "Test Case" biasa) — kode dan skema tabel mengikuti nama ini
   priority/module/tag, ubah status & assignee inline
 - CRUD issue langsung dari halaman ini: title, description, type
   (bug/feature/improvement/task), priority, status, module (opsional), tag
-  (opsional, banyak), assigned to, github links (banyak)
+  (opsional, banyak), assigned to, external links (banyak)
 - **Dari Test Run**: di baris Test Result, aksi "Link Issue" membuka dialog
   berisi (a) daftar issue project yang sudah ada untuk dipilih/ditautkan
   (N ke M — satu result boleh tertaut banyak issue, satu issue boleh tertaut
@@ -434,9 +435,9 @@ untuk konteks Google OAuth (tidak ada password di sistem ini):
 - Multi-tenant / organization — schema-ready (`projects.owner_type`) tapi
   tabel `organizations` dan UI-nya belum dibangun, lihat
   `docs/ARCHITECTURE_V2.md` §4
-- **Integrasi GitHub Issues dua arah** (buat/sync issue via API GitHub) — yang
-  dibuat hanya link URL yang bisa diklik, tanpa panggilan API GitHub sama
-  sekali (lihat §3 Issue)
+- **Integrasi issue tracker eksternal dua arah** (mis. buat/sync issue via API
+  GitHub/Jira) — yang dibuat hanya link URL yang bisa diklik, tanpa panggilan
+  API eksternal sama sekali (lihat §3 Issue)
 - **Import/export Excel** — belum diprioritaskan, tetap dicatat sebagai ide di
   §Roadmap
 - **Reporting** (Dashboard interaktif, printable HTML/PDF, execution mode
@@ -467,5 +468,6 @@ Result → Issue).
   3. Execution mode — tampilan sederhana untuk eksekusi test run di HP
 - Import/export Excel untuk test case
 - Migrasi storage ke SQLite + backend PHP terpisah (lihat folder `backend/`,
-  saat ini kosong) — juga kandidat tempat integrasi GitHub API dua arah kalau
-  nanti dibutuhkan (token tidak bisa aman di client SPA murni)
+  saat ini kosong) — juga kandidat tempat integrasi API issue tracker
+  eksternal dua arah kalau nanti dibutuhkan (token tidak bisa aman di client
+  SPA murni)

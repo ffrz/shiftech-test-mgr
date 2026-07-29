@@ -328,7 +328,7 @@ export function TestRunResultDetailPage() {
       actualResult: '',
       expectedResult: activeResult.testCaseExpectedResult,
       tagNames: [],
-      githubLinks: [],
+      externalLinks: [],
     });
     setIssueEditorOpen(true);
   }

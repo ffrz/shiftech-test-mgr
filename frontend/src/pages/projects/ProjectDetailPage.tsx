@@ -806,7 +806,7 @@ export function ProjectDetailPage() {
         actualResult: row.actualResult ?? '',
         expectedResult: row.expectedResult ?? '',
         tagNames: row.tags.map((t) => t.name),
-        githubLinks: row.githubLinks,
+        externalLinks: row.externalLinks,
       },
     });
   }
@@ -823,7 +823,7 @@ export function ProjectDetailPage() {
         actualResult: '',
         expectedResult: '',
         tagNames: row.tags.map((t) => t.name),
-        githubLinks: [],
+        externalLinks: [],
       },
     });
   }
@@ -839,7 +839,7 @@ export function ProjectDetailPage() {
         priority: data.priority,
         type: data.type,
         moduleId: data.moduleId,
-        githubLinks: data.githubLinks,
+        externalLinks: data.externalLinks,
       }, data.tagNames);
       toastSuccess('Issue updated');
     } else {

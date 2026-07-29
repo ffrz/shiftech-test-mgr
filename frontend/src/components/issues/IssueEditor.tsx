@@ -8,7 +8,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
-import type { Attachment, GithubLink, IssuePriority, IssueType, Module, Tag } from '../../types/domain';
+import type { Attachment, ExternalLink, IssuePriority, IssueType, Module, Tag } from '../../types/domain';
 import { ISSUE_PRIORITY_LABEL, ISSUE_TYPE_LABEL } from '../../helpers/statusLabels';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
@@ -23,7 +23,7 @@ export interface IssueFormData {
   actualResult: string;
   expectedResult: string;
   tagNames: string[];
-  githubLinks: GithubLink[];
+  externalLinks: ExternalLink[];
 }
 
 interface IssueEditorProps {
@@ -70,7 +70,7 @@ export function IssueEditor({
   const [actualResult, setActualResult] = useState('');
   const [expectedResult, setExpectedResult] = useState('');
   const [tagNames, setTagNames] = useState<string[]>([]);
-  const [githubLinks, setGithubLinks] = useState<GithubLink[]>([]);
+  const [externalLinks, setExternalLinks] = useState<ExternalLink[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -99,7 +99,7 @@ export function IssueEditor({
     setActualResult(initialData?.actualResult ?? '');
     setExpectedResult(initialData?.expectedResult ?? '');
     setTagNames(initialData?.tagNames ?? []);
-    setGithubLinks(initialData?.githubLinks?.length ? initialData.githubLinks : []);
+    setExternalLinks(initialData?.externalLinks?.length ? initialData.externalLinks : []);
     setError(null);
     setTitleError(null);
     setSaving(false);
@@ -127,7 +127,7 @@ export function IssueEditor({
         actualResult: actualResult.trim(),
         expectedResult: expectedResult.trim(),
         tagNames,
-        githubLinks: githubLinks.filter((l) => l.url.trim()),
+        externalLinks: externalLinks.filter((l) => l.url.trim()),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save issue');
@@ -218,7 +218,7 @@ export function IssueEditor({
 
           <div className="flex flex-column gap-1">
             <label>Module</label>
-            <div className="flex gap-2">
+            <div className="flex gap-2  align-items-center">
               <Dropdown
                 value={moduleId}
                 options={modules.map((m) => ({ label: m.name, value: m.id }))}
@@ -227,10 +227,10 @@ export function IssueEditor({
                 placeholder="Not tied to a module"
                 className="w-full"
               />
-              <Button rounded icon="pi pi-plus" size="small" text onClick={() => setQuickAddModuleVisible(true)} tooltip="Add Module" />
+              <Button icon="pi pi-plus" size="small" className="btn-xs" rounded text onClick={() => setQuickAddModuleVisible(true)} tooltip="Add Module" />
             </div>
             {quickAddModuleVisible && (
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2 mt-1 align-items-center">
                 <InputText
                   value={newModuleName}
                   onChange={(e) => setNewModuleName(e.target.value)}
@@ -239,15 +239,15 @@ export function IssueEditor({
                   onKeyDown={(e) => { if (e.key === 'Enter') handleQuickAddModule(); }}
                   autoFocus
                 />
-                <Button icon="pi pi-check" size="small" onClick={handleQuickAddModule} />
-                <Button icon="pi pi-times" size="small" text severity="secondary" onClick={() => setQuickAddModuleVisible(false)} />
+                <Button icon="pi pi-check" size="small" className="btn-xs" rounded text onClick={handleQuickAddModule} />
+                <Button icon="pi pi-times" size="small" className="btn-xs" rounded text severity="danger" onClick={() => setQuickAddModuleVisible(false)} />
               </div>
             )}
           </div>
 
           <div className="flex flex-column gap-1">
             <label>Tags</label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 align-items-center">
               <MultiSelect
                 value={tagNames}
                 options={tags.map((t) => ({ label: t.name, value: t.name }))}
@@ -257,10 +257,10 @@ export function IssueEditor({
                 filter
                 className="w-full"
               />
-              <Button rounded icon="pi pi-plus" size="small" text onClick={() => setQuickAddTagVisible(true)} tooltip="Add Tag" />
+              <Button icon="pi pi-plus" size="small" className="btn-xs" rounded text onClick={() => setQuickAddTagVisible(true)} tooltip="Add Tag" />
             </div>
             {quickAddTagVisible && (
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2 mt-1  align-items-center">
                 <InputText
                   value={newTagName}
                   onChange={(e) => setNewTagName(e.target.value)}
@@ -269,8 +269,8 @@ export function IssueEditor({
                   onKeyDown={(e) => { if (e.key === 'Enter') handleQuickAddTag(); }}
                   autoFocus
                 />
-                <Button icon="pi pi-check" size="small" onClick={handleQuickAddTag} />
-                <Button icon="pi pi-times" size="small" text severity="secondary" onClick={() => setQuickAddTagVisible(false)} />
+                <Button icon="pi pi-check" size="small" className="btn-xs" rounded text onClick={handleQuickAddTag} />
+                <Button icon="pi pi-times" size="small" className="btn-xs" rounded text severity="danger" onClick={() => setQuickAddTagVisible(false)} />
               </div>
             )}
           </div>
@@ -315,31 +315,33 @@ export function IssueEditor({
           </div>
 
           <div className="flex flex-column gap-1">
-            <label>GitHub Links</label>
-            {githubLinks.map((link, i) => (
-              <div key={i} className="flex gap-2">
+            <label>External Links</label>
+            {externalLinks.map((link, i) => (
+              <div key={i} className="flex align-items-center gap-2">
                 <InputText
                   placeholder="URL"
                   value={link.url}
-                  onChange={(e) => setGithubLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)))}
+                  onChange={(e) => setExternalLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)))}
                   className="w-full"
                 />
                 <InputText
                   placeholder="Label (optional)"
                   value={link.label ?? ''}
-                  onChange={(e) => setGithubLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, label: e.target.value } : l)))}
+                  onChange={(e) => setExternalLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, label: e.target.value } : l)))}
                   className="w-full"
                 />
-                <Button icon="pi pi-times" text size="small" onClick={() => setGithubLinks((prev) => prev.filter((_, idx) => idx !== i))} />
+                <Button icon="pi pi-times" text size="small" rounded className="flex-shrink-0 btn-xs" severity="danger" onClick={() => setExternalLinks((prev) => prev.filter((_, idx) => idx !== i))} />
               </div>
             ))}
-            <Button
-              label="Add Link"
-              icon="pi pi-plus"
-              text
-              size="small"
-              onClick={() => setGithubLinks((prev) => [...prev, { url: '', label: '' }])}
-            />
+            <div className="my-2">
+              <Button
+                label="Add Link"
+                icon="pi pi-plus"
+                text
+                size="small"
+                onClick={() => setExternalLinks((prev) => [...prev, { url: '', label: '' }])}
+              />
+            </div>
           </div>
 
           {error && <small className="p-error">{error}</small>}

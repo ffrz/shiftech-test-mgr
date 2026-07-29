@@ -1,6 +1,6 @@
 import { issueRepository } from '../repositories/issueRepository';
 import { tagService } from './tagService';
-import type { GithubLink, Issue, IssuePriority, IssueType } from '../types/domain';
+import type { ExternalLink, Issue, IssuePriority, IssueType } from '../types/domain';
 
 export const issueService = {
   getById(id: string) {
@@ -49,7 +49,7 @@ export const issueService = {
     actualResult?: string;
     expectedResult?: string;
     priority?: IssuePriority;
-    githubLinks?: GithubLink[];
+    externalLinks?: ExternalLink[];
     tagNames?: string[];
     // If given, the created issue is immediately linked to this test result — used by the
     // "create new inline" flow in the Test Run Link Issue dialog.
@@ -68,7 +68,7 @@ export const issueService = {
       priority: input.priority ?? 'medium',
       status: 'open',
       assignedTo: null,
-      githubLinks: input.githubLinks ?? [],
+      externalLinks: input.externalLinks ?? [],
     });
 
     if (input.tagNames?.length) {
@@ -93,7 +93,7 @@ export const issueService = {
       priority: IssuePriority;
       type: IssueType;
       moduleId: string | null;
-      githubLinks: GithubLink[];
+      externalLinks: ExternalLink[];
     },
     tagNames?: string[],
   ) {
@@ -106,7 +106,7 @@ export const issueService = {
       priority: input.priority,
       type: input.type,
       moduleId: input.moduleId,
-      githubLinks: input.githubLinks,
+      externalLinks: input.externalLinks,
     });
     if (tagNames !== undefined) {
       await tagService.saveTagsForIssue(projectId, id, tagNames);
