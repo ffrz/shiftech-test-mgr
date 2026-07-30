@@ -133,6 +133,7 @@ export function PlanTestCasesTab({
               className="w-full"
               display="chip"
               filter
+              virtualScrollerOptions={{ itemSize: 40 }}
             />
           </div>
           <div className="col-12 md:col-2 p-1">
@@ -144,6 +145,7 @@ export function PlanTestCasesTab({
               className="w-full"
               display="chip"
               filter
+              virtualScrollerOptions={{ itemSize: 40 }}
             />
           </div>
           <div className="col-12 md:col-2 p-1">

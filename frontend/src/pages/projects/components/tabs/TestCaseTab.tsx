@@ -273,6 +273,7 @@ export function TestCaseTab({
               className="w-full"
               selectAll
               selectAllLabel="All"
+              virtualScrollerOptions={{ itemSize: 40 }}
             />
           </div>
           <div className="col-6 md:col-2 p-1">
@@ -317,6 +318,7 @@ export function TestCaseTab({
               className="w-full"
               selectAll
               selectAllLabel="All"
+              virtualScrollerOptions={{ itemSize: 40 }}
             />
           </div>
           <div className="col-12 md:col p-1">
@@ -384,7 +386,7 @@ export function TestCaseTab({
                 <Dropdown value={editValue} options={moduleOptions}
                   onChange={(e) => confirmEdit(row, 'moduleId', e.value ?? null)}
                   onHide={cancelEdit}
-                  placeholder="None" showClear autoFocus className="w-10rem" />
+                  placeholder="None" showClear autoFocus className="w-10rem" virtualScrollerOptions={{ itemSize: 40 }} />
               </div>
             );
           }
@@ -446,7 +448,7 @@ export function TestCaseTab({
                 <MultiSelect value={editValue ?? []} options={tagOptions}
                   onChange={(e) => confirmEdit(row, 'tags', e.value)}
                   onHide={cancelEdit}
-                  autoFocus className="w-10rem" display="chip" />
+                  autoFocus className="w-10rem" display="chip" virtualScrollerOptions={{ itemSize: 40 }} />
               </div>
             );
           }
