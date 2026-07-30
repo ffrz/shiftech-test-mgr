@@ -87,6 +87,18 @@ Setiap halaman **list** WAJIB memakai `<PageHeader title="..." actions={...} />`
 
 Halaman **detail** (judul = nama entity, di dalam `Card`) tidak pakai `PageHeader` — ikuti pola `ProjectDetailPage`/`UserDetailPage`: `<h2 className="m-0">` di dalam wrapper flex sendiri di header Card.
 
+### Konvensi Halaman Detail — Stat Tile & Content Column
+
+Header halaman detail yang punya beberapa angka/metadata ringkas (jumlah Test Plan/Test Case/Test Run/Issue/Member, module, dsb) pakai `project-stat-grid` + `project-stat-tile` (class di `frontend/src/index.css`) — grid compact dengan icon di tiap tile, bukan `<label>`/`<p>` polos di dalam `grid`/`col-*`. Tile dengan value teks pendek (bukan angka) pakai `project-stat-grid-fixed2` + `project-stat-value-text` (mis. nama Module di `IssueDetailPage`) supaya tidak melebar penuh di layar lebar.
+
+Body konten (Description/Objective/Steps/Notes/Bio/dll) di halaman detail dibungkus `detail-content-col` (max-width kolom baca) berisi `Card` ber-`className="detail-content-card"` (judul card diperkecil dibanding default PrimeCard) — satu `Card` per section, bukan satu `Card` besar berisi semua section. Section berupa tabel (bukan prose) pakai `detail-wide-col` (max-width lebih lebar) sebagai pengganti `detail-content-col`. Danger Zone tetap `detail-content-card` + tambahan class `detail-danger-zone` (judul jadi merah).
+
+Sudah diterapkan di `ProjectDetailPage`, `TestCaseDetailPage`, `IssueDetailPage`, `TestPlanDetailPage`, `TestSuiteDetailPage`, `UserDetailPage`, `SettingsPage`, dan `ProfileView`. Modul detail baru mengikuti pola yang sama.
+
+### Konvensi Filter Toolbar Tab (`FilterToolbar`)
+
+Tab-tab di halaman detail yang punya toolbar filter collapsible (tombol toggle filter icon-only + grid field filter yang bisa disembunyikan, plus secondary/primary action button di kanan) memakai `<FilterToolbar>` dari `frontend/src/components/ui/FilterToolbar.tsx` — JANGAN tulis ulang manual tombol toggle + state `filterVisible` per tab. Sudah dipakai di semua tab `ProjectDetailPage` (Issue/Member/TestCase/TestPlan/TestRun) dan `TestPlanDetailPage` (PlanTestCases/PlanTestRuns).
+
 ### Konvensi Form Field — Floating Label (`ifta-field`)
 
 Field form di dialog create/edit (bukan search box/table filter/toolbar) memakai pola floating label ala Quasar/Material — label duduk di dalam field lalu naik ke atas saat fokus/terisi, value pindah ke baris bawah. Bukan `IftaLabel` bawaan PrimeReact (baru ada di v11 yang belum dipakai project ini — lihat §UI Library), tapi custom class `.ifta-field` (di `frontend/src/index.css`) yang dipasangkan ke `FloatLabel` dari `primereact/floatlabel`:
