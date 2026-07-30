@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DataTable, type DataTablePageEvent, type DataTableSortEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -26,6 +26,7 @@ import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY, PROJECT_VISIBILITY_LABEL
 
 export function ProjectsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuthContext();
   const toast = useRef<Toast>(null);
@@ -42,6 +43,13 @@ export function ProjectsPage() {
     debounceRef.current = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(debounceRef.current);
   }, [search]);
+
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      searchParams.delete('create');
+      openCreateDialog();
+    }
+  }, []);
 
   const [statusFilter, setStatusFilter] = useStoredState<ProjectStatus[]>('projectsPage:statusFilter', []);
   const [ownerFilter, setOwnerFilter] = useStoredState<ProjectOwnerFilter>('projectsPage:ownerFilter', 'all');

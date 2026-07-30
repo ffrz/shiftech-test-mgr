@@ -1,29 +1,20 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Toast } from 'primereact/toast';
 import SearchInput from '../ui/SearchInput';
 import { AppMenuitem, AppMenuSeparator, type MenuItemModel } from './AppMenuitem';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjects } from '../../hooks/useProjects';
 import { useProjectPins } from '../../hooks/useProjectPins';
-import { CreateProjectDialog } from '../../pages/projects/components/CreateProjectDialog';
 
 const MAX_VISIBLE_PROJECTS = 10;
 
 export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate();
-  const toast = useRef<Toast>(null);
   const { isAdmin } = useAuthContext();
-  const { projects, reload } = useProjects({ status: 'active', sortField: 'name', sortDirection: 'asc' });
+  const { projects } = useProjects({ status: 'active', sortField: 'name', sortDirection: 'asc' });
   const { isPinned, togglePin } = useProjectPins();
 
   const [projectSearch, setProjectSearch] = useState('');
-
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-
-  function openAddDialog() {
-    setAddDialogOpen(true);
-  }
 
   const q = projectSearch.trim().toLowerCase();
   const filteredProjects = q ? projects.filter((p) => p.name.toLowerCase().includes(q)) : projects;
@@ -56,7 +47,6 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
       <ul className="layout-menu">
         {mainItems.map((item) => (
           <AppMenuitem key={item.url ?? item.label} item={item} onNavigate={onNavigate} />
@@ -71,7 +61,7 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
             className="layout-menuitem-add"
             title="New Project"
             aria-label="New Project"
-            onClick={openAddDialog}
+            onClick={() => navigate('/projects?create=true')}
           >
             <i className="pi pi-plus" />
           </button>
@@ -113,13 +103,6 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
           </li>
         )}
       </ul>
-
-      <CreateProjectDialog
-        visible={addDialogOpen}
-        onHide={() => setAddDialogOpen(false)}
-        onSaved={() => { reload(); onNavigate?.(); }}
-        onCreated={(id) => { navigate(`/projects/${id}`); toast.current?.show({ severity: 'success', summary: 'Project created' }); }}
-      />
     </>
   );
 }

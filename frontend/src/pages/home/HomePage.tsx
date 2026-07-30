@@ -135,8 +135,8 @@ export function HomePage() {
       <div className="mb-4">
         <h3 className="mb-2">Quick Actions</h3>
         <div className="flex gap-2 flex-wrap">
-          <Button label="New Project" icon="pi pi-plus" onClick={() => navigate('/projects')} />
-          <Button label="New Test Suite" icon="pi pi-plus" outlined onClick={() => navigate('/test-suites')} />
+          <Button label="New Project" icon="pi pi-plus" onClick={() => navigate('/projects?create=true')} />
+          <Button label="New Test Suite" icon="pi pi-plus" outlined onClick={() => navigate('/test-suites?create=true')} />
         </div>
       </div>
 

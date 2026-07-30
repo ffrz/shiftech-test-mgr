@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type DataTablePageEvent, type DataTableSortEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -36,6 +36,7 @@ type EnrichedTestSuite = TestSuite & {
 // isOwnerOrAdmin check only decides what actions are offered, not what's actually allowed.
 export function TestSuitesPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const toast = useRef<Toast>(null);
   const { user, isAdmin } = useAuthContext();
   const queryClient = useQueryClient();
@@ -52,6 +53,13 @@ export function TestSuitesPage() {
     debounceRef.current = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(debounceRef.current);
   }, [search]);
+
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      searchParams.delete('create');
+      openCreateDialog();
+    }
+  }, []);
 
   const [visibilityFilter, setVisibilityFilter] = useStoredState<TestSuiteVisibility[]>('testSuitesPage:visibilityFilter', []);
   const [page, setPage] = useStoredState('testSuitesPage:page', 1);
