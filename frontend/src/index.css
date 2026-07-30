@@ -1053,3 +1053,100 @@ h6,
 .p-confirm-dialog {
   max-width: 450px;
 }
+
+/* ===== Quasar-style floating label ("ifta-field"): label stays INSIDE the
+   input's top area (doesn't cut the border like Material outlined), and the
+   value text sits on its own line below the label once floated. This is
+   deliberately scoped to a dedicated `.ifta-field` class — NOT applied to the
+   app-wide compact `.p-inputtext`/`.p-dropdown-label` rules above, which
+   SearchInput/table filters/toolbars still rely on staying short. Only
+   dialog form fields opt in explicitly via this class. */
+.ifta-field {
+  margin-top: 0.5rem;
+}
+
+.ifta-field .p-inputtext,
+.ifta-field .p-inputtextarea,
+.ifta-field .p-dropdown .p-dropdown-label,
+.ifta-field .p-multiselect .p-multiselect-label {
+  height: 3.5rem;
+  padding-top: 1.5rem !important;
+  padding-bottom: 0.4rem !important;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* MultiSelect display="chip" renders its selected chips inside
+   .p-multiselect-label as a token list, not a single line of text — let it
+   wrap and grow past the base 3.5rem instead of clipping chips on a second
+   row (the base height rule above still gives it a floor for the empty
+   state). */
+.ifta-field .p-multiselect .p-multiselect-label {
+  height: auto;
+  min-height: 3.5rem;
+  flex-wrap: wrap;
+  align-content: flex-end;
+  row-gap: 0.25rem;
+  padding-bottom: 0.6rem !important;
+}
+
+.ifta-field textarea.p-inputtext {
+  height: auto;
+  min-height: 3.5rem;
+}
+
+.ifta-field .p-dropdown {
+  height: 3.5rem;
+}
+
+/* Unlike Dropdown, MultiSelect's chip label can grow taller than the base
+   3.5rem (multiple chip rows) — the shell must grow with it (min-height) or
+   the chip row(s) get clipped by a fixed-height parent, even though
+   .p-multiselect-label itself is allowed to grow above. */
+.ifta-field .p-multiselect {
+  height: auto;
+  min-height: 3.5rem;
+}
+
+/* Theme hardcodes `overflow: hidden` on this wrapper (built for its default
+   single-line label) — with a chip label allowed to wrap to multiple rows,
+   that clips every row after the first. */
+.ifta-field .p-multiselect .p-multiselect-label-container {
+  overflow: visible;
+}
+
+.ifta-field .p-dropdown .p-dropdown-trigger {
+  height: 3.5rem;
+}
+
+/* Trigger icon stays pinned to the top of the box (not stretched/centered
+   across a now-multi-row label), matching where the first chip row sits. */
+.ifta-field .p-multiselect .p-multiselect-trigger {
+  height: 3.5rem;
+  align-self: flex-start;
+}
+
+/* Resting label: centered in the (now taller) box, same as PrimeReact's
+   default float-label vertical-center mechanics (`top:50%` + this negative
+   margin — kept as-is here since box height, not label height, changed). */
+.ifta-field label {
+  left: 0.75rem;
+  transition-property: all;
+  transition-timing-function: ease;
+}
+
+/* Floated label: pinned near the top of the (taller) box instead of
+   PrimeReact's default "float above the box" (`top:-.75rem`) — this is what
+   keeps the label visually inside the input, Quasar-style, with the value
+   line rendering below it via the input's own bottom-aligned text (see
+   align-items: flex-end above). */
+.ifta-field:has(input:focus) label,
+.ifta-field:has(input.p-filled) label,
+.ifta-field:has(textarea:focus) label,
+.ifta-field:has(textarea.p-filled) label,
+.ifta-field:has(.p-inputwrapper-focus) label,
+.ifta-field:has(.p-inputwrapper-filled) label {
+  top: 0.5rem !important;
+  margin-top: 0 !important;
+  font-size: 12px;
+}

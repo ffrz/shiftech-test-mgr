@@ -7,6 +7,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
 import { SelectButton } from 'primereact/selectbutton';
 import { Button } from 'primereact/button';
+import { FloatLabel } from 'primereact/floatlabel';
 import type { TestCase, TestCasePriority } from '../../../../types/domain';
 import { TEST_CASE_PRIORITY_LABEL } from '../../../../helpers/statusLabels';
 
@@ -109,33 +110,37 @@ export function TestCaseDialog({
 
   return (
     <Dialog header={editing ? 'Edit Test Case' : 'New Test Case'} visible={visible} onHide={onHide} style={{ width: '40rem' }}>
-      <div className="flex flex-column gap-3">
-        <div className="flex flex-column gap-1">
-          <label htmlFor="case-code">Code</label>
-          <InputText id="case-code" value={code} onChange={(e) => onCodeChange(e.target.value)} placeholder="Automatic if left empty" className="w-10rem" />
+      <div className="flex flex-column gap-2">
+        <div className="flex flex-column">
+          <FloatLabel className="ifta-field">
+            <InputText id="case-code" value={code} onChange={(e) => onCodeChange(e.target.value)} className="w-14rem" />
+            <label htmlFor="case-code">Code (automatic if empty)</label>
+          </FloatLabel>
         </div>
 
         <div className="flex flex-column gap-1">
-          <label htmlFor="case-title" className={error ? 'p-error' : ''}>Title</label>
-          <InputText id="case-title" ref={titleRef} value={title} onChange={(e) => onTitleChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          <FloatLabel className="ifta-field">
+            <InputText id="case-title" ref={titleRef} value={title} onChange={(e) => onTitleChange(e.target.value)} className={error ? 'p-invalid w-full' : 'w-full'} autoFocus />
+            <label htmlFor="case-title" className={error ? 'p-error' : ''}>Title</label>
+          </FloatLabel>
           {error && <small className="p-error">{error}</small>}
         </div>
 
-
         <div className="grid">
-          <div className="col-12 md:col-6 flex flex-column gap-1">
-            <label htmlFor="case-module">Module</label>
+          <div className="col-12 md:col-6 flex flex-column">
             <div className="flex align-items-center gap-2">
-              <Dropdown
-                id="case-module"
-                value={moduleId}
-                options={moduleOptions}
-                onChange={(e) => onModuleIdChange(e.value)}
-                editable
-                placeholder="Select or type a module"
-                showClear
-                className="w-full"
-              />
+              <FloatLabel className="ifta-field flex-grow-1">
+                <Dropdown
+                  id="case-module"
+                  value={moduleId}
+                  options={moduleOptions}
+                  onChange={(e) => onModuleIdChange(e.value)}
+                  editable
+                  showClear
+                  className="w-full"
+                />
+                <label htmlFor="case-module">Module</label>
+              </FloatLabel>
               <Button
                 icon="pi pi-plus"
                 type="button"
@@ -149,29 +154,32 @@ export function TestCaseDialog({
               />
             </div>
           </div>
-          <div className="col-12 md:col-6 flex flex-column gap-1">
-            <label htmlFor="case-priority">Priority</label>
-            <Dropdown
-              id="case-priority"
-              value={priority}
-              options={PRIORITY_OPTIONS}
-              onChange={(e) => onPriorityChange(e.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="col-12 md:col-6 flex flex-column gap-1">
-            <label htmlFor="case-target-role">Target Role (optional)</label>
-            <div className="flex align-items-center gap-2">
+          <div className="col-12 md:col-6 flex flex-column">
+            <FloatLabel className="ifta-field">
               <Dropdown
-                id="case-target-role"
-                value={targetRoleId}
-                options={testRoleOptions}
-                onChange={(e) => onTargetRoleIdChange(e.value)}
-                editable
-                placeholder="Select or type a role"
-                showClear
+                id="case-priority"
+                value={priority}
+                options={PRIORITY_OPTIONS}
+                onChange={(e) => onPriorityChange(e.value)}
                 className="w-full"
               />
+              <label htmlFor="case-priority">Priority</label>
+            </FloatLabel>
+          </div>
+          <div className="col-12 md:col-6 flex flex-column">
+            <div className="flex align-items-center gap-2">
+              <FloatLabel className="ifta-field flex-grow-1">
+                <Dropdown
+                  id="case-target-role"
+                  value={targetRoleId}
+                  options={testRoleOptions}
+                  onChange={(e) => onTargetRoleIdChange(e.value)}
+                  editable
+                  showClear
+                  className="w-full"
+                />
+                <label htmlFor="case-target-role">Target Role (optional)</label>
+              </FloatLabel>
               <Button
                 icon="pi pi-plus"
                 type="button"
@@ -187,24 +195,27 @@ export function TestCaseDialog({
           </div>
         </div>
 
-        <div className="flex flex-column gap-1">
-          <label htmlFor="case-objective">Objective (optional)</label>
-          <InputText id="case-objective" value={objective} onChange={(e) => onObjectiveChange(e.target.value)} />
+        <div className="flex flex-column">
+          <FloatLabel className="ifta-field">
+            <InputText id="case-objective" value={objective} onChange={(e) => onObjectiveChange(e.target.value)} className="w-full" />
+            <label htmlFor="case-objective">Objective (optional)</label>
+          </FloatLabel>
         </div>
 
         <div className="flex flex-column gap-1">
-          <label htmlFor="case-preconditions">Preconditions</label>
-          <InputTextarea id="case-preconditions" value={preconditions} onChange={(e) => onPreconditionsChange(e.target.value)} rows={1} autoResize maxLength={1000} />
+          <FloatLabel className="ifta-field">
+            <InputTextarea id="case-preconditions" value={preconditions} onChange={(e) => onPreconditionsChange(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+            <label htmlFor="case-preconditions">Preconditions</label>
+          </FloatLabel>
           <CharacterCount value={preconditions} maxLength={1000} />
         </div>
 
-        <div className="flex flex-column gap-1">
-          <label>Step Mode</label>
+        <div className="my-3">
           <SelectButton
             value={stepType}
             options={[
-              { label: 'Simple', value: 'simple' },
-              { label: 'Detailed', value: 'detailed' },
+              { label: 'Single Step', value: 'simple' },
+              { label: 'Detailed Step ', value: 'detailed' },
             ]}
             onChange={(e) => e.value && onStepTypeChange(e.value)}
           />
@@ -213,14 +224,18 @@ export function TestCaseDialog({
         {stepType === 'simple' ? (
           <>
             <div className="flex flex-column gap-1">
-              <label htmlFor="case-steps">Test Steps</label>
-              <InputTextarea id="case-steps" value={steps} onChange={(e) => onStepsChange(e.target.value)} rows={1} autoResize maxLength={1000} />
+              <FloatLabel className="ifta-field">
+                <InputTextarea id="case-steps" value={steps} onChange={(e) => onStepsChange(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+                <label htmlFor="case-steps">Test Steps</label>
+              </FloatLabel>
               <CharacterCount value={steps} maxLength={1000} />
             </div>
 
             <div className="flex flex-column gap-1">
-              <label htmlFor="case-expected">Expected Result</label>
-              <InputTextarea id="case-expected" value={expectedResult} onChange={(e) => onExpectedResultChange(e.target.value)} rows={1} autoResize maxLength={1000} />
+              <FloatLabel className="ifta-field">
+                <InputTextarea id="case-expected" value={expectedResult} onChange={(e) => onExpectedResultChange(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+                <label htmlFor="case-expected">Expected Result</label>
+              </FloatLabel>
               <CharacterCount value={expectedResult} maxLength={1000} />
             </div>
           </>
@@ -232,7 +247,7 @@ export function TestCaseDialog({
                 <span className="text-color-secondary text-sm mt-2">{i + 1}.</span>
                 <div className="flex flex-column gap-1 flex-grow-1">
                   <InputText
-                    placeholder="Aksi"
+                    placeholder="Action"
                     value={step.action}
                     onChange={(e) =>
                       onDetailedStepsChange(detailedSteps.map((s, idx) => (idx === i ? { ...s, action: e.target.value } : s)))
@@ -259,26 +274,29 @@ export function TestCaseDialog({
           </div>
         )}
 
-        <div className="flex flex-column gap-1">
-          <label htmlFor="case-tags">Tag</label>
+        <div className="flex flex-column">
           <div className="flex align-items-center gap-2">
-            <MultiSelect
-              id="case-tags"
-              value={tags}
-              options={tagOptions}
-              onChange={(e) => onTagsChange(e.value ?? [])}
-              placeholder="Select tags"
-              display="chip"
-              filter
-              className="w-full"
-            />
+            <FloatLabel className="ifta-field flex-grow-1">
+              <MultiSelect
+                id="case-tags"
+                value={tags}
+                options={tagOptions}
+                onChange={(e) => onTagsChange(e.value ?? [])}
+                display="chip"
+                filter
+                className="w-full"
+              />
+              <label htmlFor="case-tags">Tag</label>
+            </FloatLabel>
             <Button icon="pi pi-plus" type="button" text rounded size="small" className="btn-xs" aria-label="New Tag" onClick={onQuickAddTag} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
           </div>
         </div>
 
         <div className="flex flex-column gap-1">
-          <label htmlFor="case-notes">Notes (optional)</label>
-          <InputTextarea id="case-notes" value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={1} autoResize maxLength={1000} />
+          <FloatLabel className="ifta-field">
+            <InputTextarea id="case-notes" value={notes} onChange={(e) => onNotesChange(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+            <label htmlFor="case-notes">Notes (optional)</label>
+          </FloatLabel>
           <CharacterCount value={notes} maxLength={1000} />
         </div>
 

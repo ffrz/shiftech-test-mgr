@@ -5,6 +5,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { CharacterCount } from '../ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
+import { FloatLabel } from 'primereact/floatlabel';
 import type { TestSuiteVisibility } from '../../types/domain';
 
 const VISIBILITY_OPTIONS: { label: string; value: TestSuiteVisibility }[] = [
@@ -68,27 +69,33 @@ export function TestSuiteDialog({ visible, mode, initialData, saving, onHide, on
 
   return (
     <Dialog header={header} visible={visible} onHide={onHide} style={{ width: '30rem' }}>
-      <div className="flex flex-column gap-3">
+      <div className="flex flex-column gap-4">
         <div className="flex flex-column gap-1">
-          <label htmlFor="suite-name" className={error ? 'p-error' : ''}>Name</label>
-          <InputText id="suite-name" ref={nameRef} value={name} onChange={(e) => setName(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          <FloatLabel className="ifta-field">
+            <InputText id="suite-name" ref={nameRef} value={name} onChange={(e) => setName(e.target.value)} className={error ? 'p-invalid w-full' : 'w-full'} autoFocus />
+            <label htmlFor="suite-name" className={error ? 'p-error' : ''}>Name</label>
+          </FloatLabel>
           {error && <small className="p-error">{error}</small>}
         </div>
         <div className="flex flex-column gap-1">
-          <label htmlFor="suite-description">Description</label>
-          <InputTextarea id="suite-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={1} autoResize maxLength={1000} />
+          <FloatLabel className="ifta-field">
+            <InputTextarea id="suite-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+            <label htmlFor="suite-description">Description</label>
+          </FloatLabel>
           <CharacterCount value={description} maxLength={1000} />
         </div>
         {mode !== 'duplicate' && (
           <div className="flex flex-column gap-1">
-            <label htmlFor="suite-visibility">Visibility</label>
-            <Dropdown
-              id="suite-visibility"
-              value={visibility}
-              options={VISIBILITY_OPTIONS}
-              onChange={(e) => setVisibility(e.value)}
-              className="w-full"
-            />
+            <FloatLabel className="ifta-field">
+              <Dropdown
+                id="suite-visibility"
+                value={visibility}
+                options={VISIBILITY_OPTIONS}
+                onChange={(e) => setVisibility(e.value)}
+                className="w-full"
+              />
+              <label htmlFor="suite-visibility">Visibility</label>
+            </FloatLabel>
           </div>
         )}
         <Button label="Save" size="small" onClick={handleSave} loading={submitting || saving} />
