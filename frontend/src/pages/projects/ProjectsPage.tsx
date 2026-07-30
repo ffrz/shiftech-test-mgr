@@ -115,8 +115,6 @@ export function ProjectsPage() {
     setDialogOpen(true);
   }
 
-  const [filterVisible, setFilterVisible] = useState(true);
-
   // --- Duplicate Project ---
   const [duplicateSource, setDuplicateSource] = useState<Project | null>(null);
 
@@ -196,23 +194,12 @@ export function ProjectsPage() {
         title="Projects"
         actions={
           <div className="flex gap-3 align-items-center">
-            <Button
-              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
-              text
-              rounded
-              size="small"
-              severity={filterVisible ? "warning" : "secondary"}
-              onClick={() => setFilterVisible(!filterVisible)}
-              tooltip={filterVisible ? "Hide filters" : "Show filters"}
-              tooltipOptions={{ position: 'bottom' }}
-            />
             <Button label="New Project" icon="pi pi-plus" size="small" onClick={openCreateDialog} />
           </div>
         }
       />
 
-      {filterVisible && (
-        <div className="grid mb-3 p-1">
+      <div className="grid mb-3 p-1">
           <div className="col-12 md:col-2 p-1">
             <Dropdown
               value={ownerFilter}
@@ -270,7 +257,6 @@ export function ProjectsPage() {
             </div>
           </div>
         </div>
-      )}
 
       <DataTable
         value={projects}
