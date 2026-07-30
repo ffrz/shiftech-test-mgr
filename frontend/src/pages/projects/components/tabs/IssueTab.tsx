@@ -9,6 +9,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 import SearchInput from '../../../../components/ui/SearchInput';
+import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
@@ -121,7 +122,6 @@ export function IssueTab({
   onPage,
 }: IssueTabProps) {
   const navigate = useNavigate();
-  const [filterVisible, setFilterVisible] = useState(true);
   const [editingCell, setEditingCell] = useState<{ issueId: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState<string | null>(null);
   const editRef = useRef<HTMLDivElement>(null);
@@ -248,100 +248,82 @@ export function IssueTab({
   return (
     <>
       <Toast ref={undoToast} position="bottom-center" />
-      <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <div />
-        {canManageIssues && (
+      <FilterToolbar
+        primaryAction={canManageIssues && <Button label="New Issue" icon="pi pi-plus" size="small" onClick={onCreate} />}
+      >
+        <div className="col-6 md:col-2 p-1">
+          <MultiSelect
+            value={statusFilter}
+            options={ISSUE_STATUS_OPTIONS}
+            onChange={(e) => onStatusFilterChange(e.value)}
+            placeholder="All Statuses"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+          />
+        </div>
+        <div className="col-6 md:col-2 p-1">
+          <MultiSelect
+            value={priorityFilter}
+            options={ISSUE_PRIORITY_OPTIONS}
+            onChange={(e) => onPriorityFilterChange(e.value)}
+            placeholder="All Priorities"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+          />
+        </div>
+        <div className="col-6 md:col-2 p-1">
+          <MultiSelect
+            value={tagFilter}
+            options={tagOptions}
+            onChange={(e) => onTagFilterChange(e.value)}
+            placeholder="All Tags"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+            virtualScrollerOptions={{ itemSize: 40 }}
+          />
+        </div>
+        <div className="col-6 md:col-2 p-1">
+          <MultiSelect
+            value={typeFilter}
+            options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
+            onChange={(e) => onTypeFilterChange(e.value)}
+            placeholder="All Types"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+          />
+        </div>
+        <div className="col-12 md:col-2 p-1">
+          <MultiSelect
+            value={moduleFilter}
+            options={moduleOptions}
+            onChange={(e) => onModuleFilterChange(e.value)}
+            placeholder="All Modules"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+            virtualScrollerOptions={{ itemSize: 40 }}
+          />
+        </div>
+        <div className="col-12 md:col p-1">
           <div className="flex gap-2">
+            <SearchInput value={search} onChange={onSearchChange} placeholder="Search title..." className="flex-1" />
             <Button
-              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
-              text
-              rounded
+              icon="pi pi-refresh"
+              outlined
+              severity="secondary"
               size="small"
-              severity={filterVisible ? "warning" : "secondary"}
-              onClick={() => setFilterVisible(!filterVisible)}
-              tooltip={filterVisible ? "Hide filters" : "Show filters"}
+              disabled={!hasActiveFilters}
+              onClick={onClearFilters}
+              tooltip="Reset filters"
               tooltipOptions={{ position: 'bottom' }}
             />
-            <Button label="New Issue" icon="pi pi-plus" size="small" onClick={onCreate} />
-          </div>
-        )}
-      </div>
-      {filterVisible && (
-        <div className="grid mb-2 p-1">
-          <div className="col-6 md:col-2 p-1">
-            <MultiSelect
-              value={statusFilter}
-              options={ISSUE_STATUS_OPTIONS}
-              onChange={(e) => onStatusFilterChange(e.value)}
-              placeholder="All Statuses"
-              className="w-full"
-              selectAll
-              selectAllLabel="All"
-            />
-          </div>
-          <div className="col-6 md:col-2 p-1">
-            <MultiSelect
-              value={priorityFilter}
-              options={ISSUE_PRIORITY_OPTIONS}
-              onChange={(e) => onPriorityFilterChange(e.value)}
-              placeholder="All Priorities"
-              className="w-full"
-              selectAll
-              selectAllLabel="All"
-            />
-          </div>
-          <div className="col-6 md:col-2 p-1">
-            <MultiSelect
-              value={tagFilter}
-              options={tagOptions}
-              onChange={(e) => onTagFilterChange(e.value)}
-              placeholder="All Tags"
-              className="w-full"
-              selectAll
-              selectAllLabel="All"
-              virtualScrollerOptions={{ itemSize: 40 }}
-            />
-          </div>
-          <div className="col-6 md:col-2 p-1">
-            <MultiSelect
-              value={typeFilter}
-              options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
-              onChange={(e) => onTypeFilterChange(e.value)}
-              placeholder="All Types"
-              className="w-full"
-              selectAll
-              selectAllLabel="All"
-            />
-          </div>
-          <div className="col-12 md:col-2 p-1">
-            <MultiSelect
-              value={moduleFilter}
-              options={moduleOptions}
-              onChange={(e) => onModuleFilterChange(e.value)}
-              placeholder="All Modules"
-              className="w-full"
-              selectAll
-              selectAllLabel="All"
-              virtualScrollerOptions={{ itemSize: 40 }}
-            />
-          </div>
-          <div className="col-12 md:col p-1">
-            <div className="flex gap-2">
-              <SearchInput value={search} onChange={onSearchChange} placeholder="Search title..." className="flex-1" />
-              <Button
-                icon="pi pi-refresh"
-                outlined
-                severity="secondary"
-                size="small"
-                disabled={!hasActiveFilters}
-                onClick={onClearFilters}
-                tooltip="Reset filters"
-                tooltipOptions={{ position: 'bottom' }}
-              />
-            </div>
           </div>
         </div>
-      )}
+      </FilterToolbar>
       {canDeleteContent && (
         <BulkActionsBar
           selectedCount={selected.length}

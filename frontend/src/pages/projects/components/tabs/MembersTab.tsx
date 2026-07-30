@@ -111,6 +111,7 @@ export function MembersTab({
             onChange={(e) => onRoleFilterChange(e.value)}
             className="w-10rem"
             showClear={!!roleFilter}
+            placeholder="Role"
           />
           <Dropdown
             value={statusFilter}
@@ -123,6 +124,7 @@ export function MembersTab({
             onChange={(e) => onStatusFilterChange(e.value)}
             className="w-10rem"
             showClear={!!statusFilter}
+            placeholder="Status"
           />
         </div>
         <Button label="Invite Member" icon="pi pi-plus" size="small" onClick={onInvite} />

@@ -5,6 +5,7 @@ import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { MultiSelect } from 'primereact/multiselect';
 import SearchInput from '../../../../components/ui/SearchInput';
+import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import type { TestRun, TestRunStatus } from '../../../../types/domain';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
@@ -83,44 +84,30 @@ export function PlanTestRunsTab({
 
   return (
     <>
-      <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <div />
-        {canRunTests && (
+      <FilterToolbar
+        visible={canRunTests}
+        filterVisible={filterVisible}
+        onToggleFilterVisible={onToggleFilterVisible}
+        primaryAction={<Button label="Start Test Run" icon="pi pi-play" size="small" onClick={onStartRun} />}
+      >
+        <div className="col-12 md:col-2 p-1">
+          <MultiSelect
+            value={statusFilters}
+            options={TEST_RUN_STATUS_OPTIONS}
+            onChange={(e) => onStatusFiltersChange(e.value)}
+            placeholder="All Statuses"
+            className="w-full"
+            display="chip"
+            selectAllLabel="All"
+          />
+        </div>
+        <div className="col-12 md:col p-1">
           <div className="flex gap-2">
-            <Button
-              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
-              text
-              rounded
-              size="small"
-              severity={filterVisible ? "warning" : "secondary"}
-              onClick={onToggleFilterVisible}
-              tooltip={filterVisible ? "Hide filters" : "Show filters"}
-              tooltipOptions={{ position: 'bottom' }}
-            />
-            <Button label="Start Test Run" icon="pi pi-play" size="small" onClick={onStartRun} />
-          </div>
-        )}
-      </div>
-      {filterVisible && (
-        <div className="grid mb-2 p-1">
-          <div className="col-12 md:col-2 p-1">
-            <MultiSelect
-              value={statusFilters}
-              options={TEST_RUN_STATUS_OPTIONS}
-              onChange={(e) => onStatusFiltersChange(e.value)}
-              placeholder="All Statuses"
-              className="w-full"
-              display="chip"
-            />
-          </div>
-          <div className="col-12 md:col p-1">
-            <div className="flex gap-2">
-              <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." className="flex-1" />
-              <Button icon="pi pi-refresh" outlined size="small" severity="secondary" onClick={onResetFilters} tooltip="Reset filters" />
-            </div>
+            <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." className="flex-1" />
+            <Button icon="pi pi-refresh" outlined size="small" severity="secondary" onClick={onResetFilters} tooltip="Reset filters" />
           </div>
         </div>
-      )}
+      </FilterToolbar>
       <DataTable
         value={testRuns}
         loading={loading}

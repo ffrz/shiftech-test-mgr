@@ -5,6 +5,7 @@ import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { MultiSelect } from 'primereact/multiselect';
 import SearchInput from '../../../../components/ui/SearchInput';
+import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import type { Module, Tag as TagEntity, TestCasePriority, TestPlanCaseWithDetails } from '../../../../types/domain';
@@ -104,68 +105,54 @@ export function PlanTestCasesTab({
 
   return (
     <>
-      <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <div />
-        {canEditContent && (
+      <FilterToolbar
+        visible={canEditContent}
+        filterVisible={filterVisible}
+        onToggleFilterVisible={onToggleFilterVisible}
+        primaryAction={<Button label="Add Test Case" icon="pi pi-plus" size="small" onClick={onAddCase} />}
+      >
+        <div className="col-12 md:col-2 p-1">
+          <MultiSelect
+            value={moduleFilters}
+            options={modules.map((m) => ({ label: m.name, value: m.id }))}
+            onChange={(e) => onModuleFiltersChange(e.value)}
+            placeholder="All Modules"
+            className="w-full"
+            display="chip"
+            filter
+            virtualScrollerOptions={{ itemSize: 40 }}
+          />
+        </div>
+        <div className="col-12 md:col-2 p-1">
+          <MultiSelect
+            value={tagFilters}
+            options={tags.map((t) => ({ label: t.name, value: t.id }))}
+            onChange={(e) => onTagFiltersChange(e.value)}
+            placeholder="All Tags"
+            className="w-full"
+            display="chip"
+            filter
+            virtualScrollerOptions={{ itemSize: 40 }}
+          />
+        </div>
+        <div className="col-12 md:col-2 p-1">
+          <MultiSelect
+            value={priorityFilters}
+            options={PRIORITY_OPTIONS}
+            onChange={(e) => onPriorityFiltersChange(e.value)}
+            placeholder="All Priorities"
+            className="w-full"
+            display="chip"
+            selectAllLabel="All"
+          />
+        </div>
+        <div className="col-12 md:col p-1">
           <div className="flex gap-2">
-            <Button
-              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
-              text
-              rounded
-              size="small"
-              severity={filterVisible ? "warning" : "secondary"}
-              onClick={onToggleFilterVisible}
-              tooltip={filterVisible ? "Hide filters" : "Show filters"}
-              tooltipOptions={{ position: 'bottom' }}
-            />
-            <Button label="Add Test Case" icon="pi pi-plus" size="small" onClick={onAddCase} />
-          </div>
-        )}
-      </div>
-      {filterVisible && (
-        <div className="grid mb-2 p-1">
-          <div className="col-12 md:col-2 p-1">
-            <MultiSelect
-              value={moduleFilters}
-              options={modules.map((m) => ({ label: m.name, value: m.id }))}
-              onChange={(e) => onModuleFiltersChange(e.value)}
-              placeholder="All Modules"
-              className="w-full"
-              display="chip"
-              filter
-              virtualScrollerOptions={{ itemSize: 40 }}
-            />
-          </div>
-          <div className="col-12 md:col-2 p-1">
-            <MultiSelect
-              value={tagFilters}
-              options={tags.map((t) => ({ label: t.name, value: t.id }))}
-              onChange={(e) => onTagFiltersChange(e.value)}
-              placeholder="All Tags"
-              className="w-full"
-              display="chip"
-              filter
-              virtualScrollerOptions={{ itemSize: 40 }}
-            />
-          </div>
-          <div className="col-12 md:col-2 p-1">
-            <MultiSelect
-              value={priorityFilters}
-              options={PRIORITY_OPTIONS}
-              onChange={(e) => onPriorityFiltersChange(e.value)}
-              placeholder="All Priorities"
-              className="w-full"
-              display="chip"
-            />
-          </div>
-          <div className="col-12 md:col p-1">
-            <div className="flex gap-2">
-              <SearchInput value={search} onChange={onSearchChange} placeholder="Search title/code..." className="flex-1" />
-              <Button icon="pi pi-refresh" size="small" severity="secondary" outlined onClick={onResetFilters} tooltip="Reset filters" />
-            </div>
+            <SearchInput value={search} onChange={onSearchChange} placeholder="Search title/code..." className="flex-1" />
+            <Button icon="pi pi-refresh" size="small" severity="secondary" outlined onClick={onResetFilters} tooltip="Reset filters" />
           </div>
         </div>
-      )}
+      </FilterToolbar>
       {canEditContent && (
         <BulkActionsBar
           selectedCount={selected.length}
