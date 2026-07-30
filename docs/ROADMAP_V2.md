@@ -49,6 +49,7 @@ challenged against the Constitution's Feature Acceptance Rule before being built
 | P5 | Test Suite Template ownership + visibility | Community feature, not on the golden path — see note below | P1 |
 | P6 | Minimal public identity lookup (`/@username`) | Supports 3 (invite by username needs a resolvable target) | P1 |
 | P7 | Golden-path acceptance walkthrough + docs sync | Validates 1–9 end-to-end | P1–P6 |
+| P8 | Collaboration & workflow (Comment/Activity/Notification/Attachment/Bulk Action/Saved Filter/My Work/Audit Log) | New track, not on the original golden path — see Phase 8 section below | P1–P7 |
 
 **Why P5 is in this roadmap despite not being on the golden path:** Test Suite
 Templates are an explicit Core Feature and Community capability in the Constitution
@@ -400,6 +401,66 @@ against `docs/PRODUCT_CONSTITUTION.md`'s Feature Acceptance Rule once scoped —
 squarely a testing-improvement feature, but "Simplicity First" means the filter UI for
 5 metadata dimensions needs care so Browse Templates doesn't turn into its own complex
 sub-app.
+
+---
+
+## Phase 8 — Collaboration & Workflow (Engagement Layer)
+
+Not part of the original V2 identity/ownership/membership redesign — a new track,
+started once Phase 1–7 are done and the UI hardening pass (FilterToolbar, stat-tile
+detail pages, 2026-07-30) is stable. Governed by the same Constitution Feature
+Acceptance Rule as everything else. **Explicitly not a Team Chat or Social Network**
+(Constitution "What Testify Is NOT") — every task below must be framed as QA workflow
+traceability (who changed what, when, and why on a test artifact), not social
+engagement. If a task can't be justified that way, it doesn't belong here.
+
+**Foundation decision (2026-07-30, after codebase audit):** don't build Comment,
+Activity Timeline, Notification-extension, and Attachment-generalization as four
+separate features/migrations. Build one polymorphic `entity_activity` table where
+Comment is just one `event_type`, plus generalize the existing issue-only
+`attachments` table to polymorphic `entity_type`/`entity_id`. This reuses the existing
+repository→service→hook pattern (one new module, not a new layer) and the existing
+centralized `useRealtimeSync.ts` channel (add two more `.on(...)` blocks, don't build
+a second realtime path). `notifications` needs **no schema change** — its `type`/
+`reference_type`/`reference_id` columns are already generic; new call sites just pass
+new `type` values (`comment`, `mention`, `assignment`, `status_change`).
+
+Audit findings that shape this phase (don't re-derive, they're already confirmed):
+- `notifications` (migration `20260728000001`) is realtime via `useRealtimeSync.ts`
+  (postgres_changes subscription), not pure 30s polling — the `refetchInterval` on
+  unread-count is a fallback only. Schema is generic enough to extend as-is.
+- `attachments` (migration `20260701000013`) exists but is **issue-only** (FK
+  `issue_id`, not polymorphic) — needs a migration to generalize before Test Case/
+  Comment attachments can reuse it, not a second table.
+- No `activity_log`, `audit_log`, or `comments` table exists yet.
+- `Issue`/`TestCase`/`TestPlan`/`TestRun` in `types/domain.ts` all share `id` +
+  `projectId` as their first two fields — clean fit for a polymorphic
+  `entity_type`/`entity_id` reference, consistent with how `notifications.reference_type`/
+  `reference_id` already works.
+- Comment soft-delete decided (2026-07-30): comments get a `deleted_at` column, body
+  hidden/replaced with "[deleted]" in the UI, row stays so the activity timeline has no
+  gaps — same anonymize-not-hard-delete philosophy as `delete_account()`.
+
+| ID | Task | Status |
+|---|---|---|
+| V2-P8-T01 | Migration: `entity_activity` table (`id`, `project_id`, `entity_type`, `entity_id`, `actor_id`, `event_type`, `payload jsonb`, `deleted_at`, `created_at`) + RLS via `has_project_access(project_id)`, same pattern as existing tables. `event_type` starts with `comment` only — system event types (`status_change`, `assignment`, `attachment_added`) added incrementally as each producer is wired in T04–T06, not all upfront | todo |
+| V2-P8-T02 | Migration: generalize `attachments` → `entity_attachments` (`entity_type`, `entity_id` replacing `issue_id` FK). Migrate existing rows to `entity_type='issue'`, `entity_id=issue_id`. Update storage RLS policies to resolve project via `entity_type`/`entity_id` instead of the direct `issues.project_id` join | todo |
+| V2-P8-T03 | `activityService.ts` (repository→service→hook, same shape as existing 15 modules): `addComment(entityType, entityId, body)`, `editComment`, `softDeleteComment`, `logEvent(entityType, entityId, eventType, payload)`, `listForEntity(entityType, entityId)`. `addComment` parses `@username` mentions (reuse `profileService.search()`) and calls `notificationService.create()` with `type='mention'` per resolved user | todo |
+| V2-P8-T04 | **Universal Comment UI** — comment thread component (input + list, soft-delete affordance for own comments) mounted on Issue/TestCase/TestPlan/TestRun detail pages, inside `detail-content-col` per the existing detail-page convention. Wire into `useRealtimeSync.ts` (`entity_activity` table) | todo |
+| V2-P8-T05 | **Activity Timeline UI** — render `entity_activity` rows (comment + system events together, chronological) as a tab/section on the same 4 detail pages, not a separate log page. Wire status-change/assignment producers: `issueService`, `testRunService` (run completed), etc. call `activityService.logEvent()` at their existing mutation points | todo |
+| V2-P8-T06 | **Notification extension** — wire `comment`, `mention`, `assignment`, `status_change` into existing `notificationService.create()` call sites added in T03/T05. No schema change. Update `NotificationPanel.tsx` icon/label mapping for the new `type` values | todo |
+| V2-P8-T07 | **Attachment UI generalization** — extend attachment upload/list UI (currently Issue-only) to Test Case and comment bodies, using the generalized `entity_attachments` from T02 | todo |
+| V2-P8-T08 | **Bulk Action** on table views (multi-select rows + action bar) — independent of T01–T07, can start anytime after T01 lands if sequencing needs parallelizing. Start with the highest-traffic table (Issue list or Test Case list) | todo |
+| V2-P8-T09 | **Saved Filter / My Views** — persist current filter state (per table, per user) as a named view. Needs a small `saved_filters` table (`user_id`, `project_id`, `entity_type`, `name`, `filter_state jsonb`) — independent of the activity/comment work | todo |
+| V2-P8-T10 | **Dashboard "My Work" + Activity Feed** on `HomePage` — "My Work" queries existing tables (issues assigned to me, test runs I'm testing) with no new schema; "Activity Feed" is a `listForEntity`-style query over `entity_activity` scoped to the user's projects, reusing T01's table | todo |
+| V2-P8-T11 | **Audit Log (admin-only)** — filtered/unfiltered view over `entity_activity` scoped by project or globally for admins, reachable from `AdminRoute`-guarded screen. Near-free once T01/T05 exist — this is a read-only view, not a new write path | todo |
+
+Sequencing note: T01+T02 (migrations) should land together since both touch the
+polymorphic-entity pattern and RLS shape — reviewing them separately risks the second
+migration reopening decisions the first one already made. T03 unblocks T04–T06. T08–T11
+have no dependency on T01–T07 and can be pulled forward or interleaved if useful for
+pacing, but are sequenced last here because they're lower-value than closing the
+comment/activity/notification loop first.
 
 ---
 

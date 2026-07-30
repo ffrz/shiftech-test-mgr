@@ -50,6 +50,42 @@ uji app ini:**
 - [ ] Brainstorm: metadata Test Suite Template (category/difficulty/est. time/app type/coverage tags) — masih butuh diskusi taxonomy sebelum di-scope
 - [ ] Open question: apakah `TestPlanCase` butuh snapshot Test Case + mekanisme sync (edit test case setelah masuk plan tapi sebelum run dimulai saat ini silently ikut versi terbaru) — Testing Domain, bukan V2, belum condong ke arah manapun
 
+**Platform Evolution V2 — Phase 8 (Collaboration & Workflow), baru ditambahkan
+2026-07-30** — lihat `docs/ROADMAP_V2.md` bagian "Phase 8" untuk detail lengkap +
+alasan urutan. Ringkasan keputusan: Comment/Activity Timeline/Notification-extension/
+Attachment-generalization dibangun sebagai SATU fondasi (tabel `entity_activity`
+polimorfik + generalisasi `attachments`→`entity_attachments`), bukan 4 fitur/migrasi
+terpisah — supaya tidak banyak refactor pas nambah fitur berikutnya. Comment pakai
+soft-delete (`deleted_at`), bukan hard delete, biar timeline tidak bolong.
+
+- [ ] V2-P8-T01 — Migration `entity_activity` (polymorphic: `entity_type`/`entity_id`,
+      `event_type`, `payload jsonb`, `deleted_at`) + RLS via `has_project_access` —
+      mulai dengan `event_type='comment'` saja, event system lain nyusul di T04-T06
+- [ ] V2-P8-T02 — Migration generalisasi `attachments`→`entity_attachments` (lepas dari
+      `issue_id` FK jadi `entity_type`/`entity_id`), migrate data existing ke
+      `entity_type='issue'`, update storage RLS. **Digabung PR-nya dengan T01** — dua-
+      duanya nyentuh pola polymorphic-entity yang sama, jangan direview terpisah
+- [ ] V2-P8-T03 — `activityService.ts` (repository→service→hook, pola sama seperti 15
+      modul lain): `addComment`/`editComment`/`softDeleteComment`/`logEvent`/
+      `listForEntity`, plus parsing `@username` mention → `notificationService.create()`
+- [ ] V2-P8-T04 — Universal Comment UI di 4 halaman detail (Issue/TestCase/TestPlan/
+      TestRun), masuk `detail-content-col` sesuai konvensi existing, realtime via
+      `useRealtimeSync.ts`
+- [ ] V2-P8-T05 — Activity Timeline UI (gabung comment + system event, bukan halaman
+      log terpisah) + wire producer status-change/assignment dari `issueService`/
+      `testRunService`
+- [ ] V2-P8-T06 — Notification extension: `type` baru (`comment`/`mention`/
+      `assignment`/`status_change`) ke `notificationService.create()` yang sudah ada
+      (TIDAK ada perubahan schema) + update icon/label di `NotificationPanel.tsx`
+- [ ] V2-P8-T07 — Attachment UI generalization ke Test Case + comment body (pakai
+      `entity_attachments` dari T02)
+- [ ] V2-P8-T08 — Bulk Action di tabel (mulai dari Issue list atau Test Case list) —
+      independen, bisa diselang-seling kapan saja setelah T01
+- [ ] V2-P8-T09 — Saved Filter / My Views (tabel baru `saved_filters`) — independen
+- [ ] V2-P8-T10 — Dashboard "My Work" + Activity Feed di `HomePage`
+- [ ] V2-P8-T11 — Audit Log admin-only (read-only view atas `entity_activity`, hampir
+      gratis setelah T01/T05 ada)
+
 Item lama (non-V2), tetap terbuka tapi bukan prioritas saat ini:
 
 - [ ] E03-T06 — Filter test case by priority/status di list
