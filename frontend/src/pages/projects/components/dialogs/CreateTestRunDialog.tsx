@@ -5,6 +5,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
 import { SelectButton } from 'primereact/selectbutton';
 import { Button } from 'primereact/button';
+import { FloatLabel } from 'primereact/floatlabel';
 import type { TestPlan, TestCaseWithDetails } from '../../../../types/domain';
 
 type CreateTestRunDialogProps = {
@@ -51,7 +52,7 @@ export function CreateTestRunDialog({
 
   return (
     <Dialog header="Create Test Run" visible={visible} onHide={onHide} style={{ width: '32rem' }}>
-      <div className="flex flex-column gap-3">
+      <div className="flex flex-column gap-2">
         <SelectButton
           value={mode}
           onChange={(e) => e.value && onModeChange(e.value)}
@@ -61,36 +62,40 @@ export function CreateTestRunDialog({
           ]}
         />
         <div className="flex flex-column gap-1">
-          <label htmlFor="run-name" className={error ? 'p-error' : ''}>Name</label>
-          <InputText id="run-name" ref={nameRef} value={name} onChange={(e) => onNameChange(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          <FloatLabel className="ifta-field">
+            <InputText id="run-name" ref={nameRef} value={name} onChange={(e) => onNameChange(e.target.value)} className={error ? 'p-invalid w-full' : 'w-full'} autoFocus />
+            <label htmlFor="run-name" className={error ? 'p-error' : ''}>Name</label>
+          </FloatLabel>
           {error && <small className="p-error">{error}</small>}
         </div>
         {mode === 'plan' ? (
-          <div className="flex flex-column gap-1">
-            <label htmlFor="run-plan">Test Plan</label>
-            <Dropdown
-              id="run-plan"
-              value={planId}
-              options={testPlans.map((p) => ({ label: `${p.code} — ${p.name}`, value: p.id }))}
-              onChange={(e) => onPlanIdChange(e.value)}
-              placeholder="Select test plan"
-              className="w-full"
-              filter
-            />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown
+                id="run-plan"
+                value={planId}
+                options={testPlans.map((p) => ({ label: `${p.code} — ${p.name}`, value: p.id }))}
+                onChange={(e) => onPlanIdChange(e.value)}
+                className="w-full"
+                filter
+              />
+              <label htmlFor="run-plan">Test Plan</label>
+            </FloatLabel>
           </div>
         ) : (
-          <div className="flex flex-column gap-1">
-            <label htmlFor="run-cases">Test Case</label>
-            <MultiSelect
-              id="run-cases"
-              value={caseIds}
-              options={testCases.filter((c) => c.status === 'active').map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
-              onChange={(e) => onCaseIdsChange(e.value)}
-              placeholder="Select test case"
-              filter
-              display="chip"
-              className="w-full"
-            />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <MultiSelect
+                id="run-cases"
+                value={caseIds}
+                options={testCases.filter((c) => c.status === 'active').map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
+                onChange={(e) => onCaseIdsChange(e.value)}
+                filter
+                display="chip"
+                className="w-full"
+              />
+              <label htmlFor="run-cases">Test Case</label>
+            </FloatLabel>
           </div>
         )}
         <Button label="Create" size="small" onClick={onCreate} />

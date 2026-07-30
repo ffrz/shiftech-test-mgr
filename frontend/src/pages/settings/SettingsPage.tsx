@@ -5,6 +5,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
+import { FloatLabel } from 'primereact/floatlabel';
 import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -101,22 +102,24 @@ export function SettingsPage() {
       <Card style={{ maxWidth: 500 }}>
         <PageHeader title="Settings" />
         <div className="card">
-          <div className="flex flex-column gap-3" style={{ maxWidth: '32rem' }}>
+          <div className="flex flex-column gap-2" style={{ maxWidth: '32rem' }}>
             <div className="flex flex-column gap-1">
-              <label htmlFor="username" className={error ? 'p-error' : ''}>
-                Username *
-                {profile.usernameChanged && (
-                  <span className="ml-2 text-xs text-color-secondary">(cannot be changed again)</span>
-                )}
-              </label>
-              <InputText
-                id="username"
-                ref={usernameRef}
-                value={username}
-                disabled={profile.usernameChanged}
-                onChange={(e) => { setUsername(e.target.value); }}
-                className={error ? 'p-invalid' : ''}
-              />
+              <FloatLabel className="ifta-field">
+                <InputText
+                  id="username"
+                  ref={usernameRef}
+                  value={username}
+                  disabled={profile.usernameChanged}
+                  onChange={(e) => { setUsername(e.target.value); }}
+                  className={error ? 'p-invalid w-full' : 'w-full'}
+                />
+                <label htmlFor="username" className={error ? 'p-error' : ''}>
+                  Username *
+                  {profile.usernameChanged && (
+                    <span className="ml-2 text-xs text-color-secondary">(cannot be changed again)</span>
+                  )}
+                </label>
+              </FloatLabel>
               <small className="text-color-secondary">
                 {profile.usernameChanged
                   ? 'Username can only be changed once.'
@@ -124,19 +127,25 @@ export function SettingsPage() {
               </small>
             </div>
 
-            <div className="flex flex-column gap-1">
-              <label htmlFor="displayName">Display Name</label>
-              <InputText id="displayName" value={displayName} onChange={(e) => { setDisplayName(e.target.value); }} />
+            <div className="flex flex-column">
+              <FloatLabel className="ifta-field">
+                <InputText id="displayName" value={displayName} onChange={(e) => { setDisplayName(e.target.value); }} className="w-full" />
+                <label htmlFor="displayName">Display Name</label>
+              </FloatLabel>
+            </div>
+
+            <div className="flex flex-column">
+              <FloatLabel className="ifta-field">
+                <InputText id="avatarUrl" value={avatarUrl} onChange={(e) => { setAvatarUrl(e.target.value); }} className="w-full" />
+                <label htmlFor="avatarUrl">Avatar URL (ex. https://example.com/avatar.jpg)</label>
+              </FloatLabel>
             </div>
 
             <div className="flex flex-column gap-1">
-              <label htmlFor="avatarUrl">Avatar URL</label>
-              <InputText id="avatarUrl" value={avatarUrl} onChange={(e) => { setAvatarUrl(e.target.value); }} placeholder="https://example.com/avatar.jpg" />
-            </div>
-
-            <div className="flex flex-column gap-1">
-              <label htmlFor="bio">Bio</label>
-              <InputTextarea id="bio" value={bio} onChange={(e) => { setBio(e.target.value); }} rows={1} autoResize maxLength={1000} />
+              <FloatLabel className="ifta-field">
+                <InputTextarea id="bio" value={bio} onChange={(e) => { setBio(e.target.value); }} rows={1} autoResize maxLength={1000} className="w-full" />
+                <label htmlFor="bio">Bio</label>
+              </FloatLabel>
               <CharacterCount value={bio} maxLength={1000} />
             </div>
 

@@ -3,6 +3,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Checkbox } from 'primereact/checkbox';
 import { Button } from 'primereact/button';
+import { FloatLabel } from 'primereact/floatlabel';
 import { testPlanService } from '../../../../services/testPlanService';
 import { testCaseService } from '../../../../services/testCaseService';
 import { issueService } from '../../../../services/issueService';
@@ -87,8 +88,10 @@ export function DuplicateProjectDialog({ source, onHide, onDuplicated }: Duplica
     <Dialog header="Duplicate Project" visible={!!source} onHide={onHide} style={{ width: '40rem' }}>
       <div className="flex flex-column gap-3">
         <div className="flex flex-column gap-1">
-          <label htmlFor="duplicate-project-name" className={error ? 'p-error' : ''}>New Project Name</label>
-          <InputText id="duplicate-project-name" ref={nameRef} value={name} onChange={(e) => setName(e.target.value)} className={error ? 'p-invalid' : ''} autoFocus />
+          <FloatLabel className="ifta-field">
+            <InputText id="duplicate-project-name" ref={nameRef} value={name} onChange={(e) => setName(e.target.value)} className={error ? 'p-invalid w-full' : 'w-full'} autoFocus />
+            <label htmlFor="duplicate-project-name" className={error ? 'p-error' : ''}>New Project Name</label>
+          </FloatLabel>
           {error && <small className="p-error">{error}</small>}
         </div>
 

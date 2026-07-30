@@ -8,13 +8,14 @@ interface UsernamePickerProps {
   onChange: (profile: Profile | null) => void;
   placeholder?: string;
   excludeIds?: string[];
+  id?: string;
 }
 
 // Reusable invite-by-username typeahead — searches profiles.username/display_name via
 // profileService.search as the user types, instead of loading every user up front.
 // Used by the project member invite flow; reusable anywhere else a user needs to be
 // looked up by public identity (see docs/ROADMAP_V2.md V2-P6-T03).
-export function UsernamePicker({ value, onChange, placeholder, excludeIds }: UsernamePickerProps) {
+export function UsernamePicker({ value, onChange, placeholder, excludeIds, id }: UsernamePickerProps) {
   // AutoComplete's `value` prop doubles as the raw text input value while the user is
   // typing (a string) and the selected item once one is picked (a Profile). Controlling
   // it directly from the parent's `value: Profile | null` breaks mid-keystroke: every
@@ -44,6 +45,7 @@ export function UsernamePicker({ value, onChange, placeholder, excludeIds }: Use
 
   return (
     <AutoComplete
+      inputId={id}
       value={inputValue}
       suggestions={suggestions}
       completeMethod={search}
@@ -59,7 +61,7 @@ export function UsernamePicker({ value, onChange, placeholder, excludeIds }: Use
         if (typeof e.value !== 'string') onChange(e.value);
         else if (e.value === '') onChange(null);
       }}
-      placeholder={placeholder ?? 'Search by username...'}
+      placeholder={placeholder}
       className="w-full"
       inputClassName="w-full"
       dropdown={false}

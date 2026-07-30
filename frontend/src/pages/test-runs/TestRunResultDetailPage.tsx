@@ -9,6 +9,7 @@ import { ProgressBar } from 'primereact/progressbar';
 import { Dropdown } from 'primereact/dropdown';
 import { Dialog } from 'primereact/dialog';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { FloatLabel } from 'primereact/floatlabel';
 import { AutoComplete, type AutoCompleteCompleteEvent } from 'primereact/autocomplete';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import SearchInput from '../../components/ui/SearchInput';
@@ -661,33 +662,37 @@ export function TestRunResultDetailPage() {
                   <Card title="Execution Result" className="mb-3">
                     <div className="flex flex-column gap-3">
                       <div className="grid">
-                        <div className="col-12 md:col-6 flex flex-column gap-1">
-                          <label htmlFor="result-status">Status</label>
-                          <Dropdown
-                            id="result-status"
-                            value={resultStatus}
-                            options={RESULT_OPTIONS}
-                            onChange={(e) => {
-                              setResultStatus(e.value);
-                              saveResult({ status: e.value });
-                            }}
-                            className="w-full"
-                            disabled={isCompleted}
-                          />
+                        <div className="col-12 md:col-6 flex flex-column">
+                          <FloatLabel className="ifta-field">
+                            <Dropdown
+                              id="result-status"
+                              value={resultStatus}
+                              options={RESULT_OPTIONS}
+                              onChange={(e) => {
+                                setResultStatus(e.value);
+                                saveResult({ status: e.value });
+                              }}
+                              className="w-full"
+                              disabled={isCompleted}
+                            />
+                            <label htmlFor="result-status">Status</label>
+                          </FloatLabel>
                         </div>
-                        <div className="col-12 md:col-6 flex flex-column gap-1">
-                          <label htmlFor="result-tester">Tester</label>
-                          <Dropdown
-                            id="result-tester"
-                            value={resultTesterId}
-                            options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
-                            onChange={(e) => {
-                              setResultTesterId(e.value);
-                              saveResult({ testerId: e.value });
-                            }}
-                            className="w-full"
-                            disabled={isCompleted}
-                          />
+                        <div className="col-12 md:col-6 flex flex-column">
+                          <FloatLabel className="ifta-field">
+                            <Dropdown
+                              id="result-tester"
+                              value={resultTesterId}
+                              options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                              onChange={(e) => {
+                                setResultTesterId(e.value);
+                                saveResult({ testerId: e.value });
+                              }}
+                              className="w-full"
+                              disabled={isCompleted}
+                            />
+                            <label htmlFor="result-tester">Tester</label>
+                          </FloatLabel>
                         </div>
                       </div>
 
@@ -908,8 +913,11 @@ export function TestRunResultDetailPage() {
 
       {/* --- Notes Dialog: execution result notes, autosaved on save --- */}
       <Dialog header="Add notes" visible={notesDialogOpen} onHide={() => setNotesDialogOpen(false)} style={{ width: '28rem' }}>
-        <div className="flex flex-column gap-3">
-          <InputTextarea value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} rows={5} autoFocus />
+        <div className="flex flex-column gap-2">
+          <FloatLabel className="ifta-field">
+            <InputTextarea id="result-notes" value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} rows={5} autoFocus className="w-full" />
+            <label htmlFor="result-notes">Notes</label>
+          </FloatLabel>
           <div className="flex gap-2">
             <Button label="Save" size="small" onClick={handleSaveNotes} />
             {resultNotes && (
@@ -921,20 +929,22 @@ export function TestRunResultDetailPage() {
 
       {/* --- Complete Run Dialog --- */}
       <Dialog header="Complete Test Run" visible={completeDialogOpen} onHide={() => setCompleteDialogOpen(false)} style={{ width: '28rem' }}>
-        <div className="flex flex-column gap-3">
+        <div className="flex flex-column gap-2">
           <p className="m-0 text-sm text-color-secondary">
             This test run will be marked as completed. You can reopen it at any time.
           </p>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="complete-notes">Notes (optional)</label>
-            <InputTextarea
-              id="complete-notes"
-              value={completeNotes}
-              onChange={(e) => setCompleteNotes(e.target.value)}
-              rows={3}
-              placeholder="E.g. blockers, environment notes, follow-ups..."
-              autoFocus
-            />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputTextarea
+                id="complete-notes"
+                value={completeNotes}
+                onChange={(e) => setCompleteNotes(e.target.value)}
+                rows={3}
+                autoFocus
+                className="w-full"
+              />
+              <label htmlFor="complete-notes">Notes (optional, ex. blockers, environment notes, follow-ups)</label>
+            </FloatLabel>
           </div>
           <Button label="Complete" icon="pi pi-check" size="small" onClick={handleCompleteRun} />
         </div>
@@ -942,26 +952,33 @@ export function TestRunResultDetailPage() {
 
       {/* --- Filter Dialog --- */}
       <Dialog header="Filter Test Cases" visible={filterDialogOpen} onHide={() => setFilterDialogOpen(false)} style={{ width: '28rem' }}>
-        <div className="flex flex-column gap-3">
-          <div className="flex flex-column gap-1">
-            <label className="text-sm">Search</label>
-            <SearchInput value={search} onChange={(v) => { setSearch(v); }} placeholder="Search title/code..." />
+        <div className="flex flex-column gap-2">
+          <div className="flex flex-column">
+            <SearchInput id="filter-search" floating label="Search title/code" value={search} onChange={(v) => { setSearch(v); }} />
           </div>
-          <div className="flex flex-column gap-1">
-            <label className="text-sm">Status</label>
-            <Dropdown value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(e) => setStatusFilter(e.value)} placeholder="All Statuses" showClear className="w-full" />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown id="filter-status" value={statusFilter} options={STATUS_FILTER_OPTIONS} onChange={(e) => setStatusFilter(e.value)} showClear className="w-full" />
+              <label htmlFor="filter-status">Status</label>
+            </FloatLabel>
           </div>
-          <div className="flex flex-column gap-1">
-            <label className="text-sm">Priority</label>
-            <Dropdown value={priorityFilter} options={PRIORITY_FILTER_OPTIONS} onChange={(e) => setPriorityFilter(e.value)} placeholder="All Priorities" showClear className="w-full" />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown id="filter-priority" value={priorityFilter} options={PRIORITY_FILTER_OPTIONS} onChange={(e) => setPriorityFilter(e.value)} showClear className="w-full" />
+              <label htmlFor="filter-priority">Priority</label>
+            </FloatLabel>
           </div>
-          <div className="flex flex-column gap-1">
-            <label className="text-sm">Module</label>
-            <Dropdown value={moduleFilter} options={moduleOptions} onChange={(e) => setModuleFilter(e.value)} placeholder="All Modules" showClear className="w-full" />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown id="filter-module" value={moduleFilter} options={moduleOptions} onChange={(e) => setModuleFilter(e.value)} showClear className="w-full" virtualScrollerOptions={{ itemSize: 40 }} />
+              <label htmlFor="filter-module">Module</label>
+            </FloatLabel>
           </div>
-          <div className="flex flex-column gap-1">
-            <label className="text-sm">Tag</label>
-            <Dropdown value={tagFilter} options={tagOptions} onChange={(e) => setTagFilter(e.value)} placeholder="All Tags" showClear className="w-full" />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown id="filter-tag" value={tagFilter} options={tagOptions} onChange={(e) => setTagFilter(e.value)} showClear className="w-full" virtualScrollerOptions={{ itemSize: 40 }} />
+              <label htmlFor="filter-tag">Tag</label>
+            </FloatLabel>
           </div>
           {isFilterActive && (
             <Button label="Clear Filters" icon="pi pi-filter-slash" size="small" outlined severity="secondary"

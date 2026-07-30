@@ -11,6 +11,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
+import { FloatLabel } from 'primereact/floatlabel';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
@@ -378,88 +379,108 @@ export function TestCaseDetailPage() {
 
       {/* --- Edit Dialog --- */}
       <Dialog header="Edit Test Case" visible={editDialogOpen} onHide={() => setEditDialogOpen(false)} style={{ width: '40rem' }}>
-        <div className="flex flex-column gap-3">
-          <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-code">Code</label>
-            <InputText id="edit-case-code" value={editCode} onChange={(e) => setEditCode(e.target.value)} className="w-10rem" />
+        <div className="flex flex-column gap-2">
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText id="edit-case-code" value={editCode} onChange={(e) => setEditCode(e.target.value)} className="w-14rem" />
+              <label htmlFor="edit-case-code">Code</label>
+            </FloatLabel>
           </div>
 
           <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="edit-case-module">Module</label>
+            <div className="col-12 md:col-6 flex flex-column">
               <div className="flex align-items-center gap-1">
-                <Dropdown
-                  id="edit-case-module"
-                  value={editModuleId}
-                  options={moduleOptions}
-                  onChange={(e) => setEditModuleId(e.value)}
-                  showClear
-                  placeholder="Select module"
-                  className="w-full"
-                />
+                <FloatLabel className="ifta-field flex-grow-1">
+                  <Dropdown
+                    id="edit-case-module"
+                    value={editModuleId}
+                    options={moduleOptions}
+                    onChange={(e) => setEditModuleId(e.value)}
+                    showClear
+                    className="w-full"
+                    virtualScrollerOptions={{ itemSize: 40 }}
+                  />
+                  <label htmlFor="edit-case-module">Module</label>
+                </FloatLabel>
                 <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="New Module" onClick={openCreateModuleDialog} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
               </div>
             </div>
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="edit-case-priority">Priority</label>
-              <Dropdown
-                id="edit-case-priority"
-                value={editPriority}
-                options={PRIORITY_OPTIONS}
-                onChange={(e) => setEditPriority(e.value)}
-                className="w-full"
-              />
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <Dropdown
+                  id="edit-case-priority"
+                  value={editPriority}
+                  options={PRIORITY_OPTIONS}
+                  onChange={(e) => setEditPriority(e.value)}
+                  className="w-full"
+                />
+                <label htmlFor="edit-case-priority">Priority</label>
+              </FloatLabel>
             </div>
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-title" className={editError ? 'p-error' : ''}>Title</label>
-            <InputText id="edit-case-title" ref={editTitleRef} value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className={editError ? 'p-invalid' : ''} autoFocus />
+            <FloatLabel className="ifta-field">
+              <InputText id="edit-case-title" ref={editTitleRef} value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className={editError ? 'p-invalid w-full' : 'w-full'} autoFocus />
+              <label htmlFor="edit-case-title" className={editError ? 'p-error' : ''}>Title</label>
+            </FloatLabel>
+          </div>
+
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText id="edit-case-objective" value={editObjective} onChange={(e) => setEditObjective(e.target.value)} className="w-full" />
+              <label htmlFor="edit-case-objective">Objective (optional)</label>
+            </FloatLabel>
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-objective">Objective (optional)</label>
-            <InputText id="edit-case-objective" value={editObjective} onChange={(e) => setEditObjective(e.target.value)} />
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-preconditions">Preconditions</label>
-            <InputTextarea id="edit-case-preconditions" value={editPreconditions} onChange={(e) => setEditPreconditions(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <FloatLabel className="ifta-field">
+              <InputTextarea id="edit-case-preconditions" value={editPreconditions} onChange={(e) => setEditPreconditions(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+              <label htmlFor="edit-case-preconditions">Preconditions</label>
+            </FloatLabel>
             <CharacterCount value={editPreconditions} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-steps">Test Steps</label>
-            <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <FloatLabel className="ifta-field">
+              <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+              <label htmlFor="edit-case-steps">Test Steps</label>
+            </FloatLabel>
             <CharacterCount value={editSteps} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-expected">Expected Result</label>
-            <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <FloatLabel className="ifta-field">
+              <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+              <label htmlFor="edit-case-expected">Expected Result</label>
+            </FloatLabel>
             <CharacterCount value={editExpectedResult} maxLength={1000} />
           </div>
 
-          <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-tags">Tags</label>
+          <div className="flex flex-column">
             <div className="flex align-items-center gap-1">
-              <MultiSelect
-                id="edit-case-tags"
-                value={editTags}
-                options={tags.map((t) => ({ label: t.name, value: t.name }))}
-                onChange={(e) => setEditTags(e.value ?? [])}
-                placeholder="Select tags"
-                display="chip"
-                filter
-                className="w-full"
-              />
+              <FloatLabel className="ifta-field flex-grow-1">
+                <MultiSelect
+                  id="edit-case-tags"
+                  value={editTags}
+                  options={tags.map((t) => ({ label: t.name, value: t.name }))}
+                  onChange={(e) => setEditTags(e.value ?? [])}
+                  display="chip"
+                  filter
+                  className="w-full"
+                  virtualScrollerOptions={{ itemSize: 40 }}
+                />
+                <label htmlFor="edit-case-tags">Tags</label>
+              </FloatLabel>
               <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="New Tag" onClick={openCreateTagDialog} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
             </div>
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="edit-case-notes">Notes (optional)</label>
-            <InputTextarea id="edit-case-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <FloatLabel className="ifta-field">
+              <InputTextarea id="edit-case-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+              <label htmlFor="edit-case-notes">Notes (optional)</label>
+            </FloatLabel>
             <CharacterCount value={editNotes} maxLength={1000} />
           </div>
 
@@ -476,24 +497,28 @@ export function TestCaseDetailPage() {
         onShow={() => moduleNameRef.current?.focus()}
         style={{ width: '25rem' }}
       >
-        <div className="flex flex-column gap-3">
+        <div className="flex flex-column gap-2">
           {moduleError && <small className="p-error">{moduleError}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="module-code">Code</label>
-            <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} placeholder="Automatic if left empty" />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} className="w-full" />
+              <label htmlFor="module-code">Code (automatic if empty)</label>
+            </FloatLabel>
           </div>
-          <div className="flex flex-column gap-1">
-            <label htmlFor="module-name">Module Name</label>
-            <InputText
-              id="module-name"
-              ref={moduleNameRef}
-              value={moduleName}
-              onChange={(e) => setModuleName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSaveModule();
-              }}
-              placeholder="e.g. Authentication, Dashboard, Purchasing"
-            />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText
+                id="module-name"
+                ref={moduleNameRef}
+                value={moduleName}
+                onChange={(e) => setModuleName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveModule();
+                }}
+                className="w-full"
+              />
+              <label htmlFor="module-name">Module Name (ex. Authentication, Dashboard)</label>
+            </FloatLabel>
           </div>
           <Button label="Save" size="small" onClick={handleSaveModule} />
         </div>
@@ -507,20 +532,22 @@ export function TestCaseDetailPage() {
         onShow={() => tagNameRef.current?.focus()}
         style={{ width: '25rem' }}
       >
-        <div className="flex flex-column gap-3">
+        <div className="flex flex-column gap-2">
           {tagError && <small className="p-error">{tagError}</small>}
-          <div className="flex flex-column gap-1">
-            <label htmlFor="tag-name">Tag Name</label>
-            <InputText
-              id="tag-name"
-              ref={tagNameRef}
-              value={newTagName}
-              onChange={(e) => setNewTagName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSaveTag();
-              }}
-              placeholder="e.g. Regression, Smoke, UI"
-            />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText
+                id="tag-name"
+                ref={tagNameRef}
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveTag();
+                }}
+                className="w-full"
+              />
+              <label htmlFor="tag-name">Tag Name (ex. Regression, Smoke, UI)</label>
+            </FloatLabel>
           </div>
           <Button label="Save" size="small" onClick={handleSaveTag} />
         </div>

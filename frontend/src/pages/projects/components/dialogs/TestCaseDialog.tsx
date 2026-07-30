@@ -138,6 +138,7 @@ export function TestCaseDialog({
                   editable
                   showClear
                   className="w-full"
+                  virtualScrollerOptions={{ itemSize: 40 }}
                 />
                 <label htmlFor="case-module">Module</label>
               </FloatLabel>
@@ -285,6 +286,7 @@ export function TestCaseDialog({
                 display="chip"
                 filter
                 className="w-full"
+                virtualScrollerOptions={{ itemSize: 40 }}
               />
               <label htmlFor="case-tags">Tag</label>
             </FloatLabel>

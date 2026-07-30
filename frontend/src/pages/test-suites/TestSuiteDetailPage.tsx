@@ -12,6 +12,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { SelectButton } from 'primereact/selectbutton';
+import { FloatLabel } from 'primereact/floatlabel';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
@@ -605,37 +606,47 @@ export function TestSuiteDetailPage() {
         onHide={() => setItemDialogOpen(false)}
         style={{ width: '40rem' }}
       >
-        <div className="flex flex-column gap-3">
+        <div className="flex flex-column gap-2">
           <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="item-module">Module (optional)</label>
-              <InputText id="item-module" value={itemModuleName} onChange={(e) => setItemModuleName(e.target.value)} placeholder="e.g. Auth, Checkout" />
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <InputText id="item-module" value={itemModuleName} onChange={(e) => setItemModuleName(e.target.value)} className="w-full" />
+                <label htmlFor="item-module">Module (optional, ex. Auth, Checkout)</label>
+              </FloatLabel>
             </div>
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="item-priority">Priority</label>
-              <Dropdown id="item-priority" value={itemPriority} options={PRIORITY_OPTIONS} onChange={(e) => setItemPriority(e.value)} className="w-full" />
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <Dropdown id="item-priority" value={itemPriority} options={PRIORITY_OPTIONS} onChange={(e) => setItemPriority(e.value)} className="w-full" />
+                <label htmlFor="item-priority">Priority</label>
+              </FloatLabel>
             </div>
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="item-title" className={itemErrors.title ? 'p-error' : ''}>Title</label>
-            <InputText id="item-title" ref={itemTitleRef} value={itemTitle} onChange={(e) => { setItemTitle(e.target.value); setItemErrors({}); }} className={itemErrors.title ? 'p-invalid' : ''} autoFocus />
+            <FloatLabel className="ifta-field">
+              <InputText id="item-title" ref={itemTitleRef} value={itemTitle} onChange={(e) => { setItemTitle(e.target.value); setItemErrors({}); }} className={itemErrors.title ? 'p-invalid w-full' : 'w-full'} autoFocus />
+              <label htmlFor="item-title" className={itemErrors.title ? 'p-error' : ''}>Title</label>
+            </FloatLabel>
             {itemErrors.title && <small className="p-error">{itemErrors.title}</small>}
           </div>
 
-          <div className="flex flex-column gap-1">
-            <label htmlFor="item-objective">Objective (optional)</label>
-            <InputText id="item-objective" value={itemObjective} onChange={(e) => setItemObjective(e.target.value)} />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText id="item-objective" value={itemObjective} onChange={(e) => setItemObjective(e.target.value)} className="w-full" />
+              <label htmlFor="item-objective">Objective (optional)</label>
+            </FloatLabel>
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="item-preconditions">Prerequisites</label>
-            <InputTextarea id="item-preconditions" value={itemPreconditions} onChange={(e) => setItemPreconditions(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <FloatLabel className="ifta-field">
+              <InputTextarea id="item-preconditions" value={itemPreconditions} onChange={(e) => setItemPreconditions(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+              <label htmlFor="item-preconditions">Prerequisites</label>
+            </FloatLabel>
             <CharacterCount value={itemPreconditions} maxLength={1000} />
           </div>
 
-          <div className="flex flex-column gap-1">
-            <label>Step Mode</label>
+          <div className="flex flex-column">
+            <label className="text-sm text-color-secondary mb-1">Step Mode</label>
             <SelectButton
               value={itemStepType}
               options={[
@@ -649,14 +660,18 @@ export function TestSuiteDetailPage() {
           {itemStepType === 'simple' ? (
             <>
               <div className="flex flex-column gap-1">
-                <label htmlFor="item-steps" className={itemErrors.steps ? 'p-error' : ''}>Test Steps</label>
-                <InputTextarea id="item-steps" ref={itemStepsRef} value={itemSteps} onChange={(e) => { setItemSteps(e.target.value); setItemErrors({}); }} rows={1} autoResize maxLength={1000} className={itemErrors.steps ? 'p-invalid' : ''} />
+                <FloatLabel className="ifta-field">
+                  <InputTextarea id="item-steps" ref={itemStepsRef} value={itemSteps} onChange={(e) => { setItemSteps(e.target.value); setItemErrors({}); }} rows={1} autoResize maxLength={1000} className={itemErrors.steps ? 'p-invalid w-full' : 'w-full'} />
+                  <label htmlFor="item-steps" className={itemErrors.steps ? 'p-error' : ''}>Test Steps</label>
+                </FloatLabel>
                 <CharacterCount value={itemSteps} maxLength={1000} />
                 {itemErrors.steps && <small className="p-error">{itemErrors.steps}</small>}
               </div>
               <div className="flex flex-column gap-1">
-                <label htmlFor="item-expected" className={itemErrors.expectedResult ? 'p-error' : ''}>Expected Result</label>
-                <InputTextarea id="item-expected" ref={itemExpectedRef} value={itemExpectedResult} onChange={(e) => { setItemExpectedResult(e.target.value); setItemErrors({}); }} rows={1} autoResize maxLength={1000} className={itemErrors.expectedResult ? 'p-invalid' : ''} />
+                <FloatLabel className="ifta-field">
+                  <InputTextarea id="item-expected" ref={itemExpectedRef} value={itemExpectedResult} onChange={(e) => { setItemExpectedResult(e.target.value); setItemErrors({}); }} rows={1} autoResize maxLength={1000} className={itemErrors.expectedResult ? 'p-invalid w-full' : 'w-full'} />
+                  <label htmlFor="item-expected" className={itemErrors.expectedResult ? 'p-error' : ''}>Expected Result</label>
+                </FloatLabel>
                 <CharacterCount value={itemExpectedResult} maxLength={1000} />
                 {itemErrors.expectedResult && <small className="p-error">{itemErrors.expectedResult}</small>}
               </div>
@@ -692,14 +707,18 @@ export function TestSuiteDetailPage() {
             </div>
           )}
 
-          <div className="flex flex-column gap-1">
-            <label htmlFor="item-role">Role Target (optional)</label>
-            <InputText id="item-role" value={itemTargetRole} onChange={(e) => setItemTargetRole(e.target.value)} placeholder="e.g. Admin, Manager, Member" />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText id="item-role" value={itemTargetRole} onChange={(e) => setItemTargetRole(e.target.value)} className="w-full" />
+              <label htmlFor="item-role">Role Target (optional, ex. Admin, Manager, Member)</label>
+            </FloatLabel>
           </div>
 
-          <div className="flex flex-column gap-1">
-            <label htmlFor="item-tags">Tags (separate with comma)</label>
-            <InputText id="item-tags" value={itemTagNames} onChange={(e) => setItemTagNames(e.target.value)} placeholder="e.g. Regression, Smoke" />
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText id="item-tags" value={itemTagNames} onChange={(e) => setItemTagNames(e.target.value)} className="w-full" />
+              <label htmlFor="item-tags">Tags (comma-separated, ex. Regression, Smoke)</label>
+            </FloatLabel>
           </div>
 
           <Button label="Save" size="small" onClick={handleSaveItem} />

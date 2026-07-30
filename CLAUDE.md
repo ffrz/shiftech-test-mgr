@@ -87,6 +87,28 @@ Setiap halaman **list** WAJIB memakai `<PageHeader title="..." actions={...} />`
 
 Halaman **detail** (judul = nama entity, di dalam `Card`) tidak pakai `PageHeader` — ikuti pola `ProjectDetailPage`/`UserDetailPage`: `<h2 className="m-0">` di dalam wrapper flex sendiri di header Card.
 
+### Konvensi Form Field — Floating Label (`ifta-field`)
+
+Field form di dialog create/edit (bukan search box/table filter/toolbar) memakai pola floating label ala Quasar/Material — label duduk di dalam field lalu naik ke atas saat fokus/terisi, value pindah ke baris bawah. Bukan `IftaLabel` bawaan PrimeReact (baru ada di v11 yang belum dipakai project ini — lihat §UI Library), tapi custom class `.ifta-field` (di `frontend/src/index.css`) yang dipasangkan ke `FloatLabel` dari `primereact/floatlabel`:
+
+```tsx
+<FloatLabel className="ifta-field">
+  <InputText id="case-title" value={title} onChange={...} className="w-full" />
+  <label htmlFor="case-title">Title</label>
+</FloatLabel>
+```
+
+Aturan pemakaian:
+- **Urutan wajib:** input/Dropdown/MultiSelect/InputTextarea dulu, baru `<label>` — syarat animasi float PrimeReact.
+- **`className="w-full"`** di elemen input (bukan di `FloatLabel`) supaya lebar mengisi container; `FloatLabel` sendiri cukup `className="ifta-field"` (tambah `flex-grow-1` kalau field itu berdampingan dengan tombol "+", lihat pola Module/Tag/Target Role di `TestCaseDialog.tsx`).
+- **Tidak pakai `placeholder`** — teksnya digabung ke `<label>`, mis. `<label>Code (automatic if empty)</label>` menggantikan `placeholder="Automatic if left empty"`.
+- **`.ifta-field` scoped, bukan global** — sengaja TIDAK mengubah aturan compact `.p-inputtext`/`.p-dropdown-label` di bagian atas `index.css` yang dipakai `SearchInput`/table filter/toolbar (lihat komentar di `index.css`). Jangan pasang `ifta-field` di search box atau filter kolom tabel.
+- **Field tanpa hint/error/counter di bawahnya** — wrapper div-nya TIDAK perlu `gap-1` (biar mepet ke field berikutnya, meniru `hide-bottom-space` Quasar); field yang ada `CharacterCount`/`<small className="p-error">` di bawahnya tetap pakai `gap-1`. Parent container pakai `gap-2` (bukan `gap-3`/`gap-4`).
+- **SelectButton, custom typeahead (`UsernamePicker`), dan repeater field** (mis. Detailed Steps di `TestCaseDialog.tsx`, External Links di `IssueEditor.tsx`) TIDAK pakai floating label — labelnya tetap statis di atas, karena bukan pola input tunggal yang cocok.
+- **MultiSelect dengan `display="chip"`** butuh CSS tambahan (`.ifta-field .p-multiselect-label-container { overflow: visible }`, dst di `index.css`) supaya chip yang wrap ke baris kedua tidak terpotong — sudah di-handle di class `.ifta-field`, tidak perlu diulang per komponen.
+
+Sudah diterapkan di semua dialog create/edit form utama: `TestSuiteDialog`, `TestCaseDialog`, `TestRoleDialog`, `ModuleDialog`, `TagDialog`, `QuickAddDialog`, `DuplicateProjectDialog`, `TestPlanDialog`, `CreateProjectDialog`, `InviteMemberDialog`, `DuplicateTestPlanDialog`, `StartTestRunDialog`, `AddCaseToPlanDialog`, `ImportTemplateDialog`, `CreateTestRunDialog`, `IssueEditor`, item-dialog di `TestSuiteDetailPage`, edit-dialog + quick-add di `TestCaseDetailPage`, dan form profile di `SettingsPage`. Modul form baru mengikuti pola yang sama — JANGAN kembali ke label statis polos di atas input untuk dialog form baru.
+
 ### Kenapa tidak ada Controller/API layer?
 
 Ini bukan server-driven app (beda dengan pola Laravel+Inertia di [amanah-pos](../amanah-pos)). Karena storage-nya BaaS (Supabase) dan aplikasi ini SPA murni, "controller" digantikan oleh kombinasi Hook (React lifecycle) + Service (business logic) — tidak perlu Next.js API routes atau SSR karena tidak ada kebutuhan SEO/first-paint server-side untuk aplikasi internal seperti ini.

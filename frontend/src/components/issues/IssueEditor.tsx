@@ -6,6 +6,7 @@ import { CharacterCount } from '../ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
+import { FloatLabel } from 'primereact/floatlabel';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
 import type { Attachment, ExternalLink, IssuePriority, IssueType, Module, Tag } from '../../types/domain';
@@ -198,35 +199,44 @@ export function IssueEditor({
         onHide={onHide}
         style={{ width: '36rem' }}
       >
-        <div className="flex flex-column gap-3">
+        <div className="flex flex-column gap-2">
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-title" className={titleError ? 'p-error' : ''}>Title *</label>
-            <InputText id="issue-title" ref={titleRef} value={title} onChange={(e) => { setTitle(e.target.value); setTitleError(null); }} className={titleError ? 'p-invalid' : ''} autoFocus />
+            <FloatLabel className="ifta-field">
+              <InputText id="issue-title" ref={titleRef} value={title} onChange={(e) => { setTitle(e.target.value); setTitleError(null); }} className={titleError ? 'p-invalid w-full' : 'w-full'} autoFocus />
+              <label htmlFor="issue-title" className={titleError ? 'p-error' : ''}>Title *</label>
+            </FloatLabel>
             {titleError && <small className="p-error">{titleError}</small>}
           </div>
 
           <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-type">Type</label>
-              <Dropdown id="issue-type" value={type} options={TYPE_OPTIONS} onChange={(e) => setType(e.value)} className="w-full" />
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <Dropdown id="issue-type" value={type} options={TYPE_OPTIONS} onChange={(e) => setType(e.value)} className="w-full" />
+                <label htmlFor="issue-type">Type</label>
+              </FloatLabel>
             </div>
-            <div className="col-12 md:col-6 flex flex-column gap-1">
-              <label htmlFor="issue-priority">Priority</label>
-              <Dropdown id="issue-priority" value={priority} options={PRIORITY_OPTIONS} onChange={(e) => setPriority(e.value)} className="w-full" />
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <Dropdown id="issue-priority" value={priority} options={PRIORITY_OPTIONS} onChange={(e) => setPriority(e.value)} className="w-full" />
+                <label htmlFor="issue-priority">Priority</label>
+              </FloatLabel>
             </div>
           </div>
 
-          <div className="flex flex-column gap-1">
-            <label>Module</label>
+          <div className="flex flex-column">
             <div className="flex gap-2  align-items-center">
-              <Dropdown
-                value={moduleId}
-                options={modules.map((m) => ({ label: m.name, value: m.id }))}
-                onChange={(e) => setModuleId(e.value)}
-                showClear
-                placeholder="Not tied to a module"
-                className="w-full"
-              />
+              <FloatLabel className="ifta-field flex-grow-1">
+                <Dropdown
+                  id="issue-module"
+                  value={moduleId}
+                  options={modules.map((m) => ({ label: m.name, value: m.id }))}
+                  onChange={(e) => setModuleId(e.value)}
+                  showClear
+                  className="w-full"
+                  virtualScrollerOptions={{ itemSize: 40 }}
+                />
+                <label htmlFor="issue-module">Module (optional)</label>
+              </FloatLabel>
               <Button icon="pi pi-plus" size="small" className="btn-xs" rounded text onClick={() => setQuickAddModuleVisible(true)} tooltip="Add Module" />
             </div>
             {quickAddModuleVisible && (
@@ -245,18 +255,21 @@ export function IssueEditor({
             )}
           </div>
 
-          <div className="flex flex-column gap-1">
-            <label>Tags</label>
+          <div className="flex flex-column">
             <div className="flex gap-2 align-items-center">
-              <MultiSelect
-                value={tagNames}
-                options={tags.map((t) => ({ label: t.name, value: t.name }))}
-                onChange={(e) => setTagNames(e.value ?? [])}
-                placeholder="Select tags"
-                display="chip"
-                filter
-                className="w-full"
-              />
+              <FloatLabel className="ifta-field flex-grow-1">
+                <MultiSelect
+                  id="issue-tags"
+                  value={tagNames}
+                  options={tags.map((t) => ({ label: t.name, value: t.name }))}
+                  onChange={(e) => setTagNames(e.value ?? [])}
+                  display="chip"
+                  filter
+                  className="w-full"
+                  virtualScrollerOptions={{ itemSize: 40 }}
+                />
+                <label htmlFor="issue-tags">Tags</label>
+              </FloatLabel>
               <Button icon="pi pi-plus" size="small" className="btn-xs" rounded text onClick={() => setQuickAddTagVisible(true)} tooltip="Add Tag" />
             </div>
             {quickAddTagVisible && (
@@ -276,20 +289,26 @@ export function IssueEditor({
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-description">Description</label>
-            <InputTextarea id="issue-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <FloatLabel className="ifta-field">
+              <InputTextarea id="issue-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+              <label htmlFor="issue-description">Description</label>
+            </FloatLabel>
             <CharacterCount value={description} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-actual">Actual Result</label>
-            <InputTextarea id="issue-actual" value={actualResult} onChange={(e) => setActualResult(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <FloatLabel className="ifta-field">
+              <InputTextarea id="issue-actual" value={actualResult} onChange={(e) => setActualResult(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+              <label htmlFor="issue-actual">Actual Result</label>
+            </FloatLabel>
             <CharacterCount value={actualResult} maxLength={1000} />
           </div>
 
           <div className="flex flex-column gap-1">
-            <label htmlFor="issue-expected">Expected Result</label>
-            <InputTextarea id="issue-expected" value={expectedResult} onChange={(e) => setExpectedResult(e.target.value)} rows={1} autoResize maxLength={1000} />
+            <FloatLabel className="ifta-field">
+              <InputTextarea id="issue-expected" value={expectedResult} onChange={(e) => setExpectedResult(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
+              <label htmlFor="issue-expected">Expected Result</label>
+            </FloatLabel>
             <CharacterCount value={expectedResult} maxLength={1000} />
           </div>
 
