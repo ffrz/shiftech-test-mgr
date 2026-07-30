@@ -40,7 +40,6 @@ export function UserManagementPage() {
   const menuRef = useRef<Menu>(null);
   const [menuRow, setMenuRow] = useState<EnrichedUser | null>(null);
 
-  const [filterVisible, setFilterVisible] = useState(true);
   const [search, setSearch] = useStoredState('usersPage:search', '');
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -158,21 +157,9 @@ export function UserManagementPage() {
 
       <PageHeader
         title="Users"
-        actions={
-          <Button
-            icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
-            text
-            rounded
-            size="small"
-            severity={filterVisible ? "warning" : "secondary"}
-            onClick={() => setFilterVisible(!filterVisible)}
-            tooltip={filterVisible ? "Hide filters" : "Show filters"}
-            tooltipOptions={{ position: 'bottom' }}
-          />
-        }
+        actions={null}
       />
-      {filterVisible && (
-        <div className="grid mb-3 p-1">
+      <div className="grid mb-3 p-1">
           <div className="col-12 md:col-2 p-1">
             <MultiSelect
               value={roleFilter}
@@ -204,7 +191,6 @@ export function UserManagementPage() {
             </div>
           </div>
         </div>
-      )}
       <DataTable
         value={users}
         loading={loading}
