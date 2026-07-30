@@ -8,6 +8,8 @@ import { InputText } from 'primereact/inputtext';
 import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
+import { Dialog } from 'primereact/dialog';
+import { FloatLabel } from 'primereact/floatlabel';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { confirmDialog } from 'primereact/confirmdialog';
@@ -16,6 +18,7 @@ import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import type { IssueWithDetails, IssueStatus, IssuePriority, IssueType, ProjectMemberWithProfile } from '../../../../types/domain';
 import { issueService } from '../../../../services/issueService';
+import { useAuthContext } from '../../../../hooks/useAuth';
 
 const UNDO_TIMEOUT_MS = 9000;
 type EditableField = 'status' | 'assignedTo' | 'title' | 'type' | 'priority' | 'moduleId';
@@ -68,6 +71,7 @@ type IssueTabProps = {
   onEdit: (row: IssueWithDetails) => void;
   onDuplicate: (row: IssueWithDetails) => void;
   onBulkDelete: () => void;
+  onBulkEdit: (changes: { status?: IssueStatus; assignedTo?: string | null }) => void;
   onRowClick: (row: IssueWithDetails) => void;
   onPatchIssue: (_issueId: string, _changes: Partial<IssueWithDetails>) => void;
   onReload: () => Promise<void>;
@@ -111,6 +115,7 @@ export function IssueTab({
   onEdit,
   onDuplicate,
   onBulkDelete,
+  onBulkEdit,
   onRowClick,
   onPatchIssue,
   onReload,
@@ -122,12 +127,37 @@ export function IssueTab({
   onPage,
 }: IssueTabProps) {
   const navigate = useNavigate();
+  const { user, profile } = useAuthContext();
+  const actorName = profile?.displayName ?? profile?.username ?? null;
   const [editingCell, setEditingCell] = useState<{ issueId: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState<string | null>(null);
   const editRef = useRef<HTMLDivElement>(null);
   const cancelledRef = useRef(false);
   const undoToast = useRef<Toast>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Bulk-edit dialog: UNSET (untouched, excluded from the update) until the user picks
+  // something. `null` is itself a meaningful choice for assignedTo (unassign, via the
+  // Dropdown's showClear) so a plain `null` sentinel can't distinguish "clear" from
+  // "didn't touch" — same pattern as TestCaseTab's bulk-edit dialog.
+  const UNSET = Symbol('unset');
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState<IssueStatus | typeof UNSET>(UNSET);
+  const [bulkAssignedTo, setBulkAssignedTo] = useState<string | null | typeof UNSET>(UNSET);
+
+  function openBulkEdit() {
+    setBulkStatus(UNSET);
+    setBulkAssignedTo(UNSET);
+    setBulkEditOpen(true);
+  }
+
+  function applyBulkEdit() {
+    const changes: Parameters<typeof onBulkEdit>[0] = {};
+    if (bulkStatus !== UNSET) changes.status = bulkStatus;
+    if (bulkAssignedTo !== UNSET) changes.assignedTo = bulkAssignedTo;
+    onBulkEdit(changes);
+    setBulkEditOpen(false);
+  }
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -150,12 +180,15 @@ export function IssueTab({
 
   // Persists `value` for `field` on the issue and reflects it optimistically via onPatchIssue.
   // Shared by both the cell-edit confirm path and the undo action so they stay consistent.
-  const applyFieldChange = useCallback(async (issueId: string, field: EditableField, value: string | null) => {
+  const applyFieldChange = useCallback(async (issueId: string, projectId: string, field: EditableField, value: string | null) => {
     if (field === 'status') {
-      await issueService.changeStatus(issueId, value as IssueStatus);
+      if (!user) return;
+      await issueService.changeStatus(issueId, value as IssueStatus, { projectId, actorId: user.id, actorName });
       onPatchIssue(issueId, { status: value as IssueStatus });
     } else if (field === 'assignedTo') {
-      await issueService.assign(issueId, value || null);
+      if (!user) return;
+      const assigneeName = value ? projectMembers.find((m) => m.userId === value)?.profile.displayName ?? projectMembers.find((m) => m.userId === value)?.profile.username : null;
+      await issueService.assign(issueId, value || null, { projectId, actorId: user.id, actorName, assigneeName });
       onPatchIssue(issueId, { assignedTo: value || null });
     } else if (field === 'title') {
       const title = (value ?? '').trim();
@@ -173,17 +206,17 @@ export function IssueTab({
       const module = moduleId ? { id: moduleId, name: moduleOptions.find((m) => m.value === moduleId)?.label ?? '' } : null;
       onPatchIssue(issueId, { moduleId, module } as Partial<IssueWithDetails>);
     }
-  }, [onPatchIssue, moduleOptions]);
+  }, [onPatchIssue, moduleOptions, user, actorName, projectMembers]);
 
-  const handleUndo = useCallback(async (issueId: string, field: EditableField, previousValue: string | null) => {
+  const handleUndo = useCallback(async (issueId: string, projectId: string, field: EditableField, previousValue: string | null) => {
     if (undoTimerRef.current) { clearTimeout(undoTimerRef.current); undoTimerRef.current = null; }
     undoToast.current?.clear();
     try {
-      await applyFieldChange(issueId, field, previousValue);
+      await applyFieldChange(issueId, projectId, field, previousValue);
     } catch { /* parent will refetch */ }
   }, [applyFieldChange]);
 
-  const scheduleUndoToast = useCallback((issueId: string, field: EditableField, previousValue: string | null, fieldLabel: string) => {
+  const scheduleUndoToast = useCallback((issueId: string, projectId: string, field: EditableField, previousValue: string | null, fieldLabel: string) => {
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
     undoToast.current?.clear();
     undoToast.current?.show({
@@ -191,7 +224,7 @@ export function IssueTab({
       content: (
         <div className="flex align-items-center justify-content-between gap-3 w-full">
           <span>{fieldLabel} updated</span>
-          <Button label="Undo" text size="small" onClick={() => handleUndo(issueId, field, previousValue)} />
+          <Button label="Undo" text size="small" onClick={() => handleUndo(issueId, projectId, field, previousValue)} />
         </div>
       ),
       sticky: true,
@@ -220,8 +253,8 @@ export function IssueTab({
       status: 'Status', assignedTo: 'Assignee', title: 'Title', type: 'Type', priority: 'Priority', moduleId: 'Module',
     };
     try {
-      await applyFieldChange(row.id, field, value);
-      scheduleUndoToast(row.id, field, previousValue, fieldLabel[field]);
+      await applyFieldChange(row.id, row.projectId, field, value);
+      scheduleUndoToast(row.id, row.projectId, field, previousValue, fieldLabel[field]);
     } catch { /* parent will refetch */ }
   }, [getFieldValue, applyFieldChange, scheduleUndoToast]);
 
@@ -324,11 +357,20 @@ export function IssueTab({
           </div>
         </div>
       </FilterToolbar>
-      {canDeleteContent && (
+      {(canManageIssues || canDeleteContent) && (
         <BulkActionsBar
           selectedCount={selected.length}
           onClear={() => onSelectedChange([])}
-          actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={onBulkDelete} />}
+          actions={
+            <>
+              {canManageIssues && (
+                <Button label="Bulk Edit" icon="pi pi-pencil" size="small" outlined onClick={openBulkEdit} />
+              )}
+              {canDeleteContent && (
+                <Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={onBulkDelete} />
+              )}
+            </>
+          }
         />
       )}
       <DataTable
@@ -361,8 +403,9 @@ export function IssueTab({
           header="Title"
           sortable={!isMobile}
           body={isMobile ? mobileIssueBody : (row: IssueWithDetails) => {
+            const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'title';
-            if (isEditing && canManageIssues) {
+            if (isEditing && canEdit) {
               return (
                 <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'title', editValue)}>
                   <InputText
@@ -376,7 +419,7 @@ export function IssueTab({
               );
             }
             return (
-              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'title', row.title); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'title', row.title); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
                 {row.title}
               </div>
             );
@@ -388,8 +431,9 @@ export function IssueTab({
           sortable
           hidden={isMobile}
           body={(row: IssueWithDetails) => {
+            const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'type';
-            if (isEditing && canManageIssues) {
+            if (isEditing && canEdit) {
               return (
                 <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'type', editValue)}>
                   <Dropdown value={editValue as IssueType} options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
@@ -400,7 +444,7 @@ export function IssueTab({
               );
             }
             return (
-              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'type', row.type); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'type', row.type); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
                 <Tag value={ISSUE_TYPE_LABEL[row.type]} severity={ISSUE_TYPE_SEVERITY[row.type]} />
               </div>
             );
@@ -412,8 +456,9 @@ export function IssueTab({
           sortable
           hidden={isMobile}
           body={(row: IssueWithDetails) => {
+            const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'moduleId';
-            if (isEditing && canManageIssues) {
+            if (isEditing && canEdit) {
               return (
                 <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'moduleId', editValue)}>
                   <Dropdown value={editValue} options={moduleOptions}
@@ -424,7 +469,7 @@ export function IssueTab({
               );
             }
             return (
-              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'moduleId', row.moduleId); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'moduleId', row.moduleId); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
                 {row.module?.name ?? '-'}
               </div>
             );
@@ -456,8 +501,9 @@ export function IssueTab({
           sortable
           hidden={isMobile}
           body={(row: IssueWithDetails) => {
+            const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'priority';
-            if (isEditing && canManageIssues) {
+            if (isEditing && canEdit) {
               return (
                 <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'priority', editValue)}>
                   <Dropdown value={editValue as IssuePriority} options={ISSUE_PRIORITY_OPTIONS}
@@ -468,7 +514,7 @@ export function IssueTab({
               );
             }
             return (
-              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'priority', row.priority); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'priority', row.priority); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
                 <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />
               </div>
             );
@@ -504,8 +550,9 @@ export function IssueTab({
           sortable
           hidden={isMobile}
           body={(row: IssueWithDetails) => {
+            const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'assignedTo';
-            if (isEditing && canManageIssues) {
+            if (isEditing && canEdit) {
               return (
                 <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'assignedTo', editValue)}>
                   <Dropdown value={editValue} options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
@@ -517,7 +564,7 @@ export function IssueTab({
             }
             const display = row.assignee?.displayName ?? row.assignedTo ?? '-';
             return (
-              <div onClick={(e) => { e.stopPropagation(); canManageIssues && startEdit(row.id, 'assignedTo', row.assignedTo); }} style={{ cursor: canManageIssues ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'assignedTo', row.assignedTo); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
                 {display}
               </div>
             );
@@ -530,7 +577,7 @@ export function IssueTab({
             <RowActionsMenu
               items={[
                 { label: 'Detail', icon: 'pi pi-external-link', command: () => onRowClick(row) },
-                ...(canManageIssues
+                ...(canManageIssues && row.status !== 'closed'
                   ? [{ label: 'Edit', icon: 'pi pi-pencil', command: () => onEdit(row) }]
                   : []),
                 ...(canManageIssues
@@ -549,7 +596,8 @@ export function IssueTab({
                           acceptLabel: 'Archive',
                           rejectLabel: 'Cancel',
                           accept: async () => {
-                            await issueService.changeStatus(row.id, 'closed');
+                            if (!user) return;
+                            await issueService.changeStatus(row.id, 'closed', { projectId: row.projectId, actorId: user.id, actorName });
                             onPatchIssue(row.id, { status: 'closed' });
                             onToastSuccess('Issue archived');
                           },
@@ -587,6 +635,43 @@ export function IssueTab({
           )}
         />
       </DataTable>
+
+      <Dialog header={`Bulk Edit (${selected.length} selected)`} visible={bulkEditOpen} onHide={() => setBulkEditOpen(false)} style={{ width: '28rem' }}>
+        <div className="flex flex-column gap-3">
+          <p className="text-color-secondary text-sm m-0">Only fields you set below will be changed. Leave a field unset to keep it unchanged on every selected issue.</p>
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown
+                id="bulk-issue-status"
+                value={bulkStatus === UNSET ? null : bulkStatus}
+                options={ISSUE_STATUS_OPTIONS}
+                onChange={(e) => setBulkStatus(e.value)}
+                className="w-full"
+              />
+              <label htmlFor="bulk-issue-status">Status (unchanged if empty)</label>
+            </FloatLabel>
+          </div>
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown
+                id="bulk-issue-assigned"
+                value={bulkAssignedTo === UNSET ? null : bulkAssignedTo}
+                options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                onChange={(e) => setBulkAssignedTo(e.value)}
+                showClear
+                className="w-full"
+              />
+              <label htmlFor="bulk-issue-assigned">Assigned To (unchanged if empty)</label>
+            </FloatLabel>
+          </div>
+          <Button
+            label="Apply"
+            size="small"
+            disabled={bulkStatus === UNSET && bulkAssignedTo === UNSET}
+            onClick={applyBulkEdit}
+          />
+        </div>
+      </Dialog>
     </>
   );
 }

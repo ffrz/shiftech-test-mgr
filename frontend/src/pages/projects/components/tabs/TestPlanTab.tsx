@@ -14,6 +14,7 @@ import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { testPlanService } from '../../../../services/testPlanService';
+import { useAuthContext } from '../../../../hooks/useAuth';
 import type { TestPlan, TestPlanStatus } from '../../../../types/domain';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../../../helpers/statusLabels';
@@ -28,6 +29,7 @@ type TestPlanTabProps = {
   plans: TestPlan[];
   loading: boolean;
   isMobile: boolean;
+  projectId: string;
   search: string;
   onSearchChange: (value: string) => void;
   statusFilter: TestPlanStatus[];
@@ -46,6 +48,7 @@ type TestPlanTabProps = {
   onDuplicate: (row: TestPlan) => void;
   onDelete: (row: TestPlan) => void;
   onBulkDelete: () => void;
+  onBulkChangeStatus: (status: TestPlanStatus) => void;
   onRowClick: (row: TestPlan) => void;
   onPatchPlan?: (_planId: string, _changes: Partial<TestPlan>) => void;
 };
@@ -54,6 +57,7 @@ export function TestPlanTab({
   plans,
   loading,
   isMobile,
+  projectId,
   search,
   onSearchChange,
   statusFilter,
@@ -72,10 +76,12 @@ export function TestPlanTab({
   onDuplicate,
   onDelete,
   onBulkDelete,
+  onBulkChangeStatus,
   onRowClick,
   onPatchPlan,
 }: TestPlanTabProps) {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
   const [editingCell, setEditingCell] = useState<{ planId: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState<any>(null);
   const editRef = useRef<HTMLDivElement>(null);
@@ -104,7 +110,8 @@ export function TestPlanTab({
       await testPlanService.rename(planId, name);
       onPatchPlan?.(planId, { name } as Partial<TestPlan>);
     } else if (field === 'status') {
-      await testPlanService.changeStatus(planId, value as TestPlanStatus);
+      if (!user) return;
+      await testPlanService.changeStatus(planId, value as TestPlanStatus, { projectId, actorId: user.id });
       onPatchPlan?.(planId, { status: value as TestPlanStatus } as Partial<TestPlan>);
     }
   }
@@ -204,11 +211,25 @@ export function TestPlanTab({
           </div>
         </div>
       </FilterToolbar>
-      {canDeleteContent && (
+      {(canEditContent || canDeleteContent) && (
         <BulkActionsBar
           selectedCount={selected.length}
           onClear={() => onSelectedChange([])}
-          actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={onBulkDelete} />}
+          actions={
+            <>
+              {canEditContent && (
+                <Dropdown
+                  placeholder="Change Status"
+                  options={TEST_PLAN_STATUS_OPTIONS}
+                  onChange={(e) => onBulkChangeStatus(e.value)}
+                  style={{ width: '10rem' }}
+                />
+              )}
+              {canDeleteContent && (
+                <Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={onBulkDelete} />
+              )}
+            </>
+          }
         />
       )}
       <DataTable

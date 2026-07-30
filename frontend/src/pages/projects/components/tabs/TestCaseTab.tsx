@@ -8,6 +8,8 @@ import { MultiSelect } from 'primereact/multiselect';
 import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
+import { Dialog } from 'primereact/dialog';
+import { FloatLabel } from 'primereact/floatlabel';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
@@ -72,6 +74,7 @@ type TestCaseTabProps = {
   onArchive: (row: TestCase) => void;
   onDelete: (row: TestCase) => void;
   onBulkDelete: () => void;
+  onBulkEdit: (changes: { moduleId?: string | null; priority?: TestCasePriority; status?: TestCaseStatus; targetRoleId?: string | null }) => void;
   onRowClick: (row: TestCaseWithDetails) => void;
   onPatchCase?: (_caseId: string, _changes: Partial<TestCaseWithDetails>) => void;
 };
@@ -114,11 +117,41 @@ export function TestCaseTab({
   onArchive,
   onDelete,
   onBulkDelete,
+  onBulkEdit,
   onRowClick,
   onPatchCase,
 }: TestCaseTabProps) {
   const navigate = useNavigate();
   const [editingCell, setEditingCell] = useState<{ caseId: string; field: string } | null>(null);
+
+  // Bulk-edit dialog: each field is UNSET (untouched, excluded from the update) until the
+  // user picks something. `null` is a valid, meaningful choice for moduleId/targetRoleId
+  // (clear the field via the Dropdown's showClear) and must stay distinguishable from
+  // "user didn't touch this field" — a plain `null` sentinel can't do that, hence UNSET.
+  const UNSET = Symbol('unset');
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkModuleId, setBulkModuleId] = useState<string | null | typeof UNSET>(UNSET);
+  const [bulkPriority, setBulkPriority] = useState<TestCasePriority | typeof UNSET>(UNSET);
+  const [bulkStatus, setBulkStatus] = useState<TestCaseStatus | typeof UNSET>(UNSET);
+  const [bulkTargetRoleId, setBulkTargetRoleId] = useState<string | null | typeof UNSET>(UNSET);
+
+  function openBulkEdit() {
+    setBulkModuleId(UNSET);
+    setBulkPriority(UNSET);
+    setBulkStatus(UNSET);
+    setBulkTargetRoleId(UNSET);
+    setBulkEditOpen(true);
+  }
+
+  function applyBulkEdit() {
+    const changes: Parameters<typeof onBulkEdit>[0] = {};
+    if (bulkModuleId !== UNSET) changes.moduleId = bulkModuleId;
+    if (bulkPriority !== UNSET) changes.priority = bulkPriority;
+    if (bulkStatus !== UNSET) changes.status = bulkStatus;
+    if (bulkTargetRoleId !== UNSET) changes.targetRoleId = bulkTargetRoleId;
+    onBulkEdit(changes);
+    setBulkEditOpen(false);
+  }
   const [editValue, setEditValue] = useState<any>(null);
   const editRef = useRef<HTMLDivElement>(null);
   const cancelledRef = useRef(false);
@@ -323,11 +356,20 @@ export function TestCaseTab({
           </div>
         </div>
       </FilterToolbar>
-      {canDeleteContent && (
+      {(canEditContent || canDeleteContent) && (
         <BulkActionsBar
           selectedCount={selected.length}
           onClear={() => onSelectedChange([])}
-          actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={onBulkDelete} />}
+          actions={
+            <>
+              {canEditContent && (
+                <Button label="Bulk Edit" icon="pi pi-pencil" size="small" outlined onClick={openBulkEdit} />
+              )}
+              {canDeleteContent && (
+                <Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={onBulkDelete} />
+              )}
+            </>
+          }
         />
       )}
       <DataTable
@@ -468,6 +510,68 @@ export function TestCaseTab({
           )}
         />
       </DataTable>
+
+      <Dialog header={`Bulk Edit (${selected.length} selected)`} visible={bulkEditOpen} onHide={() => setBulkEditOpen(false)} style={{ width: '28rem' }}>
+        <div className="flex flex-column gap-3">
+          <p className="text-color-secondary text-sm m-0">Only fields you set below will be changed. Leave a field unset to keep it unchanged on every selected test case.</p>
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown
+                id="bulk-case-module"
+                value={bulkModuleId === UNSET ? null : bulkModuleId}
+                options={moduleOptions}
+                onChange={(e) => setBulkModuleId(e.value)}
+                showClear
+                className="w-full"
+              />
+              <label htmlFor="bulk-case-module">Module (unchanged if empty)</label>
+            </FloatLabel>
+          </div>
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown
+                id="bulk-case-priority"
+                value={bulkPriority === UNSET ? null : bulkPriority}
+                options={PRIORITY_OPTIONS}
+                onChange={(e) => setBulkPriority(e.value)}
+                className="w-full"
+              />
+              <label htmlFor="bulk-case-priority">Priority (unchanged if empty)</label>
+            </FloatLabel>
+          </div>
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown
+                id="bulk-case-status"
+                value={bulkStatus === UNSET ? null : bulkStatus}
+                options={TEST_CASE_STATUS_OPTIONS}
+                onChange={(e) => setBulkStatus(e.value)}
+                className="w-full"
+              />
+              <label htmlFor="bulk-case-status">Status (unchanged if empty)</label>
+            </FloatLabel>
+          </div>
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <Dropdown
+                id="bulk-case-target-role"
+                value={bulkTargetRoleId === UNSET ? null : bulkTargetRoleId}
+                options={testRoleOptions}
+                onChange={(e) => setBulkTargetRoleId(e.value)}
+                showClear
+                className="w-full"
+              />
+              <label htmlFor="bulk-case-target-role">Target Role (unchanged if empty)</label>
+            </FloatLabel>
+          </div>
+          <Button
+            label="Apply"
+            size="small"
+            disabled={bulkModuleId === UNSET && bulkPriority === UNSET && bulkStatus === UNSET && bulkTargetRoleId === UNSET}
+            onClick={applyBulkEdit}
+          />
+        </div>
+      </Dialog>
     </>
   );
 }
