@@ -39,6 +39,25 @@ export interface InvalidRow {
 const EXPECTED_HEADERS = ['module', 'title', 'objective', 'preconditions', 'steps', 'expected result', 'priority', 'tags', 'target role'];
 const PRIORITIES: TestCasePriority[] = ['low', 'medium', 'high', 'critical'];
 
+const CSV_TEMPLATE_HEADER = 'Module,Title,Objective,Preconditions,Steps,Expected Result,Priority,Tags,Target Role';
+const CSV_TEMPLATE_SAMPLE_ROWS = [
+  '"Login","User can login with valid credentials","Verify authentication works","User is registered","Open login page;Enter valid email and password;Click Login","User is redirected to dashboard","high","auth,smoke",""',
+  '"Login","User can login step-by-step","","User is registered","1. Open login page | Login form is shown;2. Enter credentials | Fields accept input;3. Click Login | Redirected to dashboard","","medium","auth","Admin"',
+];
+
+// Shared by every CSV import dialog (project Test Case tab, Test Suite item import) so the
+// downloadable sample always matches the header/format parseTestCaseCsv actually accepts.
+export function downloadCsvTemplate() {
+  const csvContent = [CSV_TEMPLATE_HEADER, ...CSV_TEMPLATE_SAMPLE_ROWS].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'test-case-import-template.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 // "1. Aksi | Expected;2. Aksi | Expected" -> detailed steps. A leading "N." ordinal on each
 // segment is optional and stripped if present (matches how the simple-format examples in the
 // UI hint text are written); the '|' is what actually decides detailed vs simple.

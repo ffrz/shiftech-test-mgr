@@ -72,6 +72,21 @@ export const testCaseRepository = {
     }));
   },
 
+  async findByIdsWithDetails(ids: string[]): Promise<TestCaseWithDetails[]> {
+    if (ids.length === 0) return [];
+    const { data, error } = await supabase
+      .from('test_cases')
+      .select('*, module:modules(*), target_role:test_roles(*), test_case_tags(tag:tags(*))')
+      .in('id', ids);
+    if (error) throw error;
+    return (data ?? []).map((row: any) => ({
+      ...mapTestCaseRow(row),
+      module: row.module ? mapModuleRow(row.module) : null,
+      targetRole: row.target_role ? mapTestRoleRow(row.target_role) : null,
+      tags: (row.test_case_tags ?? []).map((t: any) => mapTagRow(t.tag)),
+    }));
+  },
+
   async findById(id: string): Promise<TestCase | null> {
     const { data, error } = await supabase.from('test_cases').select('*').eq('id', id).maybeSingle();
     if (error) throw error;

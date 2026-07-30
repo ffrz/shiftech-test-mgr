@@ -1,5 +1,6 @@
 import { testSuiteRepository } from '../repositories/testSuiteRepository';
 import { testCaseRepository } from '../repositories/testCaseRepository';
+import { testCaseStepRepository } from '../repositories/testCaseStepRepository';
 import { profileRepository } from '../repositories/profileRepository';
 import { moduleService } from './moduleService';
 import { testRoleService } from './testRoleService';
@@ -392,5 +393,45 @@ export const testSuiteService = {
       }
       await testCaseStepRepository.createMany(stepRows);
     }
+  },
+
+  // Reverse direction of cloneItemsToProject: pulls live test cases from a project into a
+  // suite (as free-text moduleName/targetRole, since suites aren't project-scoped).
+  async cloneProjectCasesToSuite(suiteId: string, testCaseIds: string[]): Promise<void> {
+    if (testCaseIds.length === 0) return;
+    const items = await testCaseRepository.findByIdsWithDetails(testCaseIds);
+    const existingItems = await testSuiteRepository.findItemsBySuite(suiteId);
+
+    const detailedIds = items.filter((i) => i.stepType === 'detailed').map((i) => i.id);
+    const stepsByItem = new Map<string, { action: string; expectedResult: string | null }[]>();
+    if (detailedIds.length > 0) {
+      const allSteps = await testCaseStepRepository.findAllByTestCases(detailedIds);
+      for (const step of allSteps) {
+        const arr = stepsByItem.get(step.testCaseId);
+        if (arr) arr.push(step);
+        else stepsByItem.set(step.testCaseId, [step]);
+      }
+    }
+
+    await this.addItemsMany(
+      items.map((item, i) => ({
+        suiteId,
+        moduleName: item.module?.name ?? undefined,
+        title: item.title,
+        objective: item.objective ?? undefined,
+        preconditions: item.preconditions ?? undefined,
+        steps: item.steps,
+        expectedResult: item.expectedResult,
+        priority: item.priority,
+        targetRole: item.targetRole?.name ?? undefined,
+        tagNames: item.tags.map((t) => t.name),
+        stepType: item.stepType,
+        detailedSteps:
+          item.stepType === 'detailed'
+            ? (stepsByItem.get(item.id) ?? []).map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? undefined }))
+            : undefined,
+        orderIndex: existingItems.length + i,
+      })),
+    );
   },
 };

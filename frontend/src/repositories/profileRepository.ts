@@ -30,7 +30,7 @@ export const profileRepository = {
     // Strip characters PostgREST's .or() filter syntax treats as structural
     // (comma separates conditions, parens/percent have special meaning) — a raw
     // pass-through would let user input break or redirect the filter.
-    const sanitized = query.trim().replace(/[,()%*]/g, '');
+    const sanitized = query.trim().replace(/^@/, '').replace(/[,()%*]/g, '');
     if (!sanitized) return [];
     const { data, error } = await supabase
       .from('profiles')

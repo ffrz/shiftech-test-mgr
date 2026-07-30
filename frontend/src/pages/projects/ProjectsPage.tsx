@@ -223,7 +223,7 @@ export function ProjectsPage() {
               selectAllLabel="All"
             />
           </div>
-          <div className="col-12 md:col-6 p-1">
+          <div className="col-12 md:col p-1">
             <div className="flex gap-2">
               <SearchInput value={search} onChange={setSearch} placeholder="Search projects..." className="flex-1" />
               <Button

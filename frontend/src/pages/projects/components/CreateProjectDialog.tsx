@@ -10,6 +10,7 @@ import { projectService } from '../../../services/projectService';
 import { testSuiteService } from '../../../services/testSuiteService';
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../hooks/queryKeys';
+import { useAuthContext } from '../../../hooks/useAuth';
 import type { Project, ProjectVisibility } from '../../../types/domain';
 
 interface CreateProjectDialogProps {
@@ -21,6 +22,7 @@ interface CreateProjectDialogProps {
 }
 
 export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, onCreated }: CreateProjectDialogProps) {
+  const { user } = useAuthContext();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [visibility, setVisibility] = useState<ProjectVisibility>('private');
@@ -30,9 +32,9 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
   const nameRef = useRef<HTMLInputElement>(null);
 
   const { data: templates = [] } = useQuery({
-    queryKey: queryKeys.testSuites(),
-    queryFn: () => testSuiteService.listSuites(),
-    enabled: visible && !editingProject,
+    queryKey: [...queryKeys.testSuites(), 'mine', user?.id],
+    queryFn: () => testSuiteService.listByOwner(user!.id),
+    enabled: visible && !editingProject && !!user,
   });
 
   useEffect(() => {

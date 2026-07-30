@@ -13,6 +13,17 @@ export const testCaseStepRepository = {
     return (data ?? []).map(mapTestCaseStepRow);
   },
 
+  async findAllByTestCases(testCaseIds: string[]): Promise<TestCaseStep[]> {
+    if (testCaseIds.length === 0) return [];
+    const { data, error } = await supabase
+      .from('test_case_steps')
+      .select('*')
+      .in('test_case_id', testCaseIds)
+      .order('step_number', { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(mapTestCaseStepRow);
+  },
+
   async createMany(
     steps: { testCaseId: string; action: string; expectedResult: string | null; stepNumber: number }[],
   ): Promise<TestCaseStep[]> {

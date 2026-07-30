@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
@@ -9,6 +9,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { MultiSelect } from 'primereact/multiselect';
 import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { SelectButton } from 'primereact/selectbutton';
@@ -21,14 +22,16 @@ import { useScreenSize } from '../../hooks/useScreenSize';
 import { testSuiteService } from '../../services/testSuiteService';
 import { queryKeys } from '../../hooks/queryKeys';
 import type { TestCasePriority, TestCaseStepType, TestSuiteItem, TestSuiteVisibility } from '../../types/domain';
-import { PageHeader } from '../../components/ui/PageHeader';
+import { FilterToolbar } from '../../components/ui/FilterToolbar';
+import SearchInput from '../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { useStoredState } from '../../hooks/useStoredState';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
-import { ImportTemplateDialog } from '../projects/components/dialogs/ImportTemplateDialog';
-import { parseTestCaseCsv } from '../../helpers/csvImport';
+import { ImportCasesDialog } from '../projects/components/dialogs/ImportCasesDialog';
+import { parseTestCaseCsv, downloadCsvTemplate } from '../../helpers/csvImport';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY, TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 
@@ -46,6 +49,15 @@ export function TestSuiteDetailPage() {
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
   const queryClient = useQueryClient();
+
+  const [detailCollapsed, setDetailCollapsed] = useStoredState(`suite-${id ?? '__unknown__'}:detailCollapsed`, false);
+
+  const [moduleFilter, setModuleFilter] = useState<string[]>([]);
+  const [priorityFilter, setPriorityFilter] = useState<TestCasePriority[]>([]);
+  const [stepTypeFilter, setStepTypeFilter] = useState<string[]>([]);
+  const [targetRoleFilter, setTargetRoleFilter] = useState<string[]>([]);
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
 
   const { data: suite = null } = useQuery({
     queryKey: queryKeys.testSuite(id ?? ''),
@@ -77,41 +89,26 @@ export function TestSuiteDetailPage() {
     });
   }
 
-  // --- Import from Template ---
+  // --- Import from Suite/Project ---
   const [importTemplateDialogOpen, setImportTemplateDialogOpen] = useState(false);
-  const [importTemplateId, setImportTemplateId] = useState<string | null>(null);
-  const [importTemplateItems, setImportTemplateItems] = useState<TestSuiteItem[]>([]);
-  const [importTemplateItemIds, setImportTemplateItemIds] = useState<string[]>([]);
   const [importTemplateLoading, setImportTemplateLoading] = useState(false);
 
-  const { data: allTemplates = [] } = useQuery({
-    queryKey: [...queryKeys.testSuites(), 'all'],
-    queryFn: () => testSuiteService.listSuites(),
-    enabled: importTemplateDialogOpen,
-  });
-
   function openImportTemplateDialog() {
-    setImportTemplateId(null);
-    setImportTemplateItems([]);
-    setImportTemplateItemIds([]);
     setImportTemplateDialogOpen(true);
   }
 
-  async function handleSelectImportTemplate(nextTemplateId: string | null) {
-    setImportTemplateId(nextTemplateId);
-    setImportTemplateItemIds([]);
-    if (!nextTemplateId) { setImportTemplateItems([]); return; }
-    setImportTemplateItems(await testSuiteService.listItems(nextTemplateId));
-  }
-
-  async function handleImportTemplate() {
-    if (!id || importTemplateItemIds.length === 0) return;
+  async function handleImportTemplate(source: { kind: 'suite'; suiteId: string } | { kind: 'project'; projectId: string }, ids: string[]) {
+    if (!id || ids.length === 0) return;
     setImportTemplateLoading(true);
     try {
-      await testSuiteService.cloneItemsToSuite(id, importTemplateItemIds);
+      if (source.kind === 'suite') {
+        await testSuiteService.cloneItemsToSuite(id, ids);
+      } else {
+        await testSuiteService.cloneProjectCasesToSuite(id, ids);
+      }
       setImportTemplateDialogOpen(false);
       await reloadItems();
-      toast.current?.show({ severity: 'success', summary: `${importTemplateItemIds.length} test case(s) imported` });
+      toast.current?.show({ severity: 'success', summary: `${ids.length} test case(s) imported` });
     } catch (err) {
       toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
     } finally {
@@ -258,6 +255,41 @@ export function TestSuiteDetailPage() {
   async function reloadItems() {
     if (id) await queryClient.invalidateQueries({ queryKey: queryKeys.testSuiteItems(id) });
   }
+
+  const moduleOptions = useMemo(() => {
+    const uniq = new Set(items.map((i) => i.moduleName).filter(Boolean));
+    return [...uniq].sort().map((v) => ({ label: v, value: v }));
+  }, [items]);
+
+  const targetRoleOptions = useMemo(() => {
+    const uniq = new Set(items.map((i) => i.targetRole).filter(Boolean));
+    return [...uniq].sort().map((v) => ({ label: v, value: v }));
+  }, [items]);
+
+  const tagOptions = useMemo(() => {
+    const uniq = new Set(items.flatMap((i) => i.tagNames));
+    return [...uniq].sort().map((v) => ({ label: v, value: v }));
+  }, [items]);
+
+  const STEP_TYPE_OPTIONS = [
+    { label: 'Simple', value: 'simple' },
+    { label: 'Detailed', value: 'detailed' },
+  ];
+
+  const filteredItems = useMemo(() => items.filter((item) => {
+    if (moduleFilter.length && item.moduleName && !moduleFilter.includes(item.moduleName)) return false;
+    if (priorityFilter.length && !priorityFilter.includes(item.priority)) return false;
+    if (stepTypeFilter.length && !stepTypeFilter.includes(item.stepType)) return false;
+    if (targetRoleFilter.length && item.targetRole && !targetRoleFilter.includes(item.targetRole)) return false;
+    if (tagFilter.length && !item.tagNames.some((t) => tagFilter.includes(t))) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!item.title.toLowerCase().includes(q) && !(item.moduleName?.toLowerCase().includes(q))) return false;
+    }
+    return true;
+  }), [items, moduleFilter, priorityFilter, stepTypeFilter, targetRoleFilter, tagFilter, search]);
+
+  const hasActiveFilters = moduleFilter.length > 0 || priorityFilter.length > 0 || stepTypeFilter.length > 0 || targetRoleFilter.length > 0 || tagFilter.length > 0 || search.length > 0;
 
   async function handleDuplicateSuite(data: { name: string; description: string; visibility: TestSuiteVisibility }) {
     if (!id) return;
@@ -468,43 +500,69 @@ export function TestSuiteDetailPage() {
         ]}
       />
 
-      <div className="detail-wide-col">
-        <Card className="mb-3">
-          <div className="flex align-items-center justify-content-between gap-2 mb-1">
+      <Card className="mb-3">
+        <div className="flex align-items-center justify-content-between gap-2">
+          <div className="flex align-items-center gap-2">
             <h2 className="m-0">{suite?.name ?? ''}</h2>
-            <div className="header-actions flex gap-1">
-              <Button icon="pi pi-copy" text rounded severity="secondary" size="small" onClick={() => setDuplicateDialogOpen(true)} tooltip="Duplicate Suite" tooltipOptions={{ position: 'bottom' }} />
-              {isOwner && (
-                <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />
-              )}
-            </div>
-          </div>
-          <p className="text-color-secondary text-sm m-0 mt-2 mb-3">{suite?.description || 'No description'}</p>
-          <div className="flex align-items-center gap-2 flex-wrap">
             {suite && <Tag value={TEST_SUITE_VISIBILITY_LABEL[suite.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[suite.visibility]} />}
           </div>
-          <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 text-xs">
-            <span className="text-color-secondary">
-              <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
-              by <span className="text-color">@{(suite as any)?._authorUsername}</span>
-            </span>
-            <span className="text-color-secondary">
-              <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
-              Updated <span className="text-color">{suite ? formatDateTime(suite.updatedAt) : ''}</span>
-            </span>
+          <div className="flex align-items-center gap-1">
+            <Button icon="pi pi-copy" text rounded severity="secondary" size="small" onClick={() => setDuplicateDialogOpen(true)} tooltip="Duplicate Suite" tooltipOptions={{ position: 'bottom' }} />
+            {isOwner && <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />}
+            <Button text icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'} rounded size="small" onClick={() => setDetailCollapsed(!detailCollapsed)} aria-label={detailCollapsed ? 'Expand' : 'Collapse'} />
           </div>
-        </Card>
+        </div>
+        {!detailCollapsed && (
+          <>
+            <p className="text-color-secondary text-sm mt-2 mb-0">{suite?.description || 'No description'}</p>
+            <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-0 text-xs">
+              <span className="text-color-secondary">
+                <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
+                by <span className="text-color">@{(suite as any)?._authorUsername}</span>
+              </span>
+              <span className="text-color-secondary">
+                <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
+                Updated <span className="text-color">{suite ? formatDateTime(suite.updatedAt) : ''}</span>
+              </span>
+            </div>
+          </>
+        )}
+      </Card>
 
-      <PageHeader
-        title="Test Cases"
-        actions={isOwner ? (
-          <div className="flex gap-2 align-items-center">
-            <Button icon="pi pi-copy" size="small" text onClick={openImportTemplateDialog} tooltip="Import from Template" />
-            <Button icon="pi pi-file-excel" size="small" text onClick={() => setImportCsvDialogOpen(true)} tooltip="Import from CSV" />
-            <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} />
+      <FilterToolbar
+        visible
+        secondaryActions={
+          isOwner && (
+            <div className="flex align-items-center">
+              <Button icon="pi pi-copy" rounded size="large" text severity="secondary" onClick={openImportTemplateDialog} />
+              <Button icon="pi pi-file-excel" rounded size="large" text severity="secondary" onClick={() => setImportCsvDialogOpen(true)} tooltip="Import CSV" tooltipOptions={{ position: 'bottom' }} />
+            </div>
+          )
+        }
+        primaryAction={isOwner && <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} />}
+      >
+        <div className="col-6 md:col-2 p-1">
+          <MultiSelect value={moduleFilter} options={moduleOptions} onChange={(e) => setModuleFilter(e.value)} placeholder="All Modules" className="w-full" selectAll selectAllLabel="All" virtualScrollerOptions={{ itemSize: 40 }} />
+        </div>
+        <div className="col-6 md:col-2 p-1">
+          <MultiSelect value={priorityFilter} options={PRIORITY_OPTIONS} onChange={(e) => setPriorityFilter(e.value)} placeholder="All Priorities" className="w-full" selectAll selectAllLabel="All" />
+        </div>
+        <div className="col-6 md:col-2 p-1">
+          <MultiSelect value={stepTypeFilter} options={STEP_TYPE_OPTIONS} onChange={(e) => setStepTypeFilter(e.value)} placeholder="All Modes" className="w-full" selectAll selectAllLabel="All" />
+        </div>
+        <div className="col-6 md:col-2 p-1">
+          <MultiSelect value={targetRoleFilter} options={targetRoleOptions} onChange={(e) => setTargetRoleFilter(e.value)} placeholder="All Roles" className="w-full" selectAll selectAllLabel="All" virtualScrollerOptions={{ itemSize: 40 }} />
+        </div>
+        <div className="col-12 md:col-2 p-1">
+          <MultiSelect value={tagFilter} options={tagOptions} onChange={(e) => setTagFilter(e.value)} placeholder="All Tags" className="w-full" selectAll selectAllLabel="All" virtualScrollerOptions={{ itemSize: 40 }} />
+        </div>
+        <div className="col-12 md:col p-1">
+          <div className="flex gap-2">
+            <SearchInput value={search} onChange={setSearch} placeholder="Search title/module..." className="flex-1" />
+            <Button icon="pi pi-refresh" outlined severity="secondary" size="small" disabled={!hasActiveFilters} onClick={() => { setModuleFilter([]); setPriorityFilter([]); setStepTypeFilter([]); setTargetRoleFilter([]); setTagFilter([]); setSearch(''); }} tooltip="Reset filters" tooltipOptions={{ position: 'bottom' }} />
           </div>
-        ) : undefined}
-      />
+        </div>
+      </FilterToolbar>
 
       {isOwner && (
         <BulkActionsBar
@@ -515,7 +573,7 @@ export function TestSuiteDetailPage() {
       )}
 
       <DataTable
-        value={items}
+        value={filteredItems}
         loading={loading}
         selection={selectedItems}
         onSelectionChange={(e: any) => setSelectedItems(e.value as TestSuiteItem[])}
@@ -603,7 +661,6 @@ export function TestSuiteDetailPage() {
           />
         )}
       </DataTable>
-      </div>
 
       {/* --- Item Dialog --- */}
       <Dialog
@@ -756,17 +813,12 @@ export function TestSuiteDetailPage() {
         onSave={handleDuplicateSuite}
       />
 
-      <ImportTemplateDialog
+      <ImportCasesDialog
         visible={importTemplateDialogOpen}
-        templateId={importTemplateId}
-        onSelectTemplate={handleSelectImportTemplate}
-        templates={allTemplates}
-        items={importTemplateItems}
-        itemIds={importTemplateItemIds}
-        onItemIdsChange={setImportTemplateItemIds}
         loading={importTemplateLoading}
         onHide={() => setImportTemplateDialogOpen(false)}
         onImport={handleImportTemplate}
+        excludeSuiteId={id}
       />
 
       <Dialog header="Import from CSV" visible={importCsvDialogOpen} onHide={() => { setImportCsvDialogOpen(false); setCsvParsed(false); setCsvValidRows([]); setCsvInvalidRows([]); }} style={{ width: '40rem' }}>
@@ -778,6 +830,14 @@ export function TestSuiteDetailPage() {
                 CSV file with header: Module, Title, Objective, Preconditions, Steps, Expected Result, Priority, Tags,
                 Target Role. Only <strong>Title</strong> is required. Tags are comma-separated.
               </p>
+              <Button
+                label="Download CSV Template"
+                icon="pi pi-download"
+                size="small"
+                text
+                className="p-0 w-fit"
+                onClick={downloadCsvTemplate}
+              />
               <FileUpload mode="basic" chooseLabel="Choose CSV File" accept=".csv" customUpload uploadHandler={handleCsvFile} auto />
             </>
           )}

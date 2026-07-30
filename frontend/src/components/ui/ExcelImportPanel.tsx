@@ -5,7 +5,7 @@ import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
-import { parseTestCaseCsv, type InvalidRow, type ParsedTestCaseRow } from '../../helpers/csvImport';
+import { parseTestCaseCsv, downloadCsvTemplate, type InvalidRow, type ParsedTestCaseRow } from '../../helpers/csvImport';
 import { testCaseImportService } from '../../services/testCaseImportService';
 
 // Reads a CSV file client-side (title/steps/expected result/etc), previews parsed + invalid
@@ -61,6 +61,14 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
             separated by <code>;</code>, action/expected separated by <code>|</code>) — a leading
             "1." on each step is optional.
           </p>
+          <Button
+            label="Download CSV Template"
+            icon="pi pi-download"
+            size="small"
+            text
+            className="p-0 w-fit"
+            onClick={downloadCsvTemplate}
+          />
           <FileUpload mode="basic" chooseLabel="Choose CSV File" accept=".csv" customUpload uploadHandler={handleFile} auto />
         </>
       )}
