@@ -11,6 +11,7 @@ import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { useTestPlans } from '../../hooks/useTestPlans';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useAuthContext } from '../../hooks/useAuth';
 import { projectService } from '../../services/projectService';
 import { testPlanService } from '../../services/testPlanService';
 import { queryKeys } from '../../hooks/queryKeys';
@@ -31,6 +32,7 @@ export function TestPlansPage() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const { testPlans, loading, reload } = useTestPlans(projectId);
   const { canEditContent } = useProjectRole(projectId ?? undefined);
+  const { user } = useAuthContext();
 
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
@@ -41,8 +43,8 @@ export function TestPlansPage() {
   });
 
   async function handleChangeStatus(row: TestPlan, status: TestPlanStatus) {
-    if (status === row.status) return;
-    await testPlanService.changeStatus(row.id, status);
+    if (status === row.status || !projectId || !user) return;
+    await testPlanService.changeStatus(row.id, status, { projectId, actorId: user.id });
     await reload();
     toast.current?.show({ severity: 'success', summary: `Status changed to ${TEST_PLAN_STATUS_LABEL[status]}` });
   }

@@ -1,5 +1,6 @@
 import { testPlanRepository } from '../repositories/testPlanRepository';
 import { testCaseRepository } from '../repositories/testCaseRepository';
+import { activityService } from './activityService';
 import type { TestPlan, TestPlanStatus } from '../types/domain';
 
 // Service layer: business rules, validation, orchestration across repositories.
@@ -41,8 +42,26 @@ export const testPlanService = {
     });
   },
 
-  changeStatus(id: string, status: TestPlan['status']) {
-    return testPlanRepository.update(id, { status });
+  async changeStatus(id: string, status: TestPlan['status'], actor: { projectId: string; actorId: string }) {
+    const previous = await testPlanRepository.findById(id);
+    const plan = await testPlanRepository.update(id, { status });
+    if (previous && previous.status !== status) {
+      await activityService.logEvent({
+        projectId: actor.projectId,
+        entityType: 'test_plan',
+        entityId: id,
+        actorId: actor.actorId,
+        eventType: 'status_change',
+        payload: { from: previous.status, to: status },
+      });
+    }
+    return plan;
+  },
+
+  async bulkChangeStatus(ids: string[], status: TestPlan['status'], actor: { projectId: string; actorId: string }) {
+    for (const id of ids) {
+      await testPlanService.changeStatus(id, status, actor);
+    }
   },
 
   remove(id: string) {

@@ -2,6 +2,7 @@ import { testRunRepository } from '../repositories/testRunRepository';
 import { testResultRepository } from '../repositories/testResultRepository';
 import { testCaseRepository } from '../repositories/testCaseRepository';
 import { testPlanRepository } from '../repositories/testPlanRepository';
+import { activityService } from './activityService';
 import type { TestResultStatus, TestRun, TestRunStatus } from '../types/domain';
 
 export const testRunService = {
@@ -103,12 +104,30 @@ export const testRunService = {
 
   // "Completed" is always a manual action (per product decision) — never inferred
   // automatically from every result being filled in.
-  complete(id: string, notes?: string | null) {
-    return testRunRepository.updateStatus(id, 'completed', notes);
+  async complete(id: string, actor: { projectId: string; actorId: string }, notes?: string | null) {
+    const run = await testRunRepository.updateStatus(id, 'completed', notes);
+    await activityService.logEvent({
+      projectId: actor.projectId,
+      entityType: 'test_run',
+      entityId: id,
+      actorId: actor.actorId,
+      eventType: 'status_change',
+      payload: { from: 'in_progress', to: 'completed' },
+    });
+    return run;
   },
 
-  reopen(id: string) {
-    return testRunRepository.updateStatus(id, 'in_progress');
+  async reopen(id: string, actor: { projectId: string; actorId: string }) {
+    const run = await testRunRepository.updateStatus(id, 'in_progress');
+    await activityService.logEvent({
+      projectId: actor.projectId,
+      entityType: 'test_run',
+      entityId: id,
+      actorId: actor.actorId,
+      eventType: 'status_change',
+      payload: { from: 'completed', to: 'in_progress' },
+    });
+    return run;
   },
 
   remove(id: string) {

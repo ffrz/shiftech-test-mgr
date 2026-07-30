@@ -11,6 +11,19 @@ import { useBreadcrumbContext } from './BreadcrumbContext';
 import { BreadcrumbTrail } from '../ui/Breadcrumb';
 import { NotificationPanel } from '../notifications/NotificationPanel';
 import { APP_NAME } from '../../config/app';
+import { pathForActivityEntity } from '../../helpers/activityRoutes';
+import type { Notification } from '../../types/domain';
+
+// referenceType/referenceId on entity-activity-driven notifications (comment/mention/
+// status_change/assignment) point straight at an entity_activity.entity_type value — see
+// activityService.addComment/logEvent, which pass entityType/entityId as
+// referenceType/referenceId. project_invite/project_member_removed predate that and use
+// their own reference shape (project_member row), so they fall through pathForActivityEntity's
+// '/' fallback for an unrecognized entityType.
+function pathForNotification(n: Notification): string {
+  if (!n.referenceType || !n.referenceId) return '/';
+  return pathForActivityEntity(n.referenceType, n.referenceId);
+}
 
 function getUserInitial(displayName: string | null | undefined, username?: string, email?: string): string {
   if (displayName) return displayName.charAt(0).toUpperCase();
@@ -87,9 +100,9 @@ export function AppTopbar() {
           onMarkAllRead={markAllRead}
           onRemove={remove}
           onClearAll={clearAll}
-          onNotificationClick={() => {
+          onNotificationClick={(n) => {
             setNotifPanelVisible(false);
-            navigate('/');
+            navigate(pathForNotification(n));
           }}
         />
         <Button

@@ -5,6 +5,19 @@ import { classNames } from 'primereact/utils';
 import type { Notification } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
 
+const NOTIFICATION_TYPE_ICON: Record<string, string> = {
+  project_invite: 'pi-user-plus',
+  project_member_removed: 'pi-user-minus',
+  comment: 'pi-comment',
+  mention: 'pi-at',
+  assignment: 'pi-user-edit',
+  status_change: 'pi-sync',
+};
+
+function iconForType(type: string): string {
+  return NOTIFICATION_TYPE_ICON[type] ?? 'pi-envelope';
+}
+
 interface NotificationPanelProps {
   visible: boolean;
   onHide: () => void;
@@ -90,7 +103,8 @@ export function NotificationPanel({
                 <i
                   className={classNames(
                     'pi mt-1',
-                    n.isRead ? 'pi-envelope-open text-color-secondary' : 'pi-envelope text-primary'
+                    iconForType(n.type),
+                    n.isRead ? 'text-color-secondary' : 'text-primary'
                   )}
                   style={{ fontSize: '1rem' }}
                 />

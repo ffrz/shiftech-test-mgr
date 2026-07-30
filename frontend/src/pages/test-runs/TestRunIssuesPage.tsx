@@ -24,6 +24,7 @@ import { testRunService } from '../../services/testRunService';
 import { testPlanService } from '../../services/testPlanService';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useAuthContext } from '../../hooks/useAuth';
 import { queryKeys } from '../../hooks/queryKeys';
 import { ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL } from '../../helpers/statusLabels';
 
@@ -36,6 +37,8 @@ export function TestRunIssuesPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const testResultId = searchParams.get('testResultId');
+  const { user, profile } = useAuthContext();
+  const actorName = profile?.displayName ?? profile?.username ?? null;
   const { issues: allIssues, loading, reload } = useIssuesByTestRun(id ?? null);
   const issues = useMemo(
     () => (testResultId ? allIssues.filter((i) => i.linkedTestResults.some((r) => r.id === testResultId)) : allIssues),
@@ -136,13 +139,18 @@ export function TestRunIssuesPage() {
   }
 
   async function handleChangeStatus(row: IssueWithDetails, status: IssueStatus) {
-    await issueService.changeStatus(row.id, status);
+    if (!user) return;
+    await issueService.changeStatus(row.id, status, { projectId: row.projectId, actorId: user.id, actorName });
     await reload();
     await invalidateProjectIssues();
   }
 
   async function handleAssign(row: IssueWithDetails, assignedTo: string | null | undefined) {
-    await issueService.assign(row.id, assignedTo ?? null);
+    if (!user) return;
+    const assigneeName = assignedTo
+      ? projectMembers.find((m) => m.userId === assignedTo)?.profile.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile.username
+      : null;
+    await issueService.assign(row.id, assignedTo ?? null, { projectId: row.projectId, actorId: user.id, actorName, assigneeName });
     await reload();
     await invalidateProjectIssues();
   }
@@ -188,7 +196,8 @@ export function TestRunIssuesPage() {
       acceptLabel: 'Archive',
       rejectLabel: 'Cancel',
       accept: async () => {
-        await issueService.changeStatus(row.id, 'closed');
+        if (!user) return;
+        await issueService.changeStatus(row.id, 'closed', { projectId: row.projectId, actorId: user.id, actorName });
         await reload();
         await invalidateProjectIssues();
       },

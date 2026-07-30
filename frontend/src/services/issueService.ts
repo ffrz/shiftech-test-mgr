@@ -1,5 +1,8 @@
 import { issueRepository } from '../repositories/issueRepository';
 import { tagService } from './tagService';
+import { activityService } from './activityService';
+import { notificationService } from './notificationService';
+import { ISSUE_STATUS_LABEL } from '../helpers/statusLabels';
 import type { ExternalLink, Issue, IssuePriority, IssueStatus, IssueType } from '../types/domain';
 
 export const issueService = {
@@ -169,8 +172,73 @@ export const issueService = {
     return issueRepository.update(id, changes.title !== undefined ? { ...changes, title: changes.title.trim() } : changes);
   },
 
-  changeStatus: issueRepository.updateStatus,
-  assign: issueRepository.assign,
+  async changeStatus(id: string, status: IssueStatus, actor: { projectId: string; actorId: string; actorName?: string | null }) {
+    const previous = await issueRepository.findById(id);
+    const issue = await issueRepository.updateStatus(id, status);
+    if (previous && previous.status !== status) {
+      await activityService.logEvent({
+        projectId: actor.projectId,
+        entityType: 'issue',
+        entityId: id,
+        actorId: actor.actorId,
+        eventType: 'status_change',
+        payload: { from: previous.status, to: status },
+      });
+      // Only the assignee has a direct stake in an issue's status — no broadcast to the
+      // whole project (see ROADMAP_V2 Phase 8 T06 decision: notifications stay targeted,
+      // not a Team Chat-style activity firehose).
+      if (previous.assignedTo && previous.assignedTo !== actor.actorId) {
+        await notificationService.create(
+          previous.assignedTo,
+          'status_change',
+          `${actor.actorName ?? 'Someone'} changed "${previous.title}" to ${ISSUE_STATUS_LABEL[status]}`,
+          null,
+          'issue',
+          id,
+        );
+      }
+    }
+    return issue;
+  },
+
+  async assign(id: string, assignedTo: string | null, actor: { projectId: string; actorId: string; actorName?: string | null; assigneeName?: string | null }) {
+    const issue = await issueRepository.assign(id, assignedTo);
+    await activityService.logEvent({
+      projectId: actor.projectId,
+      entityType: 'issue',
+      entityId: id,
+      actorId: actor.actorId,
+      eventType: 'assignment',
+      payload: { assigneeName: assignedTo ? (actor.assigneeName ?? null) : null },
+    });
+    if (assignedTo && assignedTo !== actor.actorId) {
+      await notificationService.create(
+        assignedTo,
+        'assignment',
+        `${actor.actorName ?? 'Someone'} assigned you to "${issue.title}"`,
+        null,
+        'issue',
+        id,
+      );
+    }
+    return issue;
+  },
+
+  // Sequential (not Promise.all) — each call writes its own activity_log row + possible
+  // notification, and per-project write order matters less than not hammering Supabase
+  // with a burst of concurrent writes for a large selection.
+  async bulkChangeStatus(ids: string[], status: IssueStatus, actor: { projectId: string; actorId: string; actorName?: string | null }) {
+    for (const id of ids) {
+      await issueService.changeStatus(id, status, actor);
+    }
+  },
+
+  async bulkAssign(ids: string[], assignedTo: string | null, actor: { projectId: string; actorId: string; actorName?: string | null; assigneeName?: string | null }) {
+    for (const id of ids) {
+      await issueService.assign(id, assignedTo, actor);
+    }
+  },
+
   remove: issueRepository.remove,
 
   linkToTestResult: issueRepository.linkToTestResult,
