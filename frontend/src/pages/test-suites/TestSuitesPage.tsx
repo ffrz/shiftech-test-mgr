@@ -176,7 +176,7 @@ export function TestSuitesPage() {
       <span className="font-bold">{row.name}</span>
       <span className="text-xs text-color-secondary">by {row._authorUsername}</span>
       <span className="text-sm text-color-secondary">{row.description || '-'}</span>
-      <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} />
+      <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} style={{ width: 'fit-content' }} />
       <span className="text-sm text-color-secondary">{formatDateTime(row.updatedAt)}</span>
     </div>
   ), []);
@@ -273,7 +273,7 @@ export function TestSuitesPage() {
         rowHover
         className="cursor-pointer"
       >
-        {isMobile && <Column body={mobileBodyTemplate} />}
+        {isMobile && <Column header="Test Suite" body={mobileBodyTemplate} />}
         {!isMobile && (
           <Column
             field="name"
