@@ -1,6 +1,8 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
+import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
@@ -8,14 +10,31 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useDashboard } from '../../hooks/useDashboard';
 import { useProjectInvitations } from '../../hooks/useProjectInvitations';
-import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
+import { profileRepository } from '../../repositories/profileRepository';
+import { pathForActivityEntity, ACTIVITY_ENTITY_LABEL } from '../../helpers/activityRoutes';
+import { describeSystemEvent } from '../../helpers/activityDescribe';
+import { formatDateTime } from '../../helpers/dateFormatter';
+import { PROJECT_MEMBER_ROLE_LABEL, ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL } from '../../helpers/statusLabels';
+import type { ActivityEntityType } from '../../types/domain';
 
 export function HomePage() {
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
   const { profile } = useAuthContext();
-  const { counts, recentProjects, continueWorking, loading } = useDashboard();
+  const { counts, recentProjects, continueWorking, myWorkIssues, myWorkLoading, recentActivity, activityLoading, loading } = useDashboard();
   const { invitations, accept, decline } = useProjectInvitations();
+
+  const activityActorIds = useMemo(() => [...new Set(recentActivity.map((a) => a.actorId))], [recentActivity]);
+  const { data: activityActors = [] } = useQuery({
+    queryKey: ['profiles', 'byIds', ...activityActorIds.sort()],
+    queryFn: () => profileRepository.findByIds(activityActorIds),
+    enabled: activityActorIds.length > 0,
+  });
+  const activityActorById = useMemo(() => {
+    const map = new Map<string, (typeof activityActors)[number]>();
+    for (const p of activityActors) map.set(p.id, p);
+    return map;
+  }, [activityActors]);
 
   async function handleAccept(id: string, projectId?: string) {
     const ok = await accept(id, projectId);
@@ -84,6 +103,38 @@ export function HomePage() {
         </div>
       )}
 
+      {!myWorkLoading && myWorkIssues.length > 0 && (
+        <div className="mb-4">
+          <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-briefcase text-primary" />My Work</h3>
+          <div className="flex flex-column gap-2">
+            {myWorkIssues.map((issue) => (
+              <Card
+                key={issue.id}
+                className="home-list-card cursor-pointer"
+                pt={{ body: { className: 'py-3' } }}
+                onClick={() => navigate(`/issues/${issue.id}`)}
+              >
+                <div className="flex align-items-center justify-content-between gap-3 flex-wrap">
+                  <div className="flex align-items-center gap-3" style={{ minWidth: 0 }}>
+                    <div className="stat-icon-badge stat-icon-red">
+                      <i className="pi pi-exclamation-circle" />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="font-bold white-space-nowrap overflow-hidden text-overflow-ellipsis">{issue.code} — {issue.title}</div>
+                      <div className="text-sm text-color-secondary">{issue.projectName}</div>
+                    </div>
+                  </div>
+                  <div className="flex align-items-center gap-2 flex-shrink-0">
+                    <Tag value={ISSUE_PRIORITY_LABEL[issue.priority]} severity={ISSUE_PRIORITY_SEVERITY[issue.priority]} />
+                    <Tag value={ISSUE_STATUS_LABEL[issue.status]} severity="secondary" />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       {!loading && continueWorking.length > 0 && (
         <div className="mb-4">
           <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-history text-primary" />Continue Working</h3>
@@ -143,9 +194,17 @@ export function HomePage() {
       </div>
 
       <div className="mb-4">
+        <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-bolt text-primary" />Quick Actions</h3>
+        <div className="flex gap-2 flex-wrap">
+          <Button label="New Project" icon="pi pi-plus" onClick={() => navigate('/projects?create=true')} />
+          <Button label="New Test Suite" icon="pi pi-plus" outlined onClick={() => navigate('/test-suites?create=true')} />
+        </div>
+      </div>
+
+      <div className="mb-4">
         <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-chart-bar text-primary" />Statistics</h3>
         <div className="grid">
-          <div className="col-12 md:col-4">
+          <div className="col-12 md:col-3">
             <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
               <div className="flex align-items-center gap-3">
                 <div className="stat-icon-badge stat-icon-blue">
@@ -158,7 +217,7 @@ export function HomePage() {
               </div>
             </Card>
           </div>
-          <div className="col-12 md:col-4">
+          <div className="col-12 md:col-3">
             <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
               <div className="flex align-items-center gap-3">
                 <div className="stat-icon-badge stat-icon-purple">
@@ -171,7 +230,7 @@ export function HomePage() {
               </div>
             </Card>
           </div>
-          <div className="col-12 md:col-4">
+          <div className="col-12 md:col-3">
             <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
               <div className="flex align-items-center gap-3">
                 <div className="stat-icon-badge stat-icon-teal">
@@ -184,16 +243,92 @@ export function HomePage() {
               </div>
             </Card>
           </div>
+          <div className="col-12 md:col-3">
+            <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
+              <div className="flex align-items-center gap-3">
+                <div className="stat-icon-badge stat-icon-red">
+                  <i className="pi pi-exclamation-circle" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold line-height-1">{counts.issueCount}</div>
+                  <div className="text-color-secondary text-sm mt-1">Issues</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+          <div className="col-12 md:col-3">
+            <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
+              <div className="flex align-items-center gap-3">
+                <div className="stat-icon-badge stat-icon-orange">
+                  <i className="pi pi-flag" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold line-height-1">{counts.openIssueCount}</div>
+                  <div className="text-color-secondary text-sm mt-1">Open Issues</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+          <div className="col-12 md:col-3">
+            <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
+              <div className="flex align-items-center gap-3">
+                <div className="stat-icon-badge stat-icon-indigo">
+                  <i className="pi pi-copy" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold line-height-1">{counts.testSuiteOwnedCount}</div>
+                  <div className="text-color-secondary text-sm mt-1">Test Suites</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+          <div className="col-12 md:col-3">
+            <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
+              <div className="flex align-items-center gap-3">
+                <div className="stat-icon-badge stat-icon-green">
+                  <i className="pi pi-play-circle" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold line-height-1">{counts.runningTestRunCount}</div>
+                  <div className="text-color-secondary text-sm mt-1">Running Test Runs</div>
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
 
-      <div>
-        <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-bolt text-primary" />Quick Actions</h3>
-        <div className="flex gap-2 flex-wrap">
-          <Button label="New Project" icon="pi pi-plus" onClick={() => navigate('/projects?create=true')} />
-          <Button label="New Test Suite" icon="pi pi-plus" outlined onClick={() => navigate('/test-suites?create=true')} />
+      {!activityLoading && recentActivity.length > 0 && (
+        <div className="mb-4">
+          <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-list text-primary" />Activity Feed</h3>
+          <Card pt={{ body: { className: 'p-2' }, content: { className: 'p-0' } }}>
+            <div className="flex flex-column gap-1">
+              {recentActivity.map((entry) => {
+                const actor = activityActorById.get(entry.actorId);
+                const actorName = actor?.displayName ?? actor?.username ?? 'Unknown';
+                const entityType = entry.entityType as ActivityEntityType;
+                return (
+                  <div
+                    key={entry.id}
+                    className="flex align-items-start gap-2 p-2 border-round cursor-pointer hover:surface-100"
+                    onClick={() => navigate(pathForActivityEntity(entry.entityType, entry.entityId))}
+                  >
+                    <i className={`pi ${entry.eventType === 'comment' ? 'pi-comment' : 'pi-sync'} text-color-secondary mt-1`} style={{ fontSize: '0.9rem' }} />
+                    <div className="flex-1" style={{ minWidth: 0 }}>
+                      <div className="text-sm">
+                        <span className="font-medium">{actorName}</span>{' '}
+                        {entry.eventType === 'comment' ? 'commented on' : describeSystemEvent(entry)}{' '}
+                        <span className="text-color-secondary">{ACTIVITY_ENTITY_LABEL[entityType] ?? entry.entityType}</span>
+                      </div>
+                      <div className="text-xs text-color-secondary">{formatDateTime(entry.createdAt)}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
         </div>
-      </div>
+      )}
     </div>
   );
 }
