@@ -44,7 +44,7 @@ export function HomePage() {
 
       {invitations.length > 0 && (
         <div className="mb-4">
-          <h3 className="mb-2">Pending Invitations</h3>
+          <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-envelope text-primary" />Pending Invitations</h3>
           <div className="flex flex-column gap-2">
             {invitations.map((invite) => (
               <Card key={invite.id}>
@@ -86,24 +86,28 @@ export function HomePage() {
 
       {!loading && continueWorking.length > 0 && (
         <div className="mb-4">
-          <h3 className="mb-2">Continue Working</h3>
+          <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-history text-primary" />Continue Working</h3>
           <div className="flex flex-column gap-2">
             {continueWorking.map((item, i) => (
-              <Card key={i}>
+              <Card
+                key={i}
+                className="home-list-card cursor-pointer"
+                pt={{ body: { className: 'py-3' } }}
+                onClick={() => navigate(`/projects/${item.project.id}`)}
+              >
                 <div className="flex align-items-center justify-content-between gap-3 flex-wrap">
-                  <div>
-                    <div className="font-bold">{item.project.name}</div>
-                    <div className="text-sm text-color-secondary">
-                      {item.testPlan ? item.testPlan.name : item.testRunName}
+                  <div className="flex align-items-center gap-3">
+                    <div className="stat-icon-badge stat-icon-orange">
+                      <i className="pi pi-play" />
+                    </div>
+                    <div>
+                      <div className="font-bold">{item.project.name}</div>
+                      <div className="text-sm text-color-secondary">
+                        {item.testPlan ? item.testPlan.name : item.testRunName}
+                      </div>
                     </div>
                   </div>
-                  <Button
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    text
-                    size="small"
-                    onClick={() => navigate(`/projects/${item.project.id}`)}
-                  />
+                  <i className="pi pi-arrow-right text-color-secondary" />
                 </div>
               </Card>
             ))}
@@ -112,19 +116,25 @@ export function HomePage() {
       )}
 
       <div className="mb-4">
-        <h3 className="mb-2">Recent Projects</h3>
+        <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-folder text-primary" />Recent Projects</h3>
         <Card pt={{ body: { className: 'p-2' }, content: { className: 'p-0' } }}>
           {recentProjects.length === 0 && !loading && (
-            <span className="text-color-secondary">No projects yet.</span>
+            <div className="flex flex-column align-items-center gap-2 py-4 text-color-secondary">
+              <i className="pi pi-folder-open text-3xl" />
+              <span>No projects yet. Create one to get started.</span>
+            </div>
           )}
           <div className="flex flex-column gap-1">
             {recentProjects.map((project) => (
               <div
                 key={project.id}
-                className="flex align-items-center justify-content-between gap-3 p-1 border-round cursor-pointer hover:surface-100"
+                className="flex align-items-center justify-content-between gap-3 p-2 border-round cursor-pointer hover:surface-100"
                 onClick={() => navigate(`/projects/${project.id}`)}
               >
-                <span className="font-medium">{project.name}</span>
+                <span className="flex align-items-center gap-2 font-medium">
+                  <i className="pi pi-folder text-color-secondary" />
+                  {project.name}
+                </span>
                 <i className="pi pi-chevron-right text-color-secondary" />
               </div>
             ))}
@@ -133,34 +143,55 @@ export function HomePage() {
       </div>
 
       <div className="mb-4">
-        <h3 className="mb-2">Quick Actions</h3>
-        <div className="flex gap-2 flex-wrap">
-          <Button label="New Project" icon="pi pi-plus" onClick={() => navigate('/projects?create=true')} />
-          <Button label="New Test Suite" icon="pi pi-plus" outlined onClick={() => navigate('/test-suites?create=true')} />
+        <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-chart-bar text-primary" />Statistics</h3>
+        <div className="grid">
+          <div className="col-12 md:col-4">
+            <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
+              <div className="flex align-items-center gap-3">
+                <div className="stat-icon-badge stat-icon-blue">
+                  <i className="pi pi-folder" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold line-height-1">{counts.projectCount}</div>
+                  <div className="text-color-secondary text-sm mt-1">Projects</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+          <div className="col-12 md:col-4">
+            <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
+              <div className="flex align-items-center gap-3">
+                <div className="stat-icon-badge stat-icon-purple">
+                  <i className="pi pi-calendar" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold line-height-1">{counts.testPlanCount}</div>
+                  <div className="text-color-secondary text-sm mt-1">Test Plans</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+          <div className="col-12 md:col-4">
+            <Card className="stat-card" pt={{ body: { className: 'py-3' } }}>
+              <div className="flex align-items-center gap-3">
+                <div className="stat-icon-badge stat-icon-teal">
+                  <i className="pi pi-check-square" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold line-height-1">{counts.testCaseCount}</div>
+                  <div className="text-color-secondary text-sm mt-1">Test Cases</div>
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
 
       <div>
-        <h3 className="mb-2">Statistics</h3>
-        <div className="grid">
-          <div className="col-12 md:col-4">
-            <Card className="text-center">
-              <div className="text-3xl font-bold">{counts.projectCount}</div>
-              <div className="text-color-secondary">Projects</div>
-            </Card>
-          </div>
-          <div className="col-12 md:col-4">
-            <Card className="text-center">
-              <div className="text-3xl font-bold">{counts.testPlanCount}</div>
-              <div className="text-color-secondary">Test Plans</div>
-            </Card>
-          </div>
-          <div className="col-12 md:col-4">
-            <Card className="text-center">
-              <div className="text-3xl font-bold">{counts.testCaseCount}</div>
-              <div className="text-color-secondary">Test Cases</div>
-            </Card>
-          </div>
+        <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-bolt text-primary" />Quick Actions</h3>
+        <div className="flex gap-2 flex-wrap">
+          <Button label="New Project" icon="pi pi-plus" onClick={() => navigate('/projects?create=true')} />
+          <Button label="New Test Suite" icon="pi pi-plus" outlined onClick={() => navigate('/test-suites?create=true')} />
         </div>
       </div>
     </div>
