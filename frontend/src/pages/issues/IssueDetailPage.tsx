@@ -5,6 +5,7 @@ import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
+import { FloatLabel } from 'primereact/floatlabel';
 import { InputText } from 'primereact/inputtext';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
@@ -309,165 +310,182 @@ export function IssueDetailPage() {
 
       <Breadcrumb items={breadcrumbItems} />
 
-      <Card className="mb-3">
-        <div className="flex align-items-center gap-2 mb-1 justify-content-between">
-          <h2 className="m-0">{issue.code} — {issue.title}</h2>
-          <div className="flex align-items-center gap-1 header-actions">
-            {canManageIssues && <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
-            {canManageIssues && <Button rounded icon="pi pi-copy" size="small" text severity="secondary" onClick={handleDuplicate} />}
-            {canDeleteContent ? (
-              <Button rounded icon="pi pi-trash" size="small" text severity="danger" onClick={handleDelete} />
-            ) : (
-              canManageIssues &&
-              issue.status !== 'closed' && (
-                <Button rounded icon="pi pi-inbox" size="small" text severity="secondary" onClick={handleArchive} />
-              )
-            )}
+      <div className="detail-content-col">
+        <Card className="mb-3">
+          <div className="flex align-items-center gap-2 mb-1 justify-content-between">
+            <h2 className="m-0">{issue.code} — {issue.title}</h2>
+            <div className="flex align-items-center gap-1 header-actions">
+              {canManageIssues && <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
+              {canManageIssues && <Button rounded icon="pi pi-copy" size="small" text severity="secondary" onClick={handleDuplicate} />}
+              {canDeleteContent ? (
+                <Button rounded icon="pi pi-trash" size="small" text severity="danger" onClick={handleDelete} />
+              ) : (
+                canManageIssues &&
+                issue.status !== 'closed' && (
+                  <Button rounded icon="pi pi-inbox" size="small" text severity="secondary" onClick={handleArchive} />
+                )
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="flex align-items-center gap-2 my-2">
-          <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} />
-          <Tag value={ISSUE_PRIORITY_LABEL[issue.priority]} severity={ISSUE_PRIORITY_SEVERITY[issue.priority]} />
-        </div>
+          <div className="flex align-items-center gap-2 mt-3">
+            <Tag value={ISSUE_TYPE_LABEL[issue.type]} severity={ISSUE_TYPE_SEVERITY[issue.type]} />
+            <Tag value={ISSUE_PRIORITY_LABEL[issue.priority]} severity={ISSUE_PRIORITY_SEVERITY[issue.priority]} />
+          </div>
 
-        <div className="flex flex-wrap gap-4 my-2 text-sm">
-          {issue?.module && (
+          <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-3 text-xs">
             <span className="text-color-secondary">
-              Module: <span className="text-color">{issue.module.name}</span>
+              <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
+              Created <span className="text-color">{formatDateTime(issue.createdAt)}</span>
             </span>
+            <span className="text-color-secondary">
+              <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
+              Updated <span className="text-color">{formatDateTime(issue.updatedAt)}</span>
+            </span>
+          </div>
+
+          {issue.module && (
+            <div className="project-stat-grid project-stat-grid-fixed2 mb-3">
+              <div className="project-stat-tile">
+                <i className="pi pi-sitemap text-primary" />
+                <div className="project-stat-tile-body">
+                  <span className="project-stat-value-text">{issue.module.name}</span>
+                  <span className="project-stat-label">Module</span>
+                </div>
+              </div>
+            </div>
           )}
+
           {issue.tags.length > 0 && (
-            <span className="text-color-secondary flex align-items-center gap-2">
-              Tags:
-              <span className="flex flex-wrap gap-1">
-                {issue.tags.map((tag) => (
-                  <Tag key={tag.id} value={tag.name} severity="info" />
+            <div className="flex align-items-center flex-wrap gap-2 mb-3 compact-chips">
+              {issue.tags.map((tag) => (
+                <Tag key={tag.id} value={tag.name} severity="info" />
+              ))}
+            </div>
+          )}
+
+          {issue.linkedTestResults.length > 0 && (
+            <div className="mb-3 text-sm">
+              <span className="text-color-secondary">Linked to Test Result: </span>
+              <span className="flex flex-wrap gap-2 mt-1">
+                {issue.linkedTestResults.map((link) => (
+                  <a key={link.id} className="entity-link" onClick={() => navigate(`/test-runs/${link.testRunId}`)}>
+                    {link.testCaseCode} - {link.testCaseTitle} ({link.testRun?.code})
+                  </a>
                 ))}
               </span>
-            </span>
+            </div>
           )}
-          <span className="text-color-secondary">Created: <span className="text-color">{formatDateTime(issue.createdAt)}</span></span>
-          <span className="text-color-secondary">Last Updated: <span className="text-color">{formatDateTime(issue.updatedAt)}</span></span>
-        </div>
 
-        {issue.linkedTestResults.length > 0 && (
-          <div className="my-2 text-sm">
-            <span className="text-color-secondary">Linked to Test Result: </span>
-            <span className="flex flex-wrap gap-2 mt-1">
-              {issue.linkedTestResults.map((link) => (
-                <a key={link.id} className="entity-link" onClick={() => navigate(`/test-runs/${link.testRunId}`)}>
-                  {link.testCaseCode} - {link.testCaseTitle} ({link.testRun?.code})
-                </a>
-              ))}
-            </span>
+          <div className="grid">
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <Dropdown id="issue-status" value={issue.status} options={STATUS_OPTIONS} onChange={(e) => handleChangeStatus(e.value)} disabled={!canManageIssues} className="w-full" />
+                <label htmlFor="issue-status">Status</label>
+              </FloatLabel>
+            </div>
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <Dropdown
+                  id="issue-assigned"
+                  value={issue.assignedTo}
+                  options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                  onChange={(e) => handleAssign(e.value)}
+                  showClear
+                  disabled={!canManageIssues}
+                  className="w-full"
+                />
+                <label htmlFor="issue-assigned">Assigned To</label>
+              </FloatLabel>
+            </div>
           </div>
+        </Card>
+
+        {issue.description && (
+          <Card title="Description" className="mb-3 detail-content-card">
+            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.description}</p>
+          </Card>
         )}
 
-        <div className="grid">
-          <div className="col-12 md:col-6 flex flex-column gap-1">
-            <label className="text-color-secondary text-sm">Status</label>
-            <Dropdown value={issue.status} options={STATUS_OPTIONS} onChange={(e) => handleChangeStatus(e.value)} disabled={!canManageIssues} className="w-full" />
-          </div>
-          <div className="col-12 md:col-6 flex flex-column gap-1">
-            <label className="text-color-secondary text-sm">Assigned To</label>
-            <Dropdown
-              value={issue.assignedTo}
-              options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
-              onChange={(e) => handleAssign(e.value)}
-              placeholder="Unassigned"
-              showClear
-              disabled={!canManageIssues}
-              className="w-full"
-            />
-          </div>
-        </div>
-      </Card>
+        {issue.actualResult && (
+          <Card title="Actual Result" className="mb-3 detail-content-card">
+            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.actualResult}</p>
+          </Card>
+        )}
 
-      {issue.description && (
-        <Card title="Description" className="mb-3">
-          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.description}</p>
-        </Card>
-      )}
+        {issue.expectedResult && (
+          <Card title="Expected Result" className="mb-3 detail-content-card">
+            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.expectedResult}</p>
+          </Card>
+        )}
 
-      {issue.actualResult && (
-        <Card title="Actual Result" className="mb-3">
-          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.actualResult}</p>
-        </Card>
-      )}
-
-      {issue.expectedResult && (
-        <Card title="Expected Result" className="mb-3">
-          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.expectedResult}</p>
-        </Card>
-      )}
-
-      <Card title="Attachment" className="mb-3">
-        <div className="flex flex-column gap-2">
-          {attachments.map((a) => (
-            <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
-              <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-                <i className="pi pi-paperclip mr-2" />
-                {a.fileName}
-              </a>
-              {canManageIssues && (
-                <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
-              )}
-            </div>
-          ))}
-          {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
-          {canManageIssues && (
-            <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
-          )}
-        </div>
-      </Card>
-
-      <Card title="External Links" className="mb-3">
-        <div className="flex flex-column gap-2">
-          {issue.externalLinks.map((link, i) => (
-            <div key={i} className="flex align-items-center justify-content-between p-2 border-round surface-100">
-              <div className="flex align-items-center gap-2">
-                <i className="pi pi-external-link" style={{ fontSize: '1rem' }} />
-                <a className="entity-link" href={link.url} target="_blank" rel="noreferrer">
-                  {link.label || link.url}
+        <Card title="Attachment" className="mb-3 detail-content-card">
+          <div className="flex flex-column gap-2">
+            {attachments.map((a) => (
+              <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
+                <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
+                  <i className="pi pi-paperclip mr-2" />
+                  {a.fileName}
                 </a>
-                {link.label && link.url && (
-                  <span className="text-color-secondary text-sm ml-2">{link.url}</span>
+                {canManageIssues && (
+                  <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
                 )}
               </div>
-              {canManageIssues && (
-                <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveExternalLink(i)} />
-              )}
-            </div>
-          ))}
-          {issue.externalLinks.length === 0 && <p className="text-color-secondary text-sm m-0">No external links yet.</p>}
-          {canManageIssues && (
-            <>
-              {externalAdding ? (
-                <div className="flex flex-column gap-2 p-2 border-round surface-100">
-                  <InputText
-                    placeholder="URL"
-                    value={newExternalUrl}
-                    onChange={(e) => setNewExternalUrl(e.target.value)}
-                    autoFocus
-                  />
-                  <InputText
-                    placeholder="Label (optional)"
-                    value={newExternalLabel}
-                    onChange={(e) => setNewExternalLabel(e.target.value)}
-                  />
-                  <div className="flex gap-2">
-                    <Button label="Add" size="small" onClick={handleAddExternalLink} disabled={!newExternalUrl.trim()} />
-                    <Button label="Cancel" size="small" text severity="secondary" onClick={resetExternalForm} />
-                  </div>
+            ))}
+            {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
+            {canManageIssues && (
+              <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
+            )}
+          </div>
+        </Card>
+
+        <Card title="External Links" className="mb-3 detail-content-card">
+          <div className="flex flex-column gap-2">
+            {issue.externalLinks.map((link, i) => (
+              <div key={i} className="flex align-items-center justify-content-between p-2 border-round surface-100">
+                <div className="flex align-items-center gap-2">
+                  <i className="pi pi-external-link" style={{ fontSize: '1rem' }} />
+                  <a className="entity-link" href={link.url} target="_blank" rel="noreferrer">
+                    {link.label || link.url}
+                  </a>
+                  {link.label && link.url && (
+                    <span className="text-color-secondary text-sm ml-2">{link.url}</span>
+                  )}
                 </div>
-              ) : (
-                <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit" onClick={() => setExternalAdding(true)} />
-              )}
-            </>
-          )}
-        </div>
-      </Card>
+                {canManageIssues && (
+                  <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveExternalLink(i)} />
+                )}
+              </div>
+            ))}
+            {issue.externalLinks.length === 0 && <p className="text-color-secondary text-sm m-0">No external links yet.</p>}
+            {canManageIssues && (
+              <>
+                {externalAdding ? (
+                  <div className="flex flex-column gap-2 p-2 border-round surface-100">
+                    <InputText
+                      placeholder="URL"
+                      value={newExternalUrl}
+                      onChange={(e) => setNewExternalUrl(e.target.value)}
+                      autoFocus
+                    />
+                    <InputText
+                      placeholder="Label (optional)"
+                      value={newExternalLabel}
+                      onChange={(e) => setNewExternalLabel(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <Button label="Add" size="small" onClick={handleAddExternalLink} disabled={!newExternalUrl.trim()} />
+                      <Button label="Cancel" size="small" text severity="secondary" onClick={resetExternalForm} />
+                    </div>
+                  </div>
+                ) : (
+                  <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit" onClick={() => setExternalAdding(true)} />
+                )}
+              </>
+            )}
+          </div>
+        </Card>
+      </div>
 
       {issue && (
         <IssueEditor

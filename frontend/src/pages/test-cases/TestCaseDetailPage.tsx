@@ -279,103 +279,107 @@ export function TestCaseDetailPage() {
         ]}
       />
 
-      <div className="flex justify-content-between align-items-center mb-3">
-        <div>
-          <h2>Test Case Detail</h2>
-        </div>
-      </div>
+      <div className="detail-content-col">
+        <Card className="mb-3">
+          <div className="flex align-items-start justify-content-between">
+            <div className="flex align-items-center gap-2 mb-1">
+              <h2 className="m-0">{testCase.code} — {testCase.title}</h2>
+            </div>
+            <div className="flex header-actions gap-1">
+              {canEditContent && <Button icon="pi pi-pencil" rounded size="small" text severity="secondary" onClick={openEditDialog} />}
+              {canEditContent && <Button icon="pi pi-copy" rounded size="small" text severity="secondary" onClick={handleDuplicate} />}
+              {canDeleteContent && <Button icon="pi pi-trash" rounded size="small" severity="danger" text onClick={handleDelete} />}
+            </div>
+          </div>
 
-      <Card className="mb-3">
-        <div className="flex align-items-start justify-content-between">
-          <div className="flex align-items-center gap-2 mb-1">
-            <h2 className="m-0">{testCase.code} — {testCase.title}</h2>
+          <div className="flex align-items-center gap-2 mt-3">
+            <Tag value={TEST_CASE_PRIORITY_LABEL[testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[testCase.priority]} />
+            <Tag value={TEST_CASE_STATUS_LABEL[testCase.status]} severity={TEST_CASE_STATUS_SEVERITY[testCase.status]} />
+            {testCase.targetRole && <Tag value={testCase.targetRole.name} severity="secondary" />}
           </div>
-          <div className="flex header-actions gap-1">
-            {canEditContent && <Button icon="pi pi-pencil" rounded size="small" text severity="secondary" onClick={openEditDialog} />}
-            {canEditContent && <Button icon="pi pi-copy" rounded size="small" text severity="secondary" onClick={handleDuplicate} />}
-            {canDeleteContent && <Button icon="pi pi-trash" rounded size="small" severity="danger" text onClick={handleDelete} />}
-          </div>
-        </div>
 
-        <div className="flex align-items-center gap-2 mt-3">
+          <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-3 text-xs">
+            <span className="text-color-secondary">
+              <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
+              Created <span className="text-color">{formatDateTime(testCase.createdAt)}</span>
+            </span>
+            <span className="text-color-secondary">
+              <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
+              Updated <span className="text-color">{formatDateTime(testCase.updatedAt)}</span>
+            </span>
+          </div>
 
-          <Tag value={TEST_CASE_PRIORITY_LABEL[testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[testCase.priority]} />
-          <Tag value={TEST_CASE_STATUS_LABEL[testCase.status]} severity={TEST_CASE_STATUS_SEVERITY[testCase.status]} />
-          {testCase.targetRole && <Tag value={testCase.targetRole.name} severity="secondary" />}
-        </div>
+          <div className="project-stat-grid project-stat-grid-fixed2">
+            <div className="project-stat-tile">
+              <i className="pi pi-folder text-primary" />
+              <div className="project-stat-tile-body">
+                <span className="project-stat-value-text">{testCase.project.name}</span>
+                <span className="project-stat-label">Project</span>
+              </div>
+            </div>
+            <div className="project-stat-tile">
+              <i className="pi pi-sitemap text-primary" />
+              <div className="project-stat-tile-body">
+                <span className="project-stat-value-text">{testCase.module?.name ?? '-'}</span>
+                <span className="project-stat-label">Module</span>
+              </div>
+            </div>
+          </div>
 
-        <div className="grid mt-3">
-          <div className="col-6 md:col-3">
-            <label className="block text-color-secondary text-sm mb-1">Project</label>
-            <p className="mt-0">{testCase.project.name}</p>
-          </div>
-          <div className="col-6 md:col-3">
-            <label className="block text-color-secondary text-sm mb-1">Module</label>
-            <p className="mt-0">{testCase.module?.name ?? '-'}</p>
-          </div>
-          <div className="col-6 md:col-3">
-            <label className="block text-color-secondary text-sm mb-1">Created</label>
-            <p className="mt-0">{formatDateTime(testCase.createdAt)}</p>
-          </div>
-          <div className="col-6 md:col-3">
-            <label className="block text-color-secondary text-sm mb-1">Last Updated</label>
-            <p className="mt-0">{formatDateTime(testCase.updatedAt)}</p>
-          </div>
-        </div>
+          {testCase.tags.length > 0 && (
+            <div className="flex align-items-center flex-wrap gap-2 mt-3 compact-chips">
+              {testCase.tags.map((t) => (
+                <Chip key={t.id} label={t.name} />
+              ))}
+            </div>
+          )}
+        </Card>
 
-        {testCase.tags.length > 0 && (
-          <div className="flex align-items-center gap-2 mt-2">
-            {testCase.tags.map((t) => (
-              <Chip key={t.id} label={t.name} />
-            ))}
-          </div>
+        {testCase.objective && (
+          <Card title="Objective" className="mb-3 detail-content-card">
+            <p className="m-0">{testCase.objective}</p>
+          </Card>
         )}
-      </Card>
 
-      {testCase.objective && (
-        <Card title="Objective" className="mb-3">
-          <p className="m-0">{testCase.objective}</p>
-        </Card>
-      )}
-
-      {testCase.preconditions && (
-        <Card title="Preconditions" className="mb-3">
-          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.preconditions}</p>
-        </Card>
-      )}
-
-      {testCase.stepType === 'detailed' ? (
-        <Card title="Test Steps" className="mb-3">
-          <ol className="m-0 pl-3 flex flex-column gap-2">
-            {detailedSteps.map((step) => (
-              <li key={step.id}>
-                <div style={{ whiteSpace: 'pre-wrap' }}>{step.action}</div>
-                {step.expectedResult && (
-                  <div className="text-color-secondary text-sm mt-1" style={{ whiteSpace: 'pre-wrap' }}>
-                    Expected: {step.expectedResult}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ol>
-        </Card>
-      ) : (
-        <>
-          <Card title="Test Steps" className="mb-3">
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.steps}</p>
+        {testCase.preconditions && (
+          <Card title="Preconditions" className="mb-3 detail-content-card">
+            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.preconditions}</p>
           </Card>
+        )}
 
-          <Card title="Expected Result" className="mb-3">
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.expectedResult}</p>
+        {testCase.stepType === 'detailed' ? (
+          <Card title="Test Steps" className="mb-3 detail-content-card">
+            <ol className="m-0 pl-3 flex flex-column gap-2">
+              {detailedSteps.map((step) => (
+                <li key={step.id}>
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{step.action}</div>
+                  {step.expectedResult && (
+                    <div className="text-color-secondary text-sm mt-1" style={{ whiteSpace: 'pre-wrap' }}>
+                      Expected: {step.expectedResult}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ol>
           </Card>
-        </>
-      )}
+        ) : (
+          <>
+            <Card title="Test Steps" className="mb-3 detail-content-card">
+              <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.steps}</p>
+            </Card>
 
-      {testCase.notes && (
-        <Card title="Notes" className="mb-3">
-          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.notes}</p>
-        </Card>
-      )}
+            <Card title="Expected Result" className="mb-3 detail-content-card">
+              <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.expectedResult}</p>
+            </Card>
+          </>
+        )}
+
+        {testCase.notes && (
+          <Card title="Notes" className="mb-3 detail-content-card">
+            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.notes}</p>
+          </Card>
+        )}
+      </div>
 
       {/* --- Edit Dialog --- */}
       <Dialog header="Edit Test Case" visible={editDialogOpen} onHide={() => setEditDialogOpen(false)} style={{ width: '40rem' }}>

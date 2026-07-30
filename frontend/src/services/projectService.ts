@@ -43,4 +43,8 @@ export const projectService = {
   deletePermanently(id: string) {
     return projectRepository.deletePermanently(id);
   },
+
+  getSummaryCounts(id: string) {
+    return projectRepository.getSummaryCounts(id);
+  },
 };

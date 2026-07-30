@@ -15,7 +15,6 @@ import { testRunService } from '../../services/testRunService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import type { TestCase, TestCasePriority, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
-import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { TestPlanDialog } from '../../components/dialogs/TestPlanDialog';
 import { projectService } from '../../services/projectService';
@@ -43,6 +42,7 @@ export function TestPlanDetailPage() {
 
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+  const [detailCollapsed, setDetailCollapsed] = useState(false);
 
   // --- Edit Test Plan dialog ---
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
@@ -288,25 +288,30 @@ export function TestPlanDetailPage() {
       />
 
       <Card className="mb-3">
-        <PageHeader
-          title={testPlan ? `${testPlan.code} — ${testPlan.name}` : 'Test Plan Detail'}
-          actions={
-            testPlan && canEditContent && (
-              <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={openEditPlanDialog} />
-            )
-          }
-        />
-
-        {testPlan && (
-          <p className="text-sm m-0 mb-3">
-            {testPlan.description && <span className="text-color-secondary">{testPlan.description}</span>}
-          </p>
-        )}
-
-        {testPlan && (
-          <div className="flex align-items-center gap-3 m-0 text-sm">
-            <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />
+        <div className="flex align-items-center justify-content-between gap-2">
+          <div className="min-w-0 flex align-items-center gap-2">
+            <h2 className="m-0 white-space-nowrap overflow-hidden text-overflow-ellipsis">
+              {testPlan ? `${testPlan.code} — ${testPlan.name}` : 'Test Plan Detail'}
+            </h2>
+            {testPlan && <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />}
           </div>
+          <div className="flex gap-2 flex-shrink-0 header-actions">
+            {testPlan && canEditContent && (
+              <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={openEditPlanDialog} />
+            )}
+            <Button
+              text
+              icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'}
+              rounded
+              size="small"
+              onClick={() => setDetailCollapsed(!detailCollapsed)}
+              aria-label={detailCollapsed ? 'Expand' : 'Collapse'}
+            />
+          </div>
+        </div>
+
+        {!detailCollapsed && testPlan?.description && (
+          <p className="text-sm text-color-secondary mt-2 mb-0">{testPlan.description}</p>
         )}
       </Card>
 

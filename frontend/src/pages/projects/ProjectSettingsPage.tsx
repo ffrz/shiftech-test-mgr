@@ -17,8 +17,6 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus, ProjectVisibility } from '../../types/domain';
-import { Tag } from 'primereact/tag';
-import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
 import { ModulesTab } from './components/tabs/ModulesTab';
 import { TagsTab } from './components/tabs/TagsTab';
@@ -518,10 +516,10 @@ export function ProjectSettingsPage() {
             <div className="min-w-0">
               <h2 className="m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap">Settings - {project.name}</h2>
               {project.description && <p className="m-0 mt-1 text-color-secondary text-sm">{project.description}</p>}
-              <div className="flex gap-2 mt-1 flex-wrap">
+              {/* <div className="flex gap-2 mt-1 flex-wrap">
                 <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
                 <Tag value={project.visibility === 'public' ? 'Public' : project.visibility === 'unlisted' ? 'Unlisted' : 'Private'} severity="info" />
-              </div>
+              </div> */}
             </div>
           </div>
           <div className="flex-shrink-0 header-actions">

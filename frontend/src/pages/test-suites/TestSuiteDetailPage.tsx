@@ -468,25 +468,32 @@ export function TestSuiteDetailPage() {
         ]}
       />
 
-      <Card className="mb-3">
-
-        <div className="flex align-items-center justify-content-between gap-2 mb-1">
-          <h2 className="m-0">{suite?.name ?? ''}</h2>
-          <div className="header-actions flex gap-1">
-            <Button icon="pi pi-copy" text rounded severity="secondary" size="small" onClick={() => setDuplicateDialogOpen(true)} tooltip="Duplicate Suite" tooltipOptions={{ position: 'bottom' }} />
-            {isOwner && (
-              <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />
-            )}
+      <div className="detail-wide-col">
+        <Card className="mb-3">
+          <div className="flex align-items-center justify-content-between gap-2 mb-1">
+            <h2 className="m-0">{suite?.name ?? ''}</h2>
+            <div className="header-actions flex gap-1">
+              <Button icon="pi pi-copy" text rounded severity="secondary" size="small" onClick={() => setDuplicateDialogOpen(true)} tooltip="Duplicate Suite" tooltipOptions={{ position: 'bottom' }} />
+              {isOwner && (
+                <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />
+              )}
+            </div>
           </div>
-        </div>
-        <p className="text-color-secondary text-sm m-0 my-2">{suite?.description || 'No description'}</p>
-        <div className="flex align-items-center gap-3 my-2">
-          {suite && <Tag value={TEST_SUITE_VISIBILITY_LABEL[suite.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[suite.visibility]} />}
-          <span className="text-color-secondary text-sm">by @{(suite as any)?._authorUsername}</span>
-          <span className="text-color-secondary text-sm">•</span>
-          <span className="text-color-secondary text-sm">Updated {suite ? formatDateTime(suite.updatedAt) : ''}</span>
-        </div>
-      </Card>
+          <p className="text-color-secondary text-sm m-0 mt-2 mb-3">{suite?.description || 'No description'}</p>
+          <div className="flex align-items-center gap-2 flex-wrap">
+            {suite && <Tag value={TEST_SUITE_VISIBILITY_LABEL[suite.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[suite.visibility]} />}
+          </div>
+          <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 text-xs">
+            <span className="text-color-secondary">
+              <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
+              by <span className="text-color">@{(suite as any)?._authorUsername}</span>
+            </span>
+            <span className="text-color-secondary">
+              <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
+              Updated <span className="text-color">{suite ? formatDateTime(suite.updatedAt) : ''}</span>
+            </span>
+          </div>
+        </Card>
 
       <PageHeader
         title="Test Cases"
@@ -596,6 +603,7 @@ export function TestSuiteDetailPage() {
           />
         )}
       </DataTable>
+      </div>
 
       {/* --- Item Dialog --- */}
       <Dialog

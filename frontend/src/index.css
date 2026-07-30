@@ -1108,6 +1108,140 @@ h6,
   min-height: 3.5rem;
 }
 
+/* Project detail header stat tiles — compact grid that scales from a tight
+   2-col layout on mobile up to a single row on wide screens without ever
+   feeling sparse or oversized. */
+.project-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+@media (min-width: 576px) {
+  .project-stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .project-stat-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Fixed 2-column variant for tiles showing text values (e.g. Project/Module name on
+   Test Case detail) — a 5-col spread on wide screens would look sparse with only 2 tiles. */
+.project-stat-grid-fixed2 {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+@media (min-width: 576px) {
+  .project-stat-grid-fixed2 {
+    grid-template-columns: repeat(2, minmax(0, 16rem)) !important;
+  }
+}
+
+/* Smaller Chip badges for tag lists on detail pages — the default PrimeReact size
+   reads oversized next to the compact stat tiles above it. */
+.compact-chips .p-chip {
+  height: 1.5rem;
+  padding: 0 0.6rem;
+  font-size: 0.75rem;
+}
+
+.compact-chips .p-chip .p-chip-text {
+  font-size: 0.75rem;
+  line-height: 1.5rem;
+  margin: 0;
+}
+
+/* Long-form text sections (Objective/Preconditions/Steps/Notes) on detail pages —
+   capped at a comfortable reading width instead of stretching full-bleed on wide
+   screens, with a toned-down title (PrimeCard's default is too large/heavy next to
+   the body copy it's introducing). */
+.detail-content-col {
+  max-width: 800px;
+}
+
+/* Wider variant for detail pages whose body is a data table rather than prose — a table
+   needs more horizontal room than a reading column, but should still stop short of full
+   width on very wide screens so it doesn't dwarf the header card sitting above it. */
+.detail-wide-col {
+  max-width: 1000px;
+}
+
+.detail-content-card .p-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.detail-content-card .p-card-body {
+  padding: 1rem;
+}
+
+.detail-content-card .p-card-content {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-color-secondary);
+}
+
+/* Danger Zone card keeps the same toned-down title size as other detail-page cards,
+   just tinted red instead of the default heading color. */
+.detail-danger-zone .p-card-title {
+  color: var(--red-500);
+}
+
+.project-stat-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: var(--surface-100);
+  border: 1px solid var(--surface-border);
+  min-width: 0;
+}
+
+.project-stat-tile i {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.project-stat-tile-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.project-stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.project-stat-label {
+  font-size: 0.7rem;
+  color: var(--text-color-secondary);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Variant for tiles showing a short text value (project/module name) instead of a
+   count — same tile shell, but the "value" needs ellipsis truncation, not a big number. */
+.project-stat-value-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+
 /* Theme hardcodes `overflow: hidden` on this wrapper (built for its default
    single-line label) — with a chip label allowed to wrap to multiple rows,
    that clips every row after the first. */

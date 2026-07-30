@@ -4,6 +4,7 @@
 // Runs tab) is subscribed to — no more page-local caches going stale after a cross-page edit.
 export const queryKeys = {
   project: (id: string) => ['project', id] as const,
+  projectSummaryCounts: (id: string) => ['project', id, 'summaryCounts'] as const,
   projects: (query?: { search?: string; status?: string | null; sortField?: string; sortDirection?: string }) =>
     query ? (['projects', query.search, query.status, query.sortField, query.sortDirection] as const) : (['projects'] as const),
 

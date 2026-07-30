@@ -64,23 +64,27 @@ export function UserDetailPage() {
 
       <ProfileView profile={profile} projects={projects} suites={suites} adminOverlay={adminOverlay} />
 
-      <Card className="mt-3">
-        <h3 className="m-0 mb-3">Account Info (Admin Only)</h3>
-        <div className="grid">
-          <div className="col-12 md:col-6">
-            <label className="block text-color-secondary text-sm mb-1">Registered</label>
-            <p className="mt-0">{formatDateTime(user.createdAt)}</p>
+      <div className="detail-content-col">
+        <Card title="Account Info (Admin Only)" className="mt-3 detail-content-card">
+          <div className="flex flex-wrap column-gap-4 row-gap-1 mb-3 text-xs">
+            <span className="text-color-secondary">
+              <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
+              Registered <span className="text-color">{formatDateTime(user.createdAt)}</span>
+            </span>
+            <span className="text-color-secondary">
+              <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
+              Updated <span className="text-color">{formatDateTime(user.updatedAt)}</span>
+            </span>
           </div>
-          <div className="col-12 md:col-6">
-            <label className="block text-color-secondary text-sm mb-1">Last Updated</label>
-            <p className="mt-0">{formatDateTime(user.updatedAt)}</p>
+          <div className="project-stat-tile" style={{ maxWidth: 'fit-content' }}>
+            <i className="pi pi-id-card text-primary" />
+            <div className="project-stat-tile-body">
+              <span className="text-sm font-mono">{user.id}</span>
+              <span className="project-stat-label">User ID</span>
+            </div>
           </div>
-          <div className="col-12 md:col-6">
-            <label className="block text-color-secondary text-sm mb-1">User ID</label>
-            <p className="mt-0 text-sm font-mono">{user.id}</p>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

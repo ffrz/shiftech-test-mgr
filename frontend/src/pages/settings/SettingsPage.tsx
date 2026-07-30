@@ -99,10 +99,11 @@ export function SettingsPage() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'Settings' }]} />
-      <Card style={{ maxWidth: 500 }}>
+      <div className="detail-content-col">
+      <Card>
         <PageHeader title="Settings" />
         <div className="card">
-          <div className="flex flex-column gap-2" style={{ maxWidth: '32rem' }}>
+          <div className="flex flex-column gap-2">
             <div className="flex flex-column gap-1">
               <FloatLabel className="ifta-field">
                 <InputText
@@ -163,10 +164,9 @@ export function SettingsPage() {
         </div>
       </Card >
 
-      <Card style={{ maxWidth: 500 }} className="mt-3">
+      <Card title="Danger Zone" className="mt-3 detail-content-card detail-danger-zone">
         <div className="flex flex-column gap-2">
-          <h3 className="m-0 text-red-500">Danger Zone</h3>
-          <p className="m-0 text-sm text-color-secondary">
+          <p className="m-0">
             Once you delete your account, all your projects, test cases, test suites,
             and associated data will be permanently removed. This cannot be undone.
           </p>
@@ -180,6 +180,7 @@ export function SettingsPage() {
           />
         </div>
       </Card>
+      </div>
 
       <ConfirmDialog />
       <Toast ref={toast} position="bottom-center" />

@@ -97,7 +97,21 @@ export function ProjectDetailPage() {
   });
   const project = projectQuery.data ?? null;
   const projectLoading = projectQuery.isLoading;
+
+  const summaryCountsQuery = useQuery({
+    queryKey: queryKeys.projectSummaryCounts(id ?? ''),
+    queryFn: () => projectService.getSummaryCounts(id!),
+    enabled: !!id,
+  });
+  const summaryCounts = summaryCountsQuery.data ?? {
+    testPlanCount: 0,
+    testCaseCount: 0,
+    testRunCount: 0,
+    issueCount: 0,
+    memberCount: 0,
+  };
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [detailCollapsed, setDetailCollapsed] = useStoredState(`project-${id ?? '__unknown__'}:detailCollapsed`, false);
 
   // --- Debounced search for each tab ---
   function useDebouncedSearch(immediate: string, setter: (v: string) => void) {
@@ -262,7 +276,10 @@ export function ProjectDetailPage() {
   async function loadAll() {
     if (!id) return;
     const keys = TAB_DEPENDENCIES[activeTabIndex] ?? [];
-    await Promise.all(keys.map((k) => queryClient.invalidateQueries({ queryKey: queryKeyByName[k] })));
+    await Promise.all([
+      ...keys.map((k) => queryClient.invalidateQueries({ queryKey: queryKeyByName[k] })),
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectSummaryCounts(id) }),
+    ]);
   }
 
   function patchIssue(_issueId: string, _changes: Partial<IssueWithDetails>) {
@@ -920,31 +937,79 @@ export function ProjectDetailPage() {
       />
 
       <Card className="mb-3">
-        <div className="flex align-items-start justify-content-between gap-2">
-          <div className="min-w-0">
-            <div className="flex align-items-center gap-2 mb-1">
-              <h2 className="m-0">{project.name}</h2>
-            </div>
-            <p className="text-color-secondary text-sm m-0">{project.description || 'No description'}</p>
-            <div className="flex gap-2 mt-2">
-              <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
-              <Tag value={PROJECT_VISIBILITY_LABEL[project.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[project.visibility]} />
-            </div>
+        <div className="flex align-items-center justify-content-between gap-2">
+          <div className="min-w-0 flex align-items-center gap-2">
+            <h2 className="m-0 white-space-nowrap overflow-hidden text-overflow-ellipsis">{project.name}</h2>
+            <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
+            <Tag value={PROJECT_VISIBILITY_LABEL[project.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[project.visibility]} />
           </div>
           <div className="flex gap-2 flex-shrink-0 header-actions">
             <Button text icon="pi pi-cog" rounded size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
+            <Button
+              text
+              icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'}
+              rounded
+              size="small"
+              onClick={() => setDetailCollapsed(!detailCollapsed)}
+              aria-label={detailCollapsed ? 'Expand' : 'Collapse'}
+            />
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-4 mt-3 text-sm">
-          <span className="text-color-secondary">Created: <span className="text-color">{formatDateTime(project.createdAt)}</span></span>
-          <span className="text-color-secondary">Last Updated: <span className="text-color">{formatDateTime(project.updatedAt)}</span></span>
-          <span className="text-color-secondary">Test Plan: <span className="text-color">{testPlans.length}</span></span>
-          <span className="text-color-secondary">Test Case: <span className="text-color">{testCases.length}</span></span>
-          <span className="text-color-secondary">Issue: <span className="text-color">{totalIssues}</span></span>
-          <span className="text-color-secondary">Test Run: <span className="text-color">{testRuns.length}</span></span>
-          <span className="text-color-secondary">Member: <span className="text-color">{projectMembers.length}</span></span>
-        </div>
+        {!detailCollapsed && (
+          <>
+            <p className="text-color-secondary text-sm mt-2 mb-0">{project.description || 'No description'}</p>
+
+            <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-3 text-xs">
+              <span className="text-color-secondary">
+                <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
+                Created <span className="text-color">{formatDateTime(project.createdAt)}</span>
+              </span>
+              <span className="text-color-secondary">
+                <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
+                Updated <span className="text-color">{formatDateTime(project.updatedAt)}</span>
+              </span>
+            </div>
+
+            <div className="project-stat-grid">
+              <div className="project-stat-tile">
+                <i className="pi pi-map text-primary" />
+                <div className="project-stat-tile-body">
+                  <span className="project-stat-value">{summaryCounts.testPlanCount}</span>
+                  <span className="project-stat-label">Test Plan</span>
+                </div>
+              </div>
+              <div className="project-stat-tile">
+                <i className="pi pi-check-square text-primary" />
+                <div className="project-stat-tile-body">
+                  <span className="project-stat-value">{summaryCounts.testCaseCount}</span>
+                  <span className="project-stat-label">Test Case</span>
+                </div>
+              </div>
+              <div className="project-stat-tile">
+                <i className="pi pi-play-circle text-primary" />
+                <div className="project-stat-tile-body">
+                  <span className="project-stat-value">{summaryCounts.testRunCount}</span>
+                  <span className="project-stat-label">Test Run</span>
+                </div>
+              </div>
+              <div className="project-stat-tile">
+                <i className="pi pi-exclamation-circle text-primary" />
+                <div className="project-stat-tile-body">
+                  <span className="project-stat-value">{summaryCounts.issueCount}</span>
+                  <span className="project-stat-label">Issue</span>
+                </div>
+              </div>
+              <div className="project-stat-tile">
+                <i className="pi pi-users text-primary" />
+                <div className="project-stat-tile-body">
+                  <span className="project-stat-value">{summaryCounts.memberCount}</span>
+                  <span className="project-stat-label">Member</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </Card>
 
       <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>

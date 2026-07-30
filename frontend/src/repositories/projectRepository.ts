@@ -116,4 +116,36 @@ export const projectRepository = {
     const { error } = await supabase.from('projects').delete().eq('id', id);
     if (error) throw error;
   },
+
+  // Unfiltered totals for the project detail header — must stay independent from whatever
+  // search/filter state the tabs below currently have applied.
+  async getSummaryCounts(projectId: string): Promise<{
+    testPlanCount: number;
+    testCaseCount: number;
+    testRunCount: number;
+    issueCount: number;
+    memberCount: number;
+  }> {
+    const [testPlans, testCases, testRuns, issues, members] = await Promise.all([
+      supabase.from('test_plans').select('*', { count: 'exact', head: true }).eq('project_id', projectId),
+      supabase.from('test_cases').select('*', { count: 'exact', head: true }).eq('project_id', projectId),
+      supabase.from('test_runs').select('*', { count: 'exact', head: true }).eq('project_id', projectId),
+      supabase.from('issues').select('*', { count: 'exact', head: true }).eq('project_id', projectId),
+      supabase.from('project_members').select('*', { count: 'exact', head: true }).eq('project_id', projectId).eq('status', 'accepted'),
+    ]);
+
+    if (testPlans.error) throw testPlans.error;
+    if (testCases.error) throw testCases.error;
+    if (testRuns.error) throw testRuns.error;
+    if (issues.error) throw issues.error;
+    if (members.error) throw members.error;
+
+    return {
+      testPlanCount: testPlans.count ?? 0,
+      testCaseCount: testCases.count ?? 0,
+      testRunCount: testRuns.count ?? 0,
+      issueCount: issues.count ?? 0,
+      memberCount: members.count ?? 0,
+    };
+  },
 };
