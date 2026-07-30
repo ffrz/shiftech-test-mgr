@@ -10,6 +10,8 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { ActivityPanel } from '../../components/ui/ActivityPanel';
+import { ActivityLogTab } from './components/tabs/ActivityLogTab';
 import { TestPlanTab } from './components/tabs/TestPlanTab';
 import { TestCaseTab } from './components/tabs/TestCaseTab';
 import { TestRunTab, type TestRunWithSummary } from './components/tabs/TestRunTab';
@@ -19,7 +21,7 @@ import { DuplicateTestPlanDialog } from './components/dialogs/DuplicateTestPlanD
 import { CreateTestRunDialog } from './components/dialogs/CreateTestRunDialog';
 import { QuickAddDialog } from './components/dialogs/QuickAddDialog';
 import { TestCaseDialog } from './components/dialogs/TestCaseDialog';
-import { ImportTemplateDialog } from './components/dialogs/ImportTemplateDialog';
+import { ImportCasesDialog } from './components/dialogs/ImportCasesDialog';
 import { ImportExcelDialog } from './components/dialogs/ImportExcelDialog';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
@@ -34,6 +36,7 @@ import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
 import { testSuiteService } from '../../services/testSuiteService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectAccessGuard } from '../../hooks/useProjectAccessGuard';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
 import { useStoredState } from '../../hooks/useStoredState';
@@ -47,7 +50,6 @@ import type {
   TestCaseWithDetails,
   TestCasePriority,
   TestCaseStatus,
-  TestSuiteItem,
   TestRunStatus,
   IssueWithDetails,
   IssueStatus,
@@ -82,6 +84,8 @@ export function ProjectDetailPage() {
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
   const { canEditContent, canDeleteContent, canManageIssues, canRunTests } = useProjectRole(id);
+  const { user, profile } = useAuthContext();
+  const actorName = profile?.displayName ?? profile?.username ?? null;
   const queryClient = useQueryClient();
   useProjectAccessGuard(id, () => {
     toast.current?.show({ severity: 'warn', summary: 'Removed from project', detail: 'You no longer have access to this project.' });
@@ -388,6 +392,14 @@ export function ProjectDetailPage() {
     });
   }
 
+  async function handleBulkChangeStatusPlans(status: TestPlanStatus) {
+    if (!id || !user) return;
+    await testPlanService.bulkChangeStatus(selectedPlans.map((p) => p.id), status, { projectId: id, actorId: user.id });
+    setSelectedPlans([]);
+    await loadAll();
+    toastSuccess('Selected test plans updated');
+  }
+
   function openDuplicatePlanDialog(row: TestPlan) {
     setDuplicatePlanSource(row);
     setDuplicatePlanName(`${row.name} (Copy)`);
@@ -625,44 +637,26 @@ export function ProjectDetailPage() {
     }
   }
 
-  // --- Import Test Case from Template ---
+  // --- Import Test Case from Suite/Project ---
   const [importTemplateDialogOpen, setImportTemplateDialogOpen] = useState(false);
-  const [importTemplateId, setImportTemplateId] = useState<string | null>(null);
-  const [importTemplateItems, setImportTemplateItems] = useState<TestSuiteItem[]>([]);
-  const [importTemplateItemIds, setImportTemplateItemIds] = useState<string[]>([]);
   const [importTemplateLoading, setImportTemplateLoading] = useState(false);
 
-  const { data: availableTemplates = [] } = useQuery({
-    queryKey: queryKeys.testSuites(),
-    queryFn: () => testSuiteService.listSuites(),
-    enabled: importTemplateDialogOpen,
-  });
-
   function openImportTemplateDialog() {
-    setImportTemplateId(null);
-    setImportTemplateItems([]);
-    setImportTemplateItemIds([]);
     setImportTemplateDialogOpen(true);
   }
 
-  async function handleSelectImportTemplate(nextTemplateId: string | null) {
-    setImportTemplateId(nextTemplateId);
-    setImportTemplateItemIds([]);
-    if (!nextTemplateId) {
-      setImportTemplateItems([]);
-      return;
-    }
-    setImportTemplateItems(await testSuiteService.listItems(nextTemplateId));
-  }
-
-  async function handleImportFromTemplate() {
-    if (!id || importTemplateItemIds.length === 0) return;
+  async function handleImportFromTemplate(source: { kind: 'suite'; suiteId: string } | { kind: 'project'; projectId: string }, ids: string[]) {
+    if (!id || ids.length === 0) return;
     setImportTemplateLoading(true);
     try {
-      await testSuiteService.cloneItemsToProject(id, importTemplateItemIds);
+      if (source.kind === 'suite') {
+        await testSuiteService.cloneItemsToProject(id, ids);
+      } else {
+        await testCaseService.cloneToProject(ids, id);
+      }
       setImportTemplateDialogOpen(false);
       await loadAll();
-      toastSuccess(`${importTemplateItemIds.length} test case(s) imported`);
+      toastSuccess(`${ids.length} test case(s) imported`);
     } catch (err) {
       toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
     } finally {
@@ -727,6 +721,13 @@ export function ProjectDetailPage() {
     });
   }
 
+  async function handleBulkEditCases(changes: { moduleId?: string | null; priority?: TestCasePriority; status?: TestCaseStatus; targetRoleId?: string | null }) {
+    await testCaseService.bulkUpdate(selectedCases.map((c) => c.id), changes);
+    setSelectedCases([]);
+    await loadAll();
+    toastSuccess('Selected test cases updated');
+  }
+
   // --- Create Test Run dialog: "from plan" (existing flow) or "unplanned/custom" ---
   const [runDialogOpen, setRunDialogOpen] = useState(false);
   const [runMode, setRunMode] = useState<'plan' | 'custom'>('plan');
@@ -745,6 +746,29 @@ export function ProjectDetailPage() {
   }
 
   async function handleCreateRun() {
+    if (!id) return;
+    if (runMode === 'plan') {
+      const selectedPlan = testPlans.find((p) => p.id === runFormPlanId);
+      if (selectedPlan && (selectedPlan.status === 'draft' || selectedPlan.status === 'archived')) {
+        confirmDialog({
+          header: 'Test Plan Belum Siap',
+          message:
+            selectedPlan.status === 'draft'
+              ? 'Test plan ini masih berstatus Draft. Test run yang dibuat dari plan draft bisa saja belum final. Lanjutkan membuat test run?'
+              : 'Test plan ini sudah diarsipkan. Biasanya test plan archived tidak dites lagi. Lanjutkan membuat test run?',
+          icon: 'pi pi-exclamation-triangle',
+          acceptLabel: 'Lanjutkan',
+          rejectLabel: 'Batal',
+          acceptClassName: 'p-button-warning',
+          accept: () => actuallyCreateRun(),
+        });
+        return;
+      }
+    }
+    await actuallyCreateRun();
+  }
+
+  async function actuallyCreateRun() {
     if (!id) return;
     setRunFormError(null);
     try {
@@ -896,6 +920,23 @@ export function ProjectDetailPage() {
     });
   }
 
+  async function handleBulkEditIssues(changes: { status?: IssueStatus; assignedTo?: string | null }) {
+    if (!id || !user) return;
+    const ids = selectedIssues.map((i) => i.id);
+    if (changes.status !== undefined) {
+      await issueService.bulkChangeStatus(ids, changes.status, { projectId: id, actorId: user.id, actorName });
+    }
+    if (changes.assignedTo !== undefined) {
+      const assigneeName = changes.assignedTo
+        ? projectMembers.find((m) => m.userId === changes.assignedTo)?.profile.displayName ?? projectMembers.find((m) => m.userId === changes.assignedTo)?.profile.username
+        : null;
+      await issueService.bulkAssign(ids, changes.assignedTo, { projectId: id, actorId: user.id, actorName, assigneeName });
+    }
+    setSelectedIssues([]);
+    await loadAll();
+    toastSuccess('Selected issues updated');
+  }
+
   if (!project) {
     return (
       <div className="page-fade-in">
@@ -1015,6 +1056,7 @@ export function ProjectDetailPage() {
             plans={testPlans}
             loading={tabLoading[0]}
             isMobile={isMobile}
+            projectId={id ?? ''}
             search={planSearch}
             onSearchChange={setPlanSearch}
             statusFilter={planStatusFilter}
@@ -1033,6 +1075,7 @@ export function ProjectDetailPage() {
             onDuplicate={openDuplicatePlanDialog}
             onDelete={handleDeletePlan}
             onBulkDelete={handleBulkDeletePlans}
+            onBulkChangeStatus={handleBulkChangeStatusPlans}
             onPatchPlan={() => queryClient.invalidateQueries({ queryKey: queryKeys.testPlans(id ?? '') })}
             onRowClick={(row) => navigate(`/test-plans/${row.id}`)}
           />
@@ -1075,6 +1118,7 @@ export function ProjectDetailPage() {
             onArchive={handleArchiveCase}
             onDelete={handleDeleteCase}
             onBulkDelete={handleBulkDeleteCases}
+            onBulkEdit={handleBulkEditCases}
             onPatchCase={() => queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(id ?? '') })}
             onRowClick={(row) => navigate(`/test-cases/${row.id}?projectId=${id}`)}
           />
@@ -1139,6 +1183,7 @@ export function ProjectDetailPage() {
             onEdit={openEditIssueDialog}
             onDuplicate={openDuplicateIssueDialog}
             onBulkDelete={handleBulkDeleteIssues}
+            onBulkEdit={handleBulkEditIssues}
             onRowClick={(row) => navigate(`/issues/${row.id}`)}
             onPatchIssue={patchIssue}
             onReload={loadAll}
@@ -1149,6 +1194,14 @@ export function ProjectDetailPage() {
             rows={issueRowsPerPage}
             onPage={onIssuePage}
           />
+        </TabPanel>
+
+        <TabPanel header="Activity">
+          <ActivityPanel projectId={id ?? ''} entityType="project" entityId={id ?? null} />
+        </TabPanel>
+
+        <TabPanel header="Activity Log">
+          {id && <ActivityLogTab projectId={id} />}
         </TabPanel>
       </TabView>
 
@@ -1273,17 +1326,12 @@ export function ProjectDetailPage() {
         onSave={handleSaveCase}
       />
 
-      <ImportTemplateDialog
+      <ImportCasesDialog
         visible={importTemplateDialogOpen}
-        templateId={importTemplateId}
-        onSelectTemplate={handleSelectImportTemplate}
-        templates={availableTemplates}
-        items={importTemplateItems}
-        itemIds={importTemplateItemIds}
-        onItemIdsChange={setImportTemplateItemIds}
         loading={importTemplateLoading}
         onHide={() => setImportTemplateDialogOpen(false)}
         onImport={handleImportFromTemplate}
+        excludeProjectId={id}
       />
 
       <ImportExcelDialog
