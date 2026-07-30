@@ -30,7 +30,7 @@ export const dashboardRepository = {
       supabase.from('test_plans').select('*', { count: 'exact', head: true }),
       supabase.from('test_cases').select('*', { count: 'exact', head: true }),
       supabase.from('issues').select('*', { count: 'exact', head: true }),
-      supabase.from('issues').select('*', { count: 'exact', head: true }).neq('status', 'closed'),
+      supabase.from('issues').select('*', { count: 'exact', head: true }).not('status', 'in', '(closed,rejected,duplicate)'),
       supabase.from('test_suites').select('*', { count: 'exact', head: true }).eq('owner_id', userId),
       supabase.from('test_runs').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
     ]);
@@ -94,7 +94,7 @@ export const dashboardRepository = {
       .from('issues')
       .select('*, project:projects(name)')
       .eq('assigned_to', userId)
-      .neq('status', 'closed')
+      .not('status', 'in', '(closed,rejected,duplicate)')
       .order('updated_at', { ascending: false })
       .limit(limit);
 

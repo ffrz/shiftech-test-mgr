@@ -165,8 +165,9 @@ berdiri sendiri — tidak lagi wajib lahir dari satu Test Result tertentu.
   (enum/check constraint), supaya modul ini sekaligus bisa jadi pelacak
   feature request sederhana, bukan cuma bug dari hasil test.
 - **Field lain**: title, description, actual result, expected result, priority,
-  status (`open`/`in_progress`/`resolved`/`verified`/`closed`), assigned to
-  (user terdaftar).
+  status (`backlog`/`open`/`in_progress`/`resolved`/`verified`/`closed`/
+  `rejected`/`duplicate` — diperluas 2026-07-30 dari 5 jadi 8 nilai, lihat
+  `docs/ROADMAP_V2.md` catatan Phase 8 lanjutan), assigned to (user terdaftar).
 - **External links**: array link eksternal (`{url, label?}`) — sekadar tautan
   yang bisa diklik ke resource terkait (issue tracker, PR, dokumen, dll),
   bukan integrasi API dua arah (lihat §Out of Scope). Satu Issue bisa punya

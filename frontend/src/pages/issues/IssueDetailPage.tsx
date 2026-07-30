@@ -34,7 +34,7 @@ import {
 } from '../../helpers/statusLabels';
 
 const STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
-  ['open', 'in_progress', 'resolved', 'verified', 'closed'] as const
+  ['backlog', 'open', 'in_progress', 'resolved', 'verified', 'closed', 'rejected', 'duplicate'] as const
 ).map((v) => ({ label: ISSUE_STATUS_LABEL[v], value: v }));
 
 export function IssueDetailPage() {
@@ -167,6 +167,7 @@ export function IssueDetailPage() {
       issue.id,
       issue.projectId,
       {
+        code: data.code,
         title: data.title,
         description: data.description,
         actualResult: data.actualResult,
@@ -508,13 +509,16 @@ export function IssueDetailPage() {
             await handleIssueEditorSave(data);
             await handleIssueEditorAfterSave();
           }}
+          onStatusChange={(status) => handleChangeStatus(status)}
           projectId={issue.projectId}
           mode="edit"
           issueId={issue.id}
           initialData={{
+            code: issue.code,
             title: issue.title,
             type: issue.type,
             priority: issue.priority,
+            status: issue.status,
             moduleId: issue.moduleId,
             description: issue.description ?? '',
             actualResult: issue.actualResult ?? '',

@@ -32,7 +32,7 @@ import {
 } from '../../../../helpers/statusLabels';
 
 const ISSUE_STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
-  ['open', 'in_progress', 'resolved', 'verified', 'closed'] as const
+  ['backlog', 'open', 'in_progress', 'resolved', 'verified', 'closed', 'rejected', 'duplicate'] as const
 ).map((v) => ({ label: ISSUE_STATUS_LABEL[v], value: v }));
 
 const ISSUE_PRIORITY_OPTIONS: { label: string; value: IssuePriority }[] = (

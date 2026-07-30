@@ -322,9 +322,11 @@ export function TestRunResultDetailPage() {
   function openCreateIssueDialog() {
     if (!activeResult) return;
     setIssueEditorInitialData({
+      code: '',
       title: activeResult.status === 'fail' ? `${activeResult.testCaseTitle} failed` : '',
       type: 'bug',
       priority: 'medium',
+      status: 'open',
       moduleId: null,
       description: '',
       actualResult: '',
@@ -342,6 +344,7 @@ export function TestRunResultDetailPage() {
       linkToTestResultId: activeResult.id,
       moduleId: data.moduleId,
       type: data.type,
+      code: data.code,
       tagNames: data.tagNames,
       title: data.title,
       description: data.description,

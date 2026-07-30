@@ -29,7 +29,7 @@ import { queryKeys } from '../../hooks/queryKeys';
 import { ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL } from '../../helpers/statusLabels';
 
 const STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
-  ['open', 'in_progress', 'resolved', 'verified', 'closed'] as const
+  ['backlog', 'open', 'in_progress', 'resolved', 'verified', 'closed', 'rejected', 'duplicate'] as const
 ).map((value) => ({ label: ISSUE_STATUS_LABEL[value], value }));
 
 export function TestRunIssuesPage() {
@@ -117,6 +117,7 @@ export function TestRunIssuesPage() {
       issue.id,
       issue.projectId,
       {
+        code: data.code,
         title: data.title,
         description: data.description,
         actualResult: data.actualResult,
@@ -321,13 +322,16 @@ export function TestRunIssuesPage() {
         visible={!!editIssue && !isRunCompleted}
         onHide={closeEdit}
         onSave={handleSaveEdit}
+        onStatusChange={(status) => handleChangeStatus(editIssue!, status)}
         projectId={projectId ?? ''}
         mode="edit"
         issueId={editIssue?.id}
         initialData={editIssue ? {
+          code: editIssue.code,
           title: editIssue.title,
           type: editIssue.type,
           priority: editIssue.priority,
+          status: editIssue.status,
           moduleId: editIssue.moduleId,
           description: editIssue.description ?? '',
           actualResult: editIssue.actualResult ?? '',

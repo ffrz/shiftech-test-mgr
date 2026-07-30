@@ -837,9 +837,11 @@ export function ProjectDetailPage() {
       mode: 'edit',
       issueId: row.id,
       initialData: {
+        code: row.code,
         title: row.title,
         type: row.type,
         priority: row.priority,
+        status: row.status,
         moduleId: row.moduleId,
         description: row.description ?? '',
         actualResult: row.actualResult ?? '',
@@ -854,9 +856,11 @@ export function ProjectDetailPage() {
     setIssueEditor({
       mode: 'create',
       initialData: {
+        code: '',
         title: `${row.title} (Copy)`,
         type: row.type,
         priority: row.priority,
+        status: 'open',
         moduleId: row.moduleId,
         description: row.description ?? '',
         actualResult: '',
@@ -871,6 +875,7 @@ export function ProjectDetailPage() {
     if (!id) return;
     if (issueEditor?.mode === 'edit' && issueEditor.issueId) {
       await issueService.update(issueEditor.issueId, id, {
+        code: data.code,
         title: data.title,
         description: data.description,
         actualResult: data.actualResult,
@@ -886,6 +891,7 @@ export function ProjectDetailPage() {
         projectId: id,
         moduleId: data.moduleId,
         type: data.type,
+        code: data.code,
         title: data.title,
         description: data.description,
         priority: data.priority,
@@ -895,6 +901,11 @@ export function ProjectDetailPage() {
     }
     setIssueEditor(null);
     await loadAll();
+  }
+
+  async function handleIssueEditorStatusChange(status: IssueStatus) {
+    if (!id || !user || issueEditor?.mode !== 'edit' || !issueEditor.issueId) return;
+    await issueService.changeStatus(issueEditor.issueId, status, { projectId: id, actorId: user.id, actorName });
   }
 
   // Mutable copies so IssueEditor's quick-add can extend them without cache invalidation.
@@ -951,7 +962,7 @@ export function ProjectDetailPage() {
     );
   }
 
-  const moduleOptions = modules.map((m) => ({ label: m.name, value: m.id }));
+  const moduleOptions = [...modules].sort((a, b) => a.name.localeCompare(b.name)).map((m) => ({ label: m.name, value: m.id }));
   const tagOptions = tags.map((t) => ({ label: t.name, value: t.id }));
   const testRoleOptions = testRoles.map((r) => ({ label: r.name, value: r.id }));
   const caseTagOptions = tags.map((t) => ({ label: t.name, value: t.name }));
@@ -1346,6 +1357,7 @@ export function ProjectDetailPage() {
           visible
           onHide={() => setIssueEditor(null)}
           onSave={handleIssueEditorSave}
+          onStatusChange={handleIssueEditorStatusChange}
           projectId={id ?? ''}
           mode={issueEditor.mode}
           issueId={issueEditor.issueId}

@@ -153,10 +153,12 @@ export const issueRepository = {
     return (data ?? []).map(mapIssueWithDetailsRow);
   },
 
+  // `code` optional — omit/empty lets the `set_issue_code` DB trigger auto-generate ISS-####.
   async create(input: {
     projectId: string;
     moduleId: string | null;
     type: IssueType;
+    code?: string | null;
     title: string;
     description: string | null;
     actualResult: string | null;
@@ -172,6 +174,7 @@ export const issueRepository = {
         project_id: input.projectId,
         module_id: input.moduleId,
         type: input.type,
+        code: input.code || undefined,
         title: input.title,
         description: input.description,
         actual_result: input.actualResult,
@@ -227,10 +230,11 @@ export const issueRepository = {
   async update(
     id: string,
     changes: Partial<
-      Pick<Issue, 'title' | 'description' | 'actualResult' | 'expectedResult' | 'priority' | 'type' | 'moduleId' | 'externalLinks'>
+      Pick<Issue, 'code' | 'title' | 'description' | 'actualResult' | 'expectedResult' | 'priority' | 'type' | 'moduleId' | 'externalLinks'>
     >,
   ): Promise<Issue> {
     const payload: Record<string, unknown> = {};
+    if (changes.code !== undefined) payload.code = changes.code;
     if (changes.title !== undefined) payload.title = changes.title;
     if (changes.description !== undefined) payload.description = changes.description;
     if (changes.actualResult !== undefined) payload.actual_result = changes.actualResult;

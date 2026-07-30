@@ -132,19 +132,25 @@ export const ISSUE_PRIORITY_SEVERITY: Record<IssuePriority, TagSeverity> = {
 };
 
 export const ISSUE_STATUS_LABEL: Record<IssueStatus, string> = {
+  backlog: 'Backlog',
   open: 'Open',
   in_progress: 'In Progress',
   resolved: 'Resolved',
   verified: 'Verified',
   closed: 'Closed',
+  rejected: 'Rejected',
+  duplicate: 'Duplicate',
 };
 
 export const ISSUE_STATUS_SEVERITY: Record<IssueStatus, TagSeverity> = {
+  backlog: 'secondary',
   open: 'danger',
   in_progress: 'warning',
   resolved: 'info',
   verified: 'success',
   closed: 'secondary',
+  rejected: 'secondary',
+  duplicate: 'secondary',
 };
 
 export const ISSUE_TYPE_LABEL: Record<IssueType, string> = {

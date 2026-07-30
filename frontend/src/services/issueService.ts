@@ -47,6 +47,7 @@ export const issueService = {
     projectId: string;
     moduleId?: string | null;
     type?: IssueType;
+    code?: string | null;
     title: string;
     description?: string;
     actualResult?: string;
@@ -64,6 +65,7 @@ export const issueService = {
       projectId: input.projectId,
       moduleId: input.moduleId ?? null,
       type: input.type ?? 'bug',
+      code: input.code?.trim() || null,
       title: input.title.trim(),
       description: input.description?.trim() || null,
       actualResult: input.actualResult?.trim() || null,
@@ -134,6 +136,7 @@ export const issueService = {
     id: string,
     projectId: string,
     input: {
+      code?: string;
       title: string;
       description?: string;
       actualResult?: string;
@@ -147,6 +150,7 @@ export const issueService = {
   ) {
     if (!input.title.trim()) throw new Error('Issue title cannot be empty');
     const issue = await issueRepository.update(id, {
+      ...(input.code?.trim() ? { code: input.code.trim() } : {}),
       title: input.title.trim(),
       description: input.description?.trim() || null,
       actualResult: input.actualResult?.trim() || null,
