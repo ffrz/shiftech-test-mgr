@@ -71,6 +71,9 @@ export function useRealtimeSync() {
         // issuesByTestRun/issuesByTestResult are joined through issue_test_results, which
         // this event doesn't include — invalidate the whole 'issues' prefix to catch them.
         invalidate(queryClient, ['issues']);
+        // dashboardMyWork is keyed by userId (['dashboard', 'myWork', userId]) — invalidate
+        // the whole 'myWork' prefix rather than resolving which user's assignment changed.
+        invalidate(queryClient, ['dashboard', 'myWork']);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'test_plan_cases' }, (payload) => {
         const p = payload as unknown as ChangePayload<{ id: string; test_plan_id: string }>;
@@ -105,6 +108,13 @@ export function useRealtimeSync() {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
         invalidate(queryClient, queryKeys.profiles());
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'entity_activity' }, (payload) => {
+        const p = payload as unknown as ChangePayload<{ id: string; entity_type: string; entity_id: string }>;
+        const entityType = p.new?.entity_type ?? p.old?.entity_type;
+        const entityId = p.new?.entity_id ?? p.old?.entity_id;
+        if (entityType && entityId) invalidate(queryClient, queryKeys.activity(entityType, entityId));
+        invalidate(queryClient, queryKeys.dashboardActivity());
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {
         const p = payload as unknown as ChangePayload<{ id: string; user_id: string }>;

@@ -18,6 +18,7 @@ import type {
   Issue,
   ExternalLink,
   Attachment,
+  ActivityEntry,
   Notification,
   ProjectMember,
   ProjectMemberWithProfile,
@@ -289,12 +290,28 @@ export function mapIssueRow(row: any): Issue {
 export function mapAttachmentRow(row: any): Attachment {
   return {
     id: row.id,
-    issueId: row.issue_id,
+    entityType: row.entity_type,
+    entityId: row.entity_id,
+    projectId: row.project_id,
     storageProvider: row.storage_provider,
     url: row.url,
     fileName: row.file_name,
     fileSize: row.file_size,
     contentType: row.content_type,
+    createdAt: row.created_at,
+  };
+}
+
+export function mapActivityEntryRow(row: any): ActivityEntry {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    entityType: row.entity_type,
+    entityId: row.entity_id,
+    actorId: row.actor_id,
+    eventType: row.event_type,
+    payload: row.payload ?? {},
+    deletedAt: row.deleted_at,
     createdAt: row.created_at,
   };
 }

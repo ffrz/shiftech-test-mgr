@@ -41,10 +41,15 @@ export const queryKeys = {
   projectMembers: (projectId: string) => ['projectMembers', projectId] as const,
   ownPendingInvitations: (userId: string) => ['projectMembers', 'ownPendingInvitations', userId] as const,
 
-  dashboardCounts: () => ['dashboard', 'counts'] as const,
+  dashboardCounts: (userId: string) => ['dashboard', 'counts', userId] as const,
   dashboardRecentProjects: () => ['dashboard', 'recentProjects'] as const,
   dashboardContinueWorking: () => ['dashboard', 'continueWorking'] as const,
+  dashboardMyWork: (userId: string) => ['dashboard', 'myWork', userId] as const,
+  dashboardActivity: () => ['dashboard', 'activity'] as const,
 
   notifications: () => ['notifications'] as const,
   notificationsUnreadCount: () => ['notifications', 'unreadCount'] as const,
+
+  activity: (entityType: string, entityId: string) => ['activity', entityType, entityId] as const,
+  entityAttachments: (entityType: string, entityId: string) => ['attachments', entityType, entityId] as const,
 } as const;

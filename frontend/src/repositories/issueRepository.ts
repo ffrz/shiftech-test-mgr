@@ -294,19 +294,30 @@ export const issueRepository = {
 
   async findAttachments(issueId: string): Promise<Attachment[]> {
     const { data, error } = await supabase
-      .from('attachments')
+      .from('entity_attachments')
       .select('*')
-      .eq('issue_id', issueId)
+      .eq('entity_type', 'issue')
+      .eq('entity_id', issueId)
       .order('created_at', { ascending: true });
     if (error) throw error;
     return (data ?? []).map(mapAttachmentRow);
   },
 
-  async addAttachment(input: Omit<Attachment, 'id' | 'createdAt'>): Promise<Attachment> {
+  async addAttachment(input: {
+    issueId: string;
+    projectId: string;
+    storageProvider: string;
+    url: string;
+    fileName: string;
+    fileSize: number | null;
+    contentType: string | null;
+  }): Promise<Attachment> {
     const { data, error } = await supabase
-      .from('attachments')
+      .from('entity_attachments')
       .insert({
-        issue_id: input.issueId,
+        entity_type: 'issue',
+        entity_id: input.issueId,
+        project_id: input.projectId,
         storage_provider: input.storageProvider,
         url: input.url,
         file_name: input.fileName,
@@ -320,7 +331,7 @@ export const issueRepository = {
   },
 
   async removeAttachment(id: string): Promise<void> {
-    const { error } = await supabase.from('attachments').delete().eq('id', id);
+    const { error } = await supabase.from('entity_attachments').delete().eq('id', id);
     if (error) throw error;
   },
 };

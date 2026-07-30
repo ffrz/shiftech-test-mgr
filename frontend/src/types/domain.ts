@@ -343,14 +343,41 @@ export interface IssueWithDetails extends Issue {
   }[];
 }
 
+export type ActivityEntityType = 'issue' | 'test_case' | 'test_plan' | 'test_run' | 'project';
+
+// Attachment's entity_type accepts everything ActivityEntityType does, plus 'comment' —
+// a per-comment attachment (e.g. a screenshot attached to one specific reply) points
+// entity_id at an entity_activity.id row rather than at the parent Issue/TestCase/etc.
+// entity_activity itself never uses 'comment' as its own entity_type (a comment can't be
+// commented on), which is why this is a separate type from ActivityEntityType rather than
+// folding 'comment' into it.
+export type AttachmentEntityType = ActivityEntityType | 'comment';
+
 export interface Attachment {
   id: string;
-  issueId: string;
+  entityType: AttachmentEntityType;
+  entityId: string;
+  projectId: string;
   storageProvider: string;
   url: string;
   fileName: string;
   fileSize: number | null;
   contentType: string | null;
+  createdAt: string;
+}
+
+// One row per comment or system event (status change, assignment, attachment added, ...)
+// on Issue/TestCase/TestPlan/TestRun — Activity Timeline reads this table directly, no
+// union of multiple tables. Comment is just eventType='comment' with payload.body.
+export interface ActivityEntry {
+  id: string;
+  projectId: string;
+  entityType: ActivityEntityType;
+  entityId: string;
+  actorId: string;
+  eventType: string;
+  payload: Record<string, unknown>;
+  deletedAt: string | null;
   createdAt: string;
 }
 
