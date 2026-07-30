@@ -443,17 +443,152 @@ Audit findings that shape this phase (don't re-derive, they're already confirmed
 
 | ID | Task | Status |
 |---|---|---|
-| V2-P8-T01 | Migration: `entity_activity` table (`id`, `project_id`, `entity_type`, `entity_id`, `actor_id`, `event_type`, `payload jsonb`, `deleted_at`, `created_at`) + RLS via `has_project_access(project_id)`, same pattern as existing tables. `event_type` starts with `comment` only — system event types (`status_change`, `assignment`, `attachment_added`) added incrementally as each producer is wired in T04–T06, not all upfront | todo |
-| V2-P8-T02 | Migration: generalize `attachments` → `entity_attachments` (`entity_type`, `entity_id` replacing `issue_id` FK). Migrate existing rows to `entity_type='issue'`, `entity_id=issue_id`. Update storage RLS policies to resolve project via `entity_type`/`entity_id` instead of the direct `issues.project_id` join | todo |
-| V2-P8-T03 | `activityService.ts` (repository→service→hook, same shape as existing 15 modules): `addComment(entityType, entityId, body)`, `editComment`, `softDeleteComment`, `logEvent(entityType, entityId, eventType, payload)`, `listForEntity(entityType, entityId)`. `addComment` parses `@username` mentions (reuse `profileService.search()`) and calls `notificationService.create()` with `type='mention'` per resolved user | todo |
-| V2-P8-T04 | **Universal Comment UI** — comment thread component (input + list, soft-delete affordance for own comments) mounted on Issue/TestCase/TestPlan/TestRun detail pages, inside `detail-content-col` per the existing detail-page convention. Wire into `useRealtimeSync.ts` (`entity_activity` table) | todo |
-| V2-P8-T05 | **Activity Timeline UI** — render `entity_activity` rows (comment + system events together, chronological) as a tab/section on the same 4 detail pages, not a separate log page. Wire status-change/assignment producers: `issueService`, `testRunService` (run completed), etc. call `activityService.logEvent()` at their existing mutation points | todo |
-| V2-P8-T06 | **Notification extension** — wire `comment`, `mention`, `assignment`, `status_change` into existing `notificationService.create()` call sites added in T03/T05. No schema change. Update `NotificationPanel.tsx` icon/label mapping for the new `type` values | todo |
-| V2-P8-T07 | **Attachment UI generalization** — extend attachment upload/list UI (currently Issue-only) to Test Case and comment bodies, using the generalized `entity_attachments` from T02 | todo |
-| V2-P8-T08 | **Bulk Action** on table views (multi-select rows + action bar) — independent of T01–T07, can start anytime after T01 lands if sequencing needs parallelizing. Start with the highest-traffic table (Issue list or Test Case list) | todo |
-| V2-P8-T09 | **Saved Filter / My Views** — persist current filter state (per table, per user) as a named view. Needs a small `saved_filters` table (`user_id`, `project_id`, `entity_type`, `name`, `filter_state jsonb`) — independent of the activity/comment work | todo |
-| V2-P8-T10 | **Dashboard "My Work" + Activity Feed** on `HomePage` — "My Work" queries existing tables (issues assigned to me, test runs I'm testing) with no new schema; "Activity Feed" is a `listForEntity`-style query over `entity_activity` scoped to the user's projects, reusing T01's table | todo |
-| V2-P8-T11 | **Audit Log (admin-only)** — filtered/unfiltered view over `entity_activity` scoped by project or globally for admins, reachable from `AdminRoute`-guarded screen. Near-free once T01/T05 exist — this is a read-only view, not a new write path | todo |
+| V2-P8-T01 | Migration: `entity_activity` table (`id`, `project_id`, `entity_type`, `entity_id`, `actor_id`, `event_type`, `payload jsonb`, `deleted_at`, `created_at`) + RLS via `has_project_access(project_id)`, same pattern as existing tables. `event_type` starts with `comment` only — system event types (`status_change`, `assignment`, `attachment_added`) added incrementally as each producer is wired in T04–T06, not all upfront | **done (2026-07-30)** — `supabase/migrations/20260730000001_entity_activity_and_attachments.sql`, pushed to remote |
+| V2-P8-T02 | Migration: generalize `attachments` → `entity_attachments` (`entity_type`, `entity_id` replacing `issue_id` FK). Migrate existing rows to `entity_type='issue'`, `entity_id=issue_id`. Update storage RLS policies to resolve project via `entity_type`/`entity_id` instead of the direct `issues.project_id` join | **done (2026-07-30)** — same migration as T01 (kept as one PR per the sequencing note below). Write-gate preserved exactly for `entity_type='issue'` via new `can_write_entity_attachment()` (delegates to existing `can_manage_issues`, manager/tester only) — did **not** silently loosen to `is_approved()`, which would have been a real permission widening; other entity types fall back to `is_approved()` until T07 gives them a real gating story. `project_id` added directly to the row (not resolved via join, since `entity_id` isn't scoped to one table) |
+| V2-P8-T03 | `activityService.ts` (repository→service→hook, same shape as existing 15 modules): `addComment(entityType, entityId, body)`, `editComment`, `softDeleteComment`, `logEvent(entityType, entityId, eventType, payload)`, `listForEntity(entityType, entityId)`. `addComment` parses `@username` mentions and calls `notificationService.create()` with `type='mention'` per resolved user | **done (2026-07-30)** — `frontend/src/repositories/activityRepository.ts` + `frontend/src/services/activityService.ts` + `frontend/src/hooks/useActivity.ts`. Mention resolution uses `profileRepository.findByUsername()` (exact match), not `profileService.search()` (partial-match typeahead) — wrong tool for parsing `@handle` out of comment text. Wired into `useRealtimeSync.ts` (`entity_activity` table) and `queryKeys.activity()`. `issueRepository`/`attachmentService` updated to the new `entity_attachments` shape (`upload()` now takes `projectId` — two call sites fixed: `IssueDetailPage.tsx`, `IssueEditor.tsx`). `tsc -b` clean |
+| V2-P8-T04 | **Universal Comment UI** — comment thread component (input + list, soft-delete affordance for own comments) mounted on Issue/TestCase/TestPlan/TestRun detail pages, inside `detail-content-col` per the existing detail-page convention. Wire into `useRealtimeSync.ts` (`entity_activity` table) | **done (2026-07-30)** — `frontend/src/components/ui/ActivityPanel.tsx`, one shared component built to cover both T04 and T05 together (a comment is just `eventType='comment'` in the same stream a timeline reads — see rationale below). Mounted as a `Card`/`TabPanel`/`Panel` per each page's existing layout convention: `IssueDetailPage`/`TestCaseDetailPage` get a `detail-content-card` (prose pattern), `TestPlanDetailPage` gets a new "Activity" `TabPanel` (already tab-based), `TestRunResultDetailPage` gets a collapsed-by-default `Panel` scoped to the whole Test Run (not per-result — a run is one execution session, matches the domain model) |
+| V2-P8-T05 | **Activity Timeline UI** — render `entity_activity` rows (comment + system events together, chronological) as a tab/section on the same 4 detail pages, not a separate log page. Wire status-change/assignment producers: `issueService`, `testRunService` (run completed), etc. call `activityService.logEvent()` at their existing mutation points | **done (2026-07-30)** — `issueService.changeStatus()`/`.assign()` and `testRunService.complete()`/`.reopen()` now take an `{ projectId, actorId }` actor argument and log `status_change`/`assignment` events (issue changeStatus only logs when the status actually changed, to avoid no-op noise). All 7 call sites across `IssueDetailPage.tsx`, `IssueTab.tsx` (3 sites incl. undo path — `applyFieldChange`/`handleUndo`/`scheduleUndoToast` all threaded an extra `projectId` param), `TestRunIssuesPage.tsx` (3 sites), and `TestRunResultDetailPage.tsx` (2 sites) updated to pass the actor from `useAuthContext()`. `test_case`/`test_plan` have no status/assignment concept yet, so no producer wiring needed there — comment is their only event type for now, which is already covered by T04. `tsc -b` + lint clean, no new warnings | 
+| V2-P8-T06 | **Notification extension** — wire `comment`, `mention`, `assignment`, `status_change` into existing `notificationService.create()` call sites added in T03/T05. No schema change. Update `NotificationPanel.tsx` icon/label mapping for the new `type` values | **done (2026-07-30)** — Recipient decision (confirmed with product 2026-07-30): notifications stay **targeted to the assignee only**, not broadcast to all project members — same philosophy as `mention` (already targeted, shipped in T03). `assignment` notifies the new assignee; `status_change` notifies the current assignee (skipped if no assignee, or if actor === assignee — no self-notify). Wired into `issueService.changeStatus()`/`.assign()`, which now also accept `actorName` for a readable notification title. All `issueService.changeStatus`/`.assign` call sites (`IssueDetailPage`, `IssueTab`, `TestRunIssuesPage`) pass `actorName` from `useAuthContext().profile`. `NotificationPanel.tsx` got a `NOTIFICATION_TYPE_ICON` map (comment/mention/assignment/status_change/project_invite/project_member_removed each get a distinct `pi-*` icon, read-state still controls icon color). `AppTopbar.tsx`'s `onNotificationClick` previously always navigated to `/` regardless of type — now resolves `referenceType`/`referenceId` to the correct entity route (`/issues/:id`, `/test-cases/:id`, `/test-plans/:id`, `/test-runs/:id`) via a small `ACTIVITY_ENTITY_ROUTE` map; `project_invite`/`project_member_removed` (pre-dating entity_activity, different reference shape) keep the `/` fallback. `test_case`/`test_plan`/`test_run` have no assignee concept — `testRunService.complete()`/`.reopen()` still only call `activityService.logEvent()` (T05), not `notificationService.create()`, since there's no assignee to notify. Only `issue` emits `assignment`/`status_change` notifications for now. `tsc -b` + lint clean |
+| V2-P8-T07 | **Attachment UI generalization** — extend attachment upload/list UI (currently Issue-only) to Test Case and comment bodies, using the generalized `entity_attachments` from T02 | **done (2026-07-30)** — `entityAttachmentRepository.ts` (entity-agnostic counterpart to `issueRepository`'s hardcoded-issue attachment methods) + `attachmentService.listForEntity/uploadForEntity/removeForEntity` + `AttachmentPanel.tsx` (reusable component, same shape as `ActivityPanel`). Mounted on `TestCaseDetailPage` as a new "Attachment" `Card`, gated by `canEditContent` (manager/supervisor). **Note**: UI gate (`canEditContent`) is stricter than the DB RLS gate for non-issue attachments (`is_approved()` — any accepted member, see T02's `can_write_entity_attachment()`) — this is a safe direction (UI narrower than DB), not a security gap, but worth tightening the RLS to match if/when Test Case attachment write access needs to be role-restricted like issues are. `IssueDetailPage`/`IssueEditor` intentionally left on their original `attachmentService.listByIssue/upload/remove` methods (already wired, no need to churn working code) — comment-body attachments not built (no comment editor UI supports file attachment yet; deferred, not blocking anything else in Phase 8). `tsc -b` + lint clean |
+| V2-P8-T08 | **Bulk Action** on table views (multi-select rows + action bar) — independent of T01–T07, can start anytime after T01 lands if sequencing needs parallelizing. Start with the highest-traffic table (Issue list or Test Case list) | **done (2026-07-30), scope widened after user feedback** — see full breakdown below |
+| V2-P8-T09 | **Saved Filter / My Views** — persist current filter state (per table, per user) as a named view. Needs a small `saved_filters` table (`user_id`, `project_id`, `entity_type`, `name`, `filter_state jsonb`) — independent of the activity/comment work | **skipped (2026-07-30), by product decision** — audit found `useStoredState` (`frontend/src/hooks/useStoredState.ts`) already persists each table's active filter combination to `localStorage` per project (e.g. `project-{id}:caseStatusFilter:v2`), auto-remembered across sessions with no user action needed. That covers "don't lose my filter" but not: multiple named views per table, filters following the account across devices/browsers (localStorage is per-browser), or sharing a view with the rest of the project (e.g. a manager's "Needs Review" view visible to the whole team). Decided the existing single-slot-per-table auto-remember is sufficient for now — named multi-view/shareable saved filters not worth the new `saved_filters` table + UI at this time. Revisit if a real need for multiple named views or team-shared views surfaces later |
+| V2-P8-T10 | **Dashboard "My Work" + Activity Feed** on `HomePage` — "My Work" queries existing tables (issues assigned to me, test runs I'm testing) with no new schema; "Activity Feed" is a `listForEntity`-style query over `entity_activity` scoped to the user's projects, reusing T01's table | **done (2026-07-30)** — Scope confirmed with user: **My Work = issues assigned to me, not closed, across all projects** (not test runs — kept to the one clearest source rather than merging two different concepts into one list). **Activity Feed = latest activity across every project the user has access to** (not narrowed to mentions/assignments only — RLS already scopes it, no extra filtering needed, and a narrower "only about me" feed would have overlapped with the existing `NotificationPanel`). No new schema — both read from tables that already exist (`issues`, `entity_activity`), scoped for free by RLS (`has_project_access`) the same way `dashboardRepository`'s existing `findRecentProjects`/`findContinueWorking` already work. Added `dashboardRepository.findMyWorkIssues()`/`findRecentActivity()` + `dashboardService` wrappers + `useDashboard` queries (`dashboardMyWork(userId)`/`dashboardActivity()` query keys). **Extracted two shared helpers to avoid duplication** the user had specifically flagged as a concern in T08: `helpers/activityRoutes.ts` (`ACTIVITY_ENTITY_ROUTE`/`pathForActivityEntity` — previously duplicated inline in `AppTopbar.tsx`'s notification-click handler, now the one place entity-type-to-route mapping lives) and `helpers/activityDescribe.ts` (`describeSystemEvent` — previously a private function inside `ActivityPanel.tsx`, now shared with `HomePage`'s feed). `useRealtimeSync.ts` extended: `entity_activity` changes now also invalidate `dashboardActivity()`, `issues` changes now also invalidate the `['dashboard', 'myWork']` prefix — both feeds update live, consistent with the rest of the app. `tsc -b` + lint clean |
+| V2-P8-T11 | **Audit Log (admin-only)** — filtered/unfiltered view over `entity_activity` scoped by project or globally for admins, reachable from `AdminRoute`-guarded screen. Near-free once T01/T05 exist — this is a read-only view, not a new write path | **done (2026-07-30), then redesigned same day** — see "Post-T11 redesign" note below the table. Final shape: project-scoped "Activity Log" tab on `ProjectDetailPage`, visible to any project member (not admin-only) |
+
+**Post-T11 redesign (2026-07-30, same session, before moving on)**: shipped as an
+admin-only `/audit-log` page first, per the task's original wording. User feedback:
+"everyone needs this too, as a project owner I need to monitor what's happening in my
+project" — the admin-only framing was wrong from the start; a project owner isn't
+necessarily a platform admin, and the whole point of an activity log is for the people
+who actually own/run a project to see what happened in it. Also requested: a search box
+for the description column, positioned to fill the remaining row space in the filter bar
+(not a fixed-width box off to the side).
+
+Redesigned before building the search box, so it wasn't built twice:
+- Moved from a standalone `/audit-log` admin page to a new **"Activity Log" tab on
+  `ProjectDetailPage`** (`ActivityLogTab.tsx`), scoped to one project — access is the
+  same `has_project_access` RLS as the rest of `entity_activity`, so any project member
+  sees it, not just managers/owners (confirmed with user: same visibility as the
+  existing per-entity "Activity" tabs, no new narrower gate).
+- **Naming clarified with user mid-conversation**: user's first read was that "Activity"
+  tabs were somehow mixing in whole-project activity, which would have been a real
+  design failure. Clarified they're not — each entity detail page's "Activity" tab
+  (Issue/TestCase/TestPlan/TestRun/Project) only ever shows that *one* entity's own
+  comments/events, strictly scoped by `entity_id`. The new tab is a genuinely different
+  thing: a **combined** feed across every Issue/TestCase/TestPlan/TestRun/Project entry
+  in one project. Named **"Activity Log"** (not "Comments", not "Project Activity" —
+  the latter risked being confused with the existing per-project "Activity" tab sitting
+  right next to it) to make that distinction clear at the tab-label level.
+- `auditLogRepository.ts` simplified: dropped the cross-project `projectId` filter
+  (always project-scoped now, taken from the route instead of a dropdown) and the
+  `projects.name` join (redundant — the tab is already inside that project's page).
+  Added a `search` option using `.ilike('payload->>body', ...)` — **PostgREST JSON-path
+  filter syntax, no precedent elsewhere in this codebase**, verified against the live
+  Supabase REST endpoint via `curl` before relying on it (got a clean `[]`, not a parse
+  error, confirming the syntax itself is accepted). Search only covers comment bodies —
+  system-event descriptions ("changed status from Open to In Progress") are generated
+  client-side by `describeSystemEvent()`, not stored as text, so there's nothing in the
+  DB to `ilike` against for those rows; confirmed this scope with the user before
+  building rather than silently shipping a partial search.
+- Search box uses `SearchInput`'s existing `className` prop with `flex-1` (same pattern
+  as `IssueTab.tsx`'s toolbar) so it fills the remaining row width next to the reset
+  button, instead of sitting at a fixed width.
+- Deleted `pages/admin/AuditLogPage.tsx`, the `/audit-log` route, and its `AppMenu.tsx`
+  "Administration" entry — fully replaced, not left as a second parallel screen.
+
+**Follow-up polish (same session, after first browsing the tab)**:
+- `eventType` ("status_change", "attachment_added", ...) was rendered as its raw DB
+  value in the "Event" column. Added `eventTypeLabel()` to `helpers/activityDescribe.ts`
+  — a plain lookup map (`Record<string, string>`, not a closed union — `event_type` isn't
+  a fixed enum in `ActivityEntry`, same reasoning as `describeSystemEvent`'s existing
+  default-case fallback) so an unrecognized future event_type still renders something
+  instead of breaking.
+- Pagination's "Show [n]" rows-per-page dropdown didn't render any options —
+  `rowsPerPageOptions` was missing from the `DataTable` (every other paginated table in
+  the app passes it alongside `dataTablePaginatorProps`; this one was overlooked when
+  the tab was first built). Added `[10, 20, 50, 100]`, matching `IssueTab`/
+  `UserManagementPage`'s existing options.
+- Entity Type filter changed from single-select `Dropdown` to `MultiSelect` (with
+  `selectAll`) — `auditLogRepository.findAllByProject`'s `entityType?: string` became
+  `entityTypes?: string[]` using `.in('entity_type', ...)` instead of `.eq(...)`, same
+  shape as the `MultiSelect` filters used elsewhere (e.g. `IssueTab`'s status/priority
+  filters).
+
+`tsc -b` + lint clean.
+
+### HomePage dashboard polish (2026-07-30, after T11 redesign)
+
+- **Activity Feed limit**: 8 → 10 per user request ("jangan terlalu banyak, 10 sudah
+  cukup") — `dashboardService.getRecentActivity()` default changed. User flagged a
+  future simplification pass on the Activity Feed itself as a separate later
+  conversation, not part of this change.
+- **Quick Actions moved**: was the last section on the page (below Activity Feed,
+  furthest from the fold); moved to right after "Recent Projects" (before
+  "Statistics") so it's reachable without scrolling past everything else.
+- **Statistics expanded from 3 to 7 cards** (`Project`/`TestPlan`/`TestCase` counts
+  already existed): added `issueCount` (all issues, RLS-scoped), `openIssueCount`
+  (status != 'closed' — confirmed with user: "open" here means "not yet closed," not
+  literally status='open', consistent with how My Work already counts issues),
+  `testSuiteOwnedCount` (**owner_id = viewing user only** — confirmed with user this is
+  a single "suites I own" metric, not a second "total visible suites" number, after an
+  ambiguous first read of the request), `runningTestRunCount` (status='in_progress').
+  `dashboardRepository.getCounts()` gained a required `userId` parameter for the owned-
+  suite count; `queryKeys.dashboardCounts()` gained a `userId` key segment to match.
+  Grid changed from `md:col-4` (3-up) to `md:col-3` (4-up) to fit 7 cards without an
+  awkward trailing row. Two new `stat-icon-*` CSS classes added (`green`, `indigo`) —
+  the existing 5-color palette (blue/purple/teal/orange/red) was already fully assigned
+  to other dashboard cards.
+- All four new counts are still RLS-scoped the same way the existing counts already
+  were (`has_project_access` on `issues`/`test_runs`, explicit `.eq('owner_id', ...)`
+  on `test_suites`) — verified this holds under `select(..., { count: 'exact', head:
+  true })` (a `head: true` count still runs through the same RLS-filtered query, it
+  just skips returning rows) before relying on it, not just assumed.
+
+`tsc -b` + lint clean.
+
+### Post-T10 fixes and scope additions (2026-07-30, same session)
+
+Found/requested while dogfooding the shipped Phase 8 features, before moving to T11:
+
+- **Status labels in Activity Feed/Timeline showed raw DB values** ("changed status from
+  open to in_progress") instead of the same labels used everywhere else in the UI
+  ("Open" → "In Progress"). Root cause: `describeSystemEvent()` (in
+  `helpers/activityDescribe.ts`, shared by `ActivityPanel` and `HomePage`) rendered
+  `payload.from`/`payload.to` as-is. Fixed by resolving each raw status through the
+  correct label map (`ISSUE_STATUS_LABEL`/`TEST_PLAN_STATUS_LABEL`/
+  `TEST_CASE_STATUS_LABEL`/`TEST_RUN_STATUS_LABEL`/`PROJECT_STATUS_LABEL`) keyed by the
+  entry's `entityType` — one fix in the shared helper, so it corrected every page that
+  renders activity, not just the two the user happened to notice it in.
+- **Project had no Activity tab, unlike Issue/TestCase/TestPlan/TestRun** — this was an
+  unintentional gap, not a decision: `entity_activity`'s original `entity_type` CHECK
+  constraint (20260730000001) only covered the 4 Testing Domain entities on the golden
+  path, Project was never in scope for T01. User decision: Project needs its own
+  comment/activity feed too (project-level discussion, release notes, freeze
+  announcements — things that don't belong to one specific Test Plan/Issue). Added via
+  migration `20260730000002` (`project` added to both `entity_activity` and
+  `entity_attachments` CHECK constraints) + `ActivityEntityType` gained `'project'` +
+  new "Activity" `TabPanel` on `ProjectDetailPage.tsx`, same pattern as the other 4
+  pages.
+- **Comments had no attachment support** — flagged as a real gap (screenshots/logs are
+  core to QA discussion, a text-only comment box undersells the feature). Scoped with
+  the user to **per-comment** attachments (not one shared bucket per entity) — each
+  comment can have its own files, matching Slack/GitHub's model. Implementation:
+  `entity_attachments.entity_type` gained a `'comment'` value in a **separate** migration
+  (`20260730000003`, not folded into `20260730000002` — that file had already been
+  applied to the remote database by the time this was requested, and Supabase CLI's
+  migration tracking is by filename not content, so editing an already-applied file
+  silently does nothing on a later `db push`; this is now a standing gotcha to remember
+  for any future same-day migration edits). `entity_id` for a `'comment'`-typed
+  attachment points at the parent `entity_activity.id` row, not at the Issue/TestCase/
+  etc the comment lives under. New `AttachmentEntityType = ActivityEntityType |
+  'comment'` type (kept separate from `ActivityEntityType` itself, since a comment can't
+  itself be commented on — only `entity_attachments` needed the wider type, not
+  `entity_activity`). `ActivityPanel.tsx` gained a `CommentAttachments` sub-component
+  (its own query/upload/remove scoped by `entity_type='comment'` + `entity_id=commentId`)
+  rendered under each non-deleted comment body, gated to the comment's own author
+  (`canManage={isOwn}` — same authorship-based gate as edit/delete).
+
+`tsc -b` + lint clean throughout, no new warnings introduced by any of the three fixes.
 
 Sequencing note: T01+T02 (migrations) should land together since both touch the
 polymorphic-entity pattern and RLS shape — reviewing them separately risks the second
@@ -461,6 +596,58 @@ migration reopening decisions the first one already made. T03 unblocks T04–T06
 have no dependency on T01–T07 and can be pulled forward or interleaved if useful for
 pacing, but are sequenced last here because they're lower-value than closing the
 comment/activity/notification loop first.
+
+### T08 — Bulk Action breakdown (2026-07-30)
+
+**Scope discovery, before any code changed**: `BulkActionsBar.tsx` (multi-select + action
+bar infra) already existed and was already wired into 9 tables (Issue/TestCase/TestPlan/
+TestRun/Member/Module/Tag/TestRole/PlanTestCases), each with a "Delete Selected" action
+only. So the task's real scope was never "build bulk action infra" — it was "add
+non-delete bulk actions where they're actually useful," which the original task
+description didn't capture.
+
+**User feedback that reshaped this task (2026-07-30), both addressed**:
+1. *"I want one shared component so I can update it in one place — in Issue the action
+   button is on the far right, but I clicked the checkbox on the left, why do I have to
+   reach across to act?"* — `BulkActionsBar.tsx` was a single already-shared component
+   (all 9 call sites pass the same `selectedCount`/`onClear`/`actions` props), so this was
+   a **one-file layout fix**, not a per-table migration: actions now render left (next to
+   where selection happens), count + Cancel stay right as a fixed anchor. All 9 tables got
+   the new layout automatically from that one change.
+2. *"I want bulk actions on other tables too — Test Plan status change, Test Case
+   Module/Priority/Status/Target Role."* — scoped down with the user to exactly these two,
+   not all 9 tables blanket-covered:
+   - **Issue**: bulk status-change + bulk assign (dropdown pair in the bar — 2 fields fit
+     inline without crowding)
+   - **Test Plan**: bulk status-change (single dropdown in the bar)
+   - **Test Case**: bulk edit via a **"Bulk Edit" button opening a dialog** (not inline
+     dropdowns — 4 fields side-by-side in the bar would crowd it on narrower screens, a
+     dialog scales to any number of fields cleanly). Dialog has Module/Priority/Status/
+     Target Role, each defaulting to "Unchanged" — only fields the user actually touches
+     get sent to `testCaseService.bulkUpdate()`. Needed an `UNSET` sentinel (not `null`)
+     per field internally, since `null` is itself a meaningful choice for Module/Target
+     Role (clear the field via the Dropdown's `showClear`) and had to stay distinguishable
+     from "user didn't touch this field."
+   - Other 6 tables (Member/Module/Tag/TestRole/PlanTestCases/TestRun) intentionally left
+     bulk-delete-only — not treated as a gap, just out of scope for this round.
+
+**Implementation**: `issueService.bulkChangeStatus()`/`.bulkAssign()`,
+`testPlanService.changeStatus()` (gained activity logging it didn't have before, for
+consistency with Issue)/`.bulkChangeStatus()`, `testCaseService.bulkUpdate()` — all
+sequential loops over each entity's existing single-row service method, so activity
+log/notification wiring from T05/T06 comes for free per-row with no bulk-specific logging
+path to maintain separately.
+
+**Follow-up consistency pass, same session**: after Test Case's "Bulk Edit" dialog
+shipped, Issue's original inline dropdown-pair (`ISSUE_STATUS_OPTIONS`/`assignedTo`
+directly in the `BulkActionsBar`) was converted to the same "Bulk Edit" button → Dialog
+pattern (`onBulkChangeStatus`/`onBulkAssign` props merged into one `onBulkEdit({ status?,
+assignedTo? })`) — two different bulk-edit UI shapes across two tables side by side would
+have undercut the whole point of extracting a shared component. Both dialogs also
+adopted `ifta-field` floating labels (`FloatLabel` from `primereact/floatlabel`), matching
+every other create/edit dialog's convention per CLAUDE.md — the first pass had used plain
+static labels above each Dropdown, which was the one place this task didn't yet match
+established form conventions. `tsc -b` + lint clean, no new warnings.
 
 ---
 

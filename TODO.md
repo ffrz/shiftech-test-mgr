@@ -58,33 +58,158 @@ polimorfik + generalisasi `attachments`→`entity_attachments`), bukan 4 fitur/m
 terpisah — supaya tidak banyak refactor pas nambah fitur berikutnya. Comment pakai
 soft-delete (`deleted_at`), bukan hard delete, biar timeline tidak bolong.
 
-- [ ] V2-P8-T01 — Migration `entity_activity` (polymorphic: `entity_type`/`entity_id`,
-      `event_type`, `payload jsonb`, `deleted_at`) + RLS via `has_project_access` —
-      mulai dengan `event_type='comment'` saja, event system lain nyusul di T04-T06
-- [ ] V2-P8-T02 — Migration generalisasi `attachments`→`entity_attachments` (lepas dari
-      `issue_id` FK jadi `entity_type`/`entity_id`), migrate data existing ke
-      `entity_type='issue'`, update storage RLS. **Digabung PR-nya dengan T01** — dua-
-      duanya nyentuh pola polymorphic-entity yang sama, jangan direview terpisah
-- [ ] V2-P8-T03 — `activityService.ts` (repository→service→hook, pola sama seperti 15
-      modul lain): `addComment`/`editComment`/`softDeleteComment`/`logEvent`/
-      `listForEntity`, plus parsing `@username` mention → `notificationService.create()`
-- [ ] V2-P8-T04 — Universal Comment UI di 4 halaman detail (Issue/TestCase/TestPlan/
-      TestRun), masuk `detail-content-col` sesuai konvensi existing, realtime via
-      `useRealtimeSync.ts`
-- [ ] V2-P8-T05 — Activity Timeline UI (gabung comment + system event, bukan halaman
-      log terpisah) + wire producer status-change/assignment dari `issueService`/
-      `testRunService`
-- [ ] V2-P8-T06 — Notification extension: `type` baru (`comment`/`mention`/
-      `assignment`/`status_change`) ke `notificationService.create()` yang sudah ada
-      (TIDAK ada perubahan schema) + update icon/label di `NotificationPanel.tsx`
-- [ ] V2-P8-T07 — Attachment UI generalization ke Test Case + comment body (pakai
-      `entity_attachments` dari T02)
-- [ ] V2-P8-T08 — Bulk Action di tabel (mulai dari Issue list atau Test Case list) —
-      independen, bisa diselang-seling kapan saja setelah T01
-- [ ] V2-P8-T09 — Saved Filter / My Views (tabel baru `saved_filters`) — independen
-- [ ] V2-P8-T10 — Dashboard "My Work" + Activity Feed di `HomePage`
-- [ ] V2-P8-T11 — Audit Log admin-only (read-only view atas `entity_activity`, hampir
-      gratis setelah T01/T05 ada)
+- [x] V2-P8-T01 — Migration `entity_activity` (2026-07-30, `supabase/migrations/20260730000001_entity_activity_and_attachments.sql`, sudah di-push ke remote)
+- [x] V2-P8-T02 — Migration generalisasi `attachments`→`entity_attachments` (2026-07-30,
+      digabung 1 file dengan T01 sesuai rencana). Write-gate issue attachment TETAP
+      `can_manage_issues` (manager/tester saja) lewat fungsi baru
+      `can_write_entity_attachment()` — sengaja tidak dilonggarkan ke `is_approved()`
+      biar tidak jadi permission widening diam-diam. Entity type lain (test_case/plan/
+      run) sementara pakai `is_approved()` sampai T07 kasih model gating yang lebih pas
+- [x] V2-P8-T03 — `activityService.ts` + `activityRepository.ts` + `useActivity.ts`
+      (2026-07-30), wired ke `useRealtimeSync.ts` + `queryKeys.activity()`. Mention pakai
+      `profileRepository.findByUsername()` (exact match), bukan `profileService.search()`
+      (partial-match typeahead, salah tool buat parsing `@handle`). `issueRepository`/
+      `attachmentService.upload()` disesuaikan ke `entity_attachments` (sekarang butuh
+      `projectId`) — 2 call site diperbaiki (`IssueDetailPage.tsx`, `IssueEditor.tsx`).
+      `tsc -b` bersih
+- [x] V2-P8-T04 — Universal Comment UI (2026-07-30): `ActivityPanel.tsx`, satu
+      komponen dipakai buat T04+T05 sekaligus (comment cuma `eventType='comment'` di
+      stream yang sama dengan timeline). Dipasang di Issue/TestCase (`Card` prose
+      pattern), TestPlan (tab baru "Activity"), TestRun (`Panel` collapsed, scope ke
+      seluruh Test Run bukan per-result). `tsc -b` + lint bersih
+- [x] V2-P8-T05 — Activity Timeline UI (2026-07-30): `issueService.changeStatus()`/
+      `.assign()` + `testRunService.complete()`/`.reopen()` sekarang terima
+      `{ projectId, actorId }` dan nge-log event `status_change`/`assignment`.
+      7 call site diupdate (`IssueDetailPage`, `IssueTab` 3x termasuk undo path,
+      `TestRunIssuesPage` 3x, `TestRunResultDetailPage` 2x) pakai actor dari
+      `useAuthContext()`. TestCase/TestPlan belum ada konsep status/assignment jadi
+      belum butuh producer — comment aja cukup, sudah ke-cover T04. `tsc -b` + lint
+      bersih
+- [x] V2-P8-T06 — Notification extension (2026-07-30). Keputusan penerima (dikonfirmasi
+      user): notif HANYA ke assignee, bukan broadcast ke semua member project — sama
+      seperti pola `mention` yang sudah jalan (T03). `assignment` → notif ke assignee
+      baru. `status_change` → notif ke assignee saat ini (skip kalau tidak ada assignee
+      atau actor === assignee). Di-wire di `issueService.changeStatus()`/`.assign()`
+      (sekarang terima `actorName` juga buat judul notif yang enak dibaca). Semua call
+      site (`IssueDetailPage`, `IssueTab`, `TestRunIssuesPage`) sudah kirim `actorName`
+      dari `useAuthContext().profile`. `NotificationPanel.tsx` dapat icon mapping per
+      type. `AppTopbar.tsx` — klik notifikasi dulu selalu ke `/`, sekarang navigasi ke
+      entity yang tepat (`/issues/:id` dst) via `referenceType`/`referenceId`.
+      TestCase/TestPlan/TestRun belum ada konsep assignee jadi belum ada notif jenis
+      ini di sana. `tsc -b` + lint bersih
+- [x] V2-P8-T07 — Attachment UI generalization (2026-07-30): `entityAttachmentRepository.ts`
+      + `attachmentService.listForEntity/uploadForEntity/removeForEntity` +
+      `AttachmentPanel.tsx` (reusable, pola sama seperti `ActivityPanel`). Dipasang di
+      `TestCaseDetailPage` (Card "Attachment" baru), gate `canEditContent`. CATATAN: gate
+      UI (manager/supervisor) lebih ketat dari RLS DB (`is_approved()` — semua accepted
+      member) buat entity type selain issue — aman (UI lebih sempit dari DB) tapi kalau
+      nanti mau role-restrict attachment Test Case kayak issue, RLS-nya perlu diperketat
+      juga. `IssueDetailPage`/`IssueEditor` sengaja TIDAK dipindah ke path baru ini (sudah
+      jalan, tidak perlu diubah). Comment-body attachment belum dibangun (belum ada UI
+      comment editor yang support file) — ditunda, tidak blocking apa pun di Phase 8.
+      `tsc -b` + lint bersih
+- [x] V2-P8-T08 — Bulk Action (2026-07-30, scope diperluas 2x setelah feedback user).
+      Ternyata `BulkActionsBar` sudah ada duluan di 9 tabel, tapi cuma "Delete Selected".
+      Feedback user #1: mau 1 komponen shared (sudah — cukup 1 file diubah) + layout
+      aksi harus di KIRI dekat checkbox, bukan jauh di kanan — `BulkActionsBar.tsx`
+      diubah sekali, otomatis berlaku ke semua 9 tabel. Feedback user #2: mau bulk
+      action juga di tabel lain — disepakati scope: **Issue** (bulk status+assign,
+      dropdown pair di bar), **Test Plan** (bulk status, 1 dropdown di bar), **Test
+      Case** (tombol "Bulk Edit" buka Dialog berisi Module/Priority/Status/Target Role,
+      field kosong = tidak diubah — pakai sentinel `UNSET` internal karena `null` itu
+      pilihan valid buat Module/Target Role, jadi tidak bisa dipakai sebagai penanda
+      "belum disentuh"). 6 tabel lain (Member/Module/Tag/TestRole/PlanTestCases/
+      TestRun) SENGAJA dibiarkan bulk-delete-only, bukan kekurangan.
+      `issueService.bulkChangeStatus/.bulkAssign`, `testPlanService.changeStatus`
+      (sekalian dapat activity logging yang belum ada)/`.bulkChangeStatus`,
+      `testCaseService.bulkUpdate` — semua loop sequential manggil method single-row
+      yang sudah ada, jadi activity log + notifikasi T05/T06 otomatis ikut.
+      Susulan (masih sesi sama, feedback user): Issue awalnya pakai 2 dropdown inline
+      di bar (beda pola dari Test Case yang pakai dialog) — diseragamkan jadi tombol
+      "Bulk Edit" + Dialog juga (props `onBulkChangeStatus`/`onBulkAssign` digabung
+      jadi `onBulkEdit`). Kedua dialog (Issue + TestCase) juga diganti dari label
+      statis ke floating label `ifta-field` sesuai konvensi form dialog lain di
+      project (CLAUDE.md). `tsc -b` + lint bersih, tidak ada warning baru
+- [x] V2-P8-T09 — Saved Filter / My Views: **di-skip (2026-07-30), keputusan produk**.
+      Ternyata sudah ada `useStoredState` yang auto-simpan kombinasi filter tiap tabel
+      ke localStorage per project (bertahan lintas sesi tanpa aksi user). Yang belum
+      ada: banyak view bernama per tabel, filter ikut akun lintas device (localStorage
+      = per-browser), share view ke tim. Diputuskan cukup dengan yang sudah ada
+      sekarang — tidak dibangun tabel `saved_filters` baru. Bisa direvisit kalau nanti
+      ada kebutuhan nyata untuk multi-view atau view yang di-share ke tim
+- [x] V2-P8-T10 — Dashboard "My Work" + Activity Feed (2026-07-30). Scope dikonfirmasi
+      user: My Work = issue assigned ke saya yang belum closed, lintas project (bukan
+      test run, biar tidak campur 2 konsep beda). Activity Feed = aktivitas terbaru
+      dari SEMUA project yang saya akses (bukan cuma mention/assignment — RLS sudah
+      scope otomatis, dan kalau dipersempit "cuma soal saya" bakal tumpang tindih sama
+      NotificationPanel yang sudah ada). Tidak ada tabel baru — baca dari `issues`/
+      `entity_activity` yang sudah ada, scoped gratis lewat RLS sama seperti
+      `findRecentProjects`/`findContinueWorking`. Extract 2 helper shared (sesuai
+      concern user soal duplikasi di T08): `helpers/activityRoutes.ts` (route mapping
+      yang tadinya duplikat inline di `AppTopbar.tsx`) dan `helpers/activityDescribe.ts`
+      (`describeSystemEvent` yang tadinya private function di `ActivityPanel.tsx`).
+      `useRealtimeSync.ts` di-extend biar kedua feed live-update. `tsc -b` + lint bersih
+      Fix susulan (feedback user): `describeSystemEvent` (dipakai `ActivityPanel` DAN
+      `HomePage`, jadi 1 fix berlaku di semua tempat) tadinya nampilin status mentah
+      dari DB (`open` → `in_progress`) alih-alih label yang sudah di-translate (`Open`
+      → `In Progress`). Diperbaiki dengan resolve status via `ISSUE_STATUS_LABEL`/
+      `TEST_PLAN_STATUS_LABEL`/`TEST_CASE_STATUS_LABEL`/`TEST_RUN_STATUS_LABEL` sesuai
+      `entityType` payload-nya, bukan tampilkan raw value.
+      Gap susulan #2 (ditemukan user): Project tidak punya tab Activity padahal Issue/
+      TestCase/TestPlan/TestRun punya — ternyata bukan keputusan sengaja, cuma karena
+      `entity_type` di migration awal (T01) cuma cover 4 entity Testing Domain, Project
+      kelewat. Diputuskan: Project MEMANG butuh activity/comment sendiri (diskusi level
+      project, catatan rilis/freeze). Fix: migration `20260730000002` tambah `'project'`
+      ke CHECK constraint `entity_activity`+`entity_attachments`, `ActivityEntityType`
+      dapat `'project'`, tab "Activity" baru di `ProjectDetailPage.tsx`.
+      Gap susulan #3 (ditemukan user): comment belum bisa dilampiri file — padahal buat
+      QA, screenshot/log itu penting di diskusi. Scope disepakati: attachment PER
+      comment (bukan 1 bucket buat semua comment di 1 entity), sama kayak Slack/GitHub.
+      `entity_attachments.entity_type` dapat value `'comment'` — DI MIGRATION TERPISAH
+      (`20260730000003`) karena `20260730000002` sudah kepush duluan ke remote sebelum
+      permintaan ini masuk, dan Supabase CLI nge-track migration by FILENAME bukan ISI
+      FILE, jadi edit file yang sudah applied itu diam-diam tidak kepush lagi di `db
+      push` berikutnya — dicatat sebagai gotcha buat next time. Tipe baru
+      `AttachmentEntityType = ActivityEntityType | 'comment'` (dipisah dari
+      `ActivityEntityType` karena comment tidak bisa di-comment lagi). `ActivityPanel.tsx`
+      dapat sub-component `CommentAttachments` (query/upload/remove sendiri per komentar,
+      cuma pemilik komentar yang bisa kelola). `tsc -b` + lint bersih di ketiga fix ini
+- [x] V2-P8-T11 — Audit Log (2026-07-30) — **shipped admin-only dulu, LANGSUNG
+      di-redesign hari yang sama** setelah user bilang "semua orang butuh ini juga,
+      saya sebagai project owner harus bisa pantau aktivitas project saya". Desain
+      admin-only itu memang salah dari awal — project owner belum tentu admin
+      platform. Redesign: pindah dari halaman `/audit-log` admin-only jadi tab BARU
+      "Activity Log" di `ProjectDetailPage` (`ActivityLogTab.tsx`), scoped ke 1 project,
+      akses SAMA seperti tab "Activity" yang sudah ada (semua member project, bukan
+      cuma manager/owner). Sempat ada kebingungan soal apakah tab "Activity" yang lama
+      ternyata mencampur semua aktivitas project (yang kalau iya berarti gagal desain)
+      — sudah diklarifikasi TIDAK, tab "Activity" tetap murni per-entity (1 Issue/1
+      TestPlan/1 Project doang), tab baru "Activity Log" itu yang menggabungkan SEMUA
+      entity dalam 1 project. Nama "Activity Log" dipilih user biar beda jelas dari
+      "Activity" (bukan "Comments" karena isinya juga ada system event, bukan "Project
+      Activity" karena mirip nama tab yang sudah ada).
+      Fitur tambahan: search box buat cari isi komentar (`.ilike('payload->>body', ...)`
+      — sintaks JSON-path PostgREST, belum pernah dipakai di codebase ini, sudah
+      diverifikasi via `curl` langsung ke Supabase REST endpoint sebelum dipakai).
+      Search CUMA cari comment body (dikonfirmasi ke user dulu) — deskripsi system
+      event kayak "changed status..." itu di-generate di frontend, bukan teks
+      tersimpan, jadi tidak ada yang bisa di-search buat baris itu. Search box pakai
+      `className="flex-1"` di `SearchInput` biar ngisi sisa ruang baris filter (pola
+      sama kayak toolbar `IssueTab.tsx`). `pages/admin/AuditLogPage.tsx` + route
+      `/audit-log` + menu Administration-nya SUDAH DIHAPUS, bukan dibiarkan jadi
+      halaman kedua yang paralel. `tsc -b` + lint bersih
+      Polish susulan (setelah coba di browser): (1) kolom "Event" tampilkan raw value
+      (`status_change` dst) — ditambah `eventTypeLabel()` di `helpers/activityDescribe.ts`.
+      (2) Paginasi "Show [n]" tidak ada pilihan — ternyata `rowsPerPageOptions` kelewat
+      pas bikin tab ini (semua tabel paginated lain di app selalu pasang ini), sekarang
+      `[10, 20, 50, 100]` sama kayak `IssueTab`. (3) Filter Entity Type diganti dari
+      Dropdown single-select jadi MultiSelect (`entityTypes: string[]`, query pakai
+      `.in()` bukan `.eq()`)
+
+**Phase 8 (Collaboration & Workflow) SELESAI — semua 11 task (T01-T11) done**, termasuk
+T11 yang sempat di-redesign di hari yang sama. Lihat `docs/ROADMAP_V2.md` bagian Phase 8
+buat detail lengkap tiap task + fix susulan yang ditemukan pas dogfooding (status label,
+Project Activity tab, comment attachment, redesign Activity Log).
 
 Item lama (non-V2), tetap terbuka tapi bukan prioritas saat ini:
 
