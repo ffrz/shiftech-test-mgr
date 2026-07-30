@@ -58,8 +58,6 @@ import { formatDateTime } from '../../helpers/dateFormatter';
 import {
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_SEVERITY,
-  PROJECT_VISIBILITY_LABEL,
-  PROJECT_VISIBILITY_SEVERITY,
 } from '../../helpers/statusLabels';
 
 // Index within the TabView -> which query keys that tab depends on, so loading state and
@@ -941,7 +939,6 @@ export function ProjectDetailPage() {
           <div className="min-w-0 flex align-items-center gap-2">
             <h2 className="m-0 white-space-nowrap overflow-hidden text-overflow-ellipsis">{project.name}</h2>
             <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
-            <Tag value={PROJECT_VISIBILITY_LABEL[project.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[project.visibility]} />
           </div>
           <div className="flex gap-2 flex-shrink-0 header-actions">
             <Button text icon="pi pi-cog" rounded size="small" onClick={() => navigate(`/projects/${id}/settings`)} />

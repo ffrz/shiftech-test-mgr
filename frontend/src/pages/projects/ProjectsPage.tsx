@@ -17,12 +17,12 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
 import { DuplicateProjectDialog } from './components/dialogs/DuplicateProjectDialog';
-import type { Project, ProjectStatus, ProjectVisibility } from '../../types/domain';
+import type { Project, ProjectStatus } from '../../types/domain';
 import type { ProjectOwnerFilter } from '../../repositories/projectRepository';
 import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
-import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY, PROJECT_VISIBILITY_LABEL, PROJECT_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
+import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
 
 export function ProjectsPage() {
   const navigate = useNavigate();
@@ -53,31 +53,28 @@ export function ProjectsPage() {
 
   const [statusFilter, setStatusFilter] = useStoredState<ProjectStatus[]>('projectsPage:statusFilter', []);
   const [ownerFilter, setOwnerFilter] = useStoredState<ProjectOwnerFilter>('projectsPage:ownerFilter', 'all');
-  const [visibilityFilter, setVisibilityFilter] = useStoredState<ProjectVisibility[]>('projectsPage:visibilityFilter', []);
   const [page, setPage] = useStoredState('projectsPage:page', 1);
   const [rowsPerPage, setRowsPerPage] = useStoredState('projectsPage:rowsPerPage', 10);
   const [sortField, setSortField] = useStoredState('projectsPage:sortField', 'name');
   const [sortOrder, setSortOrder] = useStoredState<-1 | 1>('projectsPage:sortOrder', 1);
 
-  const hasActiveFilters = debouncedSearch !== '' || statusFilter.length > 0 || ownerFilter !== 'all' || visibilityFilter.length > 0;
+  const hasActiveFilters = debouncedSearch !== '' || statusFilter.length > 0 || ownerFilter !== 'all';
 
   function resetFilters() {
     setSearch('');
     setDebouncedSearch('');
     setStatusFilter([]);
     setOwnerFilter('all');
-    setVisibilityFilter([]);
     setPage(1);
   }
 
   const { data, isLoading: loading } = useQuery({
-    queryKey: ['projects-paginated', debouncedSearch, statusFilter, ownerFilter, visibilityFilter, page, rowsPerPage, sortField, sortOrder],
+    queryKey: ['projects-paginated', debouncedSearch, statusFilter, ownerFilter, page, rowsPerPage, sortField, sortOrder],
     queryFn: () => projectService.listPaginated({
       search: debouncedSearch || undefined,
       statuses: statusFilter.length ? statusFilter : undefined,
       ownerFilter,
       currentUserId: currentUser?.id,
-      visibilities: visibilityFilter.length ? visibilityFilter : undefined,
       page,
       pageSize: rowsPerPage,
       sortField,
@@ -171,7 +168,6 @@ export function ProjectsPage() {
       </div>
       <div className="flex align-items-center gap-2 text-sm text-color-secondary">
         <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
-        <Tag value={PROJECT_VISIBILITY_LABEL[row.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[row.visibility]} />
       </div>
       {row.description && (
         <div className="text-sm text-color-secondary line-height-3">{row.description}</div>
@@ -210,21 +206,6 @@ export function ProjectsPage() {
               ]}
               onChange={(e) => setOwnerFilter(e.value)}
               className="w-full"
-            />
-          </div>
-          <div className="col-12 md:col-2 p-1">
-            <MultiSelect
-              value={visibilityFilter}
-              options={[
-                { label: 'Private', value: 'private' },
-                { label: 'Unlisted', value: 'unlisted' },
-                { label: 'Public', value: 'public' },
-              ]}
-              onChange={(e) => setVisibilityFilter(e.value)}
-              placeholder="All Visibility"
-              className="w-full"
-              selectAll
-              selectAllLabel="All"
             />
           </div>
           <div className="col-12 md:col-2 p-1">
@@ -285,13 +266,6 @@ export function ProjectsPage() {
             field="status"
             header="Status"
             body={(row: Project) => <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />}
-          />
-        )}
-        {!isMobile && (
-          <Column
-            field="visibility"
-            header="Visibility"
-            body={(row: Project) => <Tag value={PROJECT_VISIBILITY_LABEL[row.visibility]} severity={PROJECT_VISIBILITY_SEVERITY[row.visibility]} />}
           />
         )}
         {!isMobile && (

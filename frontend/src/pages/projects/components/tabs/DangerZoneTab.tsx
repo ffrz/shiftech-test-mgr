@@ -1,5 +1,4 @@
 import { Button } from 'primereact/button';
-import { Dropdown } from 'primereact/dropdown';
 import { Tag } from 'primereact/tag';
 import type { Project, ProjectVisibility } from '../../../../types/domain';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../../../helpers/statusLabels';
@@ -20,8 +19,6 @@ const SECTION_STYLE = { border: '1px solid var(--surface-200)', backgroundColor:
 
 export function DangerZoneTab({
   project,
-  visibility,
-  onChangeVisibility,
   onToggleActive,
   canArchiveProject,
   onArchive,
@@ -30,24 +27,6 @@ export function DangerZoneTab({
 }: DangerZoneTabProps) {
   return (
     <div className="flex flex-column gap-3" style={{ maxWidth: '40rem' }}>
-      <div className={SECTION_CLASS} style={SECTION_STYLE}>
-        <div>
-          <div className="font-medium text-color">Project Visibility</div>
-          <div className="text-color-secondary text-sm mt-1">
-            Controls who can see this project. Changing visibility does not affect existing members.
-          </div>
-        </div>
-        <Dropdown
-          value={visibility}
-          options={[
-            { label: 'Private — only invited members', value: 'private' },
-            { label: 'Unlisted — anyone with the link can view', value: 'unlisted' },
-            { label: 'Public — visible to everyone', value: 'public' },
-          ]}
-          onChange={(e) => onChangeVisibility(e.value)}
-          className="w-full md:w-22rem"
-        />
-      </div>
       <div className={SECTION_CLASS} style={SECTION_STYLE}>
         <div>
           <div className="font-medium text-color">Project Status</div>

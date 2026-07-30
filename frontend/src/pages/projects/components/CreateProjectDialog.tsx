@@ -12,12 +12,6 @@ import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../hooks/queryKeys';
 import type { Project, ProjectVisibility } from '../../../types/domain';
 
-const VISIBILITY_OPTIONS: { label: string; value: ProjectVisibility }[] = [
-  { label: 'Private — only invited members', value: 'private' },
-  { label: 'Unlisted — anyone with the link can view', value: 'unlisted' },
-  { label: 'Public — visible to everyone', value: 'public' },
-];
-
 interface CreateProjectDialogProps {
   visible: boolean;
   onHide: () => void;
@@ -117,20 +111,6 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
           </FloatLabel>
           <CharacterCount value={description} maxLength={1000} />
         </div>
-        {!editingProject && (
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <Dropdown
-                id="create-project-visibility"
-                value={visibility}
-                options={VISIBILITY_OPTIONS}
-                onChange={(e) => setVisibility(e.value)}
-                className="w-full"
-              />
-              <label htmlFor="create-project-visibility">Visibility</label>
-            </FloatLabel>
-          </div>
-        )}
         {!editingProject && (
           <div className="flex flex-column">
             <FloatLabel className="ifta-field">
