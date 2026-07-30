@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
 import { DataTable } from 'primereact/datatable';
@@ -19,7 +19,7 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { testSuiteService } from '../../services/testSuiteService';
 import { queryKeys } from '../../hooks/queryKeys';
-import type { TestCasePriority, TestCaseStepType, TestSuiteItem } from '../../types/domain';
+import type { TestCasePriority, TestCaseStepType, TestSuiteItem, TestSuiteVisibility } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
@@ -28,6 +28,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import { ImportTemplateDialog } from '../projects/components/dialogs/ImportTemplateDialog';
 import { parseTestCaseCsv } from '../../helpers/csvImport';
+import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY, TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 
 const UNDO_TIMEOUT_MS = 9000;
@@ -38,8 +39,9 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = (
 
 export function TestSuiteDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const toast = useRef<Toast>(null);
-  const { user, isAdmin } = useAuthContext();
+  const { user } = useAuthContext();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
   const queryClient = useQueryClient();
@@ -50,8 +52,9 @@ export function TestSuiteDetailPage() {
     enabled: !!id,
   });
 
-  const canEdit = isAdmin || suite?.ownerId === user?.id;
+  const isOwner = suite?.ownerId === user?.id;
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
 
   // --- Bulk selection ---
   const [selectedItems, setSelectedItems] = useState<TestSuiteItem[]>([]);
@@ -255,6 +258,14 @@ export function TestSuiteDetailPage() {
     if (id) await queryClient.invalidateQueries({ queryKey: queryKeys.testSuiteItems(id) });
   }
 
+  async function handleDuplicateSuite(data: { name: string; description: string; visibility: TestSuiteVisibility }) {
+    if (!id) return;
+    const newSuite = await testSuiteService.duplicateSuite(id, { name: data.name, description: data.description });
+    setDuplicateDialogOpen(false);
+    toast.current?.show({ severity: 'success', summary: 'Suite duplicated' });
+    navigate(`/test-suites/${newSuite.id}`);
+  }
+
   // --- Item dialog: same shape as the project Test Case dialog, minus project-scoped
   // module/tag pickers (suites aren't project-scoped) — module/tags are free text here,
   // resolved into real per-project rows only at clone time (testSuiteService.cloneItemsToProject).
@@ -451,6 +462,7 @@ export function TestSuiteDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Test Suite', path: '/test-suites' },
+          ...(suite ? [{ label: (suite as any)._authorUsername }] : []),
           { label: suite ? suite.name : '' },
         ]}
       />
@@ -459,21 +471,25 @@ export function TestSuiteDetailPage() {
 
         <div className="flex align-items-center justify-content-between gap-2 mb-1">
           <h2 className="m-0">{suite?.name ?? ''}</h2>
-          <div className="header-actions">
-            {canEdit && (
+          <div className="header-actions flex gap-1">
+            <Button icon="pi pi-copy" text rounded severity="secondary" size="small" onClick={() => setDuplicateDialogOpen(true)} tooltip="Duplicate Suite" />
+            {isOwner && (
               <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />
             )}
           </div>
         </div>
         <p className="text-color-secondary text-sm m-0 my-2">{suite?.description || 'No description'}</p>
-        <div className="flex align-items-center gap-2 my-2">
+        <div className="flex align-items-center gap-3 my-2">
           {suite && <Tag value={TEST_SUITE_VISIBILITY_LABEL[suite.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[suite.visibility]} />}
+          <span className="text-color-secondary text-sm">by @{(suite as any)?._authorUsername}</span>
+          <span className="text-color-secondary text-sm">•</span>
+          <span className="text-color-secondary text-sm">Updated {suite ? formatDateTime(suite.updatedAt) : ''}</span>
         </div>
       </Card>
 
       <PageHeader
         title="Test Cases"
-        actions={canEdit ? (
+        actions={isOwner ? (
           <div className="flex gap-2 align-items-center">
             <Button icon="pi pi-copy" size="small" text onClick={openImportTemplateDialog} tooltip="Import from Template" />
             <Button icon="pi pi-file-excel" size="small" text onClick={() => setImportCsvDialogOpen(true)} tooltip="Import from CSV" />
@@ -482,7 +498,7 @@ export function TestSuiteDetailPage() {
         ) : undefined}
       />
 
-      {canEdit && (
+      {isOwner && (
         <BulkActionsBar
           selectedCount={selectedItems.length}
           onClear={() => setSelectedItems([])}
@@ -504,12 +520,12 @@ export function TestSuiteDetailPage() {
         size="small"
         cellMemo={false}
       >
-        {canEdit && <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />}
+        {isOwner && <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />}
         {isMobile
           ? <Column header="Title" body={mobileBodyTemplate} />
           : <Column field="title" header="Title" sortable body={(row: TestSuiteItem) => {
             const isEditing = editingCell?.itemId === row.id && editingCell?.field === 'title';
-            if (isEditing && canEdit) {
+            if (isEditing && isOwner) {
               return (
                 <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'title', editValue)}>
                   <InputText value={editValue ?? ''} onChange={(e) => setEditValue(e.target.value)}
@@ -517,12 +533,12 @@ export function TestSuiteDetailPage() {
                 </div>
               );
             }
-            return <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'title', row.title); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>{row.title}</div>;
+            return <div onClick={(e) => { e.stopPropagation(); isOwner && startEdit(row.id, 'title', row.title); }} style={{ cursor: isOwner ? 'pointer' : undefined }}>{row.title}</div>;
           }} />
         }
         {!isMobile && <Column field="moduleName" header="Module" body={(row: TestSuiteItem) => {
           const isEditing = editingCell?.itemId === row.id && editingCell?.field === 'moduleName';
-          if (isEditing && canEdit) {
+          if (isEditing && isOwner) {
             return (
               <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'moduleName', editValue)}>
                 <InputText value={editValue ?? ''} onChange={(e) => setEditValue(e.target.value)}
@@ -530,11 +546,11 @@ export function TestSuiteDetailPage() {
               </div>
             );
           }
-          return <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'moduleName', row.moduleName); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>{row.moduleName || '-'}</div>;
+          return <div onClick={(e) => { e.stopPropagation(); isOwner && startEdit(row.id, 'moduleName', row.moduleName); }} style={{ cursor: isOwner ? 'pointer' : undefined }}>{row.moduleName || '-'}</div>;
         }} />}
         {!isMobile && <Column field="priority" header="Priority" body={(row: TestSuiteItem) => {
           const isEditing = editingCell?.itemId === row.id && editingCell?.field === 'priority';
-          if (isEditing && canEdit) {
+          if (isEditing && isOwner) {
             return (
               <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'priority', editValue)}>
                 <Dropdown value={editValue as TestCasePriority} options={PRIORITY_OPTIONS}
@@ -544,13 +560,13 @@ export function TestSuiteDetailPage() {
               </div>
             );
           }
-          return <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'priority', row.priority); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
+          return <div onClick={(e) => { e.stopPropagation(); isOwner && startEdit(row.id, 'priority', row.priority); }} style={{ cursor: isOwner ? 'pointer' : undefined }}>
             <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
           </div>;
         }} />}
         {!isMobile && <Column field="targetRole" header="Role Target" body={(row: TestSuiteItem) => {
           const isEditing = editingCell?.itemId === row.id && editingCell?.field === 'targetRole';
-          if (isEditing && canEdit) {
+          if (isEditing && isOwner) {
             return (
               <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'targetRole', editValue)}>
                 <InputText value={editValue ?? ''} onChange={(e) => setEditValue(e.target.value)}
@@ -558,12 +574,12 @@ export function TestSuiteDetailPage() {
               </div>
             );
           }
-          return <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'targetRole', row.targetRole); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
+          return <div onClick={(e) => { e.stopPropagation(); isOwner && startEdit(row.id, 'targetRole', row.targetRole); }} style={{ cursor: isOwner ? 'pointer' : undefined }}>
             {row.targetRole ? <Tag value={row.targetRole} severity="secondary" /> : '-'}
           </div>;
         }} />}
         {!isMobile && <Column field="stepType" header="Mode" body={(row: TestSuiteItem) => (row.stepType === 'detailed' ? 'Detailed' : 'Simple')} />}
-        {canEdit && (
+        {isOwner && (
           <Column
             header=""
             style={{ width: '3.5rem' }}
@@ -703,6 +719,14 @@ export function TestSuiteDetailPage() {
           await reloadItems();
           toast.current?.show({ severity: 'success', summary: 'Suite updated' });
         }}
+      />
+
+      <TestSuiteDialog
+        visible={duplicateDialogOpen}
+        mode="duplicate"
+        initialData={suite ? { name: `${suite.name} (Copy)`, description: suite.description, visibility: suite.visibility } : undefined}
+        onHide={() => setDuplicateDialogOpen(false)}
+        onSave={handleDuplicateSuite}
       />
 
       <ImportTemplateDialog

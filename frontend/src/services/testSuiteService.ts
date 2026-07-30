@@ -40,8 +40,15 @@ export const testSuiteService = {
     return testSuiteRepository.findByOwner(ownerId, visibilityFilter);
   },
 
-  getSuite(id: string) {
-    return testSuiteRepository.findById(id);
+  async getSuite(id: string) {
+    const suite = await testSuiteRepository.findById(id);
+    if (!suite) return null;
+    const profile = suite.ownerId ? await profileRepository.findById(suite.ownerId) : null;
+    return {
+      ...suite,
+      _authorUsername: profile?.username ?? '—',
+      _authorDisplayName: profile?.displayName ?? '—',
+    };
   },
 
   async createSuite(input: { name: string; description?: string; visibility?: TestSuiteVisibility }): Promise<TestSuite> {
