@@ -211,6 +211,57 @@ T11 yang sempat di-redesign di hari yang sama. Lihat `docs/ROADMAP_V2.md` bagian
 buat detail lengkap tiap task + fix susulan yang ditemukan pas dogfooding (status label,
 Project Activity tab, comment attachment, redesign Activity Log).
 
+Polish susulan (2026-07-30, di luar penomoran task Phase 8):
+- Module dropdown di `IssueEditor.tsx` (Create/Edit Issue) sekarang `editable` (bisa
+  diketik, pola sama seperti `case-module` di `TestCaseDialog.tsx`) + opsinya
+  di-sort alfabetis. Sort dipindah ke sumbernya (`moduleOptions` di
+  `ProjectDetailPage.tsx`), jadi filter/inline-edit Module di `IssueTab.tsx` dan
+  `TestCaseTab.tsx` yang share variabel sama ikut ke-sort juga.
+- Ctrl+Enter (Cmd+Enter di Mac) buat submit comment — ditambah di
+  `MentionTextarea.tsx` (`onSubmitShortcut` prop, dicek sebelum logic mention
+  autocomplete supaya tidak konflik) lalu di-wire lewat `CommentEditor.tsx`. Karena
+  `CommentEditor` dipakai bersama oleh new comment/edit/reply form di
+  `ActivityPanel.tsx`, shortcut ini otomatis berlaku di ketiganya tanpa perubahan lain.
+- Konfirmasi sebelum hapus comment (`confirmDialog`, sebelumnya langsung hapus tanpa
+  konfirmasi). `CommentEditor.tsx` diekstrak jadi komponen sendiri (sebelumnya
+  duplikat 3x inline di `ActivityPanel.tsx`: new comment/edit/reply). Comment sekarang
+  Markdown (`react-markdown`+`remark-gfm`, toggle Write/Preview) — `MarkdownPreview.tsx`
+  baru, mention/`#code`/`!code` di-convert ke syntax link Markdown dulu
+  (`linkifyMentionsMarkdown()`) sebelum di-render biar tetap ke-link. Reply comment
+  (1 level nesting) — kolom DB baru `parent_comment_id` (migrasi `20260730000005`,
+  dipilih dibanding simpan di `payload` JSON setelah ditanya ke user: kolom DB
+  memang lebih tepat by design). Attach file yang sebelumnya cuma bisa dipasang pas
+  edit comment lama (butuh `commentId` yang sudah ada), sekarang bisa juga di comment
+  baru/reply — file di-stage dulu di browser (`pendingFiles` di `CommentEditor`),
+  baru diupload beneran setelah comment tersimpan dan dapat id asli. Sekalian polish
+  visual (tombol Write/Preview jadi secondary, Reply/Edit/Delete jadi warna muted
+  `.comment-action-link`, tombol Comment/Reply/Cancel rata kiri, character counter
+  pindah ke baris sendiri rata kanan di bawah textarea) dan fix crash
+  `getBoundingClientRect is not a function` di `MentionTextarea.tsx` (race
+  `autoFocus` PrimeReact `InputTextarea` vs ref-merging effect-nya — diganti fokus
+  manual lewat `requestAnimationFrame`).
+- Status Issue diperluas dari 5 jadi 8 nilai: tambah `backlog`, `rejected`,
+  `duplicate` (migrasi `20260730000004`, cuma perlebar CHECK constraint, data lama
+  tidak berubah). `ISSUE_STATUS_LABEL`/`SEVERITY`, 3 array dropdown status
+  (`IssueDetailPage`/`IssueTab`/`TestRunIssuesPage`), dan hitungan "open issue" di
+  `dashboardRepository` (skip `closed`+`rejected`+`duplicate`, bukan cuma `closed`)
+  ikut diupdate. Gate arsip/lock-edit issue SENGAJA tetap cuma cek `closed` (belum
+  didiskusikan apakah Rejected/Duplicate juga perlu lock).
+- `IssueEditor.tsx` (Create/Edit Issue) sebelumnya tidak punya field Code dan Status
+  sama sekali — ditambahkan di baris paling atas dialog. Code opsional (kosong = DB
+  trigger `set_issue_code` auto-generate ISS-####, pola sama seperti `case-code` di
+  `TestCaseDialog.tsx`) — `issueRepository.create()`/`.update()` dan
+  `issueService.create()`/`.update()` diperluas terima `code` optional (sebelumnya
+  cuma pass-through trigger, tidak pernah exposed ke caller). Status field disabled
+  saat mode create (issue baru selalu default `open`) dan saat edit TIDAK numpang di
+  `issueService.update()` biasa — dipisah lewat prop baru `onStatusChange` yang manggil
+  `issueService.changeStatus()` (activity log + notifikasi assignee, actor dari
+  `useAuthContext()`), supaya konsisten dengan Dropdown Status yang sudah ada di
+  `IssueDetailPage.tsx`. 4 call site (`ProjectDetailPage`, `IssueDetailPage`,
+  `TestRunIssuesPage`, `TestRunResultDetailPage`) diupdate — yang create-only
+  (`TestRunResultDetailPage`) cuma butuh `code`/`status` di `initialData`, tidak perlu
+  `onStatusChange`. `tsc -b` bersih.
+
 Item lama (non-V2), tetap terbuka tapi bukan prioritas saat ini:
 
 - [ ] E03-T06 — Filter test case by priority/status di list
@@ -268,3 +319,6 @@ _(kosong)_
 - [x] Extract `FilterToolbar` component — konsolidasi pola tombol toggle filter + grid filter collapsible yang berulang di tab Issue/Member/TestCase/TestPlan/TestRun (project) dan PlanTestCases/PlanTestRuns (test plan) (2026-07-30)
 - [x] Redesign header halaman detail (Project/TestCase/Issue/TestPlan/TestSuite/User + `ProfileView`) — pola baru `project-stat-grid`/`project-stat-tile` (compact stat tile dengan icon) dan `detail-content-col`/`detail-content-card` (max-width reading column + judul card diperkecil), plus `projectService.getSummaryCounts()` untuk tile header Project detail (2026-07-30)
 - [x] Redesign Home dashboard — icon badge berwarna di kartu Statistics, icon di setiap section header, hover-elevate di kartu Continue Working/Recent Projects biar tidak terlalu kosong (2026-07-30)
+- [x] Comment editor: mention autocomplete + cross-reference (2026-07-30) — `@username` sebelumnya cuma teks placeholder tanpa dropdown asli; ditambah `MentionTextarea.tsx` (dropdown live saat mengetik `@`/`#`/`!`), diperluas ke `#code` (Test Case) dan `!code` (Issue) selain `@username` (profile), semua resolve ke link asli kalau kodenya valid, tetap teks polos kalau tidak ketemu. Fix bug background dropdown transparan (`surface-overlay` → `var(--surface-card)`). Verified (diminta user): pencarian/resolusi `#`/`!` sudah project-scoped end-to-end (lewat `projectId` di tiap query, bukan cuma RLS), dan kode entity (`entity_code_sequences`) sudah unik per project (restart dari awal tiap project baru) — lihat `docs/ROADMAP_V2.md` Phase 8 addendum untuk detail lengkap
+- [x] Comment editor lanjutan #2 — konfirmasi hapus, extract `CommentEditor.tsx`, Markdown write/preview, reply 1-level (kolom DB `parent_comment_id`), attach file di comment baru/reply (stage-lalu-upload), polish visual tombol, fix crash `getBoundingClientRect` — lihat detail lengkap di `docs/ROADMAP_V2.md` Phase 8 addendum "reply, delete confirmation, Markdown, attach-before-send" (2026-07-30)
+- [x] Status Issue diperluas 5 → 8 nilai: tambah `backlog`/`rejected`/`duplicate` (migrasi `20260730000004_issue_status_expand.sql`) — lihat `docs/ROADMAP_V2.md` Phase 8 addendum "Issue status expanded" (2026-07-30)

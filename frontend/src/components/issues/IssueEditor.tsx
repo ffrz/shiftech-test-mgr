@@ -9,16 +9,18 @@ import { Button } from 'primereact/button';
 import { FloatLabel } from 'primereact/floatlabel';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
-import type { Attachment, ExternalLink, IssuePriority, IssueType, Module, Tag } from '../../types/domain';
-import { ISSUE_PRIORITY_LABEL, ISSUE_TYPE_LABEL } from '../../helpers/statusLabels';
+import type { Attachment, ExternalLink, IssuePriority, IssueStatus, IssueType, Module, Tag } from '../../types/domain';
+import { ISSUE_PRIORITY_LABEL, ISSUE_STATUS_LABEL, ISSUE_TYPE_LABEL } from '../../helpers/statusLabels';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { attachmentService } from '../../services/attachmentService';
 
 export interface IssueFormData {
+  code: string;
   title: string;
   type: IssueType;
   priority: IssuePriority;
+  status: IssueStatus;
   moduleId: string | null;
   description: string;
   actualResult: string;
@@ -31,6 +33,10 @@ interface IssueEditorProps {
   visible: boolean;
   onHide: () => void;
   onSave: (data: IssueFormData) => Promise<void>;
+  // Status changes are routed separately from onSave because they go through
+  // issueService.changeStatus (activity log + assignee notification), which needs actor
+  // info this component doesn't have. Omit in create mode — new issues always start Open.
+  onStatusChange?: (status: IssueStatus) => Promise<void>;
   projectId: string;
   mode: 'create' | 'edit';
   initialData?: IssueFormData | null;
@@ -45,11 +51,13 @@ interface IssueEditorProps {
 
 const TYPE_OPTIONS = (['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }));
 const PRIORITY_OPTIONS = (['low', 'medium', 'high', 'critical'] as const).map((v) => ({ label: ISSUE_PRIORITY_LABEL[v], value: v }));
+const STATUS_OPTIONS = (['backlog', 'open', 'in_progress', 'resolved', 'verified', 'closed', 'rejected', 'duplicate'] as const).map((v) => ({ label: ISSUE_STATUS_LABEL[v], value: v }));
 
 export function IssueEditor({
   visible,
   onHide,
   onSave,
+  onStatusChange,
   projectId,
   mode,
   initialData,
@@ -63,9 +71,11 @@ export function IssueEditor({
 }: IssueEditorProps) {
   const toast = useRef<Toast>(null);
 
+  const [code, setCode] = useState('');
   const [title, setTitle] = useState('');
   const [type, setType] = useState<IssueType>('bug');
   const [priority, setPriority] = useState<IssuePriority>('medium');
+  const [status, setStatus] = useState<IssueStatus>('open');
   const [moduleId, setModuleId] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [actualResult, setActualResult] = useState('');
@@ -92,9 +102,11 @@ export function IssueEditor({
 
   useEffect(() => {
     if (!visible) return;
+    setCode(initialData?.code ?? '');
     setTitle(initialData?.title ?? '');
     setType(initialData?.type ?? 'bug');
     setPriority(initialData?.priority ?? 'medium');
+    setStatus(initialData?.status ?? 'open');
     setModuleId(initialData?.moduleId ?? null);
     setDescription(initialData?.description ?? '');
     setActualResult(initialData?.actualResult ?? '');
@@ -120,9 +132,11 @@ export function IssueEditor({
     setSaving(true);
     try {
       await onSave({
+        code: code.trim(),
         title: title.trim(),
         type,
         priority,
+        status,
         moduleId,
         description: description.trim(),
         actualResult: actualResult.trim(),
@@ -130,6 +144,9 @@ export function IssueEditor({
         tagNames,
         externalLinks: externalLinks.filter((l) => l.url.trim()),
       });
+      if (mode === 'edit' && onStatusChange && initialData && status !== initialData.status) {
+        await onStatusChange(status);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save issue');
     } finally {
@@ -200,6 +217,28 @@ export function IssueEditor({
         style={{ width: '36rem' }}
       >
         <div className="flex flex-column gap-2">
+          <div className="grid">
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <InputText id="issue-code" value={code} onChange={(e) => setCode(e.target.value)} className="w-full" />
+                <label htmlFor="issue-code">Code (automatic if empty)</label>
+              </FloatLabel>
+            </div>
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <Dropdown
+                  id="issue-status"
+                  value={status}
+                  options={STATUS_OPTIONS}
+                  onChange={(e) => setStatus(e.value)}
+                  className="w-full"
+                  disabled={mode === 'create' || !onStatusChange}
+                />
+                <label htmlFor="issue-status">Status</label>
+              </FloatLabel>
+            </div>
+          </div>
+
           <div className="flex flex-column gap-1">
             <FloatLabel className="ifta-field">
               <InputText id="issue-title" ref={titleRef} value={title} onChange={(e) => { setTitle(e.target.value); setTitleError(null); }} className={titleError ? 'p-invalid w-full' : 'w-full'} autoFocus />
@@ -229,8 +268,9 @@ export function IssueEditor({
                 <Dropdown
                   id="issue-module"
                   value={moduleId}
-                  options={modules.map((m) => ({ label: m.name, value: m.id }))}
+                  options={[...modules].sort((a, b) => a.name.localeCompare(b.name)).map((m) => ({ label: m.name, value: m.id }))}
                   onChange={(e) => setModuleId(e.value)}
+                  editable
                   showClear
                   className="w-full"
                   virtualScrollerOptions={{ itemSize: 40 }}
@@ -316,15 +356,17 @@ export function IssueEditor({
             <label>Attachments</label>
             {mode === 'edit' && issueId ? (
               <>
-                {(attachments ?? []).map((a) => (
-                  <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
-                    <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-                      <i className="pi pi-paperclip mr-2" />
-                      {a.fileName}
-                    </a>
-                    <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
-                  </div>
-                ))}
+                <div className="flex flex-wrap gap-2">
+                  {(attachments ?? []).map((a) => (
+                    <div key={a.id} className="flex align-items-center gap-1 p-2 border-round surface-100">
+                      <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
+                        <i className="pi pi-paperclip mr-2" />
+                        {a.fileName}
+                      </a>
+                      <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
+                    </div>
+                  ))}
+                </div>
                 {(attachments?.length ?? 0) === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
                 <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
               </>

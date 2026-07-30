@@ -311,7 +311,9 @@ export function mapActivityEntryRow(row: any): ActivityEntry {
     actorId: row.actor_id,
     eventType: row.event_type,
     payload: row.payload ?? {},
+    parentCommentId: row.parent_comment_id,
     deletedAt: row.deleted_at,
+    updatedAt: row.updated_at,
     createdAt: row.created_at,
   };
 }

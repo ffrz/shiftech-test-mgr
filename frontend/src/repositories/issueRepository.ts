@@ -33,6 +33,27 @@ function mapIssueWithDetailsRow(row: any): IssueWithDetails {
 }
 
 export const issueRepository = {
+  // Lightweight code/title lookup for the !code mention typeahead in comments — avoids
+  // pulling assignee/module/tags/linked results like findById/findAllByProjectPaginated do.
+  async searchByProject(projectId: string, query: string, limit = 5): Promise<Pick<Issue, 'id' | 'code' | 'title'>[]> {
+    const sanitized = query.trim().replace(/^!/, '').replace(/[,()%*]/g, '');
+    if (!sanitized) return [];
+    const { data, error } = await supabase
+      .from('issues')
+      .select('id, code, title')
+      .eq('project_id', projectId)
+      .or(`code.ilike.%${sanitized}%,title.ilike.%${sanitized}%`)
+      .limit(limit);
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  async findByCode(projectId: string, code: string): Promise<Issue | null> {
+    const { data, error } = await supabase.from('issues').select('*').eq('project_id', projectId).eq('code', code).maybeSingle();
+    if (error) throw error;
+    return data ? mapIssueRow(data) : null;
+  },
+
   async findById(id: string): Promise<IssueWithDetails | null> {
     const { data, error } = await supabase.from('issues').select(ISSUE_DETAIL_SELECT).eq('id', id).maybeSingle();
     if (error) throw error;

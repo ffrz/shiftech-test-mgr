@@ -3,6 +3,32 @@ import { mapModuleRow, mapTagRow, mapTestCaseRow, mapTestPlanCaseRow, mapTestRol
 import type { TestCase, TestCaseWithDetails, TestPlanCase, TestPlanCaseWithDetails } from '../types/domain';
 
 export const testCaseRepository = {
+  // Lightweight code/title lookup for the #code mention typeahead in comments — avoids
+  // pulling module/tags/target_role like findAllByProjectWithDetails does.
+  async searchByProject(projectId: string, query: string, limit = 5): Promise<Pick<TestCase, 'id' | 'code' | 'title'>[]> {
+    const sanitized = query.trim().replace(/^#/, '').replace(/[,()%*]/g, '');
+    if (!sanitized) return [];
+    const { data, error } = await supabase
+      .from('test_cases')
+      .select('id, code, title')
+      .eq('project_id', projectId)
+      .or(`code.ilike.%${sanitized}%,title.ilike.%${sanitized}%`)
+      .limit(limit);
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  async findByCode(projectId: string, code: string): Promise<TestCase | null> {
+    const { data, error } = await supabase
+      .from('test_cases')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('code', code)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? mapTestCaseRow(data) : null;
+  },
+
   async findAllByProject(projectId: string): Promise<TestCase[]> {
     const { data, error } = await supabase
       .from('test_cases')

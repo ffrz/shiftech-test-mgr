@@ -13,10 +13,21 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] Duplicate project (`projectDuplicateService`) — clone struktur (test plan/case/issue pilihan) tanpa riwayat run
 - [ ] Project selector global (dipakai lintas halaman)
 
-## Kode Entity (Module, Test Case, Test Plan, Test Run)
-- [x] Auto-generate `MOD-####`/`TC-####`/`TP-####`/`TR-####` per project (trigger DB, race-safe)
+## Kode Entity (Module, Test Case, Test Plan, Test Run, Issue)
+- [x] Auto-generate `MOD-####`/`TC-####`/`TP-####`/`TR-####`/`ISS-####` per project (trigger DB, race-safe)
+- [x] Unik per project (`entity_code_sequences` di-key oleh `project_id`+`prefix`) — project baru selalu mulai dari `-0001` lagi, bukan lanjut nomor global
 - [x] Selalu bisa diedit manual dari field "Kode" di form masing-masing
 - [x] Ditampilkan sebagai kolom di semua tabel terkait + judul halaman detail
+
+## Comment / Activity / Notification / Attachment (Collaboration, Platform Evolution V2 Phase 8)
+- [x] Comment thread universal (`ActivityPanel.tsx`) di halaman detail Issue/TestCase/TestPlan/TestRun/Project — edit/soft-delete komentar sendiri, reply 1 level
+- [x] Activity Timeline (comment + system event `status_change`/`assignment` dalam satu stream kronologis) di halaman yang sama
+- [x] Tab "Activity Log" di Project Detail — gabungan semua aktivitas Issue/TestCase/TestPlan/TestRun/Project dalam satu project, search isi komentar, filter Entity Type & tanggal
+- [x] Mention `@username` di komentar — autocomplete dropdown saat mengetik, resolve ke profile asli (typo/tidak ketemu = teks polos, bukan link mati), kirim notifikasi ke user yang di-mention
+- [x] Cross-reference `#code` (Test Case) dan `!code` (Issue) di komentar — autocomplete + link ke halaman detail entity, **scoped ke project yang sedang dibuka** (kode dari project lain tidak akan resolve/link)
+- [x] Attachment per-comment (upload/hapus, hanya pemilik komentar) + attachment generalisasi (`entity_attachments`) untuk Test Case, terpisah dari attachment Issue yang sudah ada sejak E12
+- [x] Notifikasi `mention`/`assignment`/`status_change` — hanya ke user yang relevan (mentioned user / assignee), bukan broadcast ke semua member project
+- [x] Dashboard Home: "My Work" (issue assigned ke saya, belum closed, lintas project) + "Activity Feed" (aktivitas terbaru lintas project yang saya akses)
 
 ## Modules & Tags
 - [x] CRUD Module per project (tab "Modules" di Project Detail)
@@ -62,6 +73,7 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] Kolom `type` (bug/feature/improvement/task) — sekaligus jadi feature tracking sederhana
 - [x] Tag many-to-many ke Issue (`issue_tags`, reuse master Tag)
 - [x] Tab Issues di Project Detail + `IssueDetailPage` — direshape untuk model project-level (filter type/status/priority/module/tag, dialog create standalone, menu row **Arsipkan** dan **Hapus** independen)
+- [x] Dialog Create/Edit Issue (`IssueEditor.tsx`) punya field Code dan Status di baris paling atas — Code opsional (kosong = auto-generate), Status default Open saat create (disabled) dan saat edit terhubung ke `issueService.changeStatus()` (logged + notifikasi assignee), bukan update field biasa
 - [x] Card "Link Issue" di detail Test Run: daftar issue yang sudah tertaut + tombol "Browse Issues" → dialog paginated (checkbox tautkan/lepas, update instan) → tombol "Buat Issue" di dalamnya buka dialog form lengkap yang auto-link ke test result saat disimpan
 - [x] Badge jumlah issue tertaut per test case
 - [x] External links (`{url, label?}[]`) — link klik saja, bukan integrasi API, dikelola di dialog Edit Issue

@@ -21,6 +21,7 @@ export const activityRepository = {
     actorId: string;
     eventType: string;
     payload?: Record<string, unknown>;
+    parentCommentId?: string | null;
   }): Promise<ActivityEntry> {
     const { data, error } = await supabase
       .from('entity_activity')
@@ -31,6 +32,7 @@ export const activityRepository = {
         actor_id: input.actorId,
         event_type: input.eventType,
         payload: input.payload ?? {},
+        parent_comment_id: input.parentCommentId ?? null,
       })
       .select('*')
       .single();
@@ -41,7 +43,7 @@ export const activityRepository = {
   async updateComment(id: string, body: string): Promise<ActivityEntry> {
     const { data, error } = await supabase
       .from('entity_activity')
-      .update({ payload: { body } })
+      .update({ payload: { body }, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select('*')
       .single();

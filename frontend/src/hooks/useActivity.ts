@@ -20,7 +20,7 @@ export function useActivity(projectId: string, entityType: ActivityEntityType, e
   }
 
   const addCommentMutation = useMutation({
-    mutationFn: (body: string) =>
+    mutationFn: ({ body, parentCommentId }: { body: string; parentCommentId?: string | null }) =>
       activityService.addComment({
         projectId,
         entityType,
@@ -28,6 +28,7 @@ export function useActivity(projectId: string, entityType: ActivityEntityType, e
         actorId: user!.id,
         actorName: profile?.displayName ?? profile?.username ?? 'Someone',
         body,
+        parentCommentId,
       }),
     onSuccess: invalidate,
   });

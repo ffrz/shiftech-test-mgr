@@ -597,6 +597,56 @@ have no dependency on T01–T07 and can be pulled forward or interleaved if usef
 pacing, but are sequenced last here because they're lower-value than closing the
 comment/activity/notification loop first.
 
+### Comment editor follow-up: mention autocomplete + cross-reference (2026-07-30)
+
+T04 shipped the comment box with a placeholder hint ("use @username to mention someone")
+but no actual typeahead — `@username` mention parsing/notification already worked
+server-side (T03/T06), the gap was purely UI: no dropdown while typing, and a saved
+mention rendered as flat text instead of a link.
+
+- **`MentionTextarea.tsx`** (new, `frontend/src/components/ui/MentionTextarea.tsx`) —
+  detects an in-progress trigger token (`@`, `#`, `!`) immediately before the caret,
+  queries the matching source, and shows a dropdown (arrow keys/Enter/Tab/Escape). Fixed
+  input into `CommentEditor.tsx`, which every write/edit/reply box in `ActivityPanel.tsx`
+  already goes through.
+- **Extended beyond `@username`, per user request same day**: `#code` now autocompletes
+  and links to a **Test Case**, `!code` to an **Issue** — both read the entity's existing
+  `code` field (`TC-0001`, `ISS-0001`, ...), no new column needed. Added
+  `testCaseRepository.searchByProject()`/`.findByCode()` and
+  `issueRepository.searchByProject()`/`.findByCode()` (lightweight `id, code, title`
+  lookups, distinct from the existing full-detail finders).
+- **Dropdown background bug**: first version used PrimeFlex's `surface-overlay` utility
+  class, which rendered transparent in this project's theme setup. Fixed to an explicit
+  `background: var(--surface-card)` inline style — the same opaque-popup convention
+  already used elsewhere in `index.css` (e.g. `.p-dialog`), not a new pattern.
+- **Rendering**: `helpers/renderMentions.tsx` parses all three token kinds out of a saved
+  comment body and links only the ones that resolve to a real record — an unresolved
+  `@handle`/`#code`/`!code` (typo, or a code from a different context) stays plain text
+  instead of becoming a dead link. `ActivityPanel.tsx` batch-resolves every token
+  referenced across a thread once per render (one query per kind, not per comment).
+- **Cross-project scoping verified (2026-07-30, explicit user ask)**: confirmed `#`/`!`
+  mention search and resolution are project-scoped end to end, not just RLS-scoped —
+  `MentionTextarea` requires a `projectId` prop and threads it into
+  `testCaseRepository.searchByProject(projectId, ...)`/`issueRepository.searchByProject(projectId, ...)`
+  for the typeahead, and `ActivityPanel` resolves rendered tokens via
+  `findByCode(projectId, code)` — a code that exists in a *different* project simply
+  doesn't resolve and renders as plain text, it can never link across projects. This was
+  already correct by construction (no code change needed), verified by re-reading the
+  call chain rather than assumed.
+- **Per-project code uniqueness verified (2026-07-30, explicit user ask)**: confirmed
+  `entity_code_sequences` (see "Kode Entity" in `FEATURES.md`) is keyed by
+  `(project_id, prefix)` — `next_entity_code()` always starts a fresh counter per new
+  project (`TC-0001`, `ISS-0001`, ... restart from scratch), enforced by real unique
+  indexes (`idx_test_cases_project_code`, `idx_issues_project_code`, both
+  `(project_id, code)`). Codes are scoped **per project, not per user** — this matches
+  the domain model on purpose (a project has multiple members who must all see the same
+  code for the same entity; per-user code isolation within one shared project was
+  considered and explicitly not built, since it would mean two members seeing different
+  codes for the same Test Case/Issue, which would break the mention feature itself and
+  every other place a code is used as a shared reference).
+
+`tsc -b` + lint clean, no new warnings.
+
 ### T08 — Bulk Action breakdown (2026-07-30)
 
 **Scope discovery, before any code changed**: `BulkActionsBar.tsx` (multi-select + action
@@ -648,6 +698,106 @@ adopted `ifta-field` floating labels (`FloatLabel` from `primereact/floatlabel`)
 every other create/edit dialog's convention per CLAUDE.md — the first pass had used plain
 static labels above each Dropdown, which was the one place this task didn't yet match
 established form conventions. `tsc -b` + lint clean, no new warnings.
+
+### Comment editor follow-up #2: reply, delete confirmation, Markdown, attach-before-send (2026-07-30)
+
+Requested as a batch of UX fixes to the comment box shipped in T04 + the mention
+follow-up above:
+
+- **Delete confirmation** — deleting a comment previously called `deleteComment()`
+  directly from the "Delete" link, no confirmation step. Now opens a `confirmDialog`
+  ("This comment will be deleted. Continue?") first, matching the confirm-before-destroy
+  convention used everywhere else in the app (issue archive/delete, attachment remove).
+- **`CommentEditor.tsx` extracted** (new, `frontend/src/components/ui/CommentEditor.tsx`)
+  — the write box (mention textarea + char count + submit/cancel) was duplicated three
+  times inline in `ActivityPanel.tsx` (new comment, edit, and now reply). Pulled into one
+  component so all three stay in sync structurally instead of drifting.
+- **Markdown editor + rendered preview** — added `react-markdown` + `remark-gfm`
+  dependencies. `CommentEditor` gained a Write/Preview toggle (GitHub-style, not a live
+  split-pane — chosen over split-pane for narrow-width/mobile friendliness); Preview
+  renders through new `MarkdownPreview.tsx` (GFM: tables, task lists, strikethrough,
+  fenced code, autolinks). Saved comments render through the same component. Mention/
+  cross-reference tokens (`@user`/`#code`/`!code`, from the follow-up above) still had to
+  resolve to real links under Markdown rendering — solved by a new
+  `linkifyMentionsMarkdown()` in `renderMentions.tsx` that rewrites resolved tokens into
+  Markdown link syntax (`[@user](/@user)`) *before* handing the body to `ReactMarkdown`,
+  rather than trying to post-process React output. `index.css` got scoped
+  `.markdown-preview` rules (compact spacing, code block/table/blockquote styling) since
+  the default Markdown output is sized for a full document, not a comment thread.
+- **Reply** — one level of nesting (a reply can't itself be replied to). Went with a
+  proper DB column over a JSON-payload field after explicit user ask ("which is more
+  correct, by design a new DB column") — `parent_comment_id uuid references
+  entity_activity(id) on delete cascade` (migration `20260730000005`), not smuggled into
+  the existing `payload jsonb`. Threaded through the full stack: `ActivityEntry.parentCommentId`
+  (domain type) → `mapActivityEntryRow` → `activityRepository.create()` →
+  `activityService.addComment()` → `useActivity`'s `addComment` mutation, which now takes
+  `{ body, parentCommentId? }` instead of a bare string (all three call sites in
+  `ActivityPanel.tsx` updated). UI: replies render indented under their parent, top-level
+  comments only (Reply button hidden on a reply itself, enforcing the one-level rule at
+  the UI layer since the DB doesn't).
+- **Attach file was missing entirely on new comments/replies** — the attach affordance
+  built for T10's "comments had no attachment support" fix only worked on an *existing*
+  comment being edited, because attaching requires a real `commentId` and a brand-new
+  comment/reply doesn't have one until after it's saved. Fixed with a stage-then-upload
+  flow: `CommentEditor` gained optional `pendingFiles`/`onPendingFilesChange` props — when
+  passed, an "Attach file" button appears (uses `FileUpload` in manual/non-auto mode
+  purely to grab `File` objects via `onSelect`, no actual upload happens yet) and picked
+  files show as removable chips. `ActivityPanel` owns `draftFiles`/`replyFiles` state; on
+  submit, `addComment()` creates the comment first, then every staged file is uploaded
+  against the real new `commentId` via `attachmentService.uploadForEntity()`, then that
+  comment's attachment query is invalidated so the files appear without a reload. The
+  edit form intentionally does **not** get `pendingFiles` — it already has a real
+  `commentId`, so it keeps uploading directly through the existing `CommentAttachments`
+  sub-component instead of staging.
+- **Visual pass, same session**: Write/Preview toggle buttons switched to
+  `severity="secondary"` (were unstyled-primary, too visually loud next to actual content
+  links). Reply/Edit/Delete action links switched from the bold-primary `.entity-link`
+  class to a new muted `.comment-action-link` class (same hover affordance, no color
+  competition with real content links inside the comment body). Comment/Reply/Cancel
+  buttons moved from right-aligned to left-aligned (GitHub-style, action buttons near
+  where the user's eye already is after typing); character counter moved to its own
+  right-aligned row directly under the textarea, out of the button row. Attach-file
+  button shrunk (`p-button-sm`, reduced font-size/padding) and set to `secondary`
+  severity to match.
+- **`getBoundingClientRect is not a function` crash** — surfaced by the reply form's
+  `autoFocus`. Root cause: PrimeReact's `InputTextarea` (`autoResize` mode) reads
+  `elementRef.current` inside its native `onFocus` handler, but only merges that ref to
+  the actual DOM node in a `useEffect` that runs after mount — passing `autoFocus`
+  straight through to the underlying `<textarea>` fires native autofocus synchronously,
+  racing ahead of that effect. Fixed in `MentionTextarea.tsx` by not using the
+  `InputTextarea`'s own `autoFocus` prop at all; focuses the textarea itself via
+  `requestAnimationFrame` in a `useEffect` once the ref is guaranteed attached.
+
+`tsc -b` clean throughout. Migrations `20260730000004`/`20260730000005` (see below)
+pushed to remote same session.
+
+### Issue status expanded: 5 → 8 values (2026-07-30)
+
+`IssueStatus` widened from `open`/`in_progress`/`resolved`/`verified`/`closed` to add
+`backlog`, `rejected`, `duplicate` — closer to how GitHub/Jira-style trackers actually
+triage issues (a `backlog` pre-`open` state, and two additional terminal outcomes besides
+"fixed and closed"). Migration `20260730000004_issue_status_expand.sql` widens the
+`issues_status_check` CHECK constraint only — existing rows keep their values unchanged,
+no backfill needed since every prior value is still a member of the new set.
+
+Updated: `IssueStatus` domain type, `ISSUE_STATUS_LABEL`/`ISSUE_STATUS_SEVERITY` in
+`statusLabels.ts` (`backlog`/`rejected`/`duplicate` all map to `secondary` severity, kept
+visually quiet since they're not "needs attention" states like `open`), the three
+hardcoded status-dropdown option arrays (`IssueDetailPage.tsx`, `IssueTab.tsx`,
+`TestRunIssuesPage.tsx` — no shared constant existed for this list before, still doesn't;
+worth extracting if a fourth call site appears), and `dashboardRepository`'s "open issue"
+counts (`getCounts().openIssueCount`, `findMyWorkIssues()`) — both switched from
+`.neq('status', 'closed')` to `.not('status', 'in', '(closed,rejected,duplicate)')` so
+Rejected/Duplicate issues (terminal, same as Closed) no longer count as "open" work.
+
+**Deliberately left unchanged**: the existing "Archive" action and the edit-lock
+(`row.status !== 'closed'`, gates Edit/inline-cell-edit/Delete-vs-Archive across
+`IssueDetailPage.tsx`/`IssueTab.tsx`) still key off `closed` only, not the two new
+terminal states — whether Rejected/Duplicate should also lock further editing is a
+separate product decision, not bundled into this status-list expansion.
+
+`tsc -b` clean. Migration pushed to remote same session (see also
+`20260730000005_entity_activity_comment_replies.sql` above — both pushed together).
 
 ---
 

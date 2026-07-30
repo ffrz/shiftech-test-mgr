@@ -28,6 +28,7 @@ export const activityService = {
     actorId: string;
     actorName: string;
     body: string;
+    parentCommentId?: string | null;
   }) {
     const trimmed = input.body.trim();
     if (!trimmed) throw new Error('Comment cannot be empty.');
@@ -39,6 +40,7 @@ export const activityService = {
       actorId: input.actorId,
       eventType: 'comment',
       payload: { body: trimmed },
+      parentCommentId: input.parentCommentId ?? null,
     });
 
     const usernames = extractMentionedUsernames(trimmed);

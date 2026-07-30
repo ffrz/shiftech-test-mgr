@@ -16,6 +16,154 @@ body {
   text-decoration: underline;
 }
 
+/* Muted action links (Reply/Edit/Delete on a comment) — same affordance as .entity-link
+   but without the bold primary color, so a comment's action row doesn't compete visually
+   with actual content links (mentions, #test-case/!issue refs) inside the comment body. */
+.comment-action-link {
+  color: var(--text-color-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.comment-action-link:hover {
+  color: var(--text-color);
+  text-decoration: underline;
+}
+
+/* GitHub-issue-style comment thread — ActivityPanel.tsx. Visual only, no data model change:
+   comment rows render as a bordered card (avatar sits inside the card header, GitHub-style),
+   system events (status_change/assignment) render as a compact timeline row instead of a
+   card, same as GitHub's "moved this to..." lines. Comment cards are standalone blocks, not
+   threaded onto a rail — only consecutive timeline-event rows get a connecting line (see
+   .timeline-event-row::before), so the line never runs behind a card. */
+.comment-thread {
+  position: relative;
+}
+
+.comment-row {
+  margin-bottom: 1rem;
+}
+
+.comment-card {
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  background: var(--surface-card);
+}
+
+.comment-card-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-100);
+  border-bottom: 1px solid var(--surface-border);
+  border-radius: 6px 6px 0 0;
+  font-size: 0.85rem;
+}
+
+.comment-card-header .p-avatar {
+  flex-shrink: 0;
+}
+
+.comment-card-body {
+  padding: 0.75rem;
+}
+
+.comment-card-actions {
+  border-top: 1px solid var(--surface-border);
+  padding: 0.4rem 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Compact timeline row for system events (status_change/assignment/...) — a small icon
+   bubble on the rail instead of an avatar, one line of text, no card chrome. */
+.timeline-event-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  min-height: 1.75rem;
+}
+
+/* Short connecting line above the icon bubble — only rendered when the immediately
+   preceding thread entry was also a timeline event (see renderEntry's connectToPrevious),
+   so it only ever appears between consecutive timeline-event rows, never behind a comment
+   card. Left offset matches .timeline-event-icon's horizontal center (half of its 1.75rem
+   width). */
+.timeline-event-connected::before {
+  content: '';
+  position: absolute;
+  left: 0.875rem;
+  top: -0.75rem;
+  height: 0.75rem;
+  width: 2px;
+  background: var(--surface-border);
+}
+
+.timeline-event-icon {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--surface-100);
+  border: 1px solid var(--surface-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--text-color-secondary);
+}
+
+.timeline-event-text {
+  font-size: 0.85rem;
+  color: var(--text-color-secondary);
+}
+
+/* Comment editor styled as its own card (Write/Preview tab bar as the header strip),
+   matching the comment cards above it in the same thread. */
+.comment-editor-card {
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  background: var(--surface-card);
+  overflow: hidden;
+}
+
+.comment-editor-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--surface-100);
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.comment-editor-body {
+  padding: 0.75rem;
+}
+
+.comment-editor-footer {
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid var(--surface-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* Compact buttons for the comment editor chrome (Write/Preview tabs, Comment/Save/Cancel) —
+   smaller than PrimeReact's own "small" size preset, since these sit inside an already-small
+   comment card rather than a full-width toolbar. */
+.comment-btn-sm.p-button {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.65rem;
+}
+
 .breadcrumb-link {
   text-decoration: none;
   padding: 0.15rem 0.45rem;
@@ -1283,6 +1431,52 @@ h6,
   top: 0.5rem !important;
   margin-top: 0 !important;
   font-size: 12px;
+}
+
+/* Markdown-rendered comment body (MarkdownPreview) — compact spacing since it sits inside
+   a small comment/activity timeline, not a full document. */
+.markdown-preview > *:first-child {
+  margin-top: 0;
+}
+.markdown-preview > *:last-child {
+  margin-bottom: 0;
+}
+.markdown-preview p,
+.markdown-preview ul,
+.markdown-preview ol,
+.markdown-preview blockquote,
+.markdown-preview pre,
+.markdown-preview table {
+  margin: 0.35rem 0;
+}
+.markdown-preview pre {
+  background: var(--surface-100);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.markdown-preview code {
+  background: var(--surface-100);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.markdown-preview pre code {
+  background: none;
+  padding: 0;
+}
+.markdown-preview blockquote {
+  border-left: 3px solid var(--surface-border);
+  padding-left: 0.75rem;
+  color: var(--text-color-secondary);
+}
+.markdown-preview table {
+  border-collapse: collapse;
+}
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid var(--surface-border);
+  padding: 0.25rem 0.5rem;
 }
 
 /* Home dashboard: stat card icon badges + list hover cards */

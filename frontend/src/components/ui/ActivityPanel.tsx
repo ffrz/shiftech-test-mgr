@@ -1,31 +1,71 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
-import { Button } from 'primereact/button';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import type { MenuItem } from 'primereact/menuitem';
+import { RowActionsMenu } from './RowActionsMenu';
 import { profileRepository } from '../../repositories/profileRepository';
+import { testCaseRepository } from '../../repositories/testCaseRepository';
+import { issueRepository } from '../../repositories/issueRepository';
 import { attachmentService } from '../../services/attachmentService';
 import { useActivity } from '../../hooks/useActivity';
 import { useAuthContext } from '../../hooks/useAuth';
 import { queryKeys } from '../../hooks/queryKeys';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { describeSystemEvent } from '../../helpers/activityDescribe';
-import { CharacterCount } from './CharacterCount';
-import type { ActivityEntityType, ActivityEntry, Profile } from '../../types/domain';
+import { extractMentionUsernames, extractTestCaseCodes, extractIssueCodes, linkifyMentionsMarkdown } from '../../helpers/renderMentions';
+import { CommentEditor } from './CommentEditor';
+import { MarkdownPreview } from './MarkdownPreview';
+import type { ActivityEntityType, ActivityEntry, Attachment, Profile } from '../../types/domain';
 
-const COMMENT_MAX_LENGTH = 2000;
+// One comment's attachments, read-only display (view mode only) — its own query, scoped by
+// entity_type='comment' + entity_id=commentId (see 20260730000003 migration). Split out from
+// renderEntry so each comment's attachment list only re-renders/re-queries independently of
+// the others. Upload/remove happens inside CommentEditor's edit mode instead (see
+// existingAttachments/onUploadAttachment/onRemoveAttachment in renderCommentBody) so the
+// delete affordance only shows up while actually editing, not on every comment at rest.
+function CommentAttachments({ commentId }: { commentId: string }) {
+  const { data: attachments = [] } = useQuery({
+    queryKey: queryKeys.entityAttachments('comment', commentId),
+    queryFn: () => attachmentService.listForEntity('comment', commentId),
+  });
 
-interface ActivityPanelProps {
-  projectId: string;
-  entityType: ActivityEntityType;
-  entityId: string | null;
+  if (attachments.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1 mt-2">
+      {attachments.map((a) => (
+        <div key={a.id} className="flex align-items-center gap-1 p-1 border-round surface-100 text-sm">
+          <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
+            <i className="pi pi-paperclip mr-1" style={{ fontSize: '0.8rem' }} />
+            {a.fileName}
+          </a>
+        </div>
+      ))}
+    </div>
+  );
 }
 
-// One comment's attachments — its own query/upload/remove, scoped by entity_type='comment'
-// + entity_id=commentId (see 20260730000003 migration). Split out from renderEntry so each
-// comment's attachment list only re-renders/re-queries independently of the others.
-function CommentAttachments({ projectId, commentId, canManage }: { projectId: string; commentId: string; canManage: boolean }) {
+// Edit form for an existing comment — a real component (not inlined in renderCommentBody)
+// because it needs its own useQuery for the comment's existing attachments, wired into
+// CommentEditor's existingAttachments/onUploadAttachment/onRemoveAttachment so the upload
+// control stays in the Write/Preview bar and the list only shows in Write mode.
+function EditCommentForm({
+  projectId,
+  commentId,
+  value,
+  onChange,
+  onSubmit,
+  onCancel,
+}: {
+  projectId: string;
+  commentId: string;
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}) {
   const queryClient = useQueryClient();
   const { data: attachments = [] } = useQuery({
     queryKey: queryKeys.entityAttachments('comment', commentId),
@@ -36,38 +76,36 @@ function CommentAttachments({ projectId, commentId, canManage }: { projectId: st
     return queryClient.invalidateQueries({ queryKey: queryKeys.entityAttachments('comment', commentId) });
   }
 
-  async function handleUpload(event: FileUploadHandlerEvent) {
-    for (const file of event.files) {
-      await attachmentService.uploadForEntity('comment', commentId, projectId, file);
-    }
+  async function handleUpload(file: File) {
+    await attachmentService.uploadForEntity('comment', commentId, projectId, file);
     await invalidate();
   }
 
-  async function handleRemove(attachmentId: string, url: string) {
-    await attachmentService.removeForEntity(attachmentId, url);
+  async function handleRemove(attachment: Attachment) {
+    await attachmentService.removeForEntity(attachment.id, attachment.url);
     await invalidate();
   }
-
-  if (attachments.length === 0 && !canManage) return null;
 
   return (
-    <div className="flex flex-column gap-1 mt-2">
-      {attachments.map((a) => (
-        <div key={a.id} className="flex align-items-center justify-content-between gap-2 p-1 border-round surface-100 text-sm">
-          <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-            <i className="pi pi-paperclip mr-1" style={{ fontSize: '0.8rem' }} />
-            {a.fileName}
-          </a>
-          {canManage && (
-            <Button icon="pi pi-times" size="small" text severity="danger" style={{ width: '1.5rem', height: '1.5rem' }} onClick={() => handleRemove(a.id, a.url)} />
-          )}
-        </div>
-      ))}
-      {canManage && (
-        <FileUpload mode="basic" chooseLabel="Attach file" chooseOptions={{ className: 'p-button-sm p-button-text' }} customUpload uploadHandler={handleUpload} auto multiple />
-      )}
-    </div>
+    <CommentEditor
+      projectId={projectId}
+      value={value}
+      onChange={onChange}
+      onSubmit={onSubmit}
+      onCancel={onCancel}
+      submitLabel="Save"
+      autoFocus
+      existingAttachments={attachments}
+      onUploadAttachment={handleUpload}
+      onRemoveAttachment={handleRemove}
+    />
   );
+}
+
+interface ActivityPanelProps {
+  projectId: string;
+  entityType: ActivityEntityType;
+  entityId: string | null;
 }
 
 // Universal Comment + Activity Timeline — one panel, both concerns, since a comment is
@@ -78,10 +116,28 @@ function CommentAttachments({ projectId, commentId, canManage }: { projectId: st
 export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanelProps) {
   const { user, profile: ownProfile } = useAuthContext();
   const { entries, loading, addComment, editComment, deleteComment } = useActivity(projectId, entityType, entityId);
+  const queryClient = useQueryClient();
   const [draft, setDraft] = useState('');
+  const [draftFiles, setDraftFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
+  const [replyingToId, setReplyingToId] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState('');
+  const [replyFiles, setReplyFiles] = useState<File[]>([]);
+  const [replySubmitting, setReplySubmitting] = useState(false);
+
+  // Staged files (see CommentEditor's pendingFiles) have no commentId yet — uploaded here
+  // right after the comment is created, then the new comment's own attachment list is
+  // invalidated so it shows up without a page reload.
+  async function uploadPendingFiles(commentId: string, files: File[]) {
+    for (const file of files) {
+      await attachmentService.uploadForEntity('comment', commentId, projectId, file);
+    }
+    if (files.length > 0) {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.entityAttachments('comment', commentId) });
+    }
+  }
 
   const actorIds = useMemo(() => [...new Set(entries.map((e) => e.actorId))], [entries]);
   const { data: actorProfiles = [] } = useQuery({
@@ -96,12 +152,83 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
     return map;
   }, [actorProfiles, ownProfile]);
 
+  // Resolves every @handle/#code/!code referenced across all comments in this thread in one
+  // batch, so linkifyMentionsMarkdown can tell a real reference (rendered as a link) from
+  // stray text.
+  const referencedUsernames = useMemo(() => {
+    const handles = new Set<string>();
+    for (const entry of entries) {
+      if (entry.eventType !== 'comment' || typeof entry.payload.body !== 'string') continue;
+      for (const handle of extractMentionUsernames(entry.payload.body)) handles.add(handle.toLowerCase());
+    }
+    return [...handles];
+  }, [entries]);
+  const referencedTestCaseCodes = useMemo(() => {
+    const codes = new Set<string>();
+    for (const entry of entries) {
+      if (entry.eventType !== 'comment' || typeof entry.payload.body !== 'string') continue;
+      for (const code of extractTestCaseCodes(entry.payload.body)) codes.add(code);
+    }
+    return [...codes];
+  }, [entries]);
+  const referencedIssueCodes = useMemo(() => {
+    const codes = new Set<string>();
+    for (const entry of entries) {
+      if (entry.eventType !== 'comment' || typeof entry.payload.body !== 'string') continue;
+      for (const code of extractIssueCodes(entry.payload.body)) codes.add(code);
+    }
+    return [...codes];
+  }, [entries]);
+
+  const { data: mentionedProfiles = [] } = useQuery({
+    queryKey: ['profiles', 'byUsernames', ...referencedUsernames.sort()],
+    queryFn: () => Promise.all(referencedUsernames.map((u) => profileRepository.findByUsername(u))),
+    enabled: referencedUsernames.length > 0,
+  });
+  const { data: referencedTestCases = [] } = useQuery({
+    queryKey: ['testCases', 'byCodes', projectId, ...referencedTestCaseCodes.sort()],
+    queryFn: () => Promise.all(referencedTestCaseCodes.map((c) => testCaseRepository.findByCode(projectId, c))),
+    enabled: referencedTestCaseCodes.length > 0,
+  });
+  const { data: referencedIssues = [] } = useQuery({
+    queryKey: ['issues', 'byCodes', projectId, ...referencedIssueCodes.sort()],
+    queryFn: () => Promise.all(referencedIssueCodes.map((c) => issueRepository.findByCode(projectId, c))),
+    enabled: referencedIssueCodes.length > 0,
+  });
+
+  const knownRefs = useMemo(
+    () => ({
+      usernames: new Set(mentionedProfiles.filter((p): p is Profile => p !== null).map((p) => p.username.toLowerCase())),
+      testCaseCodes: new Map(referencedTestCases.filter((tc): tc is NonNullable<typeof tc> => tc !== null).map((tc) => [tc.code, tc.id])),
+      issueCodes: new Map(referencedIssues.filter((i): i is NonNullable<typeof i> => i !== null).map((i) => [i.code, i.id])),
+    }),
+    [mentionedProfiles, referencedTestCases, referencedIssues],
+  );
+
+  // Top-level comments in order, each carrying its replies (flat, one level of nesting —
+  // parent_comment_id always points at a top-level comment, see the domain type comment).
+  const threads = useMemo(() => {
+    const replies = new Map<string, ActivityEntry[]>();
+    for (const entry of entries) {
+      if (entry.eventType === 'comment' && entry.parentCommentId) {
+        const list = replies.get(entry.parentCommentId) ?? [];
+        list.push(entry);
+        replies.set(entry.parentCommentId, list);
+      }
+    }
+    return entries
+      .filter((e) => !(e.eventType === 'comment' && e.parentCommentId))
+      .map((entry) => ({ entry, replies: entry.eventType === 'comment' ? replies.get(entry.id) ?? [] : [] }));
+  }, [entries]);
+
   async function handleSubmit() {
     if (!draft.trim() || submitting) return;
     setSubmitting(true);
     try {
-      await addComment(draft);
+      const created = await addComment({ body: draft });
+      await uploadPendingFiles(created.id, draftFiles);
       setDraft('');
+      setDraftFiles([]);
     } finally {
       setSubmitting(false);
     }
@@ -118,61 +245,199 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
     setEditingId(null);
   }
 
-  function renderEntry(entry: ActivityEntry) {
-    const actor = profileById.get(entry.actorId);
-    const actorName = actor?.displayName ?? actor?.username ?? 'Unknown';
-    const isOwn = entry.actorId === user?.id;
+  function confirmDeleteComment(id: string) {
+    confirmDialog({
+      header: 'Delete Comment',
+      message: 'This comment will be deleted. Continue?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptClassName: 'p-button-danger',
+      accept: () => deleteComment(id),
+    });
+  }
+
+  function startReply(id: string) {
+    setReplyingToId(id);
+    setReplyDraft('');
+    setReplyFiles([]);
+  }
+
+  async function handleSubmitReply(parentId: string) {
+    if (!replyDraft.trim() || replySubmitting) return;
+    setReplySubmitting(true);
+    try {
+      const created = await addComment({ body: replyDraft, parentCommentId: parentId });
+      await uploadPendingFiles(created.id, replyFiles);
+      setReplyingToId(null);
+      setReplyDraft('');
+      setReplyFiles([]);
+    } finally {
+      setReplySubmitting(false);
+    }
+  }
+
+  function renderCommentBody(entry: ActivityEntry) {
+    const isEditing = editingId === entry.id;
     const isDeleted = !!entry.deletedAt;
 
+    if (isDeleted) {
+      return <p className="m-0 text-color-secondary text-sm italic">[deleted]</p>;
+    }
+    if (isEditing) {
+      return (
+        <div className="mt-1">
+          <EditCommentForm
+            projectId={projectId}
+            commentId={entry.id}
+            value={editDraft}
+            onChange={setEditDraft}
+            onSubmit={() => handleSaveEdit(entry.id)}
+            onCancel={() => setEditingId(null)}
+          />
+        </div>
+      );
+    }
+    const body = typeof entry.payload.body === 'string' ? entry.payload.body : '';
     return (
-      <div key={entry.id} className="flex gap-2 py-2" style={{ borderBottom: '1px solid var(--surface-border)' }}>
-        <Avatar image={actor?.avatarUrl ?? undefined} icon={actor?.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="normal" />
-        <div className="flex-1">
-          <div className="flex align-items-center gap-2">
-            <span className="font-medium text-sm">{actorName}</span>
-            <span className="text-color-secondary text-xs">{formatDateTime(entry.createdAt)}</span>
-          </div>
+      <div className="mt-1">
+        <MarkdownPreview value={linkifyMentionsMarkdown(body, knownRefs)} />
+      </div>
+    );
+  }
 
-          {entry.eventType === 'comment' ? (
-            isDeleted ? (
-              <p className="m-0 text-color-secondary text-sm italic">[deleted]</p>
-            ) : editingId === entry.id ? (
-              <div className="flex flex-column gap-1 mt-1">
-                <InputTextarea
-                  value={editDraft}
-                  onChange={(e) => setEditDraft(e.target.value.slice(0, COMMENT_MAX_LENGTH))}
-                  rows={2}
-                  autoResize
-                  className="w-full"
-                />
-                <div className="flex align-items-center justify-content-between">
-                  <CharacterCount value={editDraft} maxLength={COMMENT_MAX_LENGTH} />
-                  <div className="flex gap-1">
-                    <Button label="Cancel" size="small" text onClick={() => setEditingId(null)} />
-                    <Button label="Save" size="small" onClick={() => handleSaveEdit(entry.id)} />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="m-0 text-sm mt-1" style={{ whiteSpace: 'pre-wrap' }}>
-                {typeof entry.payload.body === 'string' ? entry.payload.body : ''}
-              </p>
-            )
+  function renderCommentActions(entry: ActivityEntry, { allowReply }: { allowReply: boolean }) {
+    const isDeleted = !!entry.deletedAt;
+    if (isDeleted || editingId === entry.id || !allowReply) return null;
+
+    return (
+      <div className="flex gap-2 mt-1">
+        <a className="comment-action-link text-xs" onClick={() => startReply(entry.id)}>Reply</a>
+      </div>
+    );
+  }
+
+  function commentMenuItems(entry: ActivityEntry): MenuItem[] {
+    return [
+      { label: 'Edit', icon: 'pi pi-pencil', command: () => startEdit(entry) },
+      { label: 'Delete', icon: 'pi pi-trash', command: () => confirmDeleteComment(entry.id) },
+    ];
+  }
+
+  function renderCommentEntry(entry: ActivityEntry, { allowReply }: { allowReply: boolean }) {
+    const actor = profileById.get(entry.actorId);
+    const isOwn = entry.actorId === user?.id;
+    const isDeleted = !!entry.deletedAt;
+    const isEditing = editingId === entry.id;
+    const actions = renderCommentActions(entry, { allowReply });
+
+    return (
+      <div className="comment-card">
+        <div className="comment-card-header">
+          <Avatar image={actor?.avatarUrl ?? undefined} icon={actor?.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="normal" />
+          {actor?.username ? (
+            <Link to={`/@${actor.username}`} className="entity-link font-bold">{actor.username}</Link>
           ) : (
-            <p className="m-0 text-sm mt-1 text-color-secondary">{describeSystemEvent(entry)}</p>
+            <span className="font-bold">Unknown</span>
           )}
-
-          {entry.eventType === 'comment' && !isDeleted && editingId !== entry.id && (
-            <CommentAttachments projectId={projectId} commentId={entry.id} canManage={isOwn} />
+          <span className="text-color-secondary">commented {formatDateTime(entry.createdAt)}</span>
+          {entry.updatedAt && !isDeleted && (
+            <span className="text-color-secondary font-italic" title={formatDateTime(entry.updatedAt)}>
+              &middot; edited {formatDateTime(entry.updatedAt)}
+            </span>
           )}
-
-          {entry.eventType === 'comment' && isOwn && !isDeleted && editingId !== entry.id && (
-            <div className="flex gap-2 mt-1">
-              <a className="entity-link text-xs" onClick={() => startEdit(entry)}>Edit</a>
-              <a className="entity-link text-xs" onClick={() => deleteComment(entry.id)}>Delete</a>
+          {isOwn && !isDeleted && !isEditing && (
+            <div className="ml-auto">
+              <RowActionsMenu items={commentMenuItems(entry)} />
             </div>
           )}
         </div>
+
+        <div className="comment-card-body">
+          {renderCommentBody(entry)}
+          {!isDeleted && !isEditing && <CommentAttachments commentId={entry.id} />}
+        </div>
+
+        {actions && <div className="comment-card-actions">{actions}</div>}
+      </div>
+    );
+  }
+
+  // System events (status_change/assignment/...) render as a single timeline line with an
+  // icon bubble on the rail instead of a full comment card — matches GitHub issue's "moved
+  // this to..."/"changed the status..." rows, which don't get their own card chrome.
+  function timelineEventIcon(eventType: string): string {
+    switch (eventType) {
+      case 'status_change':
+        return 'pi pi-refresh';
+      case 'assignment':
+        return 'pi pi-user-edit';
+      case 'attachment_added':
+        return 'pi pi-paperclip';
+      default:
+        return 'pi pi-bolt';
+    }
+  }
+
+  // connectToPrevious: only true when the immediately preceding thread entry was also a
+  // timeline event (not a comment) — draws a short connecting line above this row's icon so
+  // consecutive system events read as one continuous timeline, without a full-thread rail
+  // that would otherwise run behind comment cards too.
+  function renderTimelineEvent(entry: ActivityEntry, connectToPrevious: boolean) {
+    const actor = profileById.get(entry.actorId);
+    const actorName = actor?.displayName ?? actor?.username ?? 'Unknown';
+
+    return (
+      <div className={connectToPrevious ? 'timeline-event-row timeline-event-connected' : 'timeline-event-row'}>
+        <div className="timeline-event-icon">
+          <i className={timelineEventIcon(entry.eventType)} />
+        </div>
+        <span className="timeline-event-text">
+          <span className="font-medium text-color">{actorName}</span> {describeSystemEvent(entry)} &middot; {formatDateTime(entry.createdAt)}
+        </span>
+      </div>
+    );
+  }
+
+  function renderEntry(entry: ActivityEntry, replies: ActivityEntry[], previousEntry: ActivityEntry | undefined) {
+    if (entry.eventType !== 'comment') {
+      const connectToPrevious = !!previousEntry && previousEntry.eventType !== 'comment';
+      return (
+        <div key={entry.id}>
+          {renderTimelineEvent(entry, connectToPrevious)}
+        </div>
+      );
+    }
+
+    return (
+      <div key={entry.id} className="comment-row">
+        {renderCommentEntry(entry, { allowReply: true })}
+
+        {replies.length > 0 && (
+          <div className="flex flex-column gap-3 mt-3" style={{ marginLeft: '1.5rem' }}>
+            {replies.map((reply) => (
+              <div key={reply.id}>{renderCommentEntry(reply, { allowReply: false })}</div>
+            ))}
+          </div>
+        )}
+
+        {!entry.deletedAt && replyingToId === entry.id && (
+          <div className="mt-3" style={{ marginLeft: '1.5rem' }}>
+            <CommentEditor
+              projectId={projectId}
+              value={replyDraft}
+              onChange={setReplyDraft}
+              onSubmit={() => handleSubmitReply(entry.id)}
+              onCancel={() => setReplyingToId(null)}
+              submitLabel="Reply"
+              placeholder="Write a reply..."
+              submitting={replySubmitting}
+              autoFocus
+              pendingFiles={replyFiles}
+              onPendingFilesChange={setReplyFiles}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -181,22 +446,26 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
 
   return (
     <div>
+      <ConfirmDialog />
+
       {loading && entries.length === 0 && <p className="text-color-secondary text-sm m-0">Loading activity...</p>}
       {!loading && entries.length === 0 && <p className="text-color-secondary text-sm m-0">No activity yet.</p>}
-      {entries.map(renderEntry)}
 
-      <div className="flex flex-column gap-2 mt-3">
-        <InputTextarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value.slice(0, COMMENT_MAX_LENGTH))}
-          rows={2}
-          autoResize
-          placeholder="Write a comment... use @username to mention someone"
-          className="w-full"
-        />
-        <div className="flex align-items-center justify-content-between">
-          <CharacterCount value={draft} maxLength={COMMENT_MAX_LENGTH} />
-          <Button label="Comment" size="small" disabled={!draft.trim() || submitting} onClick={handleSubmit} />
+      <div className="comment-thread">
+        {threads.map(({ entry, replies }, i) => renderEntry(entry, replies, threads[i - 1]?.entry))}
+
+        <div className="comment-row">
+          <CommentEditor
+            projectId={projectId}
+            value={draft}
+            onChange={setDraft}
+            onSubmit={handleSubmit}
+            submitLabel="Comment"
+            placeholder="Write a comment... @user to mention, #code for test case, !code for issue"
+            submitting={submitting}
+            pendingFiles={draftFiles}
+            onPendingFilesChange={setDraftFiles}
+          />
         </div>
       </div>
     </div>

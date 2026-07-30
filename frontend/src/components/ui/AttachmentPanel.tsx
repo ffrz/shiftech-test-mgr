@@ -70,17 +70,19 @@ export function AttachmentPanel({ projectId, entityType, entityId, canManage, on
 
   return (
     <div className="flex flex-column gap-2">
-      {attachments.map((a) => (
-        <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
-          <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-            <i className="pi pi-paperclip mr-2" />
-            {a.fileName}
-          </a>
-          {canManage && (
-            <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemove(a)} />
-          )}
-        </div>
-      ))}
+      <div className="flex flex-wrap gap-2">
+        {attachments.map((a) => (
+          <div key={a.id} className="flex align-items-center gap-1 p-2 border-round surface-100">
+            <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
+              <i className="pi pi-paperclip mr-2" />
+              {a.fileName}
+            </a>
+            {canManage && (
+              <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemove(a)} />
+            )}
+          </div>
+        ))}
+      </div>
       {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
       {canManage && (
         <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />

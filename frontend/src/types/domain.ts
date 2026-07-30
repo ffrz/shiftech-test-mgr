@@ -299,7 +299,15 @@ export interface TestResultStepWithDetails extends TestResultStep {
 }
 
 export type IssuePriority = 'low' | 'medium' | 'high' | 'critical';
-export type IssueStatus = 'open' | 'in_progress' | 'resolved' | 'verified' | 'closed';
+export type IssueStatus =
+  | 'backlog'
+  | 'open'
+  | 'in_progress'
+  | 'resolved'
+  | 'verified'
+  | 'closed'
+  | 'rejected'
+  | 'duplicate';
 // bug/feature/improvement/task — lets this module double as lightweight feature tracking,
 // not just bugs surfaced from failed test results.
 export type IssueType = 'bug' | 'feature' | 'improvement' | 'task';
@@ -377,7 +385,11 @@ export interface ActivityEntry {
   actorId: string;
   eventType: string;
   payload: Record<string, unknown>;
+  // Only set on event_type='comment' rows that are a reply — always points at a top-level
+  // comment (one level of nesting, a reply can't itself be replied to).
+  parentCommentId: string | null;
   deletedAt: string | null;
+  updatedAt: string | null;
   createdAt: string;
 }
 

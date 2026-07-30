@@ -431,17 +431,19 @@ export function IssueDetailPage() {
 
         <Card title="Attachment" className="mb-3 detail-content-card">
           <div className="flex flex-column gap-2">
-            {attachments.map((a) => (
-              <div key={a.id} className="flex align-items-center justify-content-between p-2 border-round surface-100">
-                <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-                  <i className="pi pi-paperclip mr-2" />
-                  {a.fileName}
-                </a>
-                {canEditIssue && (
-                  <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
-                )}
-              </div>
-            ))}
+            <div className="flex flex-wrap gap-2">
+              {attachments.map((a) => (
+                <div key={a.id} className="flex align-items-center gap-1 p-2 border-round surface-100">
+                  <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
+                    <i className="pi pi-paperclip mr-2" />
+                    {a.fileName}
+                  </a>
+                  {canEditIssue && (
+                    <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
+                  )}
+                </div>
+              ))}
+            </div>
             {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
             {canEditIssue && (
               <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
