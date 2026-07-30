@@ -67,7 +67,6 @@ export function TestSuitesPage() {
   const [sortField, setSortField] = useStoredState('testSuitesPage:sortField', 'name');
   const [sortOrder, setSortOrder] = useStoredState<-1 | 1>('testSuitesPage:sortOrder', 1);
 
-  const [filterVisible, setFilterVisible] = useState(true);
   const hasActiveFilters = debouncedSearch !== '' || visibilityFilter.length > 0;
 
   function resetFilters() {
@@ -190,16 +189,6 @@ export function TestSuitesPage() {
         title="Test Suite"
         actions={
           <div className="flex gap-3 align-items-center">
-            <Button
-              icon={filterVisible ? "pi pi-filter-fill" : "pi pi-filter"}
-              text
-              rounded
-              size="small"
-              severity={filterVisible ? "warning" : "secondary"}
-              onClick={() => setFilterVisible(!filterVisible)}
-              tooltip={filterVisible ? "Hide filters" : "Show filters"}
-              tooltipOptions={{ position: 'bottom' }}
-            />
             <Button label="New Suite" icon="pi pi-plus" size="small" onClick={openCreateDialog} />
           </div>
         }
@@ -209,8 +198,7 @@ export function TestSuitesPage() {
         Reusable test case templates you can clone into any project. Publish yours so others can clone them too.
       </p>
 
-      {filterVisible && (
-        <div className="grid mb-3 p-1">
+      <div className="grid mb-3 p-1">
           <div className="col-12 md:col-8 p-1">
             <SelectButton
               value={ownershipFilter}
@@ -252,7 +240,6 @@ export function TestSuitesPage() {
             </div>
           </div>
         </div>
-      )}
 
       <DataTable
         value={suites}
