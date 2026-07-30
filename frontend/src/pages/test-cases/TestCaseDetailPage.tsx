@@ -15,6 +15,8 @@ import { FloatLabel } from 'primereact/floatlabel';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { ActivityPanel } from '../../components/ui/ActivityPanel';
+import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
 import { testCaseService } from '../../services/testCaseService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
@@ -379,6 +381,21 @@ export function TestCaseDetailPage() {
             <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.notes}</p>
           </Card>
         )}
+
+        <Card title="Attachment" className="mb-3 detail-content-card">
+          <AttachmentPanel
+            projectId={testCase.project.id}
+            entityType="test_case"
+            entityId={testCase.id}
+            canManage={canEditContent}
+            onToastSuccess={(summary) => toast.current?.show({ severity: 'success', summary })}
+            onToastError={(summary, detail) => toast.current?.show({ severity: 'error', summary, detail })}
+          />
+        </Card>
+
+        <Card title="Activity" className="mb-3 detail-content-card">
+          <ActivityPanel projectId={testCase.project.id} entityType="test_case" entityId={testCase.id} />
+        </Card>
       </div>
 
       {/* --- Edit Dialog --- */}

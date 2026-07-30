@@ -17,8 +17,10 @@ import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useAuthContext } from '../../hooks/useAuth';
 import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import type { BreadcrumbItem } from '../../components/ui/Breadcrumb';
 import type { Attachment, IssueStatus } from '../../types/domain';
@@ -41,6 +43,8 @@ export function IssueDetailPage() {
   const [searchParams] = useSearchParams();
   const testRunId = searchParams.get('testRunId');
   const toast = useRef<Toast>(null);
+  const { user, profile } = useAuthContext();
+  const actorName = profile?.displayName ?? profile?.username ?? null;
 
   const queryClient = useQueryClient();
   const { data: issue = null, isLoading: loading } = useQuery({
@@ -59,6 +63,7 @@ export function IssueDetailPage() {
     enabled: !!id,
   });
   const { canManageIssues, canDeleteContent } = useProjectRole(issue?.projectId);
+  const canEditIssue = canManageIssues && issue?.status !== 'closed';
 
   const { data: project } = useQuery({
     queryKey: queryKeys.project(issue?.projectId ?? ''),
@@ -184,15 +189,18 @@ export function IssueDetailPage() {
   }
 
   async function handleChangeStatus(status: IssueStatus) {
-    if (!issue) return;
-    await issueService.changeStatus(issue.id, status);
+    if (!issue || !user) return;
+    await issueService.changeStatus(issue.id, status, { projectId: issue.projectId, actorId: user.id, actorName });
     await reload();
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
   }
 
   async function handleAssign(assignedTo: string | null | undefined) {
-    if (!issue) return;
-    await issueService.assign(issue.id, assignedTo ?? null);
+    if (!issue || !user) return;
+    const assigneeName = assignedTo
+      ? projectMembers.find((m) => m.userId === assignedTo)?.profile.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile.username
+      : null;
+    await issueService.assign(issue.id, assignedTo ?? null, { projectId: issue.projectId, actorId: user.id, actorName, assigneeName });
     await reload();
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
   }
@@ -246,7 +254,8 @@ export function IssueDetailPage() {
       acceptLabel: 'Archive',
       rejectLabel: 'Cancel',
       accept: async () => {
-        await issueService.changeStatus(issue.id, 'closed');
+        if (!user) return;
+        await issueService.changeStatus(issue.id, 'closed', { projectId: issue.projectId, actorId: user.id, actorName });
         await reload();
         await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
         toast.current?.show({ severity: 'success', summary: 'Issue archived' });
@@ -258,7 +267,7 @@ export function IssueDetailPage() {
     if (!issue) return;
     try {
       for (const file of event.files) {
-        await attachmentService.upload(issue.id, file);
+        await attachmentService.upload(issue.id, issue.projectId, file);
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) });
       toast.current?.show({ severity: 'success', summary: 'Attachment uploaded' });
@@ -315,7 +324,7 @@ export function IssueDetailPage() {
           <div className="flex align-items-center gap-2 mb-1 justify-content-between">
             <h2 className="m-0">{issue.code} — {issue.title}</h2>
             <div className="flex align-items-center gap-1 header-actions">
-              {canManageIssues && <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
+              {canEditIssue && <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
               {canManageIssues && <Button rounded icon="pi pi-copy" size="small" text severity="secondary" onClick={handleDuplicate} />}
               {canDeleteContent ? (
                 <Button rounded icon="pi pi-trash" size="small" text severity="danger" onClick={handleDelete} />
@@ -392,7 +401,7 @@ export function IssueDetailPage() {
                   options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
                   onChange={(e) => handleAssign(e.value)}
                   showClear
-                  disabled={!canManageIssues}
+                  disabled={!canEditIssue}
                   className="w-full"
                 />
                 <label htmlFor="issue-assigned">Assigned To</label>
@@ -427,13 +436,13 @@ export function IssueDetailPage() {
                   <i className="pi pi-paperclip mr-2" />
                   {a.fileName}
                 </a>
-                {canManageIssues && (
+                {canEditIssue && (
                   <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
                 )}
               </div>
             ))}
             {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
-            {canManageIssues && (
+            {canEditIssue && (
               <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
             )}
           </div>
@@ -452,13 +461,13 @@ export function IssueDetailPage() {
                     <span className="text-color-secondary text-sm ml-2">{link.url}</span>
                   )}
                 </div>
-                {canManageIssues && (
+                {canEditIssue && (
                   <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveExternalLink(i)} />
                 )}
               </div>
             ))}
             {issue.externalLinks.length === 0 && <p className="text-color-secondary text-sm m-0">No external links yet.</p>}
-            {canManageIssues && (
+            {canEditIssue && (
               <>
                 {externalAdding ? (
                   <div className="flex flex-column gap-2 p-2 border-round surface-100">
@@ -484,6 +493,10 @@ export function IssueDetailPage() {
               </>
             )}
           </div>
+        </Card>
+
+        <Card title="Activity" className="mb-3 detail-content-card">
+          <ActivityPanel projectId={issue.projectId} entityType="issue" entityId={issue.id} />
         </Card>
       </div>
 

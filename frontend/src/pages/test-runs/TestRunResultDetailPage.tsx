@@ -29,6 +29,7 @@ import { projectService } from '../../services/projectService';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { queryKeys } from '../../hooks/queryKeys';
 import type {
   IssueWithDetails,
@@ -78,7 +79,7 @@ export function TestRunResultDetailPage() {
   const resultId = searchParams.get('resultId');
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
-  const { profile: currentProfile } = useAuthContext();
+  const { user, profile: currentProfile } = useAuthContext();
 
   const queryClient = useQueryClient();
   const { testRun, results, summary, loading, reload } = useTestRunDetail(runId);
@@ -383,8 +384,8 @@ export function TestRunResultDetailPage() {
   }
 
   async function handleCompleteRun() {
-    if (!runId) return;
-    await testRunService.complete(runId, completeNotes.trim() || null);
+    if (!runId || !projectId || !user) return;
+    await testRunService.complete(runId, { projectId, actorId: user.id }, completeNotes.trim() || null);
     setCompleteDialogOpen(false);
     await reload();
     await invalidateTestRunSummaries();
@@ -392,8 +393,8 @@ export function TestRunResultDetailPage() {
   }
 
   async function handleReopenRun() {
-    if (!runId) return;
-    await testRunService.reopen(runId);
+    if (!runId || !projectId || !user) return;
+    await testRunService.reopen(runId, { projectId, actorId: user.id });
     await reload();
     await invalidateTestRunSummaries();
   }
@@ -465,6 +466,12 @@ export function TestRunResultDetailPage() {
             <ProgressBar value={summary.progressPercent} showValue={false} />
           </div>
         </>
+      )}
+
+      {testRun && (
+        <Panel header="Activity" toggleable collapsed className="mb-3">
+          <ActivityPanel projectId={testRun.projectId} entityType="test_run" entityId={testRun.id} />
+        </Panel>
       )}
 
       <div className="grid">

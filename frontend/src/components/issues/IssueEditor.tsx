@@ -171,7 +171,7 @@ export function IssueEditor({
     if (!issueId) return;
     try {
       for (const file of event.files) {
-        await attachmentService.upload(issueId, file);
+        await attachmentService.upload(issueId, projectId, file);
       }
       onAttachmentsChange?.();
       toast.current?.show({ severity: 'success', summary: 'Attachment uploaded' });

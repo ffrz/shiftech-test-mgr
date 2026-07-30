@@ -16,6 +16,7 @@ import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import type { TestCase, TestCasePriority, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { TestPlanDialog } from '../../components/dialogs/TestPlanDialog';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
@@ -238,6 +239,25 @@ export function TestPlanDetailPage() {
   const [runError, setRunError] = useState<string | null>(null);
 
   function openStartRunDialog() {
+    if (testPlan?.status === 'draft' || testPlan?.status === 'archived') {
+      confirmDialog({
+        header: 'Test Plan Belum Siap',
+        message:
+          testPlan.status === 'draft'
+            ? 'Test plan ini masih berstatus Draft. Test run yang dibuat dari plan draft bisa saja belum final. Lanjutkan membuat test run?'
+            : 'Test plan ini sudah diarsipkan. Biasanya test plan archived tidak dites lagi. Lanjutkan membuat test run?',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Lanjutkan',
+        rejectLabel: 'Batal',
+        acceptClassName: 'p-button-warning',
+        accept: () => actuallyOpenStartRunDialog(),
+      });
+      return;
+    }
+    actuallyOpenStartRunDialog();
+  }
+
+  function actuallyOpenStartRunDialog() {
     setRunName(`Run ${new Date().toLocaleDateString('id-ID')}`);
     setRunError(null);
     setRunDialogOpen(true);
@@ -371,6 +391,9 @@ export function TestPlanDetailPage() {
             onStartRun={openStartRunDialog}
             onDeleteRun={handleDeleteRun}
           />
+        </TabPanel>
+        <TabPanel header="Activity">
+          <ActivityPanel projectId={testPlan?.projectId ?? ''} entityType="test_plan" entityId={testPlan?.id ?? null} />
         </TabPanel>
       </TabView>
 
