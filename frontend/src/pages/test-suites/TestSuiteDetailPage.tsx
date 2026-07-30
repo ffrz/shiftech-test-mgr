@@ -472,7 +472,7 @@ export function TestSuiteDetailPage() {
         <div className="flex align-items-center justify-content-between gap-2 mb-1">
           <h2 className="m-0">{suite?.name ?? ''}</h2>
           <div className="header-actions flex gap-1">
-            <Button icon="pi pi-copy" text rounded severity="secondary" size="small" onClick={() => setDuplicateDialogOpen(true)} tooltip="Duplicate Suite" />
+            <Button icon="pi pi-copy" text rounded severity="secondary" size="small" onClick={() => setDuplicateDialogOpen(true)} tooltip="Duplicate Suite" tooltipOptions={{ position: 'bottom' }} />
             {isOwner && (
               <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />
             )}
