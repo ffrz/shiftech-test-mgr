@@ -24,7 +24,7 @@ export function ProfileView({ profile, projects, suites, isSpying, adminOverlay 
 
   return (
     <div className="detail-content-col">
-      <Card className="mb-3">
+      <Card className="mb-2 detail-content-card">
         <div className="flex align-items-center gap-3">
           <Avatar image={profile.avatarUrl ?? undefined} icon={profile.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="xlarge" />
           <div className="flex-1">
@@ -39,12 +39,12 @@ export function ProfileView({ profile, projects, suites, isSpying, adminOverlay 
       </Card>
 
       {profile.bio && (
-        <Card title="Bio" className="mb-3 detail-content-card">
+        <Card title="Bio" className="mb-2 detail-content-card">
           <p className="m-0">{profile.bio}</p>
         </Card>
       )}
 
-      <Card title="Account Info" className="mb-3 detail-content-card">
+      <Card title="Account Info" className="mb-2 detail-content-card">
         <div className="flex flex-wrap column-gap-4 row-gap-1 text-xs">
           <span className="text-color-secondary">
             <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
@@ -53,7 +53,7 @@ export function ProfileView({ profile, projects, suites, isSpying, adminOverlay 
         </div>
       </Card>
 
-      <Card title="Projects" className="mb-3 detail-content-card">
+      <Card title="Projects" className="mb-2 detail-content-card">
         {projects.length === 0 ? (
           <p className="text-color-secondary m-0">No projects.</p>
         ) : (
@@ -72,7 +72,7 @@ export function ProfileView({ profile, projects, suites, isSpying, adminOverlay 
         )}
       </Card>
 
-      <Card title="Test Suites" className="mb-3 detail-content-card">
+      <Card title="Test Suites" className="mb-2 detail-content-card">
         {suites.length === 0 ? (
           <p className="text-color-secondary m-0">No test suites.</p>
         ) : (
