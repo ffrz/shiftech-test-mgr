@@ -18,7 +18,7 @@ import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useAuthContext } from '../../hooks/useAuth';
-import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
+import { useProjectBreadcrumbItems } from '../../hooks/useProjectBreadcrumbItems';
 import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
@@ -79,7 +79,7 @@ export function IssueDetailPage() {
     queryFn: () => projectService.getById(issue!.projectId),
     enabled: !!issue?.projectId,
   });
-  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
+  const projectBreadcrumbItems = useProjectBreadcrumbItems(project?.name, project?.ownerId, `/projects/${issue?.projectId}`);
 
   const { data: modules = [] } = useQuery({
     queryKey: queryKeys.modules(issue?.projectId ?? ''),
@@ -325,7 +325,7 @@ export function IssueDetailPage() {
   if (loading || !issue) {
     const breadcrumbItems: BreadcrumbItem[] = [
       { label: 'Projects', path: '/projects' },
-      { label: issue ? projectBreadcrumbLabel : '', path: issue?.projectId ? `/projects/${issue.projectId}` : undefined },
+      ...projectBreadcrumbItems,
       { label: issue ? 'Issues' : '', path: issue?.projectId ? `/projects/${issue.projectId}?tab=issues` : undefined },
       { label: loading ? '' : 'Issue not found' },
     ];
@@ -339,7 +339,7 @@ export function IssueDetailPage() {
 
   const breadcrumbItems: BreadcrumbItem[] = [
     { label: 'Projects', path: '/projects' },
-    { label: projectBreadcrumbLabel, path: `/projects/${issue.projectId}` },
+    ...projectBreadcrumbItems,
     { label: 'Issues', path: `/projects/${issue.projectId}?tab=issues` },
     { label: issue.code, path: `/issues/${issue.id}` },
   ];

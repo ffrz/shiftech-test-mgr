@@ -18,7 +18,7 @@ import { useIssuesByTestRun } from '../../hooks/useIssues';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { useProjectRole } from '../../hooks/useProjectRole';
-import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
+import { useProjectBreadcrumbItems } from '../../hooks/useProjectBreadcrumbItems';
 import { testRunService } from '../../services/testRunService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { issueService } from '../../services/issueService';
@@ -116,7 +116,7 @@ export function TestRunResultDetailPage() {
     queryFn: () => projectService.getById(projectId!),
     enabled: !!projectId,
   });
-  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
+  const projectBreadcrumbItems = useProjectBreadcrumbItems(project?.name, project?.ownerId, projectId ? `/projects/${projectId}` : undefined);
 
   const { data: starterProfile = null } = useQuery({
     queryKey: queryKeys.profile(testRun?.startedBy ?? ''),
@@ -448,7 +448,7 @@ export function TestRunResultDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: projectId ? projectBreadcrumbLabel : '', path: projectId ? `/projects/${projectId}` : undefined },
+          ...projectBreadcrumbItems,
           { label: projectId ? 'Test Runs' : '', path: projectId ? `/projects/${projectId}?tab=testRuns` : undefined },
           { label: testRun ? testRun.code : '', path: testRun ? `/test-runs/${testRun.id}` : undefined },
         ]}

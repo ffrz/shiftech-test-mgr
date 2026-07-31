@@ -685,8 +685,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/layout/AppTopbar.tsx": {
-    "mtime": 1785503912.2243798,
-    "ast_hash": "734483208c34c7871940382ee98f2259",
+    "mtime": 1785407892.8570342,
+    "ast_hash": "8656a8f0ee885cce206bb7d0887a7576",
     "semantic_hash": ""
   },
   "frontend/src/components/layout/BreadcrumbContext.tsx": {
@@ -910,8 +910,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/ProjectsPage.tsx": {
-    "mtime": 1785503844.6611693,
-    "ast_hash": "1d466b7fb56260431ef1cd631677a1e7",
+    "mtime": 1785503699.0554445,
+    "ast_hash": "a2d294c9863e4d33453319ddd3de17cd",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/CreateProjectDialog.tsx": {

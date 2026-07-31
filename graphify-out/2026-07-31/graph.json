@@ -453,8 +453,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_domain_apperror_apperror",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 51,
+      "community_name": "Backend Test Role Repository (MySQL)",
       "norm_label": "apperror.go"
     },
     {
@@ -464,8 +464,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apperror_kind",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 51,
+      "community_name": "Backend Test Role Repository (MySQL)",
       "norm_label": "kind"
     },
     {
@@ -475,8 +475,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apperror_error",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 51,
+      "community_name": "Backend Test Role Repository (MySQL)",
       "norm_label": "error"
     },
     {
@@ -486,8 +486,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apperror_error_error",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 51,
+      "community_name": "Backend Test Role Repository (MySQL)",
       "norm_label": ".error()"
     },
     {
@@ -497,8 +497,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "apperror_error_unwrap",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 51,
+      "community_name": "Backend Test Role Repository (MySQL)",
       "norm_label": ".unwrap()"
     },
     {
@@ -508,8 +508,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "backend_internal_domain_apperror_apperror_notfound",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 51,
+      "community_name": "Backend Test Role Repository (MySQL)",
       "norm_label": "notfound()"
     },
     {
@@ -530,8 +530,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "backend_internal_domain_apperror_apperror_conflict",
-      "community": 27,
-      "community_name": "Backend Test Plan Repository (Postgres)",
+      "community": 51,
+      "community_name": "Backend Test Role Repository (MySQL)",
       "norm_label": "conflict()"
     },
     {
@@ -541,8 +541,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "backend_internal_domain_apperror_apperror_forbidden",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "forbidden()"
     },
     {
@@ -563,8 +563,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "backend_internal_domain_apperror_apperror_internal",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "internal()"
     },
     {
@@ -574,8 +574,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "backend_internal_domain_apperror_apperror_as",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 51,
+      "community_name": "Backend Test Role Repository (MySQL)",
       "norm_label": "as()"
     },
     {
@@ -827,8 +827,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_domain_project_member",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "member.go"
     },
     {
@@ -838,8 +838,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "project_memberrole",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "memberrole"
     },
     {
@@ -849,8 +849,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "project_member",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "member"
     },
     {
@@ -992,8 +992,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_domain_testplan_entity",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 20,
+      "community_name": "Backend Test Plan Repository (MySQL)",
       "norm_label": "testplan/entity.go"
     },
     {
@@ -1003,8 +1003,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "testplan_status",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 20,
+      "community_name": "Backend Test Plan Repository (MySQL)",
       "norm_label": "status"
     },
     {
@@ -1014,8 +1014,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "testplan_testplan",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 20,
+      "community_name": "Backend Test Plan Repository (MySQL)",
       "norm_label": "testplan"
     },
     {
@@ -1025,8 +1025,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_domain_testplan_entity_go_time",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 20,
+      "community_name": "Backend Test Plan Repository (MySQL)",
       "norm_label": "time"
     },
     {
@@ -1080,8 +1080,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_domain_testrun_entity",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "testrun/entity.go"
     },
     {
@@ -1091,8 +1091,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "testrun_status",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "status"
     },
     {
@@ -1102,8 +1102,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "testrun_testrun",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "testrun"
     },
     {
@@ -1113,8 +1113,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_domain_testrun_entity_go_time",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "time"
     },
     {
@@ -1124,8 +1124,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "testrun_resultstatus",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "resultstatus"
     },
     {
@@ -1135,8 +1135,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "testrun_result",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "result"
     },
     {
@@ -1146,8 +1146,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "testrun_stepstatus",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "stepstatus"
     },
     {
@@ -1157,8 +1157,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "testrun_resultstep",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "resultstep"
     },
     {
@@ -1168,8 +1168,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "testrun_summary",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "summary"
     },
     {
@@ -1267,8 +1267,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_repository_entitycode_entitycode",
-      "community": 46,
-      "community_name": "Backend Module Repository (MySQL)",
+      "community": 35,
+      "community_name": "Backend Module Repository (Postgres)",
       "norm_label": "entitycode.go"
     },
     {
@@ -1278,8 +1278,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "entitycode_sequencerow",
-      "community": 46,
-      "community_name": "Backend Module Repository (MySQL)",
+      "community": 35,
+      "community_name": "Backend Module Repository (Postgres)",
       "norm_label": "sequencerow"
     },
     {
@@ -1289,8 +1289,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "entitycode_sequencerow_tablename",
-      "community": 46,
-      "community_name": "Backend Module Repository (MySQL)",
+      "community": 35,
+      "community_name": "Backend Module Repository (Postgres)",
       "norm_label": ".tablename()"
     },
     {
@@ -1300,8 +1300,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "backend_internal_repository_entitycode_entitycode_next",
-      "community": 46,
-      "community_name": "Backend Module Repository (MySQL)",
+      "community": 35,
+      "community_name": "Backend Module Repository (Postgres)",
       "norm_label": "next()"
     },
     {
@@ -1311,8 +1311,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_entitycode_entitycode_go_context",
-      "community": 46,
-      "community_name": "Backend Module Repository (MySQL)",
+      "community": 35,
+      "community_name": "Backend Module Repository (Postgres)",
       "norm_label": "context"
     },
     {
@@ -1322,8 +1322,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_entitycode_entitycode_go_db",
-      "community": 46,
-      "community_name": "Backend Module Repository (MySQL)",
+      "community": 35,
+      "community_name": "Backend Module Repository (Postgres)",
       "norm_label": "db"
     },
     {
@@ -1454,8 +1454,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_errors",
-      "community": 20,
-      "community_name": "Backend Test Plan Repository (MySQL)",
+      "community": 55,
+      "community_name": "Backend Tag Repository (MySQL)",
       "norm_label": "mysql/errors.go"
     },
     {
@@ -1465,8 +1465,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_errors_isduplicatekeyerr",
-      "community": 20,
-      "community_name": "Backend Test Plan Repository (MySQL)",
+      "community": 55,
+      "community_name": "Backend Tag Repository (MySQL)",
       "norm_label": "isduplicatekeyerr()"
     },
     {
@@ -1476,8 +1476,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_issue_repository",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "mysql/issue_repository.go"
     },
     {
@@ -1487,8 +1487,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "mysql_issuerepository",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "issuerepository"
     },
     {
@@ -1498,8 +1498,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_issue_repository_go_db",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "db"
     },
     {
@@ -1509,8 +1509,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_issue_repository_newissuerepository",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "newissuerepository()"
     },
     {
@@ -1520,8 +1520,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "mysql_issuerepository_findallbyproject",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".findallbyproject()"
     },
     {
@@ -1531,8 +1531,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_issue_repository_go_context",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "context"
     },
     {
@@ -1542,8 +1542,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_issue_repository_go_issue",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "issue"
     },
     {
@@ -1553,8 +1553,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "mysql_issuerepository_findallbytestrun",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".findallbytestrun()"
     },
     {
@@ -1564,8 +1564,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "mysql_issuerepository_findallbytestresult",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".findallbytestresult()"
     },
     {
@@ -1575,8 +1575,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "mysql_issuerepository_findbyid",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".findbyid()"
     },
     {
@@ -1586,8 +1586,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "mysql_issuerepository_create",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".create()"
     },
     {
@@ -1597,8 +1597,8 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "mysql_issuerepository_update",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".update()"
     },
     {
@@ -1608,8 +1608,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "mysql_issuerepository_updatestatus",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".updatestatus()"
     },
     {
@@ -1619,8 +1619,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_issue_repository_go_status",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "status"
     },
     {
@@ -1630,8 +1630,8 @@
       "source_location": "L142",
       "_origin": "ast",
       "id": "mysql_issuerepository_assign",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".assign()"
     },
     {
@@ -1641,8 +1641,8 @@
       "source_location": "L149",
       "_origin": "ast",
       "id": "mysql_issuerepository_delete",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".delete()"
     },
     {
@@ -1652,8 +1652,8 @@
       "source_location": "L156",
       "_origin": "ast",
       "id": "mysql_issuerepository_linktotestresult",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".linktotestresult()"
     },
     {
@@ -1663,8 +1663,8 @@
       "source_location": "L167",
       "_origin": "ast",
       "id": "mysql_issuerepository_unlinkfromtestresult",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".unlinkfromtestresult()"
     },
     {
@@ -1674,8 +1674,8 @@
       "source_location": "L177",
       "_origin": "ast",
       "id": "mysql_issuerepository_replacetags",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".replacetags()"
     },
     {
@@ -1685,8 +1685,8 @@
       "source_location": "L196",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_issue_repository_todomainissues",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "todomainissues()"
     },
     {
@@ -1696,8 +1696,8 @@
       "source_location": "L208",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_issue_repository_todomainissue",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "todomainissue()"
     },
     {
@@ -1707,8 +1707,8 @@
       "source_location": "L237",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_issue_repository_fromdomainissue",
-      "community": 15,
-      "community_name": "Backend Issue Domain & Service",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "fromdomainissue()"
     },
     {
@@ -2686,8 +2686,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_project_member_repository",
-      "community": 50,
-      "community_name": "Backend JWT & Auth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "mysql/project_member_repository.go"
     },
     {
@@ -2697,8 +2697,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "mysql_projectmemberrepository",
-      "community": 50,
-      "community_name": "Backend JWT & Auth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "projectmemberrepository"
     },
     {
@@ -2708,8 +2708,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_project_member_repository_go_db",
-      "community": 50,
-      "community_name": "Backend JWT & Auth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "db"
     },
     {
@@ -2719,8 +2719,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_project_member_repository_newprojectmemberrepository",
-      "community": 50,
-      "community_name": "Backend JWT & Auth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "newprojectmemberrepository()"
     },
     {
@@ -3753,8 +3753,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "mysql_testcasesnapshotrepository_findbyids",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".findbyids()"
     },
     {
@@ -3764,8 +3764,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_testrun_readers_go_context",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": "context"
     },
     {
@@ -3775,8 +3775,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "mysql_testcasesnapshotrepository_findstepsbytestcaseids",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".findstepsbytestcaseids()"
     },
     {
@@ -3808,8 +3808,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "mysql_testplancasereader_findorderedtestcaseidsbyplan",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 24,
+      "community_name": "Backend Issue Repository (MySQL)",
       "norm_label": ".findorderedtestcaseidsbyplan()"
     },
     {
@@ -3984,8 +3984,8 @@
       "source_location": "L174",
       "_origin": "ast",
       "id": "mysql_testrunrepository_findresultsbyrun",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": ".findresultsbyrun()"
     },
     {
@@ -3995,8 +3995,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "mysql_testrunrepository_findresultbyid",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": ".findresultbyid()"
     },
     {
@@ -4006,8 +4006,8 @@
       "source_location": "L198",
       "_origin": "ast",
       "id": "mysql_testrunrepository_updateresult",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": ".updateresult()"
     },
     {
@@ -4017,8 +4017,8 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "mysql_testrunrepository_updateresultsnapshot",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": ".updateresultsnapshot()"
     },
     {
@@ -4028,8 +4028,8 @@
       "source_location": "L227",
       "_origin": "ast",
       "id": "mysql_testrunrepository_findresultstepbyid",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": ".findresultstepbyid()"
     },
     {
@@ -4039,8 +4039,8 @@
       "source_location": "L239",
       "_origin": "ast",
       "id": "mysql_testrunrepository_updateresultstep",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": ".updateresultstep()"
     },
     {
@@ -4083,8 +4083,8 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_testrun_repository_todomaintestresult",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "todomaintestresult()"
     },
     {
@@ -4094,8 +4094,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_testrun_repository_go_testresult",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "testresult"
     },
     {
@@ -4105,8 +4105,8 @@
       "source_location": "L307",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_testrun_repository_todomaintestresultstep",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "todomaintestresultstep()"
     },
     {
@@ -4116,8 +4116,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_mysql_testrun_repository_go_testresultstep",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "testresultstep"
     },
     {
@@ -4248,8 +4248,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_repository_postgres_errors",
-      "community": 27,
-      "community_name": "Backend Test Plan Repository (Postgres)",
+      "community": 35,
+      "community_name": "Backend Module Repository (Postgres)",
       "norm_label": "postgres/errors.go"
     },
     {
@@ -4259,8 +4259,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_internal_repository_postgres_errors_isduplicatekeyerr",
-      "community": 27,
-      "community_name": "Backend Test Plan Repository (Postgres)",
+      "community": 35,
+      "community_name": "Backend Module Repository (Postgres)",
       "norm_label": "isduplicatekeyerr()"
     },
     {
@@ -5480,8 +5480,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_repository_postgres_project_member_repository",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 99,
+      "community_name": "Backend Project Member Repository (Postgres)",
       "norm_label": "postgres/project_member_repository.go"
     },
     {
@@ -5491,8 +5491,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "postgres_projectmemberrepository",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 99,
+      "community_name": "Backend Project Member Repository (Postgres)",
       "norm_label": "projectmemberrepository"
     },
     {
@@ -5502,8 +5502,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_postgres_project_member_repository_go_db",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 99,
+      "community_name": "Backend Project Member Repository (Postgres)",
       "norm_label": "db"
     },
     {
@@ -5513,8 +5513,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_internal_repository_postgres_project_member_repository_newprojectmemberrepository",
-      "community": 48,
-      "community_name": "Backend Project Membership & Auth Policy",
+      "community": 99,
+      "community_name": "Backend Project Member Repository (Postgres)",
       "norm_label": "newprojectmemberrepository()"
     },
     {
@@ -6547,8 +6547,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "postgres_testcasesnapshotrepository_findbyids",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 134,
+      "community_name": "primereact",
       "norm_label": ".findbyids()"
     },
     {
@@ -6778,8 +6778,8 @@
       "source_location": "L174",
       "_origin": "ast",
       "id": "postgres_testrunrepository_findresultsbyrun",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": ".findresultsbyrun()"
     },
     {
@@ -6789,8 +6789,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "postgres_testrunrepository_findresultbyid",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": ".findresultbyid()"
     },
     {
@@ -6800,8 +6800,8 @@
       "source_location": "L198",
       "_origin": "ast",
       "id": "postgres_testrunrepository_updateresult",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": ".updateresult()"
     },
     {
@@ -6811,8 +6811,8 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "postgres_testrunrepository_updateresultsnapshot",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": ".updateresultsnapshot()"
     },
     {
@@ -6822,8 +6822,8 @@
       "source_location": "L227",
       "_origin": "ast",
       "id": "postgres_testrunrepository_findresultstepbyid",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": ".findresultstepbyid()"
     },
     {
@@ -6833,8 +6833,8 @@
       "source_location": "L239",
       "_origin": "ast",
       "id": "postgres_testrunrepository_updateresultstep",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": ".updateresultstep()"
     },
     {
@@ -6877,8 +6877,8 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "backend_internal_repository_postgres_testrun_repository_todomaintestresult",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "todomaintestresult()"
     },
     {
@@ -6888,8 +6888,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_postgres_testrun_repository_go_testresult",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "testresult"
     },
     {
@@ -6899,8 +6899,8 @@
       "source_location": "L307",
       "_origin": "ast",
       "id": "backend_internal_repository_postgres_testrun_repository_todomaintestresultstep",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "todomaintestresultstep()"
     },
     {
@@ -6910,8 +6910,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_repository_postgres_testrun_repository_go_testresultstep",
-      "community": 24,
-      "community_name": "Backend Issue Repository (MySQL)",
+      "community": 0,
+      "community_name": "Test Run Repository (MySQL+Postgres)",
       "norm_label": "testresultstep"
     },
     {
@@ -7053,8 +7053,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_service_auth_policy",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "policy.go"
     },
     {
@@ -7064,8 +7064,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_internal_service_auth_policy_caneditproject",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "caneditproject()"
     },
     {
@@ -7075,8 +7075,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "backend_internal_service_auth_policy_candeleteproject",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "candeleteproject()"
     },
     {
@@ -7086,8 +7086,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "backend_internal_service_auth_policy_canmanagetests",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "canmanagetests()"
     },
     {
@@ -7097,8 +7097,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "backend_internal_service_auth_policy_canmanageissues",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 48,
+      "community_name": "Backend Project Membership & Auth Policy",
       "norm_label": "canmanageissues()"
     },
     {
@@ -7317,8 +7317,8 @@
       "source_location": "L161",
       "_origin": "ast",
       "id": "auth_service_logout",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": ".logout()"
     },
     {
@@ -8736,8 +8736,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "testrun_testcasesnapshot",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "testcasesnapshot"
     },
     {
@@ -8747,8 +8747,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "testrun_testcasestepsnapshot",
-      "community": 0,
-      "community_name": "Test Run Repository (MySQL+Postgres)",
+      "community": 134,
+      "community_name": "primereact",
       "norm_label": "testcasestepsnapshot"
     },
     {
@@ -9220,8 +9220,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_bind",
-      "community": 14,
-      "community_name": "Backend Test Plan HTTP Layer",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": "bind.go"
     },
     {
@@ -9231,8 +9231,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_bind_bindandvalidate",
-      "community": 14,
-      "community_name": "Backend Test Plan HTTP Layer",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": "bindandvalidate()"
     },
     {
@@ -9242,8 +9242,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_bind_go_context",
-      "community": 14,
-      "community_name": "Backend Test Plan HTTP Layer",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": "context"
     },
     {
@@ -9253,8 +9253,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_issue",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "dto/issue.go"
     },
     {
@@ -9264,8 +9264,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "dto_githublinkrequest",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "githublinkrequest"
     },
     {
@@ -9275,8 +9275,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "dto_createissuerequest",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "createissuerequest"
     },
     {
@@ -9286,8 +9286,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "dto_updateissuerequest",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "updateissuerequest"
     },
     {
@@ -9297,8 +9297,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "dto_changeissuestatusrequest",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "changeissuestatusrequest"
     },
     {
@@ -9308,8 +9308,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "dto_assignissuerequest",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "assignissuerequest"
     },
     {
@@ -9319,8 +9319,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "dto_linkissuetestresultrequest",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "linkissuetestresultrequest"
     },
     {
@@ -9330,8 +9330,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_issue_todomaingithublinks",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "todomaingithublinks()"
     },
     {
@@ -9341,8 +9341,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "dto_githublinkresponse",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "githublinkresponse"
     },
     {
@@ -9352,8 +9352,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "dto_issueresponse",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "issueresponse"
     },
     {
@@ -9363,8 +9363,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_issue_go_time",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 15,
+      "community_name": "Backend Issue Domain & Service",
       "norm_label": "time"
     },
     {
@@ -10474,8 +10474,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "handler_authhandler_refresh",
-      "community": 67,
-      "community_name": "Backend Auth HTTP DTO",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": ".refresh()"
     },
     {
@@ -10815,8 +10815,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "handler_modulehandler_update",
-      "community": 39,
-      "community_name": "Backend Module HTTP DTO",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": ".update()"
     },
     {
@@ -10925,8 +10925,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "handler_projecthandler_update",
-      "community": 17,
-      "community_name": "Backend Project HTTP Layer",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": ".update()"
     },
     {
@@ -10936,8 +10936,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "handler_projecthandler_changestatus",
-      "community": 17,
-      "community_name": "Backend Project HTTP Layer",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": ".changestatus()"
     },
     {
@@ -11035,8 +11035,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "handler_taghandler_rename",
-      "community": 40,
-      "community_name": "Backend Tag HTTP DTO",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": ".rename()"
     },
     {
@@ -11277,8 +11277,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "handler_testplanhandler_update",
-      "community": 14,
-      "community_name": "Backend Test Plan HTTP Layer",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": ".update()"
     },
     {
@@ -11288,8 +11288,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "handler_testplanhandler_changestatus",
-      "community": 14,
-      "community_name": "Backend Test Plan HTTP Layer",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": ".changestatus()"
     },
     {
@@ -11442,8 +11442,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "handler_testrolehandler_update",
-      "community": 41,
-      "community_name": "Backend Test Role HTTP DTO",
+      "community": 25,
+      "community_name": "Backend Test Run HTTP Layer",
       "norm_label": ".update()"
     },
     {
@@ -11662,8 +11662,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_auth",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 68,
+      "community_name": "Backend Auth Middleware",
       "norm_label": "middleware/auth.go"
     },
     {
@@ -11673,8 +11673,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_auth_requireauth",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 68,
+      "community_name": "Backend Auth Middleware",
       "norm_label": "requireauth()"
     },
     {
@@ -11684,8 +11684,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_auth_go_service",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 68,
+      "community_name": "Backend Auth Middleware",
       "norm_label": "service"
     },
     {
@@ -11695,8 +11695,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_auth_go_middlewarefunc",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 68,
+      "community_name": "Backend Auth Middleware",
       "norm_label": "middlewarefunc"
     },
     {
@@ -11706,8 +11706,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_auth_requireapproved",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 68,
+      "community_name": "Backend Auth Middleware",
       "norm_label": "requireapproved()"
     },
     {
@@ -11717,8 +11717,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_auth_requireadmin",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 68,
+      "community_name": "Backend Auth Middleware",
       "norm_label": "requireadmin()"
     },
     {
@@ -11728,8 +11728,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_auth_extractbearertoken",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 68,
+      "community_name": "Backend Auth Middleware",
       "norm_label": "extractbearertoken()"
     },
     {
@@ -11739,8 +11739,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_auth_go_context",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 68,
+      "community_name": "Backend Auth Middleware",
       "norm_label": "context"
     },
     {
@@ -11750,8 +11750,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_auth_useridfromcontext",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 68,
+      "community_name": "Backend Auth Middleware",
       "norm_label": "useridfromcontext()"
     },
     {
@@ -11761,8 +11761,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_rbac",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "rbac.go"
     },
     {
@@ -11772,8 +11772,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_rbac_requireprojectrole",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "requireprojectrole()"
     },
     {
@@ -11783,8 +11783,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_rbac_go_projectmemberrepository",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "projectmemberrepository"
     },
     {
@@ -11794,8 +11794,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_rbac_go_middlewarefunc",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "middlewarefunc"
     },
     {
@@ -11805,8 +11805,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_rbac_requireprojectaccess",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "requireprojectaccess()"
     },
     {
@@ -11816,8 +11816,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_rbac_requireprojectedit",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "requireprojectedit()"
     },
     {
@@ -11827,8 +11827,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_rbac_requireprojectdelete",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "requireprojectdelete()"
     },
     {
@@ -11838,8 +11838,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_rbac_requireprojectmanagetests",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "requireprojectmanagetests()"
     },
     {
@@ -11849,8 +11849,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_rbac_requireprojectmanageissues",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "requireprojectmanageissues()"
     },
     {
@@ -11860,8 +11860,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_recover",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 100,
+      "community_name": "Backend Panic Recovery Middleware",
       "norm_label": "recover.go"
     },
     {
@@ -11871,8 +11871,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_recover_recover",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 100,
+      "community_name": "Backend Panic Recovery Middleware",
       "norm_label": "recover()"
     },
     {
@@ -11882,8 +11882,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_recover_go_logger",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 100,
+      "community_name": "Backend Panic Recovery Middleware",
       "norm_label": "logger"
     },
     {
@@ -11893,8 +11893,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_middleware_recover_go_middlewarefunc",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 100,
+      "community_name": "Backend Panic Recovery Middleware",
       "norm_label": "middlewarefunc"
     },
     {
@@ -11970,8 +11970,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_internal_transport_http_response_response_created",
-      "community": 69,
-      "community_name": "Backend HTTP Response Helpers",
+      "community": 14,
+      "community_name": "Backend Test Plan HTTP Layer",
       "norm_label": "created()"
     },
     {
@@ -11981,8 +11981,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "backend_internal_transport_http_response_response_nocontent",
-      "community": 13,
-      "community_name": "Backend Issue HTTP Layer",
+      "community": 14,
+      "community_name": "Backend Test Plan HTTP Layer",
       "norm_label": "nocontent()"
     },
     {
@@ -12036,8 +12036,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_transport_http_router",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "router.go"
     },
     {
@@ -12047,8 +12047,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "http_handlers",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "handlers"
     },
     {
@@ -12058,8 +12058,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "http_deps",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "deps"
     },
     {
@@ -12069,8 +12069,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_router_go_projectmemberrepository",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "projectmemberrepository"
     },
     {
@@ -12080,8 +12080,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "backend_internal_transport_http_router_newrouter",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "newrouter()"
     },
     {
@@ -12091,8 +12091,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_router_go_logger",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "logger"
     },
     {
@@ -12102,8 +12102,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_router_go_service",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "service"
     },
     {
@@ -12113,8 +12113,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "echo",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "echo"
     },
     {
@@ -12487,8 +12487,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_platform_jwt_jwt",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": "jwt.go"
     },
     {
@@ -12498,8 +12498,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "jwt_claims",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": "claims"
     },
     {
@@ -12509,8 +12509,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "registeredclaims",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": "registeredclaims"
     },
     {
@@ -12520,8 +12520,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "jwt_service",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": "service"
     },
     {
@@ -12531,8 +12531,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_platform_jwt_jwt_go_duration",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": "duration"
     },
     {
@@ -12542,8 +12542,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_platform_jwt_jwt_newservice",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": "newservice()"
     },
     {
@@ -12553,8 +12553,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "jwt_service_issueaccesstoken",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": ".issueaccesstoken()"
     },
     {
@@ -12564,8 +12564,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_platform_jwt_jwt_go_profile",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": "profile"
     },
     {
@@ -12575,8 +12575,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "jwt_service_verify",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": ".verify()"
     },
     {
@@ -12586,8 +12586,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_platform_jwt_jwt_newrefreshtoken",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": "newrefreshtoken()"
     },
     {
@@ -12597,8 +12597,8 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "backend_platform_jwt_jwt_hashrefreshtoken",
-      "community": 36,
-      "community_name": "Backend Google OAuth Service",
+      "community": 50,
+      "community_name": "Backend JWT & Auth Service",
       "norm_label": "hashrefreshtoken()"
     },
     {
@@ -13687,8 +13687,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_app_app",
-      "community": 21,
-      "community_name": "Frontend Test Suite UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "app()"
     },
     {
@@ -13786,8 +13786,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuitedialog.tsx"
     },
     {
@@ -13797,8 +13797,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog_visibility_options",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "visibility_options"
     },
     {
@@ -13808,8 +13808,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog_testsuitedialogmode",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuitedialogmode"
     },
     {
@@ -13819,8 +13819,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog_testsuitedialogprops",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuitedialogprops"
     },
     {
@@ -13830,8 +13830,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog_testsuitedialog",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuitedialog()"
     },
     {
@@ -14314,8 +14314,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_profile_profileview",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "profileview.tsx"
     },
     {
@@ -14424,8 +14424,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_attachmentpanel",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "attachmentpanel.tsx"
     },
     {
@@ -14435,8 +14435,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_components_ui_attachmentpanel_attachmentpanelprops",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 125,
+      "community_name": "SupabaseStorageAdapter.ts",
       "norm_label": "attachmentpanelprops"
     },
     {
@@ -14446,8 +14446,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "frontend_src_components_ui_attachmentpanel_attachmentpanel",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "attachmentpanel()"
     },
     {
@@ -14457,8 +14457,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "breadcrumb.tsx"
     },
     {
@@ -14468,8 +14468,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb_breadcrumbitem",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "breadcrumbitem"
     },
     {
@@ -14479,8 +14479,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb_breadcrumbprops",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "breadcrumbprops"
     },
     {
@@ -14501,8 +14501,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb_breadcrumb",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "breadcrumb()"
     },
     {
@@ -14545,8 +14545,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_charactercount",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "charactercount.tsx"
     },
     {
@@ -14556,8 +14556,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_charactercount_charactercountprops",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "charactercountprops"
     },
     {
@@ -14567,8 +14567,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_components_ui_charactercount_charactercount",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "charactercount()"
     },
     {
@@ -14578,8 +14578,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_columnheadermenu",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "columnheadermenu.tsx"
     },
     {
@@ -14589,8 +14589,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_components_ui_columnheadermenu_columnheadermenuprops",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "columnheadermenuprops"
     },
     {
@@ -14600,8 +14600,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_src_components_ui_columnheadermenu_columnheadermenu",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "columnheadermenu()"
     },
     {
@@ -14611,8 +14611,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_commenteditor",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "commenteditor.tsx"
     },
     {
@@ -14622,8 +14622,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_components_ui_commenteditor_commenteditorprops",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "commenteditorprops"
     },
     {
@@ -14633,8 +14633,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_components_ui_commenteditor_commenteditor",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "commenteditor()"
     },
     {
@@ -14699,8 +14699,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_markdownpreview",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "markdownpreview.tsx"
     },
     {
@@ -14710,8 +14710,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_components_ui_markdownpreview_markdownpreviewprops",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "markdownpreviewprops"
     },
     {
@@ -14721,8 +14721,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_components_ui_markdownpreview_markdownpreview",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "markdownpreview()"
     },
     {
@@ -14732,8 +14732,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_mentiontextarea",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "mentiontextarea.tsx"
     },
     {
@@ -14743,8 +14743,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_components_ui_mentiontextarea_mentiontextareaprops",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "mentiontextareaprops"
     },
     {
@@ -14754,8 +14754,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_components_ui_mentiontextarea_trigger",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "trigger"
     },
     {
@@ -14765,8 +14765,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "frontend_src_components_ui_mentiontextarea_suggestion",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "suggestion"
     },
     {
@@ -14776,8 +14776,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_components_ui_mentiontextarea_findactivemention",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "findactivemention()"
     },
     {
@@ -14787,8 +14787,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_components_ui_mentiontextarea_mentiontextarea",
-      "community": 29,
-      "community_name": "Frontend Test Run Dialogs",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "mentiontextarea()"
     },
     {
@@ -14798,8 +14798,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_pageheader",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "pageheader.tsx"
     },
     {
@@ -14809,8 +14809,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_components_ui_pageheader_pageheaderprops",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "pageheaderprops"
     },
     {
@@ -14820,8 +14820,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_components_ui_pageheader_pageheader",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "pageheader()"
     },
     {
@@ -14897,8 +14897,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_userhovercard",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "userhovercard.tsx"
     },
     {
@@ -14908,8 +14908,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_components_ui_userhovercard_userhovercardprops",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "userhovercardprops"
     },
     {
@@ -14919,8 +14919,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_components_ui_userhovercard_userhovercard",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "userhovercard()"
     },
     {
@@ -14930,8 +14930,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_usernamepicker",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "usernamepicker.tsx"
     },
     {
@@ -14952,8 +14952,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_components_ui_usernamepicker_usernamepicker",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "usernamepicker()"
     },
     {
@@ -14963,8 +14963,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_datatablepaginator",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "datatablepaginator.tsx"
     },
     {
@@ -14974,8 +14974,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_components_ui_datatablepaginator_datatablepaginatortemplate",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "datatablepaginatortemplate"
     },
     {
@@ -14985,8 +14985,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_components_ui_datatablepaginator_datatablepaginatorprops",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "datatablepaginatorprops"
     },
     {
@@ -15007,8 +15007,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_config_supabaseclient",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "supabaseclient.ts"
     },
     {
@@ -15018,8 +15018,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_config_supabaseclient_supabase",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "supabase"
     },
     {
@@ -15029,8 +15029,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "activitydescribe.ts"
     },
     {
@@ -15040,8 +15040,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_status_label_by_entity",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "status_label_by_entity"
     },
     {
@@ -15051,8 +15051,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_statuslabel",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "statuslabel()"
     },
     {
@@ -15062,8 +15062,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_describesystemevent",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "describesystemevent()"
     },
     {
@@ -15073,8 +15073,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_event_type_label",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "event_type_label"
     },
     {
@@ -15084,8 +15084,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_eventtypelabel",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "eventtypelabel()"
     },
     {
@@ -15095,8 +15095,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_activityroutes",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "activityroutes.ts"
     },
     {
@@ -15106,8 +15106,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_helpers_activityroutes_activity_entity_route",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "activity_entity_route"
     },
     {
@@ -15117,8 +15117,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_helpers_activityroutes_activity_entity_label",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "activity_entity_label"
     },
     {
@@ -15128,8 +15128,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_helpers_activityroutes_pathforactivityentity",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 5,
+      "community_name": "Frontend App Layout & Theme",
       "norm_label": "pathforactivityentity()"
     },
     {
@@ -15304,8 +15304,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_dateformatter",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "dateformatter.ts"
     },
     {
@@ -15315,8 +15315,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_dateformatter_formatdate",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "formatdate()"
     },
     {
@@ -15348,8 +15348,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapprojectrow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "mapprojectrow()"
     },
     {
@@ -15392,8 +15392,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapmodulerow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "mapmodulerow()"
     },
     {
@@ -15403,8 +15403,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptagrow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "maptagrow()"
     },
     {
@@ -15414,8 +15414,8 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestrolerow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "maptestrolerow()"
     },
     {
@@ -15425,8 +15425,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestplanrow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "maptestplanrow()"
     },
     {
@@ -15436,8 +15436,8 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestcaserow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "maptestcaserow()"
     },
     {
@@ -15480,8 +15480,8 @@
       "source_location": "L195",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestcasesteprow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "maptestcasesteprow()"
     },
     {
@@ -15502,8 +15502,8 @@
       "source_location": "L216",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestrunrow",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "maptestrunrow()"
     },
     {
@@ -15513,8 +15513,8 @@
       "source_location": "L233",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestresultrow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "maptestresultrow()"
     },
     {
@@ -15524,8 +15524,8 @@
       "source_location": "L255",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestresultsteprow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "maptestresultsteprow()"
     },
     {
@@ -15535,8 +15535,8 @@
       "source_location": "L267",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapexternallinks",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "mapexternallinks()"
     },
     {
@@ -15546,8 +15546,8 @@
       "source_location": "L274",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapissuerow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "mapissuerow()"
     },
     {
@@ -15557,8 +15557,8 @@
       "source_location": "L296",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapattachmentrow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 125,
+      "community_name": "SupabaseStorageAdapter.ts",
       "norm_label": "mapattachmentrow()"
     },
     {
@@ -15568,8 +15568,8 @@
       "source_location": "L311",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapactivityentryrow",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "mapactivityentryrow()"
     },
     {
@@ -15579,8 +15579,8 @@
       "source_location": "L327",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapuserrow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "mapuserrow()"
     },
     {
@@ -15590,8 +15590,8 @@
       "source_location": "L338",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapprofilerow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "mapprofilerow()"
     },
     {
@@ -15744,8 +15744,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_visibility_label",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "project_visibility_label"
     },
     {
@@ -15755,8 +15755,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_visibility_severity",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "project_visibility_severity"
     },
     {
@@ -15766,8 +15766,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_suite_visibility_label",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "test_suite_visibility_label"
     },
     {
@@ -15777,8 +15777,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_suite_visibility_severity",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "test_suite_visibility_severity"
     },
     {
@@ -15799,8 +15799,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_plan_status_severity",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_plan_status_severity"
     },
     {
@@ -15810,8 +15810,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_status_label",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_case_status_label"
     },
     {
@@ -15821,8 +15821,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_status_severity",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_case_status_severity"
     },
     {
@@ -15832,8 +15832,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_priority_label",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "test_case_priority_label"
     },
     {
@@ -15843,8 +15843,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_priority_severity",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_case_priority_severity"
     },
     {
@@ -15854,8 +15854,8 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_run_status_label",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_run_status_label"
     },
     {
@@ -15931,8 +15931,8 @@
       "source_location": "L145",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_issue_status_severity",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issue_status_severity"
     },
     {
@@ -15964,8 +15964,8 @@
       "source_location": "L170",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_user_role_label",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "user_role_label"
     },
     {
@@ -15975,8 +15975,8 @@
       "source_location": "L175",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_user_role_severity",
-      "community": 19,
-      "community_name": "Frontend Project Management UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "user_role_severity"
     },
     {
@@ -16030,8 +16030,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_toast",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "toast.ts"
     },
     {
@@ -16052,8 +16052,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_helpers_toast_show",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "show()"
     },
     {
@@ -16063,8 +16063,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_helpers_toast_toasthelper",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "toasthelper"
     },
     {
@@ -16074,8 +16074,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_querykeys",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "querykeys.ts"
     },
     {
@@ -16085,8 +16085,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_querykeys_querykeys",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "querykeys"
     },
     {
@@ -16173,8 +16173,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedashboard",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usedashboard.ts"
     },
     {
@@ -16184,8 +16184,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedashboard_usedashboard",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usedashboard()"
     },
     {
@@ -16195,8 +16195,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedialogresizefix",
-      "community": 21,
-      "community_name": "Frontend Test Suite UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usedialogresizefix.ts"
     },
     {
@@ -16206,8 +16206,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedialogresizefix_usedialogresizefix",
-      "community": 21,
-      "community_name": "Frontend Test Suite UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usedialogresizefix()"
     },
     {
@@ -16250,8 +16250,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usemodules",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "usemodules.ts"
     },
     {
@@ -16261,8 +16261,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_usemodules_usemodules",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "usemodules()"
     },
     {
@@ -16272,8 +16272,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usenotifications",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "usenotifications.ts"
     },
     {
@@ -16338,8 +16338,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojectinvitations",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "useprojectinvitations.ts"
     },
     {
@@ -16349,8 +16349,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojectinvitations_useprojectinvitations",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "useprojectinvitations()"
     },
     {
@@ -16437,8 +16437,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojects",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "useprojects.ts"
     },
     {
@@ -16514,8 +16514,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usescreensize",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "usescreensize.ts"
     },
     {
@@ -16525,8 +16525,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_usescreensize_screensize",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "screensize"
     },
     {
@@ -16558,8 +16558,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_hooks_usesettings_usesettings",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usesettings()"
     },
     {
@@ -16569,8 +16569,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usestoredstate",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "usestoredstate.ts"
     },
     {
@@ -16602,8 +16602,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetabqueryparam",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "usetabqueryparam.ts"
     },
     {
@@ -16613,8 +16613,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetabqueryparam_usetabqueryparam",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "usetabqueryparam()"
     },
     {
@@ -16624,8 +16624,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestplandetail",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "usetestplandetail.ts"
     },
     {
@@ -16635,8 +16635,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestplandetail_usetestplandetail",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "usetestplandetail()"
     },
     {
@@ -16646,8 +16646,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestplans",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "usetestplans.ts"
     },
     {
@@ -16657,8 +16657,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestplans_usetestplans",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "usetestplans()"
     },
     {
@@ -16668,8 +16668,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "usetestrundetail.ts"
     },
     {
@@ -16679,8 +16679,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail_summary",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "summary"
     },
     {
@@ -16690,8 +16690,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail_empty_summary",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "empty_summary"
     },
     {
@@ -16701,8 +16701,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail_usetestrundetail",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "usetestrundetail()"
     },
     {
@@ -16855,8 +16855,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useusers",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "useusers.ts"
     },
     {
@@ -16866,8 +16866,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_useusers_useusers",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "useusers()"
     },
     {
@@ -16921,8 +16921,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homepage",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "homepage.tsx"
     },
     {
@@ -16932,8 +16932,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homepage_homepage",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "homepage()"
     },
     {
@@ -16998,8 +16998,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "projectdetailpage.tsx"
     },
     {
@@ -17009,8 +17009,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage_tab_query_names",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "tab_query_names"
     },
     {
@@ -17020,8 +17020,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage_empty_array",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "empty_array"
     },
     {
@@ -17031,8 +17031,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage_tab_dependencies",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "tab_dependencies"
     },
     {
@@ -17042,8 +17042,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage_project_tab_names",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "project_tab_names"
     },
     {
@@ -17086,8 +17086,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectspage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "projectspage.tsx"
     },
     {
@@ -17097,26 +17097,15 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectspage_enrichedproject",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "enrichedproject"
-    },
-    {
-      "label": "truncateUsername()",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/projects/ProjectsPage.tsx",
-      "source_location": "L35",
-      "_origin": "ast",
-      "id": "frontend_src_pages_projects_projectspage_truncateusername",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
-      "norm_label": "truncateusername()"
     },
     {
       "label": "ProjectsPage()",
       "file_type": "code",
       "source_file": "frontend/src/pages/projects/ProjectsPage.tsx",
-      "source_location": "L39",
+      "source_location": "L33",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectspage_projectspage",
       "community": 8,
@@ -17152,8 +17141,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_createprojectdialog_createprojectdialog",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "createprojectdialog()"
     },
     {
@@ -17163,8 +17152,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_createtestrundialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "createtestrundialog.tsx"
     },
     {
@@ -17174,8 +17163,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_createtestrundialog_createtestrundialogprops",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "createtestrundialogprops"
     },
     {
@@ -17185,8 +17174,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_createtestrundialog_createtestrundialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "createtestrundialog()"
     },
     {
@@ -17207,8 +17196,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_duplicateprojectdialog_duplicateprojectdialogprops",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "duplicateprojectdialogprops"
     },
     {
@@ -17229,8 +17218,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_duplicatetestplandialog",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "projects/components/dialogs/duplicatetestplandialog.tsx"
     },
     {
@@ -17240,8 +17229,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_duplicatetestplandialog_duplicatetestplandialogprops",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "duplicatetestplandialogprops"
     },
     {
@@ -17251,8 +17240,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_duplicatetestplandialog_duplicatetestplandialog",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "duplicatetestplandialog()"
     },
     {
@@ -17262,8 +17251,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_importcasesdialog",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "importcasesdialog.tsx"
     },
     {
@@ -17273,8 +17262,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_importcasesdialog_caseoption",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "caseoption"
     },
     {
@@ -17284,8 +17273,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_importcasesdialog_importsource",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "importsource"
     },
     {
@@ -17295,8 +17284,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_importcasesdialog_importcasesdialogprops",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "importcasesdialogprops"
     },
     {
@@ -17306,8 +17295,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_importcasesdialog_importcasesdialog",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "importcasesdialog()"
     },
     {
@@ -17416,8 +17405,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_quickadddialog",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "quickadddialog.tsx"
     },
     {
@@ -17427,8 +17416,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_quickadddialog_quickadddialogprops",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "quickadddialogprops"
     },
     {
@@ -17438,8 +17427,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_quickadddialog_quickadddialog",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "quickadddialog()"
     },
     {
@@ -17570,8 +17559,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_activitylogtab",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "activitylogtab.tsx"
     },
     {
@@ -17581,8 +17570,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_activitylogtab_entity_type_options",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "entity_type_options"
     },
     {
@@ -17592,8 +17581,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_activitylogtab_activitylogtab",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "activitylogtab()"
     },
     {
@@ -17647,8 +17636,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issuetab.tsx"
     },
     {
@@ -17658,8 +17647,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_editablefield",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "editablefield"
     },
     {
@@ -17669,8 +17658,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_issue_status_options",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issue_status_options"
     },
     {
@@ -17680,8 +17669,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_issue_priority_options",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issue_priority_options"
     },
     {
@@ -17691,8 +17680,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_issuetabprops",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issuetabprops"
     },
     {
@@ -17702,8 +17691,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_issuetab",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issuetab()"
     },
     {
@@ -18043,8 +18032,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_pages_settings_settingspage_settingspage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "settingspage()"
     },
     {
@@ -18054,8 +18043,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_cases_testcasedetailpage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "testcasedetailpage.tsx"
     },
     {
@@ -18065,8 +18054,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "frontend_src_pages_test_cases_testcasedetailpage_priority_options",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "priority_options"
     },
     {
@@ -18076,8 +18065,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "frontend_src_pages_test_cases_testcasedetailpage_testcasedetail",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "testcasedetail"
     },
     {
@@ -18098,8 +18087,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_cases_testcasespage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testcasespage.tsx"
     },
     {
@@ -18142,8 +18131,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplanspage",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testplanspage.tsx"
     },
     {
@@ -18153,8 +18142,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplanspage_test_plan_status_options",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "test_plan_status_options"
     },
     {
@@ -18208,8 +18197,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_dialogs_duplicatetestplandialog",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 137,
+      "community_name": "test-plans/components/dialogs/DuplicateTestPlanDialog.tsx",
       "norm_label": "test-plans/components/dialogs/duplicatetestplandialog.tsx"
     },
     {
@@ -18219,8 +18208,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_dialogs_duplicatetestplandialog_duplicatetestplandialogprops",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 137,
+      "community_name": "test-plans/components/dialogs/DuplicateTestPlanDialog.tsx",
       "norm_label": "duplicatetestplandialogprops"
     },
     {
@@ -18230,8 +18219,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_dialogs_duplicatetestplandialog_duplicatetestplandialog",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 137,
+      "community_name": "test-plans/components/dialogs/DuplicateTestPlanDialog.tsx",
       "norm_label": "duplicatetestplandialog()"
     },
     {
@@ -18318,8 +18307,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_tabs_plantestrunstab",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "plantestrunstab.tsx"
     },
     {
@@ -18329,8 +18318,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_tabs_plantestrunstab_test_run_status_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "test_run_status_options"
     },
     {
@@ -18340,8 +18329,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_tabs_plantestrunstab_plantestrunstabprops",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "plantestrunstabprops"
     },
     {
@@ -18351,8 +18340,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_tabs_plantestrunstab_plantestrunstab",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "plantestrunstab()"
     },
     {
@@ -18450,8 +18439,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_suites_testsuitedetailpage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuitedetailpage.tsx"
     },
     {
@@ -18461,8 +18450,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "frontend_src_pages_test_suites_testsuitedetailpage_priority_options",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "priority_options"
     },
     {
@@ -18483,8 +18472,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_suites_testsuitespage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testsuitespage.tsx"
     },
     {
@@ -18494,8 +18483,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_pages_test_suites_testsuitespage_ownershipfilter",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "ownershipfilter"
     },
     {
@@ -18505,8 +18494,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_src_pages_test_suites_testsuitespage_enrichedtestsuite",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "enrichedtestsuite"
     },
     {
@@ -18549,8 +18538,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_users_usermanagementpage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "usermanagementpage.tsx"
     },
     {
@@ -18560,8 +18549,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_pages_users_usermanagementpage_enricheduser",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "enricheduser"
     },
     {
@@ -18571,8 +18560,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_pages_users_usermanagementpage_role_options",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "role_options"
     },
     {
@@ -18593,8 +18582,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_activityrepository",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "activityrepository.ts"
     },
     {
@@ -18604,8 +18593,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_activityrepository_activityrepository",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "activityrepository"
     },
     {
@@ -18615,8 +18604,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_auditlogrepository",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "auditlogrepository.ts"
     },
     {
@@ -18626,8 +18615,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_auditlogrepository_auditlogentry",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "auditlogentry"
     },
     {
@@ -18637,8 +18626,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "frontend_src_repositories_auditlogrepository_auditlogrepository",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "auditlogrepository"
     },
     {
@@ -18648,8 +18637,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_dashboardrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "dashboardrepository.ts"
     },
     {
@@ -18659,8 +18648,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_dashboardrepository_myworkissue",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "myworkissue"
     },
     {
@@ -18670,8 +18659,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_repositories_dashboardrepository_dashboardcounts",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "dashboardcounts"
     },
     {
@@ -18681,8 +18670,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_repositories_dashboardrepository_continueworkingitem",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "continueworkingitem"
     },
     {
@@ -18692,8 +18681,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_repositories_dashboardrepository_dashboardrepository",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "dashboardrepository"
     },
     {
@@ -18703,8 +18692,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_entityattachmentrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 125,
+      "community_name": "SupabaseStorageAdapter.ts",
       "norm_label": "entityattachmentrepository.ts"
     },
     {
@@ -18714,8 +18703,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_repositories_entityattachmentrepository_entityattachmentrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 125,
+      "community_name": "SupabaseStorageAdapter.ts",
       "norm_label": "entityattachmentrepository"
     },
     {
@@ -18725,8 +18714,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_issuerepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "issuerepository.ts"
     },
     {
@@ -18736,8 +18725,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_repositories_issuerepository_mapissuewithdetailsrow",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "mapissuewithdetailsrow()"
     },
     {
@@ -18758,8 +18747,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_modulerepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "modulerepository.ts"
     },
     {
@@ -18769,8 +18758,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_modulerepository_modulerepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "modulerepository"
     },
     {
@@ -18780,8 +18769,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_notificationrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "notificationrepository.ts"
     },
     {
@@ -18791,8 +18780,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_notificationrepository_notificationrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "notificationrepository"
     },
     {
@@ -18846,8 +18835,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_projectrepository",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectrepository.ts"
     },
     {
@@ -18857,8 +18846,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_projectrepository_sort_column",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "sort_column"
     },
     {
@@ -18868,8 +18857,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_repositories_projectrepository_projectquery",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectquery"
     },
     {
@@ -18879,8 +18868,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_repositories_projectrepository_projectownerfilter",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectownerfilter"
     },
     {
@@ -18890,8 +18879,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_repositories_projectrepository_projectpaginatedquery",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectpaginatedquery"
     },
     {
@@ -18901,8 +18890,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_repositories_projectrepository_projectrepository",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectrepository"
     },
     {
@@ -18912,8 +18901,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_tagrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "tagrepository.ts"
     },
     {
@@ -18923,8 +18912,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_tagrepository_tagrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "tagrepository"
     },
     {
@@ -18934,8 +18923,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_testcaserepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "testcaserepository.ts"
     },
     {
@@ -18978,8 +18967,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_testplanrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "testplanrepository.ts"
     },
     {
@@ -19000,8 +18989,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_testresultrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "testresultrepository.ts"
     },
     {
@@ -19011,8 +19000,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_testresultrepository_testresultrepository",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "testresultrepository"
     },
     {
@@ -19022,8 +19011,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_testrolerepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "testrolerepository.ts"
     },
     {
@@ -19033,8 +19022,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_testrolerepository_testrolerepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "testrolerepository"
     },
     {
@@ -19044,8 +19033,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_testrunrepository",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "testrunrepository.ts"
     },
     {
@@ -19055,8 +19044,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_testrunrepository_testrunrepository",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "testrunrepository"
     },
     {
@@ -19088,8 +19077,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_userrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "userrepository.ts"
     },
     {
@@ -19099,8 +19088,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_repositories_userrepository_userrepository",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "userrepository"
     },
     {
@@ -19132,8 +19121,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_services_activityservice_activityservice",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "activityservice"
     },
     {
@@ -19143,8 +19132,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_attachmentservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 125,
+      "community_name": "SupabaseStorageAdapter.ts",
       "norm_label": "attachmentservice.ts"
     },
     {
@@ -19165,8 +19154,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_auditlogservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "auditlogservice.ts"
     },
     {
@@ -19176,8 +19165,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_services_auditlogservice_auditlogservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "auditlogservice"
     },
     {
@@ -19187,8 +19176,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_dashboardservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "dashboardservice.ts"
     },
     {
@@ -19198,8 +19187,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_services_dashboardservice_dashboardservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "dashboardservice"
     },
     {
@@ -19253,8 +19242,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_notificationservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "notificationservice.ts"
     },
     {
@@ -19352,8 +19341,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_projectservice",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectservice.ts"
     },
     {
@@ -19572,8 +19561,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_services_testplanservice_testplanservice",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "testplanservice"
     },
     {
@@ -19627,8 +19616,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testsuiteservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "testsuiteservice.ts"
     },
     {
@@ -19638,8 +19627,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_services_testsuiteservice_testsuiteservice",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuiteservice"
     },
     {
@@ -19649,8 +19638,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_userservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 116,
+      "community_name": "Favicon Assets",
       "norm_label": "userservice.ts"
     },
     {
@@ -19671,8 +19660,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_types_domain",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "domain.ts"
     },
     {
@@ -19715,8 +19704,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_types_domain_projectstatus",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectstatus"
     },
     {
@@ -19726,8 +19715,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_types_domain_projectsortfield",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectsortfield"
     },
     {
@@ -19737,8 +19726,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_types_domain_sortdirection",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "sortdirection"
     },
     {
@@ -19748,8 +19737,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "frontend_src_types_domain_projectownertype",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "projectownertype"
     },
     {
@@ -19759,8 +19748,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "frontend_src_types_domain_projectvisibility",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "projectvisibility"
     },
     {
@@ -19880,8 +19869,8 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testplan",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "testplan"
     },
     {
@@ -19924,8 +19913,8 @@
       "source_location": "L133",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testcase",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "testcase"
     },
     {
@@ -19935,8 +19924,8 @@
       "source_location": "L157",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testcasewithdetails",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "testcasewithdetails"
     },
     {
@@ -19946,8 +19935,8 @@
       "source_location": "L164",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testcasestep",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "testcasestep"
     },
     {
@@ -19957,8 +19946,8 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testsuitevisibility",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuitevisibility"
     },
     {
@@ -19968,8 +19957,8 @@
       "source_location": "L180",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testsuite",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testsuite"
     },
     {
@@ -19979,8 +19968,8 @@
       "source_location": "L190",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testsuiteitem",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuiteitem"
     },
     {
@@ -20001,8 +19990,8 @@
       "source_location": "L217",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testsuiteitemwithsteps",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuiteitemwithsteps"
     },
     {
@@ -20012,8 +20001,8 @@
       "source_location": "L223",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testplancase",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "testplancase"
     },
     {
@@ -20023,8 +20012,8 @@
       "source_location": "L230",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testplancasewithdetails",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "testplancasewithdetails"
     },
     {
@@ -20056,8 +20045,8 @@
       "source_location": "L252",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testresultstatus",
-      "community": 37,
-      "community_name": "Backend Test Case Repository (MySQL)",
+      "community": 19,
+      "community_name": "Frontend Project Management UI",
       "norm_label": "testresultstatus"
     },
     {
@@ -20067,8 +20056,8 @@
       "source_location": "L257",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testresult",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "testresult"
     },
     {
@@ -20078,8 +20067,8 @@
       "source_location": "L279",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testresultwithdetails",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 129,
+      "community_name": "scripts",
       "norm_label": "testresultwithdetails"
     },
     {
@@ -20089,8 +20078,8 @@
       "source_location": "L291",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testresultstepstatus",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 37,
+      "community_name": "Backend Test Case Repository (MySQL)",
       "norm_label": "testresultstepstatus"
     },
     {
@@ -20166,8 +20155,8 @@
       "source_location": "L329",
       "_origin": "ast",
       "id": "frontend_src_types_domain_issue",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 135,
+      "community_name": "@tanstack/react-query",
       "norm_label": "issue"
     },
     {
@@ -20199,8 +20188,8 @@
       "source_location": "L375",
       "_origin": "ast",
       "id": "frontend_src_types_domain_attachmententitytype",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 125,
+      "community_name": "SupabaseStorageAdapter.ts",
       "norm_label": "attachmententitytype"
     },
     {
@@ -20210,8 +20199,8 @@
       "source_location": "L377",
       "_origin": "ast",
       "id": "frontend_src_types_domain_attachment",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "attachment"
     },
     {
@@ -20221,8 +20210,8 @@
       "source_location": "L393",
       "_origin": "ast",
       "id": "frontend_src_types_domain_activityentry",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 127,
+      "community_name": "scripts/generate-icons.mjs",
       "norm_label": "activityentry"
     },
     {
@@ -21101,8 +21090,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_services_storage_index_storageadapter",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 125,
+      "community_name": "SupabaseStorageAdapter.ts",
       "norm_label": "storageadapter"
     },
     {
@@ -57291,7 +57280,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/components/layout/AppTopbar.tsx",
-      "source_location": "L107",
+      "source_location": "L105",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_components_layout_apptopbar_apptopbar",
@@ -57315,7 +57304,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/components/layout/AppTopbar.tsx",
-      "source_location": "L121",
+      "source_location": "L119",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_components_layout_apptopbar_apptopbar",
@@ -63845,7 +63834,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/pages/projects/ProjectsPage.tsx",
-      "source_location": "L191",
+      "source_location": "L185",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_pages_projects_projectspage_projectspage",
@@ -69440,7 +69429,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/pages/projects/ProjectsPage.tsx",
-      "source_location": "L43",
+      "source_location": "L37",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_pages_projects_projectspage_projectspage",
@@ -71100,7 +71089,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/pages/projects/ProjectsPage.tsx",
-      "source_location": "L44",
+      "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_pages_projects_projectspage_projectspage",
@@ -71541,7 +71530,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/pages/projects/ProjectsPage.tsx",
-      "source_location": "L48",
+      "source_location": "L42",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_pages_projects_projectspage_projectspage",
@@ -74088,22 +74077,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/pages/projects/ProjectsPage.tsx",
-      "source_location": "L39",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_pages_projects_projectspage",
       "target": "frontend_src_pages_projects_projectspage_projectspage",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/projects/ProjectsPage.tsx",
-      "source_location": "L35",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_src_pages_projects_projectspage",
-      "target": "frontend_src_pages_projects_projectspage_truncateusername",
       "confidence_score": 1.0
     },
     {
@@ -74188,18 +74166,6 @@
       "_origin": "ast",
       "source": "frontend_src_pages_projects_projectspage",
       "target": "frontend_src_types_domain_projectstatus",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/projects/ProjectsPage.tsx",
-      "source_location": "L187",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_src_pages_projects_projectspage_projectspage",
-      "target": "frontend_src_pages_projects_projectspage_truncateusername",
       "confidence_score": 1.0
     },
     {

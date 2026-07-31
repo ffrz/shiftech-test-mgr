@@ -29,7 +29,6 @@ import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
-import { formatOwnedEntityBreadcrumbLabel } from '../../helpers/breadcrumbFormatter';
 import { useStoredState } from '../../hooks/useStoredState';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import { ImportCasesDialog } from '../projects/components/dialogs/ImportCasesDialog';
@@ -496,11 +495,10 @@ export function TestSuiteDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Test Suite', path: '/test-suites' },
-          {
-            label: suite
-              ? (isOwner ? suite.name : formatOwnedEntityBreadcrumbLabel(suite.name, (suite as any)._authorUsername))
-              : '',
-          },
+          ...(suite && !isOwner && (suite as any)._authorUsername && (suite as any)._authorUsername !== '—'
+            ? [{ label: (suite as any)._authorUsername as string, path: `/@${(suite as any)._authorUsername}` }]
+            : []),
+          { label: suite ? suite.name : '' },
         ]}
       />
 

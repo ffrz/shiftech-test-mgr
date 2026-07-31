@@ -39,7 +39,7 @@ import { useProjectRole } from '../../hooks/useProjectRole';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectAccessGuard } from '../../hooks/useProjectAccessGuard';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
-import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
+import { useProjectBreadcrumbItems } from '../../hooks/useProjectBreadcrumbItems';
 import { useProjectOwnerProfile } from '../../hooks/useProjectOwnerProfile';
 import { useStoredState } from '../../hooks/useStoredState';
 import { queryKeys } from '../../hooks/queryKeys';
@@ -108,7 +108,7 @@ export function ProjectDetailPage() {
   const project = projectQuery.data ?? null;
   const projectLoading = projectQuery.isLoading;
   const isOwner = !!user && !!project && project.ownerId === user.id;
-  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
+  const projectBreadcrumbItems = useProjectBreadcrumbItems(project?.name, project?.ownerId, `/projects/${id}`);
   // useProjectOwnerProfile deliberately returns null for your own project (it only
   // fetches to label projects someone else shared with you) — the "Owned by" line
   // wants to always show someone, so fall back to the viewer's own profile in that case.
@@ -1016,7 +1016,7 @@ export function ProjectDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: projectBreadcrumbLabel, path: `/projects/${id}` }
+          ...projectBreadcrumbItems,
         ]}
       />
 

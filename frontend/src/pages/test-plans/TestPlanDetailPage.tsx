@@ -23,7 +23,7 @@ import { formatDateTime } from '../../helpers/dateFormatter';
 import { TestPlanDialog } from '../../components/dialogs/TestPlanDialog';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
-import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
+import { useProjectBreadcrumbItems } from '../../hooks/useProjectBreadcrumbItems';
 import { queryKeys } from '../../hooks/queryKeys';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -86,7 +86,7 @@ export function TestPlanDetailPage() {
     queryFn: () => projectService.getById(testPlan!.projectId),
     enabled: !!testPlan?.projectId,
   });
-  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
+  const projectBreadcrumbItems = useProjectBreadcrumbItems(project?.name, project?.ownerId, testPlan?.projectId ? `/projects/${testPlan.projectId}` : undefined);
 
   const { data: fetchedAuthorProfile = null } = useQuery({
     queryKey: queryKeys.profile(testPlan?.createdBy ?? ''),
@@ -316,7 +316,7 @@ export function TestPlanDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: testPlan ? projectBreadcrumbLabel : '', path: testPlan ? `/projects/${testPlan.projectId}` : undefined },
+          ...projectBreadcrumbItems,
           { label: testPlan ? 'Test Plans' : '', path: testPlan ? `/projects/${testPlan.projectId}?tab=testPlans` : undefined },
           { label: testPlan ? testPlan.code : '' },
         ]}

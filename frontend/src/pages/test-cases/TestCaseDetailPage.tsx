@@ -21,7 +21,7 @@ import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
-import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
+import { useProjectBreadcrumbItems } from '../../hooks/useProjectBreadcrumbItems';
 import { useAuthContext } from '../../hooks/useAuth';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { profileRepository } from '../../repositories/profileRepository';
@@ -76,7 +76,7 @@ export function TestCaseDetailPage() {
     queryFn: () => projectService.getById(testCase!.project.id),
     enabled: !!testCase?.project.id,
   });
-  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(testCase?.project.name, project?.ownerId);
+  const projectBreadcrumbItems = useProjectBreadcrumbItems(testCase?.project.name, project?.ownerId, `/projects/${testCase?.project.id}`);
 
   const { data: modules = [] } = useQuery({
     queryKey: queryKeys.modules(testCase?.project.id ?? ''),
@@ -307,7 +307,7 @@ export function TestCaseDetailPage() {
         <Breadcrumb
           items={[
             { label: 'Projects', path: '/projects' },
-            { label: testCase ? projectBreadcrumbLabel : '', path: testCase ? `/projects/${testCase.project.id}` : undefined },
+            ...projectBreadcrumbItems,
             { label: testCase ? 'Test Cases' : '', path: testCase ? `/projects/${testCase.project.id}?tab=testCases` : undefined },
             { label: loading ? '' : 'Test case not found' },
           ]}
@@ -326,7 +326,7 @@ export function TestCaseDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: projectBreadcrumbLabel, path: `/projects/${testCase.project.id}` },
+          ...projectBreadcrumbItems,
           { label: 'Test Cases', path: `/projects/${testCase.project.id}?tab=testCases` },
           { label: `${testCase.code} — ${testCase.title}` },
         ]}
