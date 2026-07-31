@@ -151,10 +151,11 @@ export function ProjectsPage() {
     : [];
 
   const mobileBody = useCallback((row: Project) => (
-    <div className="flex flex-column gap-2 py-1">
+    <div className="flex flex-column gap-1 py-1">
       <div className="flex align-items-center justify-content-between gap-2">
-        <span className="font-bold text-base">{row.name}</span>
-        <div className="text-right">
+        <span className="font-bold">{row.name}</span>
+        <div className="flex align-items-center gap-2">
+          <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} style={{ width: 'fit-content' }} />
           <Button
             icon="pi pi-ellipsis-v"
             text
@@ -166,15 +167,9 @@ export function ProjectsPage() {
           />
         </div>
       </div>
-      <div className="flex align-items-center gap-2 text-sm text-color-secondary">
-        <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />
-      </div>
-      {row.description && (
-        <div className="text-sm text-color-secondary line-height-3">{row.description}</div>
-      )}
-      <div className="text-xs text-color-secondary">
-        <i className="pi pi-calendar mr-1" />
-        Created {formatDate(row.createdAt)}
+      {row.description && <span className="text-sm text-color-secondary">{row.description}</span>}
+      <div className="flex align-items-center gap-3 text-xs text-color-secondary">
+        <span><i className="pi pi-calendar mr-1" style={{ fontSize: '0.7rem' }} />{formatDate(row.createdAt)}</span>
       </div>
     </div>
   ), []);
