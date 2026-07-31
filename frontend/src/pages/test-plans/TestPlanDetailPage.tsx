@@ -7,6 +7,7 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import { Card } from 'primereact/card';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
+import { useAuthContext } from '../../hooks/useAuth';
 import { useTestPlanDetail } from '../../hooks/useTestPlanDetail';
 import { useTestRuns } from '../../hooks/useTestRuns';
 import { testPlanService } from '../../services/testPlanService';
@@ -17,6 +18,9 @@ import { tagService } from '../../services/tagService';
 import type { TestCase, TestCasePriority, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
+import { UserHoverCard } from '../../components/ui/UserHoverCard';
+import { profileRepository } from '../../repositories/profileRepository';
+import { formatDateTime } from '../../helpers/dateFormatter';
 import { TestPlanDialog } from '../../components/dialogs/TestPlanDialog';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
@@ -41,6 +45,7 @@ export function TestPlanDetailPage() {
     enabled: !!id,
   });
   const { canEditContent, canDeleteContent, canRunTests } = useProjectRole(testPlan?.projectId);
+  const { user, profile: viewerProfile } = useAuthContext();
 
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
@@ -83,6 +88,16 @@ export function TestPlanDetailPage() {
     enabled: !!testPlan?.projectId,
   });
   const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
+
+  const { data: fetchedAuthorProfile = null } = useQuery({
+    queryKey: queryKeys.profile(testPlan?.createdBy ?? ''),
+    queryFn: () => profileRepository.findById(testPlan!.createdBy!),
+    enabled: !!testPlan?.createdBy,
+  });
+  // Plans created before the created_by column existed have no recorded author — fall
+  // back to whoever is currently viewing rather than showing nothing.
+  const authorId = testPlan?.createdBy ?? user?.id ?? null;
+  const authorProfile = fetchedAuthorProfile ?? viewerProfile;
 
   const { data: modules = [] } = useQuery({
     queryKey: queryKeys.modules(testPlan?.projectId ?? ''),
@@ -268,7 +283,7 @@ export function TestPlanDetailPage() {
     if (!id) return;
     setRunError(null);
     try {
-      const run = await testRunService.start(id, runName);
+      const run = await testRunService.start(id, runName, undefined, user?.id ?? null);
       setRunDialogOpen(false);
       await reloadRuns();
       if (testPlan) await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(testPlan.projectId) });
@@ -311,11 +326,10 @@ export function TestPlanDetailPage() {
 
       <Card className="mb-3">
         <div className="flex align-items-center justify-content-between gap-2">
-          <div className="min-w-0 flex align-items-center gap-2">
+          <div className="min-w-0 flex flex-column gap-1">
             <h2 className="m-0 white-space-nowrap overflow-hidden text-overflow-ellipsis">
               {testPlan ? `${testPlan.code} — ${testPlan.name}` : 'Test Plan Detail'}
             </h2>
-            {testPlan && <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />}
           </div>
           <div className="flex gap-2 flex-shrink-0 header-actions">
             {testPlan && canEditContent && (
@@ -332,8 +346,35 @@ export function TestPlanDetailPage() {
           </div>
         </div>
 
-        {!detailCollapsed && testPlan?.description && (
-          <p className="text-sm text-color-secondary mt-2 mb-0">{testPlan.description}</p>
+        {!detailCollapsed && testPlan && (
+          <>
+            <div>
+              {testPlan && <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />}
+            </div>
+            {testPlan.description && (
+              <p className="text-sm text-color-secondary mt-2 mb-0">{testPlan.description}</p>
+            )}
+
+            <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-0 text-xs">
+              {authorId && authorProfile && (
+                <span className="text-color-secondary">
+                  <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
+                  Created by{' '}
+                  <UserHoverCard userId={authorId}>
+                    <span className="text-color entity-link">{authorProfile.username}</span>
+                  </UserHoverCard>
+                </span>
+              )}
+              <span className="text-color-secondary">
+                <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
+                Created <span className="text-color">{formatDateTime(testPlan.createdAt)}</span>
+              </span>
+              <span className="text-color-secondary">
+                <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
+                Updated <span className="text-color">{formatDateTime(testPlan.updatedAt)}</span>
+              </span>
+            </div>
+          </>
         )}
       </Card>
 
