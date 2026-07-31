@@ -325,9 +325,9 @@ export function IssueDetailPage() {
 
       <div className="detail-content-col">
         <Card className="mb-3">
-          <div className="flex align-items-center gap-2 mb-1 justify-content-between">
+          <div className="flex align-items-start gap-2 mb-1 justify-content-between">
             <h2 className="m-0">{issue.code} — {issue.title}</h2>
-            <div className="flex align-items-center gap-1 header-actions">
+            <div className="flex align-items-center gap-1 header-actions issue-header-actions">
               {canEditIssue && <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={openEditDialog} />}
               {canManageIssues && <Button rounded icon="pi pi-copy" size="small" text severity="secondary" onClick={handleDuplicate} />}
               {canDeleteContent ? (
@@ -437,9 +437,9 @@ export function IssueDetailPage() {
             <div className="flex flex-wrap gap-2">
               {attachments.map((a) => (
                 <div key={a.id} className="flex align-items-center gap-1 p-2 border-round surface-100">
-                  <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-                    <i className="pi pi-paperclip mr-2" />
-                    {a.fileName}
+                  <a className="entity-link flex align-items-center gap-2" href={a.url} target="_blank" rel="noreferrer">
+                    <i className="pi pi-paperclip flex-shrink-0" />
+                    <span>{a.fileName}</span>
                   </a>
                   {canEditIssue && (
                     <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveAttachment(a)} />
@@ -449,7 +449,15 @@ export function IssueDetailPage() {
             </div>
             {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
             {canEditIssue && (
-              <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
+              <FileUpload
+                mode="basic"
+                chooseLabel="Upload File"
+                chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-sm w-fit' }}
+                customUpload
+                uploadHandler={handleUpload}
+                auto
+                multiple
+              />
             )}
           </div>
         </Card>

@@ -37,9 +37,9 @@ function CommentAttachments({ commentId }: { commentId: string }) {
     <div className="flex flex-wrap gap-1 mt-2">
       {attachments.map((a) => (
         <div key={a.id} className="flex align-items-center gap-1 p-1 border-round surface-100 text-sm">
-          <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-            <i className="pi pi-paperclip mr-1" style={{ fontSize: '0.8rem' }} />
-            {a.fileName}
+          <a className="entity-link flex align-items-center gap-1" href={a.url} target="_blank" rel="noreferrer">
+            <i className="pi pi-paperclip flex-shrink-0" style={{ fontSize: '0.8rem' }} />
+            <span>{a.fileName}</span>
           </a>
         </div>
       ))}
@@ -334,20 +334,22 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
     return (
       <div className="comment-card">
         <div className="comment-card-header">
-          <Avatar image={actor?.avatarUrl ?? undefined} icon={actor?.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="normal" />
-          {actor?.username ? (
-            <Link to={`/@${actor.username}`} className="entity-link font-bold">{actor.username}</Link>
-          ) : (
-            <span className="font-bold">Unknown</span>
-          )}
-          <span className="text-color-secondary">commented {formatDateTime(entry.createdAt)}</span>
-          {entry.updatedAt && !isDeleted && (
-            <span className="text-color-secondary font-italic" title={formatDateTime(entry.updatedAt)}>
-              &middot; edited {formatDateTime(entry.updatedAt)}
-            </span>
-          )}
+          <div className="comment-card-header-meta">
+            <Avatar image={actor?.avatarUrl ?? undefined} icon={actor?.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="normal" />
+            {actor?.username ? (
+              <Link to={`/@${actor.username}`} className="entity-link font-bold">{actor.username}</Link>
+            ) : (
+              <span className="font-bold">Unknown</span>
+            )}
+            <span className="text-color-secondary">commented {formatDateTime(entry.createdAt)}</span>
+            {entry.updatedAt && !isDeleted && (
+              <span className="text-color-secondary font-italic" title={formatDateTime(entry.updatedAt)}>
+                &middot; edited {formatDateTime(entry.updatedAt)}
+              </span>
+            )}
+          </div>
           {isOwn && !isDeleted && !isEditing && (
-            <div className="ml-auto">
+            <div className="flex-shrink-0">
               <RowActionsMenu items={commentMenuItems(entry)} />
             </div>
           )}

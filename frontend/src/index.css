@@ -53,8 +53,7 @@ body {
 
 .comment-card-header {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 0.4rem;
   padding: 0.5rem 0.75rem;
   background: var(--surface-100);
@@ -65,6 +64,17 @@ body {
 
 .comment-card-header .p-avatar {
   flex-shrink: 0;
+}
+
+/* Identity/timestamp bits wrap freely on narrow screens, but stay a separate flex
+   item from the "more" menu so wrapping never pushes that menu out of the corner. */
+.comment-card-header-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .comment-card-body {
@@ -501,6 +511,35 @@ h6 {
 
 .p-dialog .p-dialog-content {
   padding: 0 1.25rem 1.25rem;
+}
+
+/* Editor dialogs (Issue/Test Case create-edit, ...) go full-screen below the
+   sm breakpoint instead of a centered card with cramped side margins — small
+   screens have no room to spare for a floating dialog chrome. */
+@media screen and (max-width: 576px) {
+  .dialog-fullscreen-mobile {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* PrimeReact rounds the header/content/footer corners independently of the
+     .p-dialog shell (each carries its own border-*-radius) — zero those too,
+     or the flush-to-viewport corners still show the theme's rounded curve
+     with the page background bleeding through behind it. */
+  .dialog-fullscreen-mobile .p-dialog-header,
+  .dialog-fullscreen-mobile .p-dialog-content,
+  .dialog-fullscreen-mobile .p-dialog-footer {
+    border-radius: 0 !important;
+  }
+
+  .dialog-fullscreen-mobile .p-dialog-content {
+    flex: 1 1 auto;
+  }
 }
 
 /* Flat card: the theme's default box-shadow reads as too heavy for a plain
@@ -1249,6 +1288,17 @@ h6,
   height: 1.5rem !important;
 }
 
+/* Issue detail header: on narrow screens a long title wraps to multiple
+   lines — keep the 3 action buttons in a row (not stacked) but pinned to
+   the top-right corner (flex-start on the row above, flex-shrink:0 here)
+   instead of drifting to vertical-center or getting squeezed by the title
+   text once the title block grows taller. */
+@media screen and (max-width: 576px) {
+  .issue-header-actions {
+    flex-shrink: 0;
+  }
+}
+
 /* Confirm dialog: constrain width so long messages don't stretch across the
    whole screen on large displays. */
 .p-confirm-dialog {
@@ -1305,9 +1355,21 @@ h6,
   padding-bottom: 0.6rem !important;
 }
 
+/* Textarea can't bottom-align its text like a single-line input (the shared
+   align-items:flex-end rule above would push wrapped/long content up under
+   the label as it grows) — give it normal top-down flow instead, with its
+   own top padding clearing the label, and cap growth with a scrollbar so
+   very long content doesn't push the label off-screen or run out of bottom
+   padding against the border. */
 .ifta-field textarea.p-inputtext {
   height: auto;
   min-height: 3.5rem;
+  max-height: 12rem;
+  align-items: initial;
+  display: block;
+  padding-top: 1.5rem !important;
+  padding-bottom: 0.6rem !important;
+  overflow-y: auto;
 }
 
 .ifta-field .p-dropdown {

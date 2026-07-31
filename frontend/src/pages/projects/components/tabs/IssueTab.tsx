@@ -308,18 +308,6 @@ export function IssueTab({
         </div>
         <div className="col-6 md:col-2 p-1">
           <MultiSelect
-            value={tagFilter}
-            options={tagOptions}
-            onChange={(e) => onTagFilterChange(e.value)}
-            placeholder="All Tags"
-            className="w-full"
-            selectAll
-            selectAllLabel="All"
-            virtualScrollerOptions={{ itemSize: 40 }}
-          />
-        </div>
-        <div className="col-6 md:col-2 p-1">
-          <MultiSelect
             value={typeFilter}
             options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
             onChange={(e) => onTypeFilterChange(e.value)}
@@ -338,6 +326,20 @@ export function IssueTab({
             className="w-full"
             selectAll
             selectAllLabel="All"
+            filter
+            virtualScrollerOptions={{ itemSize: 40 }}
+          />
+        </div>
+        <div className="col-6 md:col-2 p-1">
+          <MultiSelect
+            value={tagFilter}
+            options={tagOptions}
+            onChange={(e) => onTagFilterChange(e.value)}
+            placeholder="All Tags"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+            filter
             virtualScrollerOptions={{ itemSize: 40 }}
           />
         </div>

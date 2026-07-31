@@ -109,7 +109,7 @@ export function TestCaseDialog({
   }, [error]);
 
   return (
-    <Dialog header={editing ? 'Edit Test Case' : 'New Test Case'} visible={visible} onHide={onHide} style={{ width: '40rem' }}>
+    <Dialog header={editing ? 'Edit Test Case' : 'New Test Case'} visible={visible} onHide={onHide} style={{ width: '40rem' }} className="dialog-fullscreen-mobile">
       <div className="flex flex-column gap-2">
         <div className="flex flex-column">
           <FloatLabel className="ifta-field">

@@ -73,9 +73,9 @@ export function AttachmentPanel({ projectId, entityType, entityId, canManage, on
       <div className="flex flex-wrap gap-2">
         {attachments.map((a) => (
           <div key={a.id} className="flex align-items-center gap-1 p-2 border-round surface-100">
-            <a className="entity-link" href={a.url} target="_blank" rel="noreferrer">
-              <i className="pi pi-paperclip mr-2" />
-              {a.fileName}
+            <a className="entity-link flex align-items-center gap-2" href={a.url} target="_blank" rel="noreferrer">
+              <i className="pi pi-paperclip flex-shrink-0" />
+              <span>{a.fileName}</span>
             </a>
             {canManage && (
               <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemove(a)} />

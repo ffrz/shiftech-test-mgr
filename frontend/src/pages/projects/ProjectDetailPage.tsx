@@ -107,6 +107,7 @@ export function ProjectDetailPage() {
   });
   const project = projectQuery.data ?? null;
   const projectLoading = projectQuery.isLoading;
+  const isOwner = !!user && !!project && project.ownerId === user.id;
   const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
   // useProjectOwnerProfile deliberately returns null for your own project (it only
   // fetches to label projects someone else shared with you) — the "Owned by" line
@@ -210,7 +211,7 @@ export function ProjectDetailPage() {
   const [issueTagFilter, setIssueTagFilter] = useStoredState<string[]>(`project-${pfx}:issueTagFilter:v2`, []);
   const [issueTypeFilter, setIssueTypeFilter] = useStoredState<IssueType[]>(`project-${pfx}:issueTypeFilter:v2`, []);
   const [issuePage, setIssuePage] = useState(1);
-  const [issueRowsPerPage, setIssueRowsPerPage] = useState(10);
+  const [issueRowsPerPage, setIssueRowsPerPage] = useStoredState('table:rowsPerPage', 10);
 
   const issueFilterDeps = [issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issueTypeFilter];
   useEffect(() => { setIssuePage(1); }, issueFilterDeps); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1246,9 +1247,11 @@ export function ProjectDetailPage() {
           <ActivityPanel projectId={id ?? ''} entityType="project" entityId={id ?? null} />
         </TabPanel>
 
-        <TabPanel header="Activity Log">
-          {id && <ActivityLogTab projectId={id} />}
-        </TabPanel>
+        {isOwner && (
+          <TabPanel header="Activity Log">
+            {id && <ActivityLogTab projectId={id} />}
+          </TabPanel>
+        )}
       </TabView>
 
       <TestPlanDialog

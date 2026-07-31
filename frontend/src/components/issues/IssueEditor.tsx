@@ -229,6 +229,7 @@ export function IssueEditor({
         visible={visible}
         onHide={onHide}
         style={{ width: '36rem' }}
+        className="dialog-fullscreen-mobile"
       >
         <div className="dense-form flex flex-column gap-2">
           <div className="flex flex-column">
