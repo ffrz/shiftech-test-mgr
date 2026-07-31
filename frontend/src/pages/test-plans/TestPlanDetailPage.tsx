@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tag } from 'primereact/tag';
@@ -6,7 +6,6 @@ import { Button } from 'primereact/button';
 import { TabView, TabPanel } from 'primereact/tabview';
 import { Card } from 'primereact/card';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Toast } from 'primereact/toast';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useTestPlanDetail } from '../../hooks/useTestPlanDetail';
 import { useTestRuns } from '../../hooks/useTestRuns';
@@ -32,11 +31,11 @@ import { PlanTestCasesTab } from './components/tabs/PlanTestCasesTab';
 import { PlanTestRunsTab } from './components/tabs/PlanTestRunsTab';
 import { AddCaseToPlanDialog } from './components/dialogs/AddCaseToPlanDialog';
 import { StartTestRunDialog } from './components/dialogs/StartTestRunDialog';
+import { toastHelper } from '../../helpers/toast';
 
 export function TestPlanDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const toast = useRef<Toast>(null);
 
   const queryClient = useQueryClient();
   const { data: testPlan = null } = useQuery({
@@ -76,7 +75,7 @@ export function TestPlanDetailPage() {
       const updated = await testPlanService.update(testPlan.id, { name: planName, description: planDescription, code: planCode, status: planStatus });
       queryClient.setQueryData(queryKeys.testPlan(testPlan.id), updated);
       setPlanDialogOpen(false);
-      toast.current?.show({ severity: 'success', summary: 'Test plan updated' });
+      toastHelper.success('Test plan updated');
     } catch (err) {
       setPlanError(err instanceof Error ? err.message : 'Failed to save test plan');
     }
@@ -182,7 +181,7 @@ export function TestPlanDetailPage() {
     await Promise.all(selectedCaseIds.map((testCaseId, index) => testPlanService.addCase(id, testCaseId, cases.length + index)));
     setAddCaseDialogOpen(false);
     await reloadCases();
-    toast.current?.show({ severity: 'success', summary: 'Test case added to plan' });
+    toastHelper.success('Test case added to plan');
   }
 
   function handleRemoveCase(row: TestPlanCaseWithDetails) {
@@ -212,7 +211,7 @@ export function TestPlanDetailPage() {
         await Promise.all(selectedCases.map((row) => testPlanService.removeCase(row.id)));
         setSelectedCases([]);
         await reloadCases();
-        toast.current?.show({ severity: 'success', summary: 'Selected test cases removed from plan' });
+        toastHelper.success('Selected test cases removed from plan');
       },
     });
   }
@@ -305,14 +304,13 @@ export function TestPlanDetailPage() {
         await testRunService.remove(row.id);
         await reloadRuns();
         if (testPlan) await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(testPlan.projectId) });
-        toast.current?.show({ severity: 'success', summary: 'Test run deleted' });
+        toastHelper.success('Test run deleted');
       },
     });
   }
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
 
       <Breadcrumb

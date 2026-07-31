@@ -53,7 +53,7 @@ export function UsernamePicker({ value, onChange, placeholder, excludeIds, id }:
       itemTemplate={(profile: Profile) => (
         <div className="flex flex-column">
           <span>{profile.displayName ?? profile.username}</span>
-          <span className="text-sm text-color-secondary">@{profile.username}</span>
+          <span className="text-sm username-text">{profile.username}</span>
         </div>
       )}
       onChange={(e) => {

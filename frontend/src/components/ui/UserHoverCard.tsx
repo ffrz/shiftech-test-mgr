@@ -94,7 +94,7 @@ export function UserHoverCard({ userId, isOwner, children }: UserHoverCardProps)
                 <div className="font-bold white-space-nowrap overflow-hidden text-overflow-ellipsis">
                   {profile.displayName || profile.username}
                 </div>
-                <div className="text-color-secondary text-sm">@{profile.username}</div>
+                <div className="username-text text-sm">{profile.username}</div>
               </div>
             </div>
             {isOwner !== undefined && (

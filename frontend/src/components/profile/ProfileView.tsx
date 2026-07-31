@@ -32,7 +32,7 @@ export function ProfileView({ profile, projects, suites, isSpying, adminOverlay 
               <h2 className="m-0">{displayName}</h2>
               {isSpying && <Tag value="Spy" severity="warning" />}
             </div>
-            <p className="m-0 text-color-secondary">@{profile.username}</p>
+            <p className="m-0 username-text">{profile.username}</p>
           </div>
           {adminOverlay}
         </div>

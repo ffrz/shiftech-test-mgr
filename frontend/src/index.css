@@ -16,6 +16,16 @@ body {
   text-decoration: underline;
 }
 
+/* Username text — higher contrast than the default --text-color so a handle stands out:
+   pure white on dark surfaces, a deeper near-black on light ones. */
+.username-text {
+  color: #111827;
+}
+
+html.dark .username-text {
+  color: #ffffff;
+}
+
 /* Muted action links (Reply/Edit/Delete on a comment) — same affordance as .entity-link
    but without the bold primary color, so a comment's action row doesn't compete visually
    with actual content links (mentions, #test-case/!issue refs) inside the comment body. */
@@ -1102,14 +1112,42 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   font-size: 0.75rem;
 }
 
+/* Compact, monochrome toast (bottom-center, one global instance — see
+   components/ui/AppToast.tsx + helpers/toast.ts). Fixed max-width so it never stretches
+   into a long bar on wide desktop viewports (the old calc(100vw - 2rem) only capped
+   relative to the viewport, which is still huge on desktop) — width is capped in rem, and
+   on narrow screens `left`/`right` gutters keep it off the screen edges instead of
+   spanning full width. Colors are neutral black/white with a light border for contrast in
+   both themes, rather than PrimeReact's default per-severity green/red/blue/orange —
+   severity is still conveyed by the icon only. */
 .p-toast {
-  max-width: calc(100vw - 2rem);
+  width: auto;
+}
+
+/* Light theme: near-black on near-white, light theme's usual card/border tones. */
+.p-toast .p-toast-message {
+  max-width: 24rem;
+  width: max-content;
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+/* Dark theme (see useTheme.tsx — toggles the `dark` class on <html>): near-white on
+   near-black instead, same monochrome family inverted, still theme-neutral (no severity
+   hue) with a subtle light border for edge contrast against a dark page background. */
+html.dark .p-toast .p-toast-message {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .p-toast .p-toast-message .p-toast-message-content {
-  padding: 0.5rem;
+  padding: 0.6rem 0.75rem;
   font-size: 0.8rem;
-  gap: 0.4rem;
+  gap: 0.5rem;
   align-items: center;
 }
 
@@ -1117,6 +1155,7 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   width: 1rem;
   height: 1rem;
   align-self: center;
+  color: inherit;
 }
 
 .p-toast .p-toast-message .p-toast-message-text {
@@ -1124,10 +1163,51 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.15rem;
+  min-width: 0;
 }
 
 .p-toast .p-toast-message .p-toast-summary {
   font-size: 0.8rem;
+  color: inherit;
+}
+
+.p-toast .p-toast-message .p-toast-detail {
+  font-size: 0.75rem;
+  color: inherit;
+  opacity: 0.85;
+  margin-top: 0;
+}
+
+.p-toast .p-toast-message .p-toast-icon-close {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.p-toast .p-toast-message .p-toast-icon-close:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+html.dark .p-toast .p-toast-message .p-toast-icon-close:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Full-width side gutters on narrow screens instead of letting the toast span
+   edge-to-edge — width still caps at 24rem above, this only guarantees breathing
+   room on phones where 24rem may exceed the viewport. */
+@media screen and (max-width: 576px) {
+  .p-toast.p-toast-bottom-center,
+  .p-toast.p-toast-top-center {
+    left: 1rem !important;
+    right: 1rem !important;
+    width: auto !important;
+  }
+
+  .p-toast.p-toast-bottom-center .p-toast-message,
+  .p-toast.p-toast-top-center .p-toast-message {
+    max-width: none;
+    width: auto;
+  }
 }
 
 .p-tooltip .p-tooltip-arrow {
@@ -1138,10 +1218,6 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
-}
-
-.p-toast .p-toast-message .p-toast-detail {
-  font-size: 0.75rem;
 }
 
 /* Context menu / dropdown popup items: text stays compact, but padding is

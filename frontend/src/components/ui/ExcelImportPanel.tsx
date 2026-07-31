@@ -1,19 +1,18 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
-import { Toast } from 'primereact/toast';
 import { parseTestCaseCsv, downloadCsvTemplate, type InvalidRow, type ParsedTestCaseRow } from '../../helpers/csvImport';
 import { testCaseImportService } from '../../services/testCaseImportService';
+import { toastHelper } from '../../helpers/toast';
 
 // Reads a CSV file client-side (title/steps/expected result/etc), previews parsed + invalid
 // rows, and commits only the valid ones on confirm. "Excel" in the button label because
 // Excel/Sheets both export CSV natively — no server round-trip or xlsx dependency needed for
 // this. Steps column doubles as the detailed-step carrier — see csvImport.ts.
 export function ExcelImportPanel({ projectId, onImported }: { projectId: string; onImported: () => void | Promise<void> }) {
-  const toast = useRef<Toast>(null);
   const [validRows, setValidRows] = useState<ParsedTestCaseRow[]>([]);
   const [invalidRows, setInvalidRows] = useState<InvalidRow[]>([]);
   const [parsed, setParsed] = useState(false);
@@ -28,7 +27,7 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
       setInvalidRows(invalid);
       setParsed(true);
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Failed to read file', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Failed to read file', err);
     }
   }
 
@@ -36,10 +35,10 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
     setImporting(true);
     try {
       await testCaseImportService.importRows(projectId, validRows);
-      toast.current?.show({ severity: 'success', summary: `${validRows.length} test case(s) imported` });
+      toastHelper.success(`${validRows.length} test case(s) imported`);
       await onImported();
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Import failed', err);
     } finally {
       setImporting(false);
     }
@@ -47,8 +46,6 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
 
   return (
     <div className="flex flex-column gap-3">
-      <Toast ref={toast} position="bottom-center" />
-
       {!parsed && (
         <>
           <p className="text-color-secondary text-sm m-0">

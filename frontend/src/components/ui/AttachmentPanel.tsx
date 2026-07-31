@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { attachmentService } from '../../services/attachmentService';
 import { queryKeys } from '../../hooks/queryKeys';
+import { toastHelper } from '../../helpers/toast';
 import type { AttachmentEntityType, Attachment } from '../../types/domain';
 
 interface AttachmentPanelProps {
@@ -11,15 +12,13 @@ interface AttachmentPanelProps {
   entityType: AttachmentEntityType;
   entityId: string | null;
   canManage: boolean;
-  onToastSuccess?: (summary: string) => void;
-  onToastError?: (summary: string, detail?: string) => void;
 }
 
 // Entity-agnostic counterpart to the attachment list/upload block already inline in
 // IssueDetailPage.tsx — see ROADMAP_V2 Phase 8 T07. IssueDetailPage isn't migrated to this
 // component (its own attachmentService.listByIssue/upload/remove path stays as-is, already
 // wired and tested), this covers the entity types that had no attachment UI before.
-export function AttachmentPanel({ projectId, entityType, entityId, canManage, onToastSuccess, onToastError }: AttachmentPanelProps) {
+export function AttachmentPanel({ projectId, entityType, entityId, canManage }: AttachmentPanelProps) {
   const queryClient = useQueryClient();
 
   const { data: attachments = [] } = useQuery({
@@ -40,9 +39,9 @@ export function AttachmentPanel({ projectId, entityType, entityId, canManage, on
         await attachmentService.uploadForEntity(entityType, entityId, projectId, file);
       }
       await invalidate();
-      onToastSuccess?.('Attachment uploaded');
+      toastHelper.success('Attachment uploaded');
     } catch (err) {
-      onToastError?.('Upload failed', err instanceof Error ? err.message : undefined);
+      toastHelper.errorFromCatch('Upload failed', err);
     }
   }
 
@@ -58,9 +57,9 @@ export function AttachmentPanel({ projectId, entityType, entityId, canManage, on
         try {
           await attachmentService.removeForEntity(attachment.id, attachment.url);
           await invalidate();
-          onToastSuccess?.('Attachment removed');
+          toastHelper.success('Attachment removed');
         } catch (err) {
-          onToastError?.('Remove failed', err instanceof Error ? err.message : undefined);
+          toastHelper.errorFromCatch('Remove failed', err);
         }
       },
     });

@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { TabView, TabPanel } from 'primereact/tabview';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
@@ -28,11 +27,11 @@ import { TagDialog } from './components/dialogs/TagDialog';
 import { TestRoleDialog } from './components/dialogs/TestRoleDialog';
 import { InviteMemberDialog } from './components/dialogs/InviteMemberDialog';
 import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
+import { toastHelper } from '../../helpers/toast';
 
 export function ProjectSettingsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const toast = useRef<Toast>(null);
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuthContext();
   const { loading: roleLoading, canManageSettings, canArchiveProject, canDeleteProject } = useProjectRole(id);
@@ -137,7 +136,7 @@ export function ProjectSettingsPage() {
       }
       setModuleDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: editingModuleId ? 'Module updated' : 'Module created' });
+      toastHelper.success(editingModuleId ? 'Module updated' : 'Module created');
     } catch (err) {
       setModuleError(err instanceof Error ? err.message : 'Failed to save module');
     }
@@ -154,7 +153,7 @@ export function ProjectSettingsPage() {
       accept: async () => {
         await moduleService.remove(row.id);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Module deleted' });
+        toastHelper.success('Module deleted');
       },
     });
   }
@@ -171,7 +170,7 @@ export function ProjectSettingsPage() {
         await Promise.all(selectedModules.map((m) => moduleService.remove(m.id)));
         setSelectedModules([]);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Selected modules deleted' });
+        toastHelper.success('Selected modules deleted');
       },
     });
   }
@@ -218,7 +217,7 @@ export function ProjectSettingsPage() {
       }
       setTagDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: editingTagId ? 'Tag updated' : 'Tag created' });
+      toastHelper.success(editingTagId ? 'Tag updated' : 'Tag created');
     } catch (err) {
       setTagError(err instanceof Error ? err.message : 'Failed to save tag');
     }
@@ -235,7 +234,7 @@ export function ProjectSettingsPage() {
       accept: async () => {
         await tagService.remove(row.id);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Tag deleted' });
+        toastHelper.success('Tag deleted');
       },
     });
   }
@@ -252,7 +251,7 @@ export function ProjectSettingsPage() {
         await Promise.all(selectedTags.map((t) => tagService.remove(t.id)));
         setSelectedTags([]);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Selected tags deleted' });
+        toastHelper.success('Selected tags deleted');
       },
     });
   }
@@ -299,7 +298,7 @@ export function ProjectSettingsPage() {
       }
       setTestRoleDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: editingTestRoleId ? 'Role updated' : 'Role created' });
+      toastHelper.success(editingTestRoleId ? 'Role updated' : 'Role created');
     } catch (err) {
       setTestRoleError(err instanceof Error ? err.message : 'Failed to save role');
     }
@@ -316,7 +315,7 @@ export function ProjectSettingsPage() {
       accept: async () => {
         await testRoleService.remove(row.id);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Role deleted' });
+        toastHelper.success('Role deleted');
       },
     });
   }
@@ -333,7 +332,7 @@ export function ProjectSettingsPage() {
         await Promise.all(selectedTestRoles.map((r) => testRoleService.remove(r.id)));
         setSelectedTestRoles([]);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Selected roles deleted' });
+        toastHelper.success('Selected roles deleted');
       },
     });
   }
@@ -383,7 +382,7 @@ export function ProjectSettingsPage() {
       await projectMemberService.invite(id, memberProfile.id, currentUser.id, memberRole);
       setMemberDialogOpen(false);
       await loadAll(false);
-      toast.current?.show({ severity: 'success', summary: 'Invitation sent' });
+      toastHelper.success('Invitation sent');
     } catch (err) {
       setMemberError(err instanceof Error ? err.message : 'Failed to invite member');
     }
@@ -394,9 +393,9 @@ export function ProjectSettingsPage() {
       await projectMemberService.changeRole(row.id, role);
       setMembers((prev) => prev.map((m) => (m.id === row.id ? { ...m, role } : m)));
       const memberName = row.profile?.displayName ?? row.profile?.username ?? row.email;
-      toast.current?.show({ severity: 'success', summary: 'Role updated', detail: `${memberName} is now ${PROJECT_MEMBER_ROLE_LABEL[role]}` });
+      toastHelper.success('Role updated', `${memberName} is now ${PROJECT_MEMBER_ROLE_LABEL[role]}`);
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Failed to update role', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Failed to update role', err);
     }
   }
 
@@ -412,7 +411,7 @@ export function ProjectSettingsPage() {
       accept: async () => {
         await projectMemberService.remove(row.id, id, row.userId);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Member removed' });
+        toastHelper.success('Member removed');
       },
     });
   }
@@ -421,7 +420,7 @@ export function ProjectSettingsPage() {
     if (!id || !currentUser) return;
     await projectMemberService.reinvite(row.id, id, row.userId, row.role, currentUser.id);
     await loadAll(false);
-    toast.current?.show({ severity: 'success', summary: 'Invitation re-sent' });
+    toastHelper.success('Invitation re-sent');
   }
 
   function handleBulkRemoveMembers() {
@@ -437,7 +436,7 @@ export function ProjectSettingsPage() {
         await Promise.all(selectedMembers.map((m) => projectMemberService.remove(m.id, id, m.userId)));
         setSelectedMembers([]);
         await loadAll(false);
-        toast.current?.show({ severity: 'success', summary: 'Selected members removed' });
+        toastHelper.success('Selected members removed');
       },
     });
   }
@@ -447,7 +446,7 @@ export function ProjectSettingsPage() {
     setProjectVisibility(value);
     await projectService.update(project.id, { name: project.name, visibility: value });
     setProject({ ...project, visibility: value });
-    toast.current?.show({ severity: 'success', summary: 'Visibility updated' });
+    toastHelper.success('Visibility updated');
   }
 
   async function handleToggleActive() {
@@ -455,7 +454,7 @@ export function ProjectSettingsPage() {
     const newStatus = project.status === 'active' ? 'inactive' : 'active';
     await projectService.changeStatus(project.id, newStatus, currentUser ? { actorId: currentUser.id } : undefined);
     setProject({ ...project, status: newStatus });
-    toast.current?.show({ severity: 'success', summary: `Project ${newStatus === 'active' ? 'activated' : 'deactivated'}` });
+    toastHelper.success(`Project ${newStatus === 'active' ? 'activated' : 'deactivated'}`);
   }
 
   function handleArchiveProject() {
@@ -469,7 +468,7 @@ export function ProjectSettingsPage() {
       accept: async () => {
         await projectService.changeStatus(project.id, 'archived', currentUser ? { actorId: currentUser.id } : undefined);
         setProject({ ...project, status: 'archived' });
-        toast.current?.show({ severity: 'success', summary: 'Project archived' });
+        toastHelper.success('Project archived');
       },
     });
   }
@@ -490,7 +489,7 @@ export function ProjectSettingsPage() {
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await projectService.deletePermanently(project.id);
-        toast.current?.show({ severity: 'success', summary: 'Project permanently deleted' });
+        toastHelper.success('Project permanently deleted');
         queryClient.invalidateQueries({ queryKey: ['projects-paginated'] });
         navigate('/projects');
       },
@@ -503,7 +502,6 @@ export function ProjectSettingsPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
 
       <Breadcrumb
@@ -689,7 +687,7 @@ export function ProjectSettingsPage() {
         onSaved={() => {
           setEditDialogOpen(false);
           loadAll(false);
-          toast.current?.show({ severity: 'success', summary: 'Project updated' });
+          toastHelper.success('Project updated');
         }}
       />
     </div>

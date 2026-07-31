@@ -13,7 +13,6 @@ import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
 import { FloatLabel } from 'primereact/floatlabel';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
@@ -29,6 +28,7 @@ import { profileRepository } from '../../repositories/profileRepository';
 import { queryKeys } from '../../hooks/queryKeys';
 import type { TestCasePriority, TestCaseWithDetails } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
+import { toastHelper } from '../../helpers/toast';
 import {
   TEST_CASE_PRIORITY_LABEL,
   TEST_CASE_PRIORITY_SEVERITY,
@@ -49,7 +49,6 @@ export function TestCaseDetailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
-  const toast = useRef<Toast>(null);
   const { user } = useAuthContext();
 
   const queryClient = useQueryClient();
@@ -120,7 +119,7 @@ export function TestCaseDetailPage() {
     await testCaseService.update(testCase.id, testCase.project.id, { externalLinks: updatedLinks });
     resetExternalForm();
     await reload();
-    toast.current?.show({ severity: 'success', summary: 'Link added' });
+    toastHelper.success('Link added');
   }
 
   async function handleRemoveExternalLink(index: number) {
@@ -128,7 +127,7 @@ export function TestCaseDetailPage() {
     const updatedLinks = testCase.externalLinks.filter((_, i) => i !== index);
     await testCaseService.update(testCase.id, testCase.project.id, { externalLinks: updatedLinks });
     await reload();
-    toast.current?.show({ severity: 'success', summary: 'Link removed' });
+    toastHelper.success('Link removed');
   }
 
   // --- Module quick-add (from Edit dialog) ---
@@ -153,7 +152,7 @@ export function TestCaseDetailPage() {
       await queryClient.invalidateQueries({ queryKey: queryKeys.modules(testCase.project.id) });
       setEditModuleId(created.id);
       setModuleDialogOpen(false);
-      toast.current?.show({ severity: 'success', summary: 'Module created' });
+      toastHelper.success('Module created');
     } catch (err) {
       setModuleError(err instanceof Error ? err.message : 'Failed to save module');
     }
@@ -179,7 +178,7 @@ export function TestCaseDetailPage() {
       await queryClient.invalidateQueries({ queryKey: queryKeys.tags(testCase.project.id) });
       setEditTags((prev) => [...prev, created.name]);
       setTagDialogOpen(false);
-      toast.current?.show({ severity: 'success', summary: 'Tag created' });
+      toastHelper.success('Tag created');
     } catch (err) {
       setTagError(err instanceof Error ? err.message : 'Failed to save tag');
     }
@@ -242,11 +241,13 @@ export function TestCaseDetailPage() {
           notes: editNotes.trim() || null,
         },
         editTags,
+        undefined,
+        user?.id ?? null,
       );
       setEditDialogOpen(false);
       await reload();
       await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
-      toast.current?.show({ severity: 'success', summary: 'Test case updated' });
+      toastHelper.success('Test case updated');
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Failed to save test case');
     }
@@ -278,7 +279,7 @@ export function TestCaseDetailPage() {
       createdBy: user?.id ?? null,
     });
     await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
-    toast.current?.show({ severity: 'success', summary: 'Test case duplicated' });
+    toastHelper.success('Test case duplicated');
     navigate(`/test-cases/${created.id}${projectId ? `?projectId=${projectId}` : ''}`);
   }
 
@@ -294,7 +295,7 @@ export function TestCaseDetailPage() {
       accept: async () => {
         await testCaseService.remove(testCase.id);
         await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
-        toast.current?.show({ severity: 'success', summary: 'Test case deleted' });
+        toastHelper.success('Test case deleted');
         handleBack();
       },
     });
@@ -320,7 +321,6 @@ export function TestCaseDetailPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
 
       <Breadcrumb
@@ -448,8 +448,6 @@ export function TestCaseDetailPage() {
             entityType="test_case"
             entityId={testCase.id}
             canManage={canEditContent}
-            onToastSuccess={(summary) => toast.current?.show({ severity: 'success', summary })}
-            onToastError={(summary, detail) => toast.current?.show({ severity: 'error', summary, detail })}
           />
         </Card>
 

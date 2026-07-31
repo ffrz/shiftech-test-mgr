@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { useDialogResizeFix } from './hooks/useDialogResizeFix';
 import { AppLayout } from './components/layout/AppLayout';
+import { AppToast } from './components/ui/AppToast';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { LoginPage } from './pages/auth/LoginPage';
@@ -26,34 +27,37 @@ function App() {
   useDialogResizeFix();
 
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
+    <>
+      <AppToast />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
 
-      <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/projects" element={<ProjectsPage />} />
-          <Route path="/projects/:id" element={<ProjectDetailPage />} />
-          <Route path="/projects/:id/settings" element={<ProjectSettingsPage />} />
-          <Route path="/test-plans" element={<TestPlansPage />} />
-          <Route path="/test-plans/:id" element={<TestPlanDetailPage />} />
-          <Route path="/test-cases" element={<TestCasesPage />} />
-          <Route path="/test-cases/:id" element={<TestCaseDetailPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/test-suites" element={<TestSuitesPage />} />
-          <Route path="/test-suites/:id" element={<TestSuiteDetailPage />} />
-          <Route path="/test-runs/:id/issues" element={<TestRunIssuesPage />} />
-          <Route path="/test-runs/:id" element={<TestRunResultDetailPage />} />
-          <Route path="/issues/:id" element={<IssueDetailPage />} />
-          <Route path="/:usernameWithAt" element={<PublicProfilePage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/projects/:id/settings" element={<ProjectSettingsPage />} />
+            <Route path="/test-plans" element={<TestPlansPage />} />
+            <Route path="/test-plans/:id" element={<TestPlanDetailPage />} />
+            <Route path="/test-cases" element={<TestCasesPage />} />
+            <Route path="/test-cases/:id" element={<TestCaseDetailPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/test-suites" element={<TestSuitesPage />} />
+            <Route path="/test-suites/:id" element={<TestSuiteDetailPage />} />
+            <Route path="/test-runs/:id/issues" element={<TestRunIssuesPage />} />
+            <Route path="/test-runs/:id" element={<TestRunResultDetailPage />} />
+            <Route path="/issues/:id" element={<IssueDetailPage />} />
+            <Route path="/:usernameWithAt" element={<PublicProfilePage />} />
 
-          <Route element={<AdminRoute />}>
-            <Route path="/users" element={<UserManagementPage />} />
-            <Route path="/users/:id" element={<UserDetailPage />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/users" element={<UserManagementPage />} />
+              <Route path="/users/:id" element={<UserDetailPage />} />
+            </Route>
           </Route>
         </Route>
-      </Route>
-    </Routes>
+      </Routes>
+    </>
   );
 }
 

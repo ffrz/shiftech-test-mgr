@@ -1,34 +1,38 @@
-import type { RefObject } from 'react';
 import type { Toast } from 'primereact/toast';
 
-// Centralized toast helper — every call site should go through these instead of calling
-// toast.current.show(...) directly, so summary/detail wording stays terse and consistent
-// and severity defaults (e.g. life) don't drift between pages. The compact size/position
-// ("bottom-center", small text) is already enforced globally via .p-toast rules in
-// index.css and the <Toast position="bottom-center" /> convention — this helper only
-// standardizes the payload, not layout.
-type ToastRef = RefObject<Toast | null>;
+// Centralized toast helper backed by a single global <Toast> instance (see
+// components/ui/AppToast.tsx, mounted once at the app root). Call sites use
+// toastHelper.success/error/info/warn(...) directly — no ref plumbing, no risk of a
+// dialog rendering its own nested toast on top of the page's. Compact size, monochrome
+// black/white severity colors, and bottom-center position are enforced once in index.css
+// (.p-toast rules) rather than per call site.
+let toastRef: Toast | null = null;
 
-function show(toastRef: ToastRef, severity: 'success' | 'error' | 'info' | 'warn', summary: string, detail?: string) {
-  toastRef.current?.show({ severity, summary, detail });
+// Assigned as the ref callback on the single <Toast> in AppToast.tsx.
+export function setToastRef(instance: Toast | null) {
+  toastRef = instance;
+}
+
+function show(severity: 'success' | 'error' | 'info' | 'warn', summary: string, detail?: string, life?: number) {
+  toastRef?.show({ severity, summary, detail, life });
 }
 
 export const toastHelper = {
-  success(toastRef: ToastRef, summary: string, detail?: string) {
-    show(toastRef, 'success', summary, detail);
+  success(summary: string, detail?: string, life?: number) {
+    show('success', summary, detail, life);
   },
-  error(toastRef: ToastRef, summary: string, detail?: string) {
-    show(toastRef, 'error', summary, detail);
+  error(summary: string, detail?: string, life?: number) {
+    show('error', summary, detail, life);
   },
-  info(toastRef: ToastRef, summary: string, detail?: string) {
-    show(toastRef, 'info', summary, detail);
+  info(summary: string, detail?: string, life?: number) {
+    show('info', summary, detail, life);
   },
-  warn(toastRef: ToastRef, summary: string, detail?: string) {
-    show(toastRef, 'warn', summary, detail);
+  warn(summary: string, detail?: string, life?: number) {
+    show('warn', summary, detail, life);
   },
   // Convenience for the common "await X; catch show error" shape used across
   // detail pages (status change, assign, upload, ...).
-  errorFromCatch(toastRef: ToastRef, summary: string, err: unknown) {
-    show(toastRef, 'error', summary, err instanceof Error ? err.message : undefined);
+  errorFromCatch(summary: string, err: unknown) {
+    show('error', summary, err instanceof Error ? err.message : undefined);
   },
 };

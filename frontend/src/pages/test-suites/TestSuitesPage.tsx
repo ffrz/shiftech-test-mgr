@@ -8,7 +8,6 @@ import { SelectButton } from 'primereact/selectbutton';
 import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Toast } from 'primereact/toast';
 import { useAuthContext } from '../../hooks/useAuth';
 import { testSuiteService } from '../../services/testSuiteService';
 import { useScreenSize } from '../../hooks/useScreenSize';
@@ -23,6 +22,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
+import { toastHelper } from '../../helpers/toast';
 
 type OwnershipFilter = 'mine' | 'all';
 
@@ -38,7 +38,6 @@ type EnrichedTestSuite = TestSuite & {
 export function TestSuitesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const toast = useRef<Toast>(null);
   const { user } = useAuthContext();
   const queryClient = useQueryClient();
   const { lt } = useScreenSize();
@@ -146,13 +145,13 @@ export function TestSuitesPage() {
     } else {
       const s = await testSuiteService.createSuite({ name: data.name, description: data.description, visibility: data.visibility });
       setDialogOpen(false);
-      toast.current?.show({ severity: 'success', summary: 'Suite created' });
+      toastHelper.success('Suite created');
       navigate(`/test-suites/${s.id}`);
       return;
     }
     setDialogOpen(false);
     await reload();
-    toast.current?.show({ severity: 'success', summary: dialogMode === 'edit' ? 'Suite updated' : 'Suite duplicated' });
+    toastHelper.success(dialogMode === 'edit' ? 'Suite updated' : 'Suite duplicated');
   }
 
   function handleDelete(row: TestSuite) {
@@ -166,7 +165,7 @@ export function TestSuitesPage() {
       accept: async () => {
         await testSuiteService.removeSuite(row.id);
         await reload();
-        toast.current?.show({ severity: 'success', summary: 'Suite deleted' });
+        toastHelper.success('Suite deleted');
       },
     });
   }
@@ -192,7 +191,6 @@ export function TestSuitesPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
       <Breadcrumb items={[{ label: 'Test Suite' }]} />
       <PageHeader

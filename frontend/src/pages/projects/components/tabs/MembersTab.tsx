@@ -72,7 +72,7 @@ export function MembersTab({
     <div className="flex align-items-start justify-content-between gap-2 py-1">
       <div className="flex flex-column gap-2">
         <div className="font-medium entity-link" onClick={goToUser(row.userId)}>{row.profile?.displayName ?? '-'}</div>
-        <div className="text-sm entity-link" onClick={goToUser(row.userId)}>@{row.profile?.username ?? '-'}</div>
+        <div className="text-sm username-text cursor-pointer" onClick={goToUser(row.userId)}>{row.profile?.username ?? '-'}</div>
         <div className="text-sm text-color-secondary">
           Status: <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
         </div>
@@ -148,7 +148,7 @@ export function MembersTab({
         {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
         {isMobile && <Column header="Member" body={mobileBody} />}
         {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => <span className="entity-link" onClick={goToUser(row.userId)}>{row.profile?.displayName ?? '-'}</span>} />}
-        {!isMobile && <Column header="Username" body={(row: ProjectMemberWithProfile) => <span className="entity-link" onClick={goToUser(row.userId)}>@{row.profile?.username ?? '-'}</span>} />}
+        {!isMobile && <Column header="Username" body={(row: ProjectMemberWithProfile) => <span className="username-text cursor-pointer" onClick={goToUser(row.userId)}>{row.profile?.username ?? '-'}</span>} />}
         {!isMobile && (
           <Column
             header="Status"

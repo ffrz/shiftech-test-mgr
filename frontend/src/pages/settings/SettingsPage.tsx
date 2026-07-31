@@ -6,7 +6,6 @@ import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 import { FloatLabel } from 'primereact/floatlabel';
-import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
@@ -14,6 +13,7 @@ import { useSettings } from '../../hooks/useSettings';
 import { useThemeContext, type ThemeMode } from '../../hooks/useTheme';
 import { useAuthContext } from '../../hooks/useAuth';
 import { userService } from '../../services/userService';
+import { toastHelper } from '../../helpers/toast';
 
 const THEME_OPTIONS: { label: string; value: ThemeMode }[] = [
   { label: 'System', value: 'system' },
@@ -32,7 +32,6 @@ export function SettingsPage() {
   const [bio, setBio] = useState('');
   const [deleting, setDeleting] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
-  const toast = useRef<Toast>(null);
 
   useEffect(() => {
     if (error && usernameRef.current) {
@@ -59,7 +58,7 @@ export function SettingsPage() {
         avatarUrl: avatarUrl.trim() || null,
         bio: bio.trim() || null,
       });
-      toast.current?.show({ severity: 'success', summary: 'Profile updated successfully.', life: 3000 });
+      toastHelper.success('Profile updated successfully.', undefined, 3000);
     } catch {
       // error is managed by the hook
     }
@@ -183,7 +182,6 @@ export function SettingsPage() {
       </div>
 
       <ConfirmDialog />
-      <Toast ref={toast} position="bottom-center" />
     </div >
   );
 }

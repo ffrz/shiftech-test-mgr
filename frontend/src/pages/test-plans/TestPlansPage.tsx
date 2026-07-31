@@ -8,7 +8,6 @@ import { Dropdown } from 'primereact/dropdown';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { Toast } from 'primereact/toast';
 import { useTestPlans } from '../../hooks/useTestPlans';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useAuthContext } from '../../hooks/useAuth';
@@ -23,12 +22,12 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
+import { toastHelper } from '../../helpers/toast';
 
 const TEST_PLAN_STATUS_OPTIONS: TestPlanStatus[] = ['draft', 'active', 'completed', 'archived'];
 
 export function TestPlansPage() {
   const navigate = useNavigate();
-  const toast = useRef<Toast>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
   const { testPlans, loading, reload } = useTestPlans(projectId);
   const { canEditContent } = useProjectRole(projectId ?? undefined);
@@ -46,7 +45,7 @@ export function TestPlansPage() {
     if (status === row.status || !projectId || !user) return;
     await testPlanService.changeStatus(row.id, status, { projectId, actorId: user.id });
     await reload();
-    toast.current?.show({ severity: 'success', summary: `Status changed to ${TEST_PLAN_STATUS_LABEL[status]}` });
+    toastHelper.success(`Status changed to ${TEST_PLAN_STATUS_LABEL[status]}`);
   }
 
   // --- Duplicate: quick access from this cross-project list without opening the detail page ---
@@ -75,7 +74,7 @@ export function TestPlansPage() {
       await testPlanService.duplicate(duplicateRow.id, duplicateName);
       setDuplicateRow(null);
       await reload();
-      toast.current?.show({ severity: 'success', summary: 'Test plan duplicated' });
+      toastHelper.success('Test plan duplicated');
     } catch (err) {
       setDuplicateError(err instanceof Error ? err.message : 'Failed to duplicate test plan');
     }
@@ -92,7 +91,6 @@ export function TestPlansPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <Breadcrumb items={[{ label: 'Test Plans' }]} />
       <PageHeader
         title="Test Plans"

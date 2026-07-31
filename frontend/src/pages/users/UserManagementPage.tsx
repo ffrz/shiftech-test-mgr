@@ -9,7 +9,6 @@ import { Menu } from 'primereact/menu';
 
 import SearchInput from '../../components/ui/SearchInput';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Toast } from 'primereact/toast';
 import { userService } from '../../services/userService';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { useStoredState } from '../../hooks/useStoredState';
@@ -22,6 +21,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { ColumnHeaderMenu } from '../../components/ui/ColumnHeaderMenu';
 import { USER_ROLE_LABEL, USER_ROLE_SEVERITY } from '../../helpers/statusLabels';
+import { toastHelper } from '../../helpers/toast';
 
 type EnrichedUser = User & { _displayName: string; _username: string };
 
@@ -36,7 +36,6 @@ export function UserManagementPage() {
   const { user: currentUser } = useAuthContext();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
-  const toast = useRef<Toast>(null);
   const menuRef = useRef<Menu>(null);
   const [menuRow, setMenuRow] = useState<EnrichedUser | null>(null);
 
@@ -119,7 +118,7 @@ export function UserManagementPage() {
       acceptClassName: 'p-button-danger',
       accept: async () => {
         await userService.remove(row.id);
-        toast.current?.show({ severity: 'success', summary: 'User deleted', detail: row._displayName });
+        toastHelper.success('User deleted', row._displayName);
         await reload();
       },
     });
@@ -149,7 +148,6 @@ export function UserManagementPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
       <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
 
@@ -213,7 +211,7 @@ export function UserManagementPage() {
         {isMobile && <Column header="User" body={(row: EnrichedUser) => (
           <div className="flex flex-column gap-2 py-1">
             <span className="font-bold">{row._displayName}</span>
-            <span className="text-sm text-color-secondary">@{row._username}</span>
+            <span className="text-sm username-text">{row._username}</span>
             <span className="text-sm text-color-secondary">{row.email}</span>
             <span className="text-sm text-color-secondary">
               <Tag value={USER_ROLE_LABEL[row.role]} severity={USER_ROLE_SEVERITY[row.role]} />

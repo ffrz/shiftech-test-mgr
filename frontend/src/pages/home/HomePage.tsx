@@ -1,10 +1,9 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
-import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { useAuthContext } from '../../hooks/useAuth';
@@ -14,12 +13,12 @@ import { profileRepository } from '../../repositories/profileRepository';
 import { pathForActivityEntity, ACTIVITY_ENTITY_LABEL } from '../../helpers/activityRoutes';
 import { describeSystemEvent } from '../../helpers/activityDescribe';
 import { formatDateTime } from '../../helpers/dateFormatter';
+import { toastHelper } from '../../helpers/toast';
 import { PROJECT_MEMBER_ROLE_LABEL, ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL } from '../../helpers/statusLabels';
 import type { ActivityEntityType } from '../../types/domain';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const toast = useRef<Toast>(null);
   const { profile } = useAuthContext();
   const { counts, recentProjects, continueWorking, myWorkIssues, myWorkLoading, recentActivity, activityLoading, loading } = useDashboard();
   const { invitations, accept, decline } = useProjectInvitations();
@@ -38,25 +37,18 @@ export function HomePage() {
 
   async function handleAccept(id: string, projectId?: string) {
     const ok = await accept(id, projectId);
-    toast.current?.show(
-      ok
-        ? { severity: 'success', summary: 'Invitation accepted' }
-        : { severity: 'error', summary: 'Failed to accept invitation', detail: 'Please try again.' },
-    );
+    if (ok) toastHelper.success('Invitation accepted');
+    else toastHelper.error('Failed to accept invitation', 'Please try again.');
   }
 
   async function handleDecline(id: string, projectId?: string) {
     const ok = await decline(id, projectId);
-    toast.current?.show(
-      ok
-        ? { severity: 'success', summary: 'Invitation declined' }
-        : { severity: 'error', summary: 'Failed to decline invitation', detail: 'Please try again.' },
-    );
+    if (ok) toastHelper.success('Invitation declined');
+    else toastHelper.error('Failed to decline invitation', 'Please try again.');
   }
 
   return (
     <div>
-      <Toast ref={toast} />
       <ConfirmDialog />
       <Breadcrumb items={[{ label: 'Home' }]} />
       <h2 className="m-0 mt-2 mb-4">Welcome Back{profile?.displayName ? `, ${profile.displayName}` : ''}</h2>

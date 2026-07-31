@@ -8,7 +8,6 @@ import SearchInput from '../../components/ui/SearchInput';
 import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
 import { Menu } from 'primereact/menu';
-import { Toast } from 'primereact/toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { useAuthContext } from '../../hooks/useAuth';
@@ -23,13 +22,13 @@ import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
+import { toastHelper } from '../../helpers/toast';
 
 export function ProjectsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuthContext();
-  const toast = useRef<Toast>(null);
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
   const menuRef = useRef<Menu>(null);
@@ -122,7 +121,7 @@ export function ProjectsPage() {
   async function handleChangeStatus(row: Project, status: ProjectStatus) {
     await projectService.changeStatus(row.id, status, currentUser ? { actorId: currentUser.id } : undefined);
     await reload();
-    toast.current?.show({ severity: 'success', summary: 'Status updated', detail: row.name });
+    toastHelper.success('Status updated', row.name);
   }
 
   function openRowMenu(row: Project, event: React.MouseEvent) {
@@ -176,7 +175,6 @@ export function ProjectsPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
 
       <Breadcrumb items={[{ label: 'Projects' }]} />
@@ -291,7 +289,7 @@ export function ProjectsPage() {
         visible={dialogOpen}
         editingProject={editingProject}
         onHide={() => setDialogOpen(false)}
-        onSaved={() => { reload(); toast.current?.show({ severity: 'success', summary: editingProject ? 'Project updated' : 'Project created' }); }}
+        onSaved={() => { reload(); toastHelper.success(editingProject ? 'Project updated' : 'Project created'); }}
       />
 
       <DuplicateProjectDialog
@@ -300,7 +298,7 @@ export function ProjectsPage() {
         onDuplicated={(newProjectId) => {
           setDuplicateSource(null);
           reload();
-          toast.current?.show({ severity: 'success', summary: 'Project duplicated' });
+          toastHelper.success('Project duplicated');
           navigate(`/projects/${newProjectId}`);
         }}
       />

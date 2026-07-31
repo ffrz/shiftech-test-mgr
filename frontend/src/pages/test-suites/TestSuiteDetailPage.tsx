@@ -36,6 +36,7 @@ import { ImportCasesDialog } from '../projects/components/dialogs/ImportCasesDia
 import { parseTestCaseCsv, downloadCsvTemplate } from '../../helpers/csvImport';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY, TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
+import { toastHelper } from '../../helpers/toast';
 
 const UNDO_TIMEOUT_MS = 9000;
 
@@ -46,7 +47,6 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = (
 export function TestSuiteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const toast = useRef<Toast>(null);
   const { user } = useAuthContext();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
@@ -86,7 +86,7 @@ export function TestSuiteDetailPage() {
         await testSuiteService.removeItemsMany(selectedItems.map((i) => i.id));
         setSelectedItems([]);
         await reloadItems();
-        toast.current?.show({ severity: 'success', summary: `${selectedItems.length} item(s) deleted` });
+        toastHelper.success(`${selectedItems.length} item(s) deleted`);
       },
     });
   }
@@ -110,9 +110,9 @@ export function TestSuiteDetailPage() {
       }
       setImportTemplateDialogOpen(false);
       await reloadItems();
-      toast.current?.show({ severity: 'success', summary: `${ids.length} test case(s) imported` });
+      toastHelper.success(`${ids.length} test case(s) imported`);
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Import failed', err);
     } finally {
       setImportTemplateLoading(false);
     }
@@ -134,7 +134,7 @@ export function TestSuiteDetailPage() {
       setCsvInvalidRows(invalid);
       setCsvParsed(true);
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Failed to read file', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Failed to read file', err);
     }
   }
 
@@ -165,9 +165,9 @@ export function TestSuiteDetailPage() {
       setCsvValidRows([]);
       setCsvInvalidRows([]);
       await reloadItems();
-      toast.current?.show({ severity: 'success', summary: `${csvValidRows.length} test case(s) imported` });
+      toastHelper.success(`${csvValidRows.length} test case(s) imported`);
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Import failed', err);
     } finally {
       setCsvImporting(false);
     }
@@ -297,7 +297,7 @@ export function TestSuiteDetailPage() {
     if (!id) return;
     const newSuite = await testSuiteService.duplicateSuite(id, { name: data.name, description: data.description });
     setDuplicateDialogOpen(false);
-    toast.current?.show({ severity: 'success', summary: 'Suite duplicated' });
+    toastHelper.success('Suite duplicated');
     navigate(`/test-suites/${newSuite.id}`);
   }
 
@@ -454,7 +454,7 @@ export function TestSuiteDetailPage() {
         edit: 'Item updated',
         duplicate: 'Item duplicated',
       };
-      toast.current?.show({ severity: 'success', summary: summaryMap[itemDialogMode] });
+      toastHelper.success(summaryMap[itemDialogMode]);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to save item';
       setItemErrors(mapServiceError(msg));
@@ -472,7 +472,7 @@ export function TestSuiteDetailPage() {
       accept: async () => {
         await testSuiteService.removeItem(row.id);
         await reloadItems();
-        toast.current?.show({ severity: 'success', summary: 'Item deleted' });
+        toastHelper.success('Item deleted');
       },
     });
   }
@@ -491,7 +491,6 @@ export function TestSuiteDetailPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <Toast ref={undoToast} position="bottom-center" />
       <ConfirmDialog />
       <Breadcrumb
@@ -813,7 +812,7 @@ export function TestSuiteDetailPage() {
           setEditDialogOpen(false);
           await queryClient.invalidateQueries({ queryKey: queryKeys.testSuite(id) });
           await reloadItems();
-          toast.current?.show({ severity: 'success', summary: 'Suite updated' });
+          toastHelper.success('Suite updated');
         }}
       />
 
@@ -835,7 +834,6 @@ export function TestSuiteDetailPage() {
 
       <Dialog header="Import from CSV" visible={importCsvDialogOpen} onHide={() => { setImportCsvDialogOpen(false); setCsvParsed(false); setCsvValidRows([]); setCsvInvalidRows([]); }} style={{ width: '40rem' }}>
         <div className="flex flex-column gap-3">
-          <Toast ref={toast} position="bottom-center" />
           {!csvParsed && (
             <>
               <p className="text-color-secondary text-sm m-0">
