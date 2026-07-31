@@ -398,7 +398,15 @@ export function IssueEditor({
                   ))}
                 </div>
                 {(attachments?.length ?? 0) === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
-                <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
+                <FileUpload
+                  mode="basic"
+                  chooseLabel="Upload File"
+                  chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-secondary p-button-sm w-fit comment-btn-sm' }}
+                  customUpload
+                  uploadHandler={handleUpload}
+                  auto
+                  multiple
+                />
               </>
             ) : (
               <p className="text-color-secondary text-sm m-0">Attachments can be added after the issue is created.</p>
@@ -429,7 +437,9 @@ export function IssueEditor({
                 label="Add Link"
                 icon="pi pi-plus"
                 text
+                severity="secondary"
                 size="small"
+                className="comment-btn-sm"
                 onClick={() => setExternalLinks((prev) => [...prev, { url: '', label: '' }])}
               />
             </div>

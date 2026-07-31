@@ -493,7 +493,7 @@ export function TestCaseDetailPage() {
                     </div>
                   </div>
                 ) : (
-                  <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit comment-btn-sm" onClick={() => setExternalAdding(true)} />
+                  <Button label="Add Link" icon="pi pi-plus" text severity="secondary" size="small" className="w-fit comment-btn-sm" onClick={() => setExternalAdding(true)} />
                 )}
               </>
             )}

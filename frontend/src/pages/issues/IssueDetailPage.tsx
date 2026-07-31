@@ -481,7 +481,7 @@ export function IssueDetailPage() {
               <FileUpload
                 mode="basic"
                 chooseLabel="Upload File"
-                chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-sm w-fit comment-btn-sm' }}
+                chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-secondary p-button-sm w-fit comment-btn-sm' }}
                 customUpload
                 uploadHandler={handleUpload}
                 auto
@@ -531,7 +531,7 @@ export function IssueDetailPage() {
                     </div>
                   </div>
                 ) : (
-                  <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit comment-btn-sm" onClick={() => setExternalAdding(true)} />
+                  <Button label="Add Link" icon="pi pi-plus" text severity="secondary" size="small" className="w-fit comment-btn-sm" onClick={() => setExternalAdding(true)} />
                 )}
               </>
             )}

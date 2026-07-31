@@ -88,7 +88,7 @@ export function AttachmentPanel({ projectId, entityType, entityId, canManage, on
         <FileUpload
           mode="basic"
           chooseLabel="Upload File"
-          chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-sm w-fit comment-btn-sm' }}
+          chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-secondary p-button-sm w-fit comment-btn-sm' }}
           customUpload
           uploadHandler={handleUpload}
           auto
