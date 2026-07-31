@@ -1299,6 +1299,31 @@ h6,
   }
 }
 
+/* Notification panel (ISS-0067): the "Mark all as read / Clear all" bar sits
+   inside the same scrolling .p-sidebar-content as the notification list —
+   without its own solid background it let scrolled-up list items show
+   through/behind it, reading as if the top notification was clipped by the
+   button row. Give the bar a sticky position with a solid background and
+   bottom border so it stays visually separate from the list scrolling
+   underneath it, instead of just floating over transparent content. */
+.notification-sidebar .p-sidebar-content {
+  padding-top: 0;
+}
+
+.notification-actions-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-card);
+  padding: 0.75rem 0;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.notification-list {
+  padding-top: 0.25rem;
+}
+
 /* Confirm dialog: constrain width so long messages don't stretch across the
    whole screen on large displays. */
 .p-confirm-dialog {

@@ -306,7 +306,7 @@ export function IssueTab({
             selectAllLabel="All"
           />
         </div>
-        <div className="col-6 md:col-2 p-1">
+        <div className="col-12 md:col-2 p-1">
           <MultiSelect
             value={typeFilter}
             options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
@@ -330,7 +330,7 @@ export function IssueTab({
             virtualScrollerOptions={{ itemSize: 40 }}
           />
         </div>
-        <div className="col-6 md:col-2 p-1">
+        <div className="col-12 md:col-2 p-1">
           <MultiSelect
             value={tagFilter}
             options={tagOptions}

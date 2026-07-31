@@ -99,7 +99,7 @@ export function SettingsPage() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'Settings' }]} />
-      <div className="detail-content-col">
+      <div className="detail-content-col mx-auto">
       <Card>
         <PageHeader title="Settings" />
         <div className="card">

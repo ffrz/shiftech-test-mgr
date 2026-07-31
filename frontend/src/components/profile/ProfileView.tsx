@@ -23,7 +23,7 @@ export function ProfileView({ profile, projects, suites, isSpying, adminOverlay 
   const displayName = profile.displayName ?? profile.username;
 
   return (
-    <div className="detail-content-col">
+    <div className="detail-content-col mx-auto">
       <Card className="mb-2 detail-content-card">
         <div className="flex align-items-center gap-3">
           <Avatar image={profile.avatarUrl ?? undefined} icon={profile.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="xlarge" />

@@ -292,7 +292,7 @@ export function TestCaseDetailPage() {
         ]}
       />
 
-      <div className="detail-content-col">
+      <div className="detail-content-col mx-auto">
         <Card className="mb-3">
           <div className="flex align-items-start justify-content-between">
             <div className="flex align-items-center gap-2 mb-1">

@@ -57,7 +57,7 @@ export function PublicProfilePage() {
   const displayName = profile.displayName ?? profile.username;
 
   return (
-    <div className="p-3">
+    <div>
       <Breadcrumb items={[{ label: displayName }]} />
       <ProfileView profile={profile} projects={projects} suites={suites} isSpying={isSpying} />
     </div>

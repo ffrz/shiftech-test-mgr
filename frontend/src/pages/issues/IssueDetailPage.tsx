@@ -26,6 +26,7 @@ import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEd
 import type { BreadcrumbItem } from '../../components/ui/Breadcrumb';
 import type { Attachment, IssueStatus } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
+import { toastHelper } from '../../helpers/toast';
 import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
@@ -130,7 +131,7 @@ export function IssueDetailPage() {
     );
     resetExternalForm();
     await reload();
-    toast.current?.show({ severity: 'success', summary: 'Link added' });
+    toastHelper.success(toast, 'Link added');
   }
 
   async function handleRemoveExternalLink(index: number) {
@@ -152,7 +153,7 @@ export function IssueDetailPage() {
       undefined,
     );
     await reload();
-    toast.current?.show({ severity: 'success', summary: 'Link removed' });
+    toastHelper.success(toast, 'Link removed');
   }
 
   // --- Edit via shared IssueEditor ---
@@ -187,14 +188,19 @@ export function IssueDetailPage() {
     setEditDialogOpen(false);
     await reload();
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-    toast.current?.show({ severity: 'success', summary: 'Issue updated' });
+    toastHelper.success(toast, 'Issue updated');
   }
 
   async function handleChangeStatus(status: IssueStatus) {
     if (!issue || !user) return;
-    await issueService.changeStatus(issue.id, status, { projectId: issue.projectId, actorId: user.id, actorName });
-    await reload();
-    await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
+    try {
+      await issueService.changeStatus(issue.id, status, { projectId: issue.projectId, actorId: user.id, actorName });
+      await reload();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
+      toastHelper.success(toast, 'Status updated');
+    } catch (err) {
+      toastHelper.errorFromCatch(toast, 'Failed to update status', err);
+    }
   }
 
   async function handleAssign(assignedTo: string | null | undefined) {
@@ -202,9 +208,14 @@ export function IssueDetailPage() {
     const assigneeName = assignedTo
       ? projectMembers.find((m) => m.userId === assignedTo)?.profile?.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile?.username
       : null;
-    await issueService.assign(issue.id, assignedTo ?? null, { projectId: issue.projectId, actorId: user.id, actorName, assigneeName });
-    await reload();
-    await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
+    try {
+      await issueService.assign(issue.id, assignedTo ?? null, { projectId: issue.projectId, actorId: user.id, actorName, assigneeName });
+      await reload();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
+      toastHelper.success(toast, 'Assignee updated');
+    } catch (err) {
+      toastHelper.errorFromCatch(toast, 'Failed to update assignee', err);
+    }
   }
 
   // Full-fidelity duplicate (no dialog here, unlike ProjectDetailPage's "New Issue" dialog
@@ -225,7 +236,7 @@ export function IssueDetailPage() {
       tagNames: issue.tags.map((t) => t.name),
     });
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-    toast.current?.show({ severity: 'success', summary: 'Issue duplicated' });
+    toastHelper.success(toast, 'Issue duplicated');
     navigate(`/issues/${created.id}`);
   }
 
@@ -241,7 +252,7 @@ export function IssueDetailPage() {
       accept: async () => {
         await issueService.remove(issue.id);
         await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-        toast.current?.show({ severity: 'success', summary: 'Issue deleted' });
+        toastHelper.success(toast, 'Issue deleted');
         handleBack();
       },
     });
@@ -260,7 +271,7 @@ export function IssueDetailPage() {
         await issueService.changeStatus(issue.id, 'closed', { projectId: issue.projectId, actorId: user.id, actorName });
         await reload();
         await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-        toast.current?.show({ severity: 'success', summary: 'Issue archived' });
+        toastHelper.success(toast, 'Issue archived');
       },
     });
   }
@@ -272,9 +283,9 @@ export function IssueDetailPage() {
         await attachmentService.upload(issue.id, issue.projectId, file);
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) });
-      toast.current?.show({ severity: 'success', summary: 'Attachment uploaded' });
+      toastHelper.success(toast, 'Attachment uploaded');
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Upload failed', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch(toast, 'Upload failed', err);
     }
   }
 
@@ -323,7 +334,7 @@ export function IssueDetailPage() {
 
       <Breadcrumb items={breadcrumbItems} />
 
-      <div className="detail-content-col">
+      <div className="detail-content-col mx-auto">
         <Card className="mb-3">
           <div className="flex align-items-start gap-2 mb-1 justify-content-between">
             <h2 className="m-0">{issue.code} — {issue.title}</h2>
@@ -452,7 +463,7 @@ export function IssueDetailPage() {
               <FileUpload
                 mode="basic"
                 chooseLabel="Upload File"
-                chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-sm w-fit' }}
+                chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-sm w-fit comment-btn-sm' }}
                 customUpload
                 uploadHandler={handleUpload}
                 auto
@@ -502,7 +513,7 @@ export function IssueDetailPage() {
                     </div>
                   </div>
                 ) : (
-                  <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit" onClick={() => setExternalAdding(true)} />
+                  <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit comment-btn-sm" onClick={() => setExternalAdding(true)} />
                 )}
               </>
             )}

@@ -53,10 +53,10 @@ export function NotificationPanel({
           {unreadCount > 0 && <Badge value={unreadCount} />}
         </div>
       }
-      className="w-25rem"
+      className="w-25rem notification-sidebar"
     >
       {notifications.length > 0 && (
-        <div className="mb-3 flex gap-2">
+        <div className="notification-actions-bar flex gap-2">
           <Button
             label="Mark all as read"
             icon="pi pi-check"
@@ -80,7 +80,7 @@ export function NotificationPanel({
           <p className="text-color-secondary mt-2">No notifications</p>
         </div>
       ) : (
-        <div className="flex flex-column gap-1">
+        <div className="flex flex-column gap-1 notification-list">
           {notifications.map((n) => (
             <div
               key={n.id}

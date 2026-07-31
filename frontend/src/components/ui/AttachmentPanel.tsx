@@ -85,7 +85,15 @@ export function AttachmentPanel({ projectId, entityType, entityId, canManage, on
       </div>
       {attachments.length === 0 && <p className="text-color-secondary text-sm m-0">No attachments yet.</p>}
       {canManage && (
-        <FileUpload mode="basic" chooseLabel="Upload File" customUpload uploadHandler={handleUpload} auto multiple />
+        <FileUpload
+          mode="basic"
+          chooseLabel="Upload File"
+          chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-sm w-fit comment-btn-sm' }}
+          customUpload
+          uploadHandler={handleUpload}
+          auto
+          multiple
+        />
       )}
     </div>
   );
