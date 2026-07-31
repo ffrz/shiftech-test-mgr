@@ -149,7 +149,7 @@ export function TestRunIssuesPage() {
   async function handleAssign(row: IssueWithDetails, assignedTo: string | null | undefined) {
     if (!user) return;
     const assigneeName = assignedTo
-      ? projectMembers.find((m) => m.userId === assignedTo)?.profile.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile.username
+      ? projectMembers.find((m) => m.userId === assignedTo)?.profile?.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile?.username
       : null;
     await issueService.assign(row.id, assignedTo ?? null, { projectId: row.projectId, actorId: user.id, actorName, assigneeName });
     await reload();
@@ -286,7 +286,7 @@ export function TestRunIssuesPage() {
               <div onClick={(e) => e.stopPropagation()}>
                 <Dropdown
                   value={row.assignedTo}
-                  options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                  options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
                   onChange={(e) => handleAssign(row, e.value)}
                   placeholder="Unassigned"
                   showClear

@@ -59,7 +59,7 @@ export function mapProjectMemberRow(row: any): ProjectMember {
 export function mapProjectMemberWithProfileRow(row: any): ProjectMemberWithProfile {
   return {
     ...mapProjectMemberRow(row),
-    profile: mapProfileRow(row.member_user?.profile),
+    profile: row.member_user?.profile ? mapProfileRow(row.member_user.profile) : null,
     email: row.member_user?.email ?? '',
   };
 }

@@ -265,7 +265,7 @@ export function IssueEditor({
                 <Dropdown
                   id="issue-assigned"
                   value={assignedTo}
-                  options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                  options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
                   onChange={(e) => setAssignedTo(e.value ?? null)}
                   showClear
                   disabled={mode === 'create' || !onAssigneeChange}

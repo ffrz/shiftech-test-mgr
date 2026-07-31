@@ -27,6 +27,7 @@ import { ModuleDialog } from './components/dialogs/ModuleDialog';
 import { TagDialog } from './components/dialogs/TagDialog';
 import { TestRoleDialog } from './components/dialogs/TestRoleDialog';
 import { InviteMemberDialog } from './components/dialogs/InviteMemberDialog';
+import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
 
 export function ProjectSettingsPage() {
   const { id } = useParams<{ id: string }>();
@@ -353,8 +354,8 @@ export function ProjectSettingsPage() {
       if (memberRoleFilter && m.role !== memberRoleFilter) return false;
       if (memberStatusFilter && m.status !== memberStatusFilter) return false;
       if (q) {
-        const name = (m.profile.displayName ?? '').toLowerCase();
-        const username = m.profile.username.toLowerCase();
+        const name = (m.profile?.displayName ?? '').toLowerCase();
+        const username = (m.profile?.username ?? '').toLowerCase();
         const email = m.email.toLowerCase();
         if (!name.includes(q) && !username.includes(q) && !email.includes(q)) return false;
       }
@@ -389,15 +390,21 @@ export function ProjectSettingsPage() {
   }
 
   async function handleChangeMemberRole(row: ProjectMemberWithProfile, role: ProjectMemberRole) {
-    await projectMemberService.changeRole(row.id, role);
-    setMembers((prev) => prev.map((m) => (m.id === row.id ? { ...m, role } : m)));
+    try {
+      await projectMemberService.changeRole(row.id, role);
+      setMembers((prev) => prev.map((m) => (m.id === row.id ? { ...m, role } : m)));
+      const memberName = row.profile?.displayName ?? row.profile?.username ?? row.email;
+      toast.current?.show({ severity: 'success', summary: 'Role updated', detail: `${memberName} is now ${PROJECT_MEMBER_ROLE_LABEL[role]}` });
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Failed to update role', detail: err instanceof Error ? err.message : undefined });
+    }
   }
 
   function handleRemoveMember(row: ProjectMemberWithProfile) {
     if (!id) return;
     confirmDialog({
       header: 'Remove Member',
-      message: `"${row.profile.displayName ?? row.profile.username}" will be removed from this project and lose access. Continue?`,
+      message: `"${row.profile?.displayName ?? row.profile?.username ?? row.email}" will be removed from this project and lose access. Continue?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',

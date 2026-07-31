@@ -200,7 +200,7 @@ export function IssueDetailPage() {
   async function handleAssign(assignedTo: string | null | undefined) {
     if (!issue || !user) return;
     const assigneeName = assignedTo
-      ? projectMembers.find((m) => m.userId === assignedTo)?.profile.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile.username
+      ? projectMembers.find((m) => m.userId === assignedTo)?.profile?.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile?.username
       : null;
     await issueService.assign(issue.id, assignedTo ?? null, { projectId: issue.projectId, actorId: user.id, actorName, assigneeName });
     await reload();
@@ -402,7 +402,7 @@ export function IssueDetailPage() {
                 <Dropdown
                   id="issue-assigned"
                   value={issue.assignedTo}
-                  options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                  options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
                   onChange={(e) => handleAssign(e.value)}
                   showClear
                   disabled={!canEditIssue}

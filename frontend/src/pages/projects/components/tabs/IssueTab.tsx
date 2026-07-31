@@ -187,7 +187,7 @@ export function IssueTab({
       onPatchIssue(issueId, { status: value as IssueStatus });
     } else if (field === 'assignedTo') {
       if (!user) return;
-      const assigneeName = value ? projectMembers.find((m) => m.userId === value)?.profile.displayName ?? projectMembers.find((m) => m.userId === value)?.profile.username : null;
+      const assigneeName = value ? projectMembers.find((m) => m.userId === value)?.profile?.displayName ?? projectMembers.find((m) => m.userId === value)?.profile?.username : null;
       await issueService.assign(issueId, value || null, { projectId, actorId: user.id, actorName, assigneeName });
       onPatchIssue(issueId, { assignedTo: value || null });
     } else if (field === 'title') {
@@ -555,7 +555,7 @@ export function IssueTab({
             if (isEditing && canEdit) {
               return (
                 <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'assignedTo', editValue)}>
-                  <Dropdown value={editValue} options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                  <Dropdown value={editValue} options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
                     onChange={(e) => confirmEdit(row, 'assignedTo', e.value ?? null)}
                     onHide={cancelEdit}
                     placeholder="Unassigned" showClear autoFocus className="w-10rem" />
@@ -656,7 +656,7 @@ export function IssueTab({
               <Dropdown
                 id="bulk-issue-assigned"
                 value={bulkAssignedTo === UNSET ? null : bulkAssignedTo}
-                options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
                 onChange={(e) => setBulkAssignedTo(e.value)}
                 showClear
                 className="w-full"

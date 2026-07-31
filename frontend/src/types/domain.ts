@@ -62,7 +62,9 @@ export interface ProjectMember {
 }
 
 export interface ProjectMemberWithProfile extends ProjectMember {
-  profile: Profile;
+  // null when the joined `users`/`profiles` row isn't visible under RLS (should not normally
+  // happen — see 20260731000004_project_members_read_users.sql) or is otherwise missing.
+  profile: Profile | null;
   // Admin-facing member management (ProjectSettingsPage) needs email too — fetched via a
   // separate join to `users` since Profile itself deliberately excludes it (public identity
   // only, see docs/ARCHITECTURE_V2.md §1).
