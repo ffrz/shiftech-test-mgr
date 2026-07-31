@@ -365,7 +365,6 @@ export const testSuiteService = {
     );
 
     // Handle detailed steps: batch copy from test_suite_item_steps → test_case_steps
-    const testCaseStepRepository = await import('../repositories/testCaseStepRepository').then((m) => m.testCaseStepRepository);
     const detailedIndices = items
       .map((item, i) => (item.stepType === 'detailed' ? i : -1))
       .filter((i) => i >= 0);
