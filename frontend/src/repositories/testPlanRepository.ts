@@ -38,7 +38,7 @@ export const testPlanRepository = {
   },
 
   // `code` optional — omit/empty lets the `set_test_plan_code` DB trigger auto-generate TP-####.
-  async create(input: { projectId: string; name: string; description: string | null; code?: string | null }): Promise<TestPlan> {
+  async create(input: { projectId: string; name: string; description: string | null; code?: string | null; createdBy?: string | null }): Promise<TestPlan> {
     const { data, error } = await supabase
       .from('test_plans')
       .insert({
@@ -47,6 +47,7 @@ export const testPlanRepository = {
         name: input.name,
         description: input.description,
         status: 'draft' satisfies TestPlanStatus,
+        created_by: input.createdBy ?? null,
       })
       .select('*')
       .single();

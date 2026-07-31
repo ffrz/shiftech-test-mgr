@@ -118,6 +118,7 @@ export interface TestPlan {
   name: string;
   description: string | null;
   status: TestPlanStatus;
+  createdBy: string | null;
   createdAt: string;
   updatedAt: string;
 }

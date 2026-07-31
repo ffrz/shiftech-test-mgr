@@ -15,7 +15,7 @@ export const testPlanService = {
     return testPlanRepository.findById(id);
   },
 
-  async create(input: { projectId: string; name: string; description?: string; code?: string }): Promise<TestPlan> {
+  async create(input: { projectId: string; name: string; description?: string; code?: string; createdBy?: string | null }): Promise<TestPlan> {
     if (!input.name.trim()) {
       throw new Error('Test plan name cannot be empty');
     }
@@ -24,6 +24,7 @@ export const testPlanService = {
       name: input.name.trim(),
       description: input.description?.trim() || null,
       code: input.code?.trim() || null,
+      createdBy: input.createdBy ?? null,
     });
   },
 

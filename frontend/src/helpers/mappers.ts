@@ -121,6 +121,7 @@ export function mapTestPlanRow(row: any): TestPlan {
     name: row.name,
     description: row.description,
     status: row.status,
+    createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
