@@ -4,6 +4,7 @@ import { tagService } from './tagService';
 import { testCaseStepService } from './testCaseStepService';
 import { moduleService } from './moduleService';
 import { testRoleService } from './testRoleService';
+import { activityService } from './activityService';
 import type { ExternalLink, TestCase } from '../types/domain';
 
 export const testCaseService = {
@@ -99,6 +100,7 @@ export const testCaseService = {
     changes: Partial<Omit<TestCase, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>>,
     tagNames?: string[],
     detailedSteps?: { action: string; expectedResult?: string }[],
+    actorId?: string | null,
   ) {
     const testCase = await testCaseRepository.update(id, changes);
     if (tagNames !== undefined) {
@@ -106,6 +108,15 @@ export const testCaseService = {
     }
     if (testCase.stepType === 'detailed' && detailedSteps !== undefined) {
       await testCaseStepService.replaceForTestCase(id, detailedSteps);
+    }
+    if (actorId) {
+      await activityService.logEvent({
+        projectId,
+        entityType: 'test_case',
+        entityId: id,
+        actorId,
+        eventType: 'field_update',
+      });
     }
     return testCase;
   },
@@ -119,12 +130,30 @@ export const testCaseService = {
     }
   },
 
-  archive(id: string) {
-    return testCaseRepository.update(id, { status: 'archived' });
+  async archive(id: string, actor: { projectId: string; actorId: string }) {
+    const testCase = await testCaseRepository.update(id, { status: 'archived' });
+    await activityService.logEvent({
+      projectId: actor.projectId,
+      entityType: 'test_case',
+      entityId: id,
+      actorId: actor.actorId,
+      eventType: 'status_change',
+      payload: { from: 'active', to: 'archived' },
+    });
+    return testCase;
   },
 
-  reactivate(id: string) {
-    return testCaseRepository.update(id, { status: 'active' });
+  async reactivate(id: string, actor: { projectId: string; actorId: string }) {
+    const testCase = await testCaseRepository.update(id, { status: 'active' });
+    await activityService.logEvent({
+      projectId: actor.projectId,
+      entityType: 'test_case',
+      entityId: id,
+      actorId: actor.actorId,
+      eventType: 'status_change',
+      payload: { from: 'archived', to: 'active' },
+    });
+    return testCase;
   },
 
   remove(id: string) {

@@ -453,7 +453,7 @@ export function ProjectSettingsPage() {
   async function handleToggleActive() {
     if (!project) return;
     const newStatus = project.status === 'active' ? 'inactive' : 'active';
-    await projectService.changeStatus(project.id, newStatus);
+    await projectService.changeStatus(project.id, newStatus, currentUser ? { actorId: currentUser.id } : undefined);
     setProject({ ...project, status: newStatus });
     toast.current?.show({ severity: 'success', summary: `Project ${newStatus === 'active' ? 'activated' : 'deactivated'}` });
   }
@@ -467,7 +467,7 @@ export function ProjectSettingsPage() {
       acceptLabel: 'Archive',
       rejectLabel: 'Cancel',
       accept: async () => {
-        await projectService.changeStatus(project.id, 'archived');
+        await projectService.changeStatus(project.id, 'archived', currentUser ? { actorId: currentUser.id } : undefined);
         setProject({ ...project, status: 'archived' });
         toast.current?.show({ severity: 'success', summary: 'Project archived' });
       },

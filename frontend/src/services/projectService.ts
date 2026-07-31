@@ -1,4 +1,5 @@
 import { projectRepository, type ProjectPaginatedQuery, type ProjectQuery } from '../repositories/projectRepository';
+import { activityService } from './activityService';
 import type { ProjectStatus, ProjectVisibility } from '../types/domain';
 
 export const projectService = {
@@ -36,8 +37,20 @@ export const projectService = {
     });
   },
 
-  changeStatus(id: string, status: ProjectStatus) {
-    return projectRepository.updateStatus(id, status);
+  async changeStatus(id: string, status: ProjectStatus, actor?: { actorId: string }) {
+    const previous = await projectRepository.findById(id);
+    const project = await projectRepository.updateStatus(id, status);
+    if (actor && previous && previous.status !== status) {
+      await activityService.logEvent({
+        projectId: id,
+        entityType: 'project',
+        entityId: id,
+        actorId: actor.actorId,
+        eventType: 'status_change',
+        payload: { from: previous.status, to: status },
+      });
+    }
+    return project;
   },
 
   deletePermanently(id: string) {

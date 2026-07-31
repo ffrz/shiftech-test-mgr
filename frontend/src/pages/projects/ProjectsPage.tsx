@@ -120,7 +120,7 @@ export function ProjectsPage() {
   }
 
   async function handleChangeStatus(row: Project, status: ProjectStatus) {
-    await projectService.changeStatus(row.id, status);
+    await projectService.changeStatus(row.id, status, currentUser ? { actorId: currentUser.id } : undefined);
     await reload();
     toast.current?.show({ severity: 'success', summary: 'Status updated', detail: row.name });
   }
