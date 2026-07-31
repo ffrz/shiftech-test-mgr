@@ -5,8 +5,15 @@ import { AppMenuitem, AppMenuSeparator, type MenuItemModel } from './AppMenuitem
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjects } from '../../hooks/useProjects';
 import { useProjectPins } from '../../hooks/useProjectPins';
+import { OwnerProjectLabel } from '../ui/OwnerProjectLabel';
+import type { Project } from '../../types/domain';
 
 const MAX_VISIBLE_PROJECTS = 10;
+
+type EnrichedProject = Project & {
+  _ownerUsername: string | null;
+  _ownerDisplayName: string | null;
+};
 
 export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate();
@@ -78,8 +85,8 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
               onClick={onNavigate}
               className={({ isActive }) => `layout-menuitem-link layout-submenu-link ${isActive ? 'active-route' : ''}`}
             >
-              <span className="layout-menuitem-text" title={project.name}>
-                {project.name}
+              <span className="layout-menuitem-text" title={(project as EnrichedProject)._ownerUsername ? `${(project as EnrichedProject)._ownerUsername} / ${project.name}` : project.name}>
+                <OwnerProjectLabel username={(project as EnrichedProject)._ownerUsername} name={project.name} maxOwnerLength={10} />
               </span>
             </NavLink>
             <button

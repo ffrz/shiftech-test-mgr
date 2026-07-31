@@ -4,8 +4,16 @@ import { activityService } from './activityService';
 import type { ProjectStatus, ProjectVisibility } from '../types/domain';
 
 export const projectService = {
-  list(query?: ProjectQuery) {
-    return projectRepository.findAll(query);
+  async list(query?: ProjectQuery) {
+    const projects = await projectRepository.findAll(query);
+    const ownerIds = [...new Set(projects.map((p) => p.ownerId).filter(Boolean))] as string[];
+    const profiles = ownerIds.length ? await profileRepository.findByIds(ownerIds) : [];
+    const profileMap = new Map(profiles.map((p) => [p.id, p]));
+    return projects.map((project) => ({
+      ...project,
+      _ownerUsername: profileMap.get(project.ownerId)?.username ?? null,
+      _ownerDisplayName: profileMap.get(project.ownerId)?.displayName ?? null,
+    }));
   },
 
   async listPaginated(query: ProjectPaginatedQuery) {

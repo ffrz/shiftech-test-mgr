@@ -4,6 +4,7 @@ import type { Project, TestPlan, Issue, ActivityEntry } from '../types/domain';
 
 export interface MyWorkIssue extends Issue {
   projectName: string;
+  projectOwnerId: string | null;
 }
 
 export interface DashboardCounts {
@@ -92,7 +93,7 @@ export const dashboardRepository = {
   async findMyWorkIssues(userId: string, limit: number): Promise<MyWorkIssue[]> {
     const { data, error } = await supabase
       .from('issues')
-      .select('*, project:projects(name)')
+      .select('*, project:projects(name, owner_id)')
       .eq('assigned_to', userId)
       .not('status', 'in', '(closed,rejected,duplicate)')
       .order('updated_at', { ascending: false })
@@ -102,6 +103,7 @@ export const dashboardRepository = {
     return (data ?? []).map((row: any) => ({
       ...mapIssueRow(row),
       projectName: row.project?.name ?? '',
+      projectOwnerId: row.project?.owner_id ?? null,
     }));
   },
 

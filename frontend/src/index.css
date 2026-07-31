@@ -36,6 +36,37 @@ body {
   text-decoration: underline;
 }
 
+/* GitHub-style "username / project" label — owner handle in secondary color, both
+   halves ellipsize so a long name never blows out the sidebar/dashboard row. */
+.owner-project-label {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.owner-project-label-owner {
+  color: var(--text-color-secondary);
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 20ch;
+}
+
+.owner-project-label-sep {
+  color: var(--text-color-secondary);
+  flex-shrink: 0;
+}
+
+.owner-project-label-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Username text — higher contrast than the default --text-color so a handle stands out:
    pure white on dark surfaces, a deeper near-black on light ones. */
 .username-text {

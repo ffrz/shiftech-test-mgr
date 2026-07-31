@@ -18,7 +18,6 @@ import type { TestSuite, TestSuiteVisibility } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
-import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
@@ -192,7 +191,6 @@ export function TestSuitesPage() {
   return (
     <div>
       <ConfirmDialog />
-      <Breadcrumb items={[{ label: 'Test Suite' }]} />
       <PageHeader
         title="Test Suite"
         actions={

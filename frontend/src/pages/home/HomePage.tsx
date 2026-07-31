@@ -5,10 +5,11 @@ import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useDashboard } from '../../hooks/useDashboard';
 import { useProjectInvitations } from '../../hooks/useProjectInvitations';
+import { OwnerProjectLabel } from '../../components/ui/OwnerProjectLabel';
+import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { profileRepository } from '../../repositories/profileRepository';
 import { pathForActivityEntity, ACTIVITY_ENTITY_LABEL } from '../../helpers/activityRoutes';
 import { describeSystemEvent } from '../../helpers/activityDescribe';
@@ -50,7 +51,6 @@ export function HomePage() {
   return (
     <div>
       <ConfirmDialog />
-      <Breadcrumb items={[{ label: 'Home' }]} />
       <h2 className="m-0 mt-2 mb-4">Welcome Back{profile?.displayName ? `, ${profile.displayName}` : ''}</h2>
 
       {invitations.length > 0 && (
@@ -113,7 +113,9 @@ export function HomePage() {
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div className="font-bold white-space-nowrap overflow-hidden text-overflow-ellipsis">{issue.code} — {issue.title}</div>
-                      <div className="text-sm text-color-secondary">{issue.projectName}</div>
+                      <div className="text-sm">
+                        <OwnerProjectLabel username={issue._ownerUsername} name={issue.projectName} maxOwnerLength={10} />
+                      </div>
                     </div>
                   </div>
                   <div className="flex align-items-center gap-2 flex-shrink-0">
@@ -144,7 +146,7 @@ export function HomePage() {
                       <i className="pi pi-play" />
                     </div>
                     <div>
-                      <div className="font-bold">{item.project.name}</div>
+                      <div className="font-bold"><OwnerProjectLabel username={item._ownerUsername} name={item.project.name} maxOwnerLength={10} /></div>
                       <div className="text-sm text-color-secondary">
                         {item.testPlan ? item.testPlan.name : item.testRunName}
                       </div>
@@ -176,7 +178,7 @@ export function HomePage() {
               >
                 <span className="flex align-items-center gap-2 font-medium">
                   <i className="pi pi-folder text-color-secondary" />
-                  {project.name}
+                  <OwnerProjectLabel username={project._ownerUsername} name={project.name} maxOwnerLength={10} />
                 </span>
                 <i className="pi pi-chevron-right text-color-secondary" />
               </div>
@@ -297,7 +299,7 @@ export function HomePage() {
             <div className="flex flex-column gap-1">
               {recentActivity.map((entry) => {
                 const actor = activityActorById.get(entry.actorId);
-                const actorName = actor?.displayName ?? actor?.username ?? 'Unknown';
+                const actorName = actor?.username ?? 'Unknown';
                 const entityType = entry.entityType as ActivityEntityType;
                 return (
                   <div
@@ -308,7 +310,13 @@ export function HomePage() {
                     <i className={`pi ${entry.eventType === 'comment' ? 'pi-comment' : 'pi-sync'} text-color-secondary mt-1`} style={{ fontSize: '0.9rem' }} />
                     <div className="flex-1" style={{ minWidth: 0 }}>
                       <div className="text-sm">
-                        <span className="font-medium">{actorName}</span>{' '}
+                        {actor ? (
+                          <UserHoverCard userId={actor.id}>
+                            <span className="font-medium">{actorName}</span>
+                          </UserHoverCard>
+                        ) : (
+                          <span className="font-medium">{actorName}</span>
+                        )}{' '}
                         {entry.eventType === 'comment' ? 'commented on' : describeSystemEvent(entry)}{' '}
                         <span className="text-color-secondary">{ACTIVITY_ENTITY_LABEL[entityType] ?? entry.entityType}</span>
                       </div>

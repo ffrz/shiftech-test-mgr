@@ -6,7 +6,6 @@ import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 import { FloatLabel } from 'primereact/floatlabel';
-import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { useSettings } from '../../hooks/useSettings';
@@ -88,7 +87,6 @@ export function SettingsPage() {
   if (!profile) {
     return (
       <div>
-        <Breadcrumb items={[{ label: 'Settings' }]} />
         <PageHeader title="Settings" />
         <p className="text-color-secondary">Loading profile...</p>
       </div>
@@ -97,7 +95,6 @@ export function SettingsPage() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: 'Settings' }]} />
       <div className="detail-content-col mx-auto">
       <Card>
         <PageHeader title="Settings" />
