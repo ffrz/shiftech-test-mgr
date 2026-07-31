@@ -218,7 +218,7 @@ export function TestSuiteDetailPage() {
       content: (
         <div className="flex align-items-center justify-content-between gap-3 w-full">
           <span>{fieldLabel} updated</span>
-          <Button label="Undo" text size="small" onClick={() => handleUndo(itemId, changes)} />
+          <Button label="Undo" text size="small" className="toast-undo-btn" onClick={() => handleUndo(itemId, changes)} />
         </div>
       ),
       sticky: true,

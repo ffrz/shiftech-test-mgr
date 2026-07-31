@@ -1192,6 +1192,16 @@ html.dark .p-toast .p-toast-message .p-toast-icon-close:hover {
   background: rgba(0, 0, 0, 0.08);
 }
 
+/* Undo button inside the compact undo toasts (TestPlanTab/TestCaseTab/IssueTab/
+   TestSuiteDetailPage). Theme's `size="small"` still renders at 0.875rem with
+   0.5rem vertical padding — noticeably larger than the toast's own 0.8rem text.
+   Shrink it to match the message content so the action reads as part of the
+   toast, not a full-size toolbar button. */
+.toast-undo-btn.p-button {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+}
+
 /* Full-width side gutters on narrow screens instead of letting the toast span
    edge-to-edge — width still caps at 24rem above, this only guarantees breathing
    room on phones where 24rem may exceed the viewport. */
@@ -1201,6 +1211,12 @@ html.dark .p-toast .p-toast-message .p-toast-icon-close:hover {
     left: 1rem !important;
     right: 1rem !important;
     width: auto !important;
+    /* PrimeReact's own style keeps `transform: translateX(-50%)` on the
+       center positions (injected via toast.esm.js) — after we overrode
+       `left` to a fixed gutter, that half-width shift pushes the toast
+       off the left edge of a phone screen. Reset it so the toast fills
+       the gutter-to-gutter width instead of hanging to the left. */
+    transform: translateX(0) !important;
   }
 
   .p-toast.p-toast-bottom-center .p-toast-message,

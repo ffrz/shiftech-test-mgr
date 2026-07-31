@@ -132,7 +132,7 @@ export function TestPlanTab({
       content: (
         <div className="flex align-items-center justify-content-between gap-3 w-full">
           <span>{fieldLabel} updated</span>
-          <Button label="Undo" text size="small" onClick={() => handleUndo(planId, field, previousValue)} />
+          <Button label="Undo" text size="small" className="toast-undo-btn" onClick={() => handleUndo(planId, field, previousValue)} />
         </div>
       ),
       sticky: true,

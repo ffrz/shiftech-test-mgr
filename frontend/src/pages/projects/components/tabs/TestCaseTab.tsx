@@ -222,7 +222,7 @@ export function TestCaseTab({
       content: (
         <div className="flex align-items-center justify-content-between gap-3 w-full">
           <span>{fieldLabel} updated</span>
-          <Button label="Undo" text size="small" onClick={() => handleUndo(caseId, projectId, field, previousValue)} />
+          <Button label="Undo" text size="small" className="toast-undo-btn" onClick={() => handleUndo(caseId, projectId, field, previousValue)} />
         </div>
       ),
       sticky: true,
