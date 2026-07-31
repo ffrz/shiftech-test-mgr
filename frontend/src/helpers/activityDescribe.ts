@@ -33,6 +33,8 @@ export function describeSystemEvent(entry: ActivityEntry): string {
       return entry.payload.assigneeName ? `assigned to ${entry.payload.assigneeName}` : 'changed the assignee';
     case 'attachment_added':
       return entry.payload.fileName ? `attached ${entry.payload.fileName}` : 'added an attachment';
+    case 'field_update':
+      return 'updated the details';
     default:
       return entry.eventType;
   }
@@ -49,6 +51,7 @@ const EVENT_TYPE_LABEL: Record<string, string> = {
   status_change: 'Status Change',
   assignment: 'Assignment',
   attachment_added: 'Attachment Added',
+  field_update: 'Updated',
 };
 
 export function eventTypeLabel(eventType: string): string {

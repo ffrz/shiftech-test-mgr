@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { confirmDialog } from 'primereact/confirmdialog';
 import type { MenuItem } from 'primereact/menuitem';
 import { RowActionsMenu } from './RowActionsMenu';
+import { UserHoverCard } from './UserHoverCard';
 import { profileRepository } from '../../repositories/profileRepository';
 import { testCaseRepository } from '../../repositories/testCaseRepository';
 import { issueRepository } from '../../repositories/issueRepository';
@@ -257,10 +257,26 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
     });
   }
 
-  function startReply(id: string) {
+  function startReply(id: string, initialDraft = '') {
     setReplyingToId(id);
-    setReplyDraft('');
+    setReplyDraft(initialDraft);
     setReplyFiles([]);
+  }
+
+  // Quotes the comment's raw body as a markdown blockquote with an attribution line, then
+  // opens the reply box on its thread (pre-filled, so the user just adds their own text
+  // below it) — replies only nest one level, so quoting a reply targets the same top-level
+  // parent the reply itself belongs to, same as the plain "Reply" action.
+  function startQuoteReply(entry: ActivityEntry) {
+    const actor = profileById.get(entry.actorId);
+    const authorLabel = actor?.username ? `@${actor.username}` : 'Unknown';
+    const body = typeof entry.payload.body === 'string' ? entry.payload.body : '';
+    const quoted = body
+      .split('\n')
+      .map((line) => `> ${line}`)
+      .join('\n');
+    const parentId = entry.parentCommentId ?? entry.id;
+    startReply(parentId, `${authorLabel} wrote:\n${quoted}\n\n`);
   }
 
   async function handleSubmitReply(parentId: string) {
@@ -317,11 +333,18 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
     );
   }
 
-  function commentMenuItems(entry: ActivityEntry): MenuItem[] {
-    return [
-      { label: 'Edit', icon: 'pi pi-pencil', command: () => startEdit(entry) },
-      { label: 'Delete', icon: 'pi pi-trash', command: () => confirmDeleteComment(entry.id) },
-    ];
+  function commentMenuItems(entry: ActivityEntry, { isOwn, allowReply }: { isOwn: boolean; allowReply: boolean }): MenuItem[] {
+    const items: MenuItem[] = [];
+    if (allowReply) {
+      items.push({ label: 'Quote Reply', icon: 'pi pi-comment', command: () => startQuoteReply(entry) });
+    }
+    if (isOwn) {
+      items.push(
+        { label: 'Edit', icon: 'pi pi-pencil', command: () => startEdit(entry) },
+        { label: 'Delete', icon: 'pi pi-trash', command: () => confirmDeleteComment(entry.id) },
+      );
+    }
+    return items;
   }
 
   function renderCommentEntry(entry: ActivityEntry, { allowReply }: { allowReply: boolean }) {
@@ -330,6 +353,7 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
     const isDeleted = !!entry.deletedAt;
     const isEditing = editingId === entry.id;
     const actions = renderCommentActions(entry, { allowReply });
+    const menuItems = commentMenuItems(entry, { isOwn, allowReply });
 
     return (
       <div className="comment-card">
@@ -337,7 +361,9 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
           <div className="comment-card-header-meta">
             <Avatar image={actor?.avatarUrl ?? undefined} icon={actor?.avatarUrl ? undefined : 'pi pi-user'} shape="circle" size="normal" />
             {actor?.username ? (
-              <Link to={`/@${actor.username}`} className="entity-link font-bold">{actor.username}</Link>
+              <UserHoverCard userId={entry.actorId}>
+                <span className="font-bold username-text cursor-pointer">{actor.username}</span>
+              </UserHoverCard>
             ) : (
               <span className="font-bold">Unknown</span>
             )}
@@ -348,9 +374,9 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
               </span>
             )}
           </div>
-          {isOwn && !isDeleted && !isEditing && (
+          {!isDeleted && !isEditing && menuItems.length > 0 && (
             <div className="flex-shrink-0">
-              <RowActionsMenu items={commentMenuItems(entry)} />
+              <RowActionsMenu items={menuItems} />
             </div>
           )}
         </div>
@@ -387,7 +413,6 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
   // that would otherwise run behind comment cards too.
   function renderTimelineEvent(entry: ActivityEntry, connectToPrevious: boolean) {
     const actor = profileById.get(entry.actorId);
-    const actorName = actor?.displayName ?? actor?.username ?? 'Unknown';
 
     return (
       <div className={connectToPrevious ? 'timeline-event-row timeline-event-connected' : 'timeline-event-row'}>
@@ -395,7 +420,14 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
           <i className={timelineEventIcon(entry.eventType)} />
         </div>
         <span className="timeline-event-text">
-          <span className="font-medium text-color">{actorName}</span> {describeSystemEvent(entry)} &middot; {formatDateTime(entry.createdAt)}
+          {actor?.username ? (
+            <UserHoverCard userId={entry.actorId}>
+              <span className="font-bold username-text cursor-pointer">{actor.username}</span>
+            </UserHoverCard>
+          ) : (
+            <span className="font-medium text-color">Unknown</span>
+          )}{' '}
+          {describeSystemEvent(entry)} &middot; {formatDateTime(entry.createdAt)}
         </span>
       </div>
     );
@@ -448,12 +480,10 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
 
   return (
     <div>
-      <ConfirmDialog />
-
       {loading && entries.length === 0 && <p className="text-color-secondary text-sm m-0">Loading activity...</p>}
       {!loading && entries.length === 0 && <p className="text-color-secondary text-sm m-0">No activity yet.</p>}
 
-      <div className="comment-thread">
+      <div className="comment-thread mt-3">
         {threads.map(({ entry, replies }, i) => renderEntry(entry, replies, threads[i - 1]?.entry))}
 
         <div className="comment-row">
