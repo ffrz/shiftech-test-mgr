@@ -1277,6 +1277,29 @@ h6,
   padding: 0.75rem;
 }
 
+/* PrimeReact positions the MultiSelect/Dropdown overlay panel with
+   `absolutePosition()`: when the panel is wider than the space between the
+   viewport's left edge and the trigger's right edge, it right-aligns the
+   panel to the trigger by computing `left = triggerLeft + triggerWidth -
+   panelWidth`, with no clamp to keep that value >= 0. On real mobile
+   browsers (not devtools emulation, whose viewport width is exact) that
+   math can go negative — the panel then renders bleeding off the left
+   edge of the screen. Doesn't reproduce in devtools because emulated
+   viewports don't hit the same rounding/scrollbar-width edge cases as a
+   real device's `window.innerWidth`.
+   Fix: clamp the panel to the viewport with a hard left offset on narrow
+   screens, trading exact trigger-alignment for guaranteed on-screen
+   placement — same trade PrimeReact itself makes in relativePosition()
+   (its appendTo="self" mode), just applied via CSS since appendTo="self"
+   risks clipping inside scrollable Dialogs elsewhere in the app. */
+@media screen and (max-width: 768px) {
+  .p-multiselect-panel,
+  .p-dropdown-panel {
+    left: 1rem !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+}
+
 .p-selection-column .p-column-header-content {
   display: block;
 }
