@@ -641,6 +641,7 @@ export function ProjectDetailPage() {
           tagNames: caseTags,
           stepType: caseStepType,
           detailedSteps: caseStepType === 'detailed' ? caseDetailedSteps : undefined,
+          createdBy: user?.id ?? null,
         });
       }
       setCaseDialogOpen(false);
@@ -912,6 +913,7 @@ export function ProjectDetailPage() {
         description: data.description,
         priority: data.priority,
         tagNames: data.tagNames,
+        createdBy: user?.id ?? null,
       });
       toastSuccess('Issue created');
     }

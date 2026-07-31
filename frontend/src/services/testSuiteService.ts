@@ -352,6 +352,7 @@ export const testSuiteService = {
         notes: null,
         stepType: item.stepType,
         targetRoleId: item.targetRole ? roleIdByName.get(item.targetRole.toLowerCase()) ?? null : null,
+        externalLinks: [],
       })),
     );
 

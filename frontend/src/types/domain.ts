@@ -148,6 +148,8 @@ export interface TestCase {
   // often needs a separate row per app role, this is purely for labeling/filtering, not a
   // variant system. Duplication across roles is manual.
   targetRoleId: string | null;
+  externalLinks: ExternalLink[];
+  createdBy: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -338,6 +340,7 @@ export interface Issue {
   status: IssueStatus;
   assignedTo: string | null;
   externalLinks: ExternalLink[];
+  createdBy: string | null;
   createdAt: string;
   updatedAt: string;
 }

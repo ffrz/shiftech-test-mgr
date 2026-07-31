@@ -4,7 +4,7 @@ import { tagService } from './tagService';
 import { testCaseStepService } from './testCaseStepService';
 import { moduleService } from './moduleService';
 import { testRoleService } from './testRoleService';
-import type { TestCase } from '../types/domain';
+import type { ExternalLink, TestCase } from '../types/domain';
 
 export const testCaseService = {
   listByProject(projectId: string) {
@@ -52,6 +52,8 @@ export const testCaseService = {
     tagNames?: string[];
     stepType?: TestCase['stepType'];
     detailedSteps?: { action: string; expectedResult?: string }[];
+    externalLinks?: ExternalLink[];
+    createdBy?: string | null;
   }): Promise<TestCase> {
     if (!input.title.trim()) throw new Error('Test case title cannot be empty');
     const stepType = input.stepType ?? 'simple';
@@ -76,6 +78,8 @@ export const testCaseService = {
       notes: input.notes?.trim() || null,
       stepType,
       targetRoleId: input.targetRoleId ?? null,
+      externalLinks: input.externalLinks ?? [],
+      createdBy: input.createdBy ?? null,
     });
 
     if (input.tagNames?.length) {
@@ -176,6 +180,7 @@ export const testCaseService = {
         notes: null,
         stepType: item.stepType,
         targetRoleId: item.targetRole ? roleIdByName.get(item.targetRole.name.toLowerCase()) ?? null : null,
+        externalLinks: item.externalLinks,
       })),
     );
 

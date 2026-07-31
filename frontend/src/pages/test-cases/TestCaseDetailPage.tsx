@@ -23,6 +23,9 @@ import { tagService } from '../../services/tagService';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
+import { useAuthContext } from '../../hooks/useAuth';
+import { UserHoverCard } from '../../components/ui/UserHoverCard';
+import { profileRepository } from '../../repositories/profileRepository';
 import { queryKeys } from '../../hooks/queryKeys';
 import type { TestCasePriority, TestCaseWithDetails } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
@@ -47,6 +50,7 @@ export function TestCaseDetailPage() {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
   const toast = useRef<Toast>(null);
+  const { user } = useAuthContext();
 
   const queryClient = useQueryClient();
   const { data: testCase, isLoading: loading } = useQuery({
@@ -61,6 +65,12 @@ export function TestCaseDetailPage() {
     enabled: !!id && testCase?.stepType === 'detailed',
   });
   const { canEditContent, canDeleteContent } = useProjectRole(testCase?.project.id);
+
+  const { data: authorProfile = null } = useQuery({
+    queryKey: queryKeys.profile(testCase?.createdBy ?? ''),
+    queryFn: () => profileRepository.findById(testCase!.createdBy!),
+    enabled: !!testCase?.createdBy,
+  });
 
   const { data: project } = useQuery({
     queryKey: queryKeys.project(testCase?.project.id ?? ''),
@@ -91,6 +101,34 @@ export function TestCaseDetailPage() {
     } else {
       navigate('/test-cases');
     }
+  }
+
+  // --- Inline external link management (same pattern as IssueDetailPage) ---
+  const [newExternalUrl, setNewExternalUrl] = useState('');
+  const [newExternalLabel, setNewExternalLabel] = useState('');
+  const [externalAdding, setExternalAdding] = useState(false);
+
+  function resetExternalForm() {
+    setNewExternalUrl('');
+    setNewExternalLabel('');
+    setExternalAdding(false);
+  }
+
+  async function handleAddExternalLink() {
+    if (!testCase || !newExternalUrl.trim()) return;
+    const updatedLinks = [...testCase.externalLinks, { url: newExternalUrl.trim(), label: newExternalLabel.trim() || undefined }];
+    await testCaseService.update(testCase.id, testCase.project.id, { externalLinks: updatedLinks });
+    resetExternalForm();
+    await reload();
+    toast.current?.show({ severity: 'success', summary: 'Link added' });
+  }
+
+  async function handleRemoveExternalLink(index: number) {
+    if (!testCase) return;
+    const updatedLinks = testCase.externalLinks.filter((_, i) => i !== index);
+    await testCaseService.update(testCase.id, testCase.project.id, { externalLinks: updatedLinks });
+    await reload();
+    toast.current?.show({ severity: 'success', summary: 'Link removed' });
   }
 
   // --- Module quick-add (from Edit dialog) ---
@@ -236,6 +274,8 @@ export function TestCaseDetailPage() {
       detailedSteps: testCase.stepType === 'detailed'
         ? sourceSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? undefined }))
         : undefined,
+      externalLinks: testCase.externalLinks,
+      createdBy: user?.id ?? null,
     });
     await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
     toast.current?.show({ severity: 'success', summary: 'Test case duplicated' });
@@ -312,6 +352,15 @@ export function TestCaseDetailPage() {
           </div>
 
           <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-3 text-xs">
+            {testCase.createdBy && authorProfile && (
+              <span className="text-color-secondary">
+                <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
+                Created by{' '}
+                <UserHoverCard userId={testCase.createdBy}>
+                  <span className="text-color entity-link">{authorProfile.username}</span>
+                </UserHoverCard>
+              </span>
+            )}
             <span className="text-color-secondary">
               <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
               Created <span className="text-color">{formatDateTime(testCase.createdAt)}</span>
@@ -402,6 +451,53 @@ export function TestCaseDetailPage() {
             onToastSuccess={(summary) => toast.current?.show({ severity: 'success', summary })}
             onToastError={(summary, detail) => toast.current?.show({ severity: 'error', summary, detail })}
           />
+        </Card>
+
+        <Card title="External Links" className="mb-3 detail-content-card">
+          <div className="flex flex-column gap-2">
+            {testCase.externalLinks.map((link, i) => (
+              <div key={i} className="flex align-items-center justify-content-between p-2 border-round surface-100">
+                <div className="flex align-items-center gap-2">
+                  <i className="pi pi-external-link" style={{ fontSize: '1rem' }} />
+                  <a className="entity-link" href={link.url} target="_blank" rel="noreferrer">
+                    {link.label || link.url}
+                  </a>
+                  {link.label && link.url && (
+                    <span className="text-color-secondary text-sm ml-2">{link.url}</span>
+                  )}
+                </div>
+                {canEditContent && (
+                  <Button icon="pi pi-trash" size="small" text severity="danger" onClick={() => handleRemoveExternalLink(i)} />
+                )}
+              </div>
+            ))}
+            {testCase.externalLinks.length === 0 && <p className="text-color-secondary text-sm m-0">No external links yet.</p>}
+            {canEditContent && (
+              <>
+                {externalAdding ? (
+                  <div className="flex flex-column gap-2 p-2 border-round surface-100">
+                    <InputText
+                      placeholder="URL"
+                      value={newExternalUrl}
+                      onChange={(e) => setNewExternalUrl(e.target.value)}
+                      autoFocus
+                    />
+                    <InputText
+                      placeholder="Label (optional)"
+                      value={newExternalLabel}
+                      onChange={(e) => setNewExternalLabel(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <Button label="Add" size="small" onClick={handleAddExternalLink} disabled={!newExternalUrl.trim()} />
+                      <Button label="Cancel" size="small" text severity="secondary" onClick={resetExternalForm} />
+                    </div>
+                  </div>
+                ) : (
+                  <Button label="Add Link" icon="pi pi-plus" text size="small" className="w-fit comment-btn-sm" onClick={() => setExternalAdding(true)} />
+                )}
+              </>
+            )}
+          </div>
         </Card>
 
         <Card title="Activity" className="mb-3 detail-content-card">

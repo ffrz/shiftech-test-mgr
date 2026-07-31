@@ -58,6 +58,7 @@ export const issueService = {
     // If given, the created issue is immediately linked to this test result — used by the
     // "create new inline" flow in the Test Run Link Issue dialog.
     linkToTestResultId?: string;
+    createdBy?: string | null;
   }): Promise<Issue> {
     if (!input.title.trim()) throw new Error('Issue title cannot be empty');
 
@@ -74,6 +75,7 @@ export const issueService = {
       status: 'open',
       assignedTo: null,
       externalLinks: input.externalLinks ?? [],
+      createdBy: input.createdBy ?? null,
     });
 
     if (input.tagNames?.length) {

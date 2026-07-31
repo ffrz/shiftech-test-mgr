@@ -168,6 +168,7 @@ export function TestRunIssuesPage() {
       priority: row.priority,
       externalLinks: row.externalLinks,
       tagNames: row.tags.map((t) => t.name),
+      createdBy: user?.id ?? null,
     });
     await invalidateProjectIssues();
     navigate(`/issues/${created.id}`);

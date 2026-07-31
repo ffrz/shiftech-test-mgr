@@ -139,7 +139,9 @@ export const testCaseRepository = {
   },
 
   // `code` optional — omit/empty lets the `set_test_case_code` DB trigger auto-generate TC-####.
-  async create(input: Omit<TestCase, 'id' | 'createdAt' | 'updatedAt' | 'code'> & { code?: string | null }): Promise<TestCase> {
+  async create(
+    input: Omit<TestCase, 'id' | 'createdAt' | 'updatedAt' | 'code' | 'createdBy'> & { code?: string | null; createdBy?: string | null },
+  ): Promise<TestCase> {
     const { data, error } = await supabase
       .from('test_cases')
       .insert({
@@ -156,6 +158,8 @@ export const testCaseRepository = {
         notes: input.notes,
         step_type: input.stepType,
         target_role_id: input.targetRoleId,
+        external_links: input.externalLinks,
+        created_by: input.createdBy ?? null,
       })
       .select('*')
       .single();
@@ -178,6 +182,7 @@ export const testCaseRepository = {
     if (changes.notes !== undefined) payload.notes = changes.notes;
     if (changes.stepType !== undefined) payload.step_type = changes.stepType;
     if (changes.targetRoleId !== undefined) payload.target_role_id = changes.targetRoleId;
+    if (changes.externalLinks !== undefined) payload.external_links = changes.externalLinks;
 
     const { data, error } = await supabase
       .from('test_cases')
@@ -191,7 +196,10 @@ export const testCaseRepository = {
   },
 
   async createMany(
-    inputs: (Omit<TestCase, 'id' | 'createdAt' | 'updatedAt' | 'code'> & { code?: string | null })[],
+    inputs: (Omit<TestCase, 'id' | 'createdAt' | 'updatedAt' | 'code' | 'createdBy'> & {
+      code?: string | null;
+      createdBy?: string | null;
+    })[],
   ): Promise<TestCase[]> {
     if (inputs.length === 0) return [];
     const { data, error } = await supabase
@@ -211,6 +219,8 @@ export const testCaseRepository = {
           notes: i.notes,
           step_type: i.stepType,
           target_role_id: i.targetRoleId,
+          external_links: i.externalLinks,
+          created_by: i.createdBy ?? null,
         })),
       )
       .select('*');

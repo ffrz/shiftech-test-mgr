@@ -53,6 +53,7 @@ export const testCaseImportService = {
         notes: null,
         stepType: row.stepType,
         targetRoleId: row.targetRole ? roleIdByName.get(row.targetRole.toLowerCase()) ?? null : null,
+        externalLinks: [],
       })),
     );
 

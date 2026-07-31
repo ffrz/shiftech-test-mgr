@@ -143,6 +143,8 @@ export function mapTestCaseRow(row: any): TestCase {
     notes: row.notes,
     stepType: row.step_type,
     targetRoleId: row.target_role_id,
+    externalLinks: mapExternalLinks(row.external_links),
+    createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -284,6 +286,7 @@ export function mapIssueRow(row: any): Issue {
     status: row.status,
     assignedTo: row.assigned_to,
     externalLinks: mapExternalLinks(row.external_links),
+    createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

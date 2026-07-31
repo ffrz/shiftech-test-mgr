@@ -100,6 +100,7 @@ export const projectDuplicateService = {
         notes: tc.notes ?? null,
         stepType: tc.stepType,
         targetRoleId: tc.targetRole ? testRoleIdMap.get(tc.targetRole.name) ?? null : null,
+        externalLinks: tc.externalLinks,
       })),
     );
 

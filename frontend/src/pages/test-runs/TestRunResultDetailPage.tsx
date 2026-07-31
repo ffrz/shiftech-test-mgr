@@ -376,6 +376,7 @@ export function TestRunResultDetailPage() {
       actualResult: data.actualResult,
       expectedResult: data.expectedResult,
       priority: data.priority,
+      createdBy: user?.id ?? null,
     });
     setIssueEditorOpen(false);
     setIssueEditorInitialData(null);

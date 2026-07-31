@@ -22,6 +22,8 @@ import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel
 import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
+import { UserHoverCard } from '../../components/ui/UserHoverCard';
+import { profileRepository } from '../../repositories/profileRepository';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import type { BreadcrumbItem } from '../../components/ui/Breadcrumb';
 import type { Attachment, IssueStatus } from '../../types/domain';
@@ -66,6 +68,12 @@ export function IssueDetailPage() {
   });
   const { canManageIssues, canDeleteContent } = useProjectRole(issue?.projectId);
   const canEditIssue = canManageIssues && issue?.status !== 'closed';
+
+  const { data: authorProfile = null } = useQuery({
+    queryKey: queryKeys.profile(issue?.createdBy ?? ''),
+    queryFn: () => profileRepository.findById(issue!.createdBy!),
+    enabled: !!issue?.createdBy,
+  });
 
   const { data: project } = useQuery({
     queryKey: queryKeys.project(issue?.projectId ?? ''),
@@ -234,6 +242,7 @@ export function IssueDetailPage() {
       priority: issue.priority,
       externalLinks: issue.externalLinks,
       tagNames: issue.tags.map((t) => t.name),
+      createdBy: user?.id ?? null,
     });
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
     toastHelper.success(toast, 'Issue duplicated');
@@ -358,6 +367,15 @@ export function IssueDetailPage() {
           </div>
 
           <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-3 text-xs">
+            {issue.createdBy && authorProfile && (
+              <span className="text-color-secondary">
+                <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
+                Created by{' '}
+                <UserHoverCard userId={issue.createdBy}>
+                  <span className="text-color entity-link">{authorProfile.username}</span>
+                </UserHoverCard>
+              </span>
+            )}
             <span className="text-color-secondary">
               <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
               Created <span className="text-color">{formatDateTime(issue.createdAt)}</span>

@@ -188,6 +188,7 @@ export const issueRepository = {
     status: IssueStatus;
     assignedTo: string | null;
     externalLinks: ExternalLink[];
+    createdBy?: string | null;
   }): Promise<Issue> {
     const { data, error } = await supabase
       .from('issues')
@@ -204,6 +205,7 @@ export const issueRepository = {
         status: input.status,
         assigned_to: input.assignedTo,
         external_links: input.externalLinks,
+        created_by: input.createdBy ?? null,
       })
       .select('*')
       .single();
@@ -225,6 +227,7 @@ export const issueRepository = {
       status: IssueStatus;
       assignedTo: string | null;
       externalLinks: ExternalLink[];
+      createdBy?: string | null;
     }[],
   ): Promise<Issue[]> {
     if (inputs.length === 0) return [];
@@ -242,6 +245,7 @@ export const issueRepository = {
         status: i.status,
         assigned_to: i.assignedTo,
         external_links: i.externalLinks,
+        created_by: i.createdBy ?? null,
       })))
       .select('*');
     if (error) throw error;
