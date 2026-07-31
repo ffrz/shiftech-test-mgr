@@ -20,6 +20,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 
@@ -38,7 +39,7 @@ export function TestSuitesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const toast = useRef<Toast>(null);
-  const { user, isAdmin } = useAuthContext();
+  const { user } = useAuthContext();
   const queryClient = useQueryClient();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
@@ -67,7 +68,7 @@ export function TestSuitesPage() {
   const [sortField, setSortField] = useStoredState('testSuitesPage:sortField', 'name');
   const [sortOrder, setSortOrder] = useStoredState<-1 | 1>('testSuitesPage:sortOrder', 1);
 
-  const hasActiveFilters = debouncedSearch !== '' || visibilityFilter.length > 0;
+  const hasActiveFilters = debouncedSearch !== '' || (ownershipFilter === 'mine' && visibilityFilter.length > 0);
 
   function resetFilters() {
     setSearch('');
@@ -81,8 +82,8 @@ export function TestSuitesPage() {
     queryFn: async () => testSuiteService.listPaginated({
       search: debouncedSearch || undefined,
       ownership: ownershipFilter,
-      visibilityFilter: visibilityFilter.length ? visibilityFilter : undefined,
-      userId: ownershipFilter === 'mine' ? user?.id : undefined,
+      visibilityFilter: ownershipFilter === 'mine' && visibilityFilter.length ? visibilityFilter : undefined,
+      userId: user?.id,
       page,
       pageSize: rowsPerPage,
       sortField,
@@ -103,8 +104,8 @@ export function TestSuitesPage() {
     setSortOrder(e.sortOrder as -1 | 1);
   }
 
-  function isOwnerOrAdmin(row: EnrichedTestSuite) {
-    return isAdmin || row.ownerId === user?.id;
+  function isOwner(row: EnrichedTestSuite) {
+    return row.ownerId === user?.id;
   }
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -171,12 +172,21 @@ export function TestSuitesPage() {
   }
 
   const mobileBodyTemplate = useCallback((row: EnrichedTestSuite) => (
-    <div className="flex flex-column gap-2 py-1">
-      <span className="font-bold">{row.name}</span>
-      <span className="text-xs text-color-secondary">by {row._authorUsername}</span>
-      <span className="text-sm text-color-secondary">{row.description || '-'}</span>
-      <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} style={{ width: 'fit-content' }} />
-      <span className="text-sm text-color-secondary">{formatDateTime(row.updatedAt)}</span>
+    <div className="flex flex-column gap-1 py-1">
+      <div className="flex align-items-center justify-content-between gap-2">
+        <span className="font-bold">{row.name}</span>
+        <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} style={{ width: 'fit-content' }} />
+      </div>
+      {row.description && <span className="text-sm text-color-secondary">{row.description}</span>}
+      <div className="flex align-items-center gap-3 text-xs text-color-secondary">
+        <span>
+          <i className="pi pi-user mr-1" style={{ fontSize: '0.7rem' }} />
+          <UserHoverCard userId={row.ownerId}>
+            <span className="entity-link">{row._authorUsername}</span>
+          </UserHoverCard>
+        </span>
+        <span><i className="pi pi-clock mr-1" style={{ fontSize: '0.7rem' }} />{formatDateTime(row.updatedAt)}</span>
+      </div>
     </div>
   ), []);
 
@@ -199,32 +209,33 @@ export function TestSuitesPage() {
       </p>
 
       <div className="grid mb-3 p-1">
-          <div className="col-12 md:col-8 p-1">
+          <div className={ownershipFilter === 'mine' ? 'col-12 md:col-8 p-1' : 'col-12 md:col-10 p-1'}>
             <SelectButton
               value={ownershipFilter}
               onChange={(e) => e.value && setOwnershipFilter(e.value)}
               options={[
-                { label: 'My Templates', value: 'mine' },
-                { label: 'All Visible Templates', value: 'all' },
+                { label: 'My Suite', value: 'mine' },
+                { label: 'Public Templates', value: 'all' },
               ]}
-              className="w-full"
+              className="select-button-full-mobile w-full"
             />
           </div>
-          <div className="col-12 md:col-2 p-1">
-            <MultiSelect
-              value={visibilityFilter}
-              options={[
-                { label: 'Private', value: 'private' },
-                { label: 'Unlisted', value: 'unlisted' },
-                { label: 'Public', value: 'public' },
-              ]}
-              onChange={(e) => setVisibilityFilter(e.value)}
-              placeholder="All Visibility"
-              className="w-full"
-              selectAll
-              selectAllLabel="All"
-            />
-          </div>
+          {ownershipFilter === 'mine' && (
+            <div className="col-12 md:col-2 p-1">
+              <MultiSelect
+                value={visibilityFilter}
+                options={[
+                  { label: 'Private', value: 'private' },
+                  { label: 'Public', value: 'public' },
+                ]}
+                onChange={(e) => setVisibilityFilter(e.value)}
+                placeholder="All Visibility"
+                className="w-full"
+                selectAll
+                selectAllLabel="All"
+              />
+            </div>
+          )}
           <div className="col-12 md:col-2 p-1">
             <div className="flex gap-2">
               <SearchInput value={search} onChange={(v) => { setSearch(v); if (!v) setDebouncedSearch(''); }} placeholder="Search suites..." className="flex-1" />
@@ -269,12 +280,17 @@ export function TestSuitesPage() {
             body={(row: EnrichedTestSuite) => (
               <div className="flex flex-column">
                 <span>{row.name}</span>
-                <span className="text-xs text-color-secondary">by {row._authorUsername}</span>
+                <span className="text-xs text-color-secondary">
+                  by{' '}
+                  <UserHoverCard userId={row.ownerId}>
+                    <span className="entity-link">{row._authorUsername}</span>
+                  </UserHoverCard>
+                </span>
               </div>
             )}
           />
         )}
-        {!isMobile && <Column field="description" header="Description" body={(row: EnrichedTestSuite) => row.description || '-'} />}
+        {!isMobile && <Column field="description" header="Description" body={(row: EnrichedTestSuite) => row.description || ''} />}
         {!isMobile && (
           <Column
             field="visibility"
@@ -291,7 +307,7 @@ export function TestSuitesPage() {
               items={[
                 { label: 'View Details', icon: 'pi pi-external-link', command: () => navigate(`/test-suites/${row.id}`) },
                 { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
-                ...(isOwnerOrAdmin(row)
+                ...(isOwner(row)
                   ? [
                     { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditDialog(row) },
                     { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDelete(row) },

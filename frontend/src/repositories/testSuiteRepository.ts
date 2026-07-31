@@ -21,6 +21,8 @@ export const testSuiteRepository = {
 
     if (params.ownership === 'mine' && params.userId) {
       query = query.eq('owner_id', params.userId);
+    } else if (params.ownership === 'all' && params.userId) {
+      query = query.neq('owner_id', params.userId);
     }
 
     if (params.search) {
