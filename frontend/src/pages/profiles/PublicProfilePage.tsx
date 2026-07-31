@@ -54,11 +54,9 @@ export function PublicProfilePage() {
   if (loading) return <p>Loading...</p>;
   if (!profile) return <p>User not found.</p>;
 
-  const displayName = profile.displayName ?? profile.username;
-
   return (
     <div>
-      <Breadcrumb items={[{ label: displayName }]} />
+      {!isOwnProfile && <Breadcrumb items={[{ label: profile.username }]} />}
       <ProfileView profile={profile} projects={projects} suites={suites} isSpying={isSpying} />
     </div>
   );

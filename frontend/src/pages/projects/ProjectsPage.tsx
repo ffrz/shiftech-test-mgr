@@ -20,9 +20,21 @@ import type { Project, ProjectStatus } from '../../types/domain';
 import type { ProjectOwnerFilter } from '../../repositories/projectRepository';
 import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
+
+type EnrichedProject = Project & {
+  _ownerUsername: string;
+  _ownerDisplayName: string;
+};
+
+// Owner handles can run long (a custom username) — cap what's rendered with ellipsis
+// instead of letting it wrap or widen the column. CSS adds the ellipsis via .owner-username.
+function truncateUsername(username: string, max = 30): string {
+  return username.length > max ? `${username.slice(0, max)}…` : username;
+}
 
 export function ProjectsPage() {
   const navigate = useNavigate();
@@ -149,7 +161,7 @@ export function ProjectsPage() {
     ]
     : [];
 
-  const mobileBody = useCallback((row: Project) => (
+  const mobileBody = useCallback((row: EnrichedProject) => (
     <div className="flex flex-column gap-1 py-1">
       <div className="flex align-items-center justify-content-between gap-2">
         <span className="font-bold">{row.name}</span>
@@ -168,10 +180,32 @@ export function ProjectsPage() {
       </div>
       {row.description && <span className="text-sm text-color-secondary">{row.description}</span>}
       <div className="flex align-items-center gap-3 text-xs text-color-secondary">
+        {row.ownerId !== currentUser?.id && (
+          <span>
+            <i className="pi pi-user mr-1" style={{ fontSize: '0.7rem' }} />
+            <UserHoverCard userId={row.ownerId}>
+              <span className="owner-username">{truncateUsername(row._ownerUsername)}</span>
+            </UserHoverCard>
+          </span>
+        )}
         <span><i className="pi pi-calendar mr-1" style={{ fontSize: '0.7rem' }} />{formatDate(row.createdAt)}</span>
       </div>
     </div>
-  ), []);
+  ), [currentUser?.id]);
+
+  const nameBody = useCallback((row: EnrichedProject) => (
+    <div className="flex flex-column">
+      <span className="font-bold">{row.name}</span>
+      {row.ownerId !== currentUser?.id && (
+        <span className="text-xs text-color-secondary">
+          <i className="pi pi-user mr-1" style={{ fontSize: '0.7rem' }} />
+          <UserHoverCard userId={row.ownerId}>
+            <span className="owner-username">{truncateUsername(row._ownerUsername)}</span>
+          </UserHoverCard>
+        </span>
+      )}
+    </div>
+  ), [currentUser?.id]);
 
   return (
     <div>
@@ -252,7 +286,7 @@ export function ProjectsPage() {
         className="cursor-pointer"
       >
         {isMobile && <Column field="name" header="Project" body={mobileBody} />}
-        {!isMobile && <Column field="name" header="Name" sortable />}
+        {!isMobile && <Column field="name" header="Name" sortable body={nameBody} />}
         {!isMobile && <Column field="description" header="Description" />}
         {!isMobile && (
           <Column

@@ -16,6 +16,26 @@ body {
   text-decoration: underline;
 }
 
+/* Owner handle shown under a shared project's name in the projects list — secondary
+   color (same as the surrounding meta text) instead of the primary-tinted .entity-link,
+   with ellipsis truncation so a long custom username can't widen the column. */
+.owner-username {
+  color: var(--text-color-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  max-width: 14rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+.owner-username:hover {
+  color: var(--text-color);
+  text-decoration: underline;
+}
+
 /* Username text — higher contrast than the default --text-color so a handle stands out:
    pure white on dark surfaces, a deeper near-black on light ones. */
 .username-text {
@@ -615,9 +635,15 @@ h6 {
   align-items: center;
   gap: 0.5rem;
   padding: 0 1rem;
-  background: var(--surface-card);
+  background: var(--surface-ground);
   border-bottom: 1px solid var(--surface-border);
   z-index: 1000;
+}
+
+/* Dark theme: topbar is a lighter gray than the sidebar — inverse of the
+   light theme, where the topbar is the gray surface and the sidebar is white. */
+html.dark .layout-topbar {
+  background: var(--surface-card);
 }
 
 .layout-topbar-logo {
@@ -627,6 +653,13 @@ h6 {
   text-decoration: none;
   color: var(--text-color-secondary);
   font-weight: 600;
+}
+
+/* Soft circular outline for the brand logo, tinted with the secondary color
+   at reduced opacity so it reads as a subtle frame in both themes. */
+.brand-logo-outline {
+  border: 1px solid color-mix(in srgb, var(--text-color-secondary) 40%, transparent);
+  border-radius: 50%;
 }
 
 /* GitHub-style slide-in panel: covers the full viewport height, including
@@ -647,6 +680,13 @@ h6 {
   z-index: 1100;
   transform: translateX(-100%);
   transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
+}
+
+/* Dark theme: keep the sidebar a true near-black while the topbar stays a
+   lighter gray — in the dark palette --surface-ground is the darker of the
+   two surfaces. */
+html.dark .layout-sidebar {
+  background: var(--surface-ground);
 }
 
 .layout-wrapper.layout-menu-active .layout-sidebar {

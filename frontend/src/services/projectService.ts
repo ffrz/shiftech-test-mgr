@@ -1,4 +1,5 @@
 import { projectRepository, type ProjectPaginatedQuery, type ProjectQuery } from '../repositories/projectRepository';
+import { profileRepository } from '../repositories/profileRepository';
 import { activityService } from './activityService';
 import type { ProjectStatus, ProjectVisibility } from '../types/domain';
 
@@ -7,8 +8,19 @@ export const projectService = {
     return projectRepository.findAll(query);
   },
 
-  listPaginated(query: ProjectPaginatedQuery) {
-    return projectRepository.findAllPaginated(query);
+  async listPaginated(query: ProjectPaginatedQuery) {
+    const result = await projectRepository.findAllPaginated(query);
+    const ownerIds = [...new Set(result.data.map((p) => p.ownerId).filter(Boolean))] as string[];
+    const profiles = ownerIds.length ? await profileRepository.findByIds(ownerIds) : [];
+    const profileMap = new Map(profiles.map((p) => [p.id, p]));
+    return {
+      data: result.data.map((project) => ({
+        ...project,
+        _ownerUsername: profileMap.get(project.ownerId)?.username ?? '—',
+        _ownerDisplayName: profileMap.get(project.ownerId)?.displayName ?? '—',
+      })),
+      total: result.total,
+    };
   },
 
   listByOwner(ownerId: string, visibilityFilter?: string[]) {

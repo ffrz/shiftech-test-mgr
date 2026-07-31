@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from 'primereact/button';
+import { Menu } from 'primereact/menu';
 import { useBreadcrumbContext } from '../layout/BreadcrumbContext';
 
 export interface BreadcrumbItem {
@@ -11,6 +13,12 @@ interface BreadcrumbProps {
   items: BreadcrumbItem[];
 }
 
+const MAX_LABEL_LENGTH = 30;
+
+function truncateLabel(label: string): string {
+  return label.length > MAX_LABEL_LENGTH ? `${label.slice(0, MAX_LABEL_LENGTH)}…` : label;
+}
+
 function BreadcrumbTrail({ items, className }: { items: BreadcrumbItem[]; className?: string }) {
   const navigate = useNavigate();
 
@@ -18,14 +26,16 @@ function BreadcrumbTrail({ items, className }: { items: BreadcrumbItem[]; classN
     <nav className={className} aria-label="breadcrumb">
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
+        const label = truncateLabel(item.label);
         return (
           <span key={index} className="flex align-items-center gap-2">
-            {index > 0 && <i className="pi pi-angle-right text-color-secondary" style={{ fontSize: '0.7rem' }} />}
+            {index > 0 && <span className="text-color-secondary">/</span>}
             {!item.path ? (
-              <span className={isLast ? 'text-color font-bold' : 'text-color-secondary'}>{item.label}</span>
+              <span className={isLast ? 'text-color font-bold' : 'text-color-secondary'}>{label}</span>
             ) : (
               <a
                 href={item.path}
+                title={label.length > MAX_LABEL_LENGTH ? item.label : undefined}
                 className={`breadcrumb-link cursor-pointer ${isLast ? 'text-color font-bold' : 'text-color-secondary'}`}
                 onClick={(e) => {
                   e.preventDefault();
@@ -36,7 +46,7 @@ function BreadcrumbTrail({ items, className }: { items: BreadcrumbItem[]; classN
                   }
                 }}
               >
-                {item.label}
+                {label}
               </a>
             )}
           </span>
@@ -46,9 +56,46 @@ function BreadcrumbTrail({ items, className }: { items: BreadcrumbItem[]; classN
   );
 }
 
-// Navigational trail shown above detail pages so users know which project/module they're in.
-// On desktop it's rendered inside the topbar (via BreadcrumbContext, see AppTopbar); this
-// component only renders its own inline copy on small screens where the topbar has no room.
+// Collapsed trail for small screens where the topbar has no room for the full
+// path: shows only the last item, with a "..." button in front that opens a
+// menu listing every hidden item (each keeping its own path).
+export function BreadcrumbCollapsed({ items }: { items: BreadcrumbItem[] }) {
+  const navigate = useNavigate();
+  const menuRef = useRef<Menu>(null);
+  const middle = items.slice(0, -1);
+  const last = items[items.length - 1];
+
+  const menuItems = middle.map((item) => ({
+    label: truncateLabel(item.label),
+    command: item.path ? () => navigate(item.path!) : undefined,
+  }));
+
+  return (
+    <nav className="flex lg:hidden align-items-center gap-2 text-sm min-w-0" aria-label="breadcrumb">
+      {middle.length > 0 && (
+        <>
+          <Button
+            icon="pi pi-ellipsis-h"
+            text
+            rounded
+            severity="secondary"
+            size="small"
+            aria-label="Show path"
+            onClick={(e) => menuRef.current?.toggle(e)}
+          />
+          <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
+          <span className="text-color-secondary">/</span>
+        </>
+      )}
+      <span className="text-color font-bold whitespace-nowrap overflow-hidden text-ellipsis" title={last?.label}>
+        {last ? truncateLabel(last.label) : ''}
+      </span>
+    </nav>
+  );
+}
+
+// Trail fed to the topbar via BreadcrumbContext (see AppTopbar) so every screen
+// — desktop and small — renders it in the navbar instead of above the page.
 export function Breadcrumb({ items }: BreadcrumbProps) {
   const { setItems } = useBreadcrumbContext();
 
@@ -60,7 +107,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(items)]);
 
-  return <BreadcrumbTrail items={items} className={`${items.length > 1 ? 'flex' : 'hidden'} lg:hidden align-items-center flex-wrap gap-2 mb-3 text-sm`} />;
+  return null;
 }
 
 export { BreadcrumbTrail };

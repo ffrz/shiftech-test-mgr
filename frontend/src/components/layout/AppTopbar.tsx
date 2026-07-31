@@ -8,9 +8,8 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useLayoutContext } from './LayoutContext';
 import { useBreadcrumbContext } from './BreadcrumbContext';
-import { BreadcrumbTrail } from '../ui/Breadcrumb';
+import { BreadcrumbCollapsed, BreadcrumbTrail, type BreadcrumbItem } from '../ui/Breadcrumb';
 import { NotificationPanel } from '../notifications/NotificationPanel';
-import { APP_NAME } from '../../config/app';
 import { pathForActivityEntity } from '../../helpers/activityRoutes';
 import type { Notification } from '../../types/domain';
 
@@ -59,23 +58,32 @@ export function AppTopbar() {
     },
   ];
 
+  const trailItems: BreadcrumbItem[] = items;
+
   return (
     <div className="layout-topbar">
       <Button
         icon="pi pi-sidebar"
         text
         rounded
+        severity="secondary"
         className="layout-menu-button"
         aria-label="Toggle menu"
         onClick={onMenuToggle}
       />
       <Link to="/" className="layout-topbar-logo">
-        <span className="font-bold text-sm">{APP_NAME}</span>
+        <img
+          src={`${import.meta.env.BASE_URL}logo.png`}
+          alt=""
+          width={32}
+          height={32}
+          className="p-1"
+        />
       </Link>
-      {items.length > 0 && (
+      {trailItems.length > 0 && (
         <>
-          <i className="pi pi-angle-right text-color-secondary hidden lg:inline" style={{ fontSize: '0.7rem' }} />
-          <BreadcrumbTrail items={items} className="hidden lg:flex align-items-center flex-wrap gap-2 text-sm" />
+          <BreadcrumbTrail items={trailItems} className="hidden lg:flex align-items-center flex-wrap gap-2 text-sm" />
+          <BreadcrumbCollapsed items={trailItems} />
         </>
       )}
       <div className="flex-1" />
@@ -85,6 +93,7 @@ export function AppTopbar() {
             icon="pi pi-bell"
             text
             rounded
+            severity="secondary"
             aria-label="Notifications"
             style={{ width: '1.75rem', height: '1.75rem' }}
             onClick={() => setNotifPanelVisible(true)}
