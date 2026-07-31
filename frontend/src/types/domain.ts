@@ -357,13 +357,15 @@ export interface IssueWithDetails extends Issue {
 
 export type ActivityEntityType = 'issue' | 'test_case' | 'test_plan' | 'test_run' | 'project';
 
-// Attachment's entity_type accepts everything ActivityEntityType does, plus 'comment' —
-// a per-comment attachment (e.g. a screenshot attached to one specific reply) points
-// entity_id at an entity_activity.id row rather than at the parent Issue/TestCase/etc.
-// entity_activity itself never uses 'comment' as its own entity_type (a comment can't be
-// commented on), which is why this is a separate type from ActivityEntityType rather than
-// folding 'comment' into it.
-export type AttachmentEntityType = ActivityEntityType | 'comment';
+// Attachment's entity_type accepts everything ActivityEntityType does, plus:
+// - 'comment' — a per-comment attachment (e.g. a screenshot attached to one specific
+//   reply) points entity_id at an entity_activity.id row rather than at the parent
+//   Issue/TestCase/etc. entity_activity itself never uses 'comment' as its own
+//   entity_type (a comment can't be commented on).
+// - 'test_result' — a per-test-case attachment scoped to one executed Test Result row
+//   within a Test Run, not the reusable Test Case template. No Activity Timeline for
+//   this level (test_run's own Activity tab covers the whole run), attachments only.
+export type AttachmentEntityType = ActivityEntityType | 'comment' | 'test_result';
 
 export interface Attachment {
   id: string;

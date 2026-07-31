@@ -4,11 +4,11 @@ import { Button } from 'primereact/button';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { attachmentService } from '../../services/attachmentService';
 import { queryKeys } from '../../hooks/queryKeys';
-import type { ActivityEntityType, Attachment } from '../../types/domain';
+import type { AttachmentEntityType, Attachment } from '../../types/domain';
 
 interface AttachmentPanelProps {
   projectId: string;
-  entityType: ActivityEntityType;
+  entityType: AttachmentEntityType;
   entityId: string | null;
   canManage: boolean;
   onToastSuccess?: (summary: string) => void;
