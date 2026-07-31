@@ -1,9 +1,9 @@
 import { supabase } from '../config/supabaseClient';
-import { mapAttachmentRow, mapIssueRow, mapModuleRow, mapProfileRow, mapTagRow } from '../helpers/mappers';
+import { mapAttachmentRow, mapIssueRow, mapModuleRow, mapProfileRow, mapTagRow, mapTestRoleRow } from '../helpers/mappers';
 import type { Attachment, ExternalLink, Issue, IssueStatus, IssueType, IssueWithDetails } from '../types/domain';
 
 const ISSUE_DETAIL_SELECT =
-  '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), issue_tags(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
+  '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), target_role:test_roles(*), issue_tags(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
 
 // Same shape as ISSUE_DETAIL_SELECT but the issue_test_results relation is forced to an
 // inner join — required by findAllByTestRun/findAllByTestResult, which filter on columns
@@ -12,13 +12,14 @@ const ISSUE_DETAIL_SELECT =
 // (Postgres error 42803, aggregate functions not allowed in FROM) — so this is a full
 // separate select string, not ISSUE_DETAIL_SELECT with an extra relation appended.
 const ISSUE_DETAIL_SELECT_INNER_LINK =
-  '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), issue_tags(tag:tags(*)), issue_test_results!inner(test_result:test_results!inner(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
+  '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), target_role:test_roles(*), issue_tags(tag:tags(*)), issue_test_results!inner(test_result:test_results!inner(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))';
 
 function mapIssueWithDetailsRow(row: any): IssueWithDetails {
   return {
     ...mapIssueRow(row),
     assignee: row.assignee?.profile ? mapProfileRow(row.assignee.profile) : null,
     module: row.module ? mapModuleRow(row.module) : null,
+    targetRole: row.target_role ? mapTestRoleRow(row.target_role) : null,
     tags: (row.issue_tags ?? []).map((t: any) => mapTagRow(t.tag)),
     linkedTestResults: (row.issue_test_results ?? [])
       .filter((link: any) => link.test_result)
@@ -69,6 +70,7 @@ export const issueRepository = {
       moduleIds?: string[];
       tagIds?: string[];
       types?: IssueType[];
+      testRoleIds?: string[];
       page: number;
       pageSize: number;
       sortField?: string;
@@ -76,7 +78,7 @@ export const issueRepository = {
     },
   ): Promise<{ data: IssueWithDetails[]; total: number }> {
     const selectStr = options.tagIds?.length
-      ? '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), issue_tags!inner(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))'
+      ? '*, assignee:users!issues_assigned_to_fkey(profile:profiles(*)), module:modules(*), target_role:test_roles(*), issue_tags!inner(tag:tags(*)), issue_test_results(test_result:test_results(id, test_run_id, test_case_code, test_case_title, test_run:test_runs(id, code, name)))'
       : ISSUE_DETAIL_SELECT;
 
     let query = supabase.from('issues').select(selectStr, { count: 'exact' }).eq('project_id', projectId);
@@ -93,6 +95,9 @@ export const issueRepository = {
     }
     if (options.moduleIds?.length) {
       query = query.in('module_id', options.moduleIds);
+    }
+    if (options.testRoleIds?.length) {
+      query = query.in('target_role_id', options.testRoleIds);
     }
     if (options.tagIds?.length) {
       query = query.in('issue_tags.tag_id', options.tagIds);
@@ -187,6 +192,7 @@ export const issueRepository = {
     priority: Issue['priority'];
     status: IssueStatus;
     assignedTo: string | null;
+    targetRoleId?: string | null;
     externalLinks: ExternalLink[];
     createdBy?: string | null;
   }): Promise<Issue> {
@@ -204,6 +210,7 @@ export const issueRepository = {
         priority: input.priority,
         status: input.status,
         assigned_to: input.assignedTo,
+        target_role_id: input.targetRoleId ?? null,
         external_links: input.externalLinks,
         created_by: input.createdBy ?? null,
       })
@@ -226,6 +233,7 @@ export const issueRepository = {
       priority: Issue['priority'];
       status: IssueStatus;
       assignedTo: string | null;
+      targetRoleId?: string | null;
       externalLinks: ExternalLink[];
       createdBy?: string | null;
     }[],
@@ -244,6 +252,7 @@ export const issueRepository = {
         priority: i.priority,
         status: i.status,
         assigned_to: i.assignedTo,
+        target_role_id: i.targetRoleId ?? null,
         external_links: i.externalLinks,
         created_by: i.createdBy ?? null,
       })))
@@ -255,7 +264,7 @@ export const issueRepository = {
   async update(
     id: string,
     changes: Partial<
-      Pick<Issue, 'code' | 'title' | 'description' | 'actualResult' | 'expectedResult' | 'priority' | 'type' | 'moduleId' | 'externalLinks'>
+      Pick<Issue, 'code' | 'title' | 'description' | 'actualResult' | 'expectedResult' | 'priority' | 'type' | 'moduleId' | 'targetRoleId' | 'externalLinks'>
     >,
   ): Promise<Issue> {
     const payload: Record<string, unknown> = {};
@@ -267,6 +276,7 @@ export const issueRepository = {
     if (changes.priority !== undefined) payload.priority = changes.priority;
     if (changes.type !== undefined) payload.type = changes.type;
     if (changes.moduleId !== undefined) payload.module_id = changes.moduleId;
+    if (changes.targetRoleId !== undefined) payload.target_role_id = changes.targetRoleId;
     if (changes.externalLinks !== undefined) payload.external_links = changes.externalLinks;
 
     const { data, error } = await supabase.from('issues').update(payload).eq('id', id).select('*').single();

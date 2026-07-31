@@ -285,6 +285,7 @@ export function mapIssueRow(row: any): Issue {
     priority: row.priority,
     status: row.status,
     assignedTo: row.assigned_to,
+    targetRoleId: row.target_role_id,
     externalLinks: mapExternalLinks(row.external_links),
     createdBy: row.created_by,
     createdAt: row.created_at,

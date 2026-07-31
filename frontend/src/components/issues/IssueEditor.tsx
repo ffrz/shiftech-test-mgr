@@ -8,12 +8,13 @@ import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
 import { FloatLabel } from 'primereact/floatlabel';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
-import { Toast } from 'primereact/toast';
-import type { Attachment, ExternalLink, IssuePriority, IssueStatus, IssueType, Module, ProjectMemberWithProfile, Tag } from '../../types/domain';
+import type { Attachment, ExternalLink, IssuePriority, IssueStatus, IssueType, Module, ProjectMemberWithProfile, Tag, TestRole } from '../../types/domain';
 import { ISSUE_PRIORITY_LABEL, ISSUE_STATUS_LABEL, ISSUE_TYPE_LABEL } from '../../helpers/statusLabels';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
+import { testRoleService } from '../../services/testRoleService';
 import { attachmentService } from '../../services/attachmentService';
+import { toastHelper } from '../../helpers/toast';
 
 export interface IssueFormData {
   code: string;
@@ -23,6 +24,7 @@ export interface IssueFormData {
   status: IssueStatus;
   moduleId: string | null;
   assignedTo: string | null;
+  targetRoleId: string | null;
   description: string;
   actualResult: string;
   expectedResult: string;
@@ -48,9 +50,11 @@ interface IssueEditorProps {
   issueId?: string | null;
   modules: Module[];
   tags: Tag[];
+  testRoles: TestRole[];
   projectMembers: ProjectMemberWithProfile[];
   onModulesChange?: (modules: Module[]) => void;
   onTagsChange?: (tags: Tag[]) => void;
+  onTestRolesChange?: (testRoles: TestRole[]) => void;
   attachments?: Attachment[];
   onAttachmentsChange?: () => void;
 }
@@ -71,14 +75,14 @@ export function IssueEditor({
   issueId,
   modules,
   tags,
+  testRoles,
   projectMembers,
   onModulesChange,
   onTagsChange,
+  onTestRolesChange,
   attachments,
   onAttachmentsChange,
 }: IssueEditorProps) {
-  const toast = useRef<Toast>(null);
-
   const [code, setCode] = useState('');
   const [title, setTitle] = useState('');
   const [type, setType] = useState<IssueType>('bug');
@@ -86,6 +90,7 @@ export function IssueEditor({
   const [status, setStatus] = useState<IssueStatus>('open');
   const [moduleId, setModuleId] = useState<string | null>(null);
   const [assignedTo, setAssignedTo] = useState<string | null>(null);
+  const [targetRoleId, setTargetRoleId] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [actualResult, setActualResult] = useState('');
   const [expectedResult, setExpectedResult] = useState('');
@@ -106,8 +111,10 @@ export function IssueEditor({
 
   const [newTagName, setNewTagName] = useState('');
   const [newModuleName, setNewModuleName] = useState('');
+  const [newRoleName, setNewRoleName] = useState('');
   const [quickAddTagVisible, setQuickAddTagVisible] = useState(false);
   const [quickAddModuleVisible, setQuickAddModuleVisible] = useState(false);
+  const [quickAddRoleVisible, setQuickAddRoleVisible] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -118,6 +125,7 @@ export function IssueEditor({
     setStatus(initialData?.status ?? 'open');
     setModuleId(initialData?.moduleId ?? null);
     setAssignedTo(initialData?.assignedTo ?? null);
+    setTargetRoleId(initialData?.targetRoleId ?? null);
     setDescription(initialData?.description ?? '');
     setActualResult(initialData?.actualResult ?? '');
     setExpectedResult(initialData?.expectedResult ?? '');
@@ -128,8 +136,10 @@ export function IssueEditor({
     setSaving(false);
     setNewTagName('');
     setNewModuleName('');
+    setNewRoleName('');
     setQuickAddTagVisible(false);
     setQuickAddModuleVisible(false);
+    setQuickAddRoleVisible(false);
   }, [visible, initialData]);
 
   async function handleSave() {
@@ -149,6 +159,7 @@ export function IssueEditor({
         status,
         moduleId,
         assignedTo,
+        targetRoleId,
         description: description.trim(),
         actualResult: actualResult.trim(),
         expectedResult: expectedResult.trim(),
@@ -177,9 +188,9 @@ export function IssueEditor({
       setTagNames((prev) => [...prev, tag.name]);
       setNewTagName('');
       setQuickAddTagVisible(false);
-      toast.current?.show({ severity: 'success', summary: `Tag "${tag.name}" created` });
+      toastHelper.success(`Tag "${tag.name}" created`);
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Failed to create tag', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Failed to create tag', err);
     }
   }
 
@@ -192,9 +203,24 @@ export function IssueEditor({
       setModuleId(mod.id);
       setNewModuleName('');
       setQuickAddModuleVisible(false);
-      toast.current?.show({ severity: 'success', summary: `Module "${mod.name}" created` });
+      toastHelper.success(`Module "${mod.name}" created`);
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Failed to create module', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Failed to create module', err);
+    }
+  }
+
+  async function handleQuickAddRole() {
+    const name = newRoleName.trim();
+    if (!name) return;
+    try {
+      const role = await testRoleService.create({ projectId, name });
+      onTestRolesChange?.([...testRoles, role]);
+      setTargetRoleId(role.id);
+      setNewRoleName('');
+      setQuickAddRoleVisible(false);
+      toastHelper.success(`Role "${role.name}" created`);
+    } catch (err) {
+      toastHelper.errorFromCatch('Failed to create role', err);
     }
   }
 
@@ -205,9 +231,9 @@ export function IssueEditor({
         await attachmentService.upload(issueId, projectId, file);
       }
       onAttachmentsChange?.();
-      toast.current?.show({ severity: 'success', summary: 'Attachment uploaded' });
+      toastHelper.success('Attachment uploaded');
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Upload failed', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Upload failed', err);
     }
   }
 
@@ -217,13 +243,12 @@ export function IssueEditor({
       await attachmentService.remove(attachment.id, attachment.url);
       onAttachmentsChange?.();
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Failed to remove attachment', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Failed to remove attachment', err);
     }
   }
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
       <Dialog
         header={mode === 'create' ? 'Create Issue' : 'Edit Issue'}
         visible={visible}
@@ -321,6 +346,38 @@ export function IssueEditor({
                 />
                 <Button icon="pi pi-check" size="small" className="btn-xs" rounded text onClick={handleQuickAddModule} />
                 <Button icon="pi pi-times" size="small" className="btn-xs" rounded text severity="danger" onClick={() => setQuickAddModuleVisible(false)} />
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-column">
+            <div className="flex gap-2 align-items-center">
+              <FloatLabel className="ifta-field flex-grow-1">
+                <Dropdown
+                  id="issue-target-role"
+                  value={targetRoleId}
+                  options={[...testRoles].sort((a, b) => a.name.localeCompare(b.name)).map((r) => ({ label: r.name, value: r.id }))}
+                  onChange={(e) => setTargetRoleId(e.value)}
+                  showClear
+                  className="w-full"
+                  virtualScrollerOptions={{ itemSize: 40 }}
+                />
+                <label htmlFor="issue-target-role">Target Role (optional)</label>
+              </FloatLabel>
+              <Button icon="pi pi-plus" size="small" className="btn-xs" rounded text onClick={() => setQuickAddRoleVisible(true)} tooltip="Add Role" />
+            </div>
+            {quickAddRoleVisible && (
+              <div className="flex gap-2 mt-1 align-items-center">
+                <InputText
+                  value={newRoleName}
+                  onChange={(e) => setNewRoleName(e.target.value)}
+                  placeholder="Role name"
+                  className="w-full"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleQuickAddRole(); }}
+                  autoFocus
+                />
+                <Button icon="pi pi-check" size="small" className="btn-xs" rounded text onClick={handleQuickAddRole} />
+                <Button icon="pi pi-times" size="small" className="btn-xs" rounded text severity="danger" onClick={() => setQuickAddRoleVisible(false)} />
               </div>
             )}
           </div>

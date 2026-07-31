@@ -339,6 +339,9 @@ export interface Issue {
   priority: IssuePriority;
   status: IssueStatus;
   assignedTo: string | null;
+  // App role this issue targets (e.g. "Admin", "Manager") — same master list as
+  // TestCase.targetRoleId (test_roles), just for labeling/filtering, not a variant system.
+  targetRoleId: string | null;
   externalLinks: ExternalLink[];
   createdBy: string | null;
   createdAt: string;
@@ -348,6 +351,7 @@ export interface Issue {
 export interface IssueWithDetails extends Issue {
   assignee: Profile | null;
   module: Module | null;
+  targetRole: TestRole | null;
   tags: Tag[];
   linkedTestResults: {
     id: string;

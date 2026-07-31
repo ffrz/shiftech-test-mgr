@@ -8,7 +8,6 @@ import { Button } from 'primereact/button';
 import type { DataTablePageEvent, DataTableStateEvent } from 'primereact/datatable';
 import { TabView, TabPanel } from 'primereact/tabview';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
@@ -47,6 +46,7 @@ import { queryKeys } from '../../hooks/queryKeys';
 import type {
   Module,
   Tag as DomainTag,
+  TestRole,
   TestPlan,
   TestPlanStatus,
   TestCase,
@@ -60,6 +60,7 @@ import type {
   IssueType,
 } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
+import { toastHelper } from '../../helpers/toast';
 import {
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_SEVERITY,
@@ -90,13 +91,12 @@ export function ProjectDetailPage() {
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
   const navigate = useNavigate();
-  const toast = useRef<Toast>(null);
   const { canEditContent, canDeleteContent, canManageIssues, canRunTests, canManageSettings } = useProjectRole(id);
   const { user, profile } = useAuthContext();
   const actorName = profile?.displayName ?? profile?.username ?? null;
   const queryClient = useQueryClient();
   useProjectAccessGuard(id, () => {
-    toast.current?.show({ severity: 'warn', summary: 'Removed from project', detail: 'You no longer have access to this project.' });
+    toastHelper.warn('Removed from project', 'You no longer have access to this project.');
   });
   const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(PROJECT_TAB_NAMES, 0);
 
@@ -210,14 +210,15 @@ export function ProjectDetailPage() {
   const [issueModuleFilter, setIssueModuleFilter] = useStoredState<string[]>(`project-${pfx}:issueModuleFilter:v2`, []);
   const [issueTagFilter, setIssueTagFilter] = useStoredState<string[]>(`project-${pfx}:issueTagFilter:v2`, []);
   const [issueTypeFilter, setIssueTypeFilter] = useStoredState<IssueType[]>(`project-${pfx}:issueTypeFilter:v2`, []);
+  const [issueTestRoleFilter, setIssueTestRoleFilter] = useStoredState<string[]>(`project-${pfx}:issueTestRoleFilter:v2`, []);
   const [issuePage, setIssuePage] = useState(1);
   const [issueRowsPerPage, setIssueRowsPerPage] = useStoredState('table:rowsPerPage', 10);
 
-  const issueFilterDeps = [issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issueTypeFilter];
+  const issueFilterDeps = [issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issueTypeFilter, issueTestRoleFilter];
   useEffect(() => { setIssuePage(1); }, issueFilterDeps); // eslint-disable-line react-hooks/exhaustive-deps
 
   const issuesQuery = useQuery({
-    queryKey: [...queryKeys.issuesByProject(id ?? ''), issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issueTypeFilter, issuePage, issueRowsPerPage, issueSortField, issueSortOrder],
+    queryKey: [...queryKeys.issuesByProject(id ?? ''), issueDebouncedSearch, issueStatusFilter, issuePriorityFilter, issueModuleFilter, issueTagFilter, issueTypeFilter, issueTestRoleFilter, issuePage, issueRowsPerPage, issueSortField, issueSortOrder],
     queryFn: () => issueService.listByProjectPaginated(id!, {
       search: issueDebouncedSearch || undefined,
       statuses: issueStatusFilter.length ? issueStatusFilter : undefined,
@@ -225,6 +226,7 @@ export function ProjectDetailPage() {
       moduleIds: issueModuleFilter.length ? issueModuleFilter : undefined,
       tagIds: issueTagFilter.length ? issueTagFilter : undefined,
       types: issueTypeFilter.length ? issueTypeFilter : undefined,
+      testRoleIds: issueTestRoleFilter.length ? issueTestRoleFilter : undefined,
       page: issuePage,
       pageSize: issueRowsPerPage,
       sortField: issueSortField,
@@ -309,7 +311,7 @@ export function ProjectDetailPage() {
   }
 
   function toastSuccess(summary: string) {
-    toast.current?.show({ severity: 'success', summary });
+    toastHelper.success(summary);
   }
 
   const prevIdRef = useRef<string | undefined>(id);
@@ -673,7 +675,7 @@ export function ProjectDetailPage() {
       await loadAll();
       toastSuccess(`${ids.length} test case(s) imported`);
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Import failed', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Import failed', err);
     } finally {
       setImportTemplateLoading(false);
     }
@@ -693,10 +695,11 @@ export function ProjectDetailPage() {
       acceptLabel: row.status === 'active' ? 'Archive' : 'Reactivate',
       rejectLabel: 'Cancel',
       accept: async () => {
+        if (!user) return;
         if (row.status === 'active') {
-          await testCaseService.archive(row.id);
+          await testCaseService.archive(row.id, { projectId: id!, actorId: user.id });
         } else {
-          await testCaseService.reactivate(row.id);
+          await testCaseService.reactivate(row.id, { projectId: id!, actorId: user.id });
         }
         await loadAll();
       },
@@ -859,6 +862,7 @@ export function ProjectDetailPage() {
         status: row.status,
         moduleId: row.moduleId,
         assignedTo: row.assignedTo,
+        targetRoleId: row.targetRoleId,
         description: row.description ?? '',
         actualResult: row.actualResult ?? '',
         expectedResult: row.expectedResult ?? '',
@@ -879,6 +883,7 @@ export function ProjectDetailPage() {
         status: 'open',
         moduleId: row.moduleId,
         assignedTo: null,
+        targetRoleId: row.targetRoleId,
         description: row.description ?? '',
         actualResult: '',
         expectedResult: '',
@@ -900,6 +905,7 @@ export function ProjectDetailPage() {
         priority: data.priority,
         type: data.type,
         moduleId: data.moduleId,
+        targetRoleId: data.targetRoleId,
         externalLinks: data.externalLinks,
       }, data.tagNames);
       toastSuccess('Issue updated');
@@ -912,6 +918,7 @@ export function ProjectDetailPage() {
         title: data.title,
         description: data.description,
         priority: data.priority,
+        targetRoleId: data.targetRoleId,
         tagNames: data.tagNames,
         createdBy: user?.id ?? null,
       });
@@ -937,8 +944,10 @@ export function ProjectDetailPage() {
   // Mutable copies so IssueEditor's quick-add can extend them without cache invalidation.
   const [editableModules, setEditableModules] = useState<Module[]>([]);
   const [editableTags, setEditableTags] = useState<DomainTag[]>([]);
+  const [editableTestRoles, setEditableTestRoles] = useState<TestRole[]>([]);
   if (editableModules.length === 0 && modules.length > 0) setEditableModules(modules);
   if (editableTags.length === 0 && tags.length > 0) setEditableTags(tags);
+  if (editableTestRoles.length === 0 && testRoles.length > 0) setEditableTestRoles(testRoles);
 
   function handleBulkDeleteIssues() {
     confirmDialog({
@@ -1002,7 +1011,6 @@ export function ProjectDetailPage() {
 
   return (
     <div className="page-fade-in">
-      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
 
       <Breadcrumb
@@ -1044,7 +1052,7 @@ export function ProjectDetailPage() {
                   <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
                   Owned by{' '}
                   <UserHoverCard userId={project.ownerId}>
-                    <span className="text-color entity-link">{projectOwnerProfile.displayName || projectOwnerProfile.username}</span>
+                    <span className="font-bold username-text cursor-pointer">{projectOwnerProfile.username}</span>
                   </UserHoverCard>
                 </span>
               )}
@@ -1216,10 +1224,13 @@ export function ProjectDetailPage() {
             onTagFilterChange={setIssueTagFilter}
             typeFilter={issueTypeFilter}
             onTypeFilterChange={setIssueTypeFilter}
-            hasActiveFilters={!!issueSearch || issueStatusFilter.length > 0 || issuePriorityFilter.length > 0 || issueModuleFilter.length > 0 || issueTagFilter.length > 0 || issueTypeFilter.length > 0}
-            onClearFilters={() => { setIssueSearch(''); setIssueStatusFilter([]); setIssuePriorityFilter([]); setIssueModuleFilter([]); setIssueTagFilter([]); setIssueTypeFilter([]); }}
+            testRoleFilter={issueTestRoleFilter}
+            onTestRoleFilterChange={setIssueTestRoleFilter}
+            hasActiveFilters={!!issueSearch || issueStatusFilter.length > 0 || issuePriorityFilter.length > 0 || issueModuleFilter.length > 0 || issueTagFilter.length > 0 || issueTypeFilter.length > 0 || issueTestRoleFilter.length > 0}
+            onClearFilters={() => { setIssueSearch(''); setIssueStatusFilter([]); setIssuePriorityFilter([]); setIssueModuleFilter([]); setIssueTagFilter([]); setIssueTypeFilter([]); setIssueTestRoleFilter([]); }}
             moduleOptions={moduleOptions}
             tagOptions={tagOptions}
+            testRoleOptions={testRoleOptions}
             sortField={issueSortField}
             sortOrder={issueSortOrder}
             onSort={sortHandler(setIssueSortField, setIssueSortOrder)}
@@ -1406,8 +1417,10 @@ export function ProjectDetailPage() {
           initialData={issueEditor.initialData ?? null}
           modules={editableModules}
           tags={editableTags}
+          testRoles={editableTestRoles}
           onModulesChange={setEditableModules}
           onTagsChange={setEditableTags}
+          onTestRolesChange={setEditableTestRoles}
         />
       )}
 

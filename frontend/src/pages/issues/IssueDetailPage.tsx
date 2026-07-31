@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
@@ -9,13 +9,13 @@ import { FloatLabel } from 'primereact/floatlabel';
 import { InputText } from 'primereact/inputtext';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Toast } from 'primereact/toast';
 import { issueService } from '../../services/issueService';
 import { attachmentService } from '../../services/attachmentService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { projectService } from '../../services/projectService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
+import { testRoleService } from '../../services/testRoleService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
@@ -46,7 +46,6 @@ export function IssueDetailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const testRunId = searchParams.get('testRunId');
-  const toast = useRef<Toast>(null);
   const { user, profile } = useAuthContext();
   const actorName = profile?.displayName ?? profile?.username ?? null;
 
@@ -92,6 +91,11 @@ export function IssueDetailPage() {
     queryFn: () => tagService.listByProject(issue!.projectId),
     enabled: !!issue?.projectId,
   });
+  const { data: testRoles = [] } = useQuery({
+    queryKey: queryKeys.testRoles(issue?.projectId ?? ''),
+    queryFn: () => testRoleService.listByProject(issue!.projectId),
+    enabled: !!issue?.projectId,
+  });
 
   async function reload() {
     if (!id) return;
@@ -133,13 +137,14 @@ export function IssueDetailPage() {
         priority: issue.priority,
         type: issue.type,
         moduleId: issue.moduleId,
+        targetRoleId: issue.targetRoleId,
         externalLinks: updatedLinks,
       },
       undefined,
     );
     resetExternalForm();
     await reload();
-    toastHelper.success(toast, 'Link added');
+    toastHelper.success('Link added');
   }
 
   async function handleRemoveExternalLink(index: number) {
@@ -156,12 +161,13 @@ export function IssueDetailPage() {
         priority: issue.priority,
         type: issue.type,
         moduleId: issue.moduleId,
+        targetRoleId: issue.targetRoleId,
         externalLinks: updatedLinks,
       },
       undefined,
     );
     await reload();
-    toastHelper.success(toast, 'Link removed');
+    toastHelper.success('Link removed');
   }
 
   // --- Edit via shared IssueEditor ---
@@ -185,6 +191,7 @@ export function IssueDetailPage() {
         priority: data.priority,
         type: data.type,
         moduleId: data.moduleId,
+        targetRoleId: data.targetRoleId,
         externalLinks: data.externalLinks.filter((l) => l.url.trim()),
       },
       data.tagNames,
@@ -196,7 +203,7 @@ export function IssueDetailPage() {
     setEditDialogOpen(false);
     await reload();
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-    toastHelper.success(toast, 'Issue updated');
+    toastHelper.success('Issue updated');
   }
 
   async function handleChangeStatus(status: IssueStatus) {
@@ -205,9 +212,9 @@ export function IssueDetailPage() {
       await issueService.changeStatus(issue.id, status, { projectId: issue.projectId, actorId: user.id, actorName });
       await reload();
       await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-      toastHelper.success(toast, 'Status updated');
+      toastHelper.success('Status updated');
     } catch (err) {
-      toastHelper.errorFromCatch(toast, 'Failed to update status', err);
+      toastHelper.errorFromCatch('Failed to update status', err);
     }
   }
 
@@ -220,9 +227,9 @@ export function IssueDetailPage() {
       await issueService.assign(issue.id, assignedTo ?? null, { projectId: issue.projectId, actorId: user.id, actorName, assigneeName });
       await reload();
       await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-      toastHelper.success(toast, 'Assignee updated');
+      toastHelper.success('Assignee updated');
     } catch (err) {
-      toastHelper.errorFromCatch(toast, 'Failed to update assignee', err);
+      toastHelper.errorFromCatch('Failed to update assignee', err);
     }
   }
 
@@ -240,12 +247,13 @@ export function IssueDetailPage() {
       actualResult: issue.actualResult ?? undefined,
       expectedResult: issue.expectedResult ?? undefined,
       priority: issue.priority,
+      targetRoleId: issue.targetRoleId,
       externalLinks: issue.externalLinks,
       tagNames: issue.tags.map((t) => t.name),
       createdBy: user?.id ?? null,
     });
     await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-    toastHelper.success(toast, 'Issue duplicated');
+    toastHelper.success('Issue duplicated');
     navigate(`/issues/${created.id}`);
   }
 
@@ -261,7 +269,7 @@ export function IssueDetailPage() {
       accept: async () => {
         await issueService.remove(issue.id);
         await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-        toastHelper.success(toast, 'Issue deleted');
+        toastHelper.success('Issue deleted');
         handleBack();
       },
     });
@@ -280,7 +288,7 @@ export function IssueDetailPage() {
         await issueService.changeStatus(issue.id, 'closed', { projectId: issue.projectId, actorId: user.id, actorName });
         await reload();
         await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
-        toastHelper.success(toast, 'Issue archived');
+        toastHelper.success('Issue archived');
       },
     });
   }
@@ -292,9 +300,9 @@ export function IssueDetailPage() {
         await attachmentService.upload(issue.id, issue.projectId, file);
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) });
-      toastHelper.success(toast, 'Attachment uploaded');
+      toastHelper.success('Attachment uploaded');
     } catch (err) {
-      toastHelper.errorFromCatch(toast, 'Upload failed', err);
+      toastHelper.errorFromCatch('Upload failed', err);
     }
   }
 
@@ -338,7 +346,6 @@ export function IssueDetailPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
 
       <Breadcrumb items={breadcrumbItems} />
@@ -386,15 +393,26 @@ export function IssueDetailPage() {
             </span>
           </div>
 
-          {issue.module && (
+          {(issue.module || issue.targetRole) && (
             <div className="project-stat-grid project-stat-grid-fixed2 mb-3">
-              <div className="project-stat-tile">
-                <i className="pi pi-sitemap text-primary" />
-                <div className="project-stat-tile-body">
-                  <span className="project-stat-value-text">{issue.module.name}</span>
-                  <span className="project-stat-label">Module</span>
+              {issue.module && (
+                <div className="project-stat-tile">
+                  <i className="pi pi-sitemap text-primary" />
+                  <div className="project-stat-tile-body">
+                    <span className="project-stat-value-text">{issue.module.name}</span>
+                    <span className="project-stat-label">Module</span>
+                  </div>
                 </div>
-              </div>
+              )}
+              {issue.targetRole && (
+                <div className="project-stat-tile">
+                  <i className="pi pi-user-edit text-primary" />
+                  <div className="project-stat-tile-body">
+                    <span className="project-stat-value-text">{issue.targetRole.name}</span>
+                    <span className="project-stat-label">Target Role</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -565,6 +583,7 @@ export function IssueDetailPage() {
             status: issue.status,
             moduleId: issue.moduleId,
             assignedTo: issue.assignedTo,
+            targetRoleId: issue.targetRoleId,
             description: issue.description ?? '',
             actualResult: issue.actualResult ?? '',
             expectedResult: issue.expectedResult ?? '',
@@ -573,8 +592,10 @@ export function IssueDetailPage() {
           }}
           modules={modules}
           tags={projectTags}
+          testRoles={testRoles}
           onModulesChange={() => queryClient.invalidateQueries({ queryKey: queryKeys.modules(issue.projectId) })}
           onTagsChange={() => queryClient.invalidateQueries({ queryKey: queryKeys.tags(issue.projectId) })}
+          onTestRolesChange={() => queryClient.invalidateQueries({ queryKey: queryKeys.testRoles(issue.projectId) })}
           attachments={attachments}
           onAttachmentsChange={() => queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) })}
         />

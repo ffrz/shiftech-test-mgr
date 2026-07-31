@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
@@ -7,13 +7,13 @@ import { Tag } from 'primereact/tag';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Toast } from 'primereact/toast';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { issueService } from '../../services/issueService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
+import { testRoleService } from '../../services/testRoleService';
 import type { IssueStatus, IssueWithDetails } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
@@ -27,6 +27,7 @@ import { useProjectRole } from '../../hooks/useProjectRole';
 import { useAuthContext } from '../../hooks/useAuth';
 import { queryKeys } from '../../hooks/queryKeys';
 import { ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL } from '../../helpers/statusLabels';
+import { toastHelper } from '../../helpers/toast';
 
 const STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
   ['backlog', 'open', 'in_progress', 'resolved', 'verified', 'closed', 'rejected', 'duplicate'] as const
@@ -88,18 +89,27 @@ export function TestRunIssuesPage() {
     enabled: !!projectId,
   });
 
+  const { data: fetchedTestRoles = [] } = useQuery({
+    queryKey: queryKeys.testRoles(projectId ?? ''),
+    queryFn: () => testRoleService.listByProject(projectId!),
+    enabled: !!projectId,
+  });
+
   // Mutable copies so IssueEditor's quick-add can extend them without cache invalidation.
   const [editableModules, setEditableModules] = useState<typeof fetchedModules>([]);
   const [editableTags, setEditableTags] = useState<typeof fetchedTags>([]);
+  const [editableTestRoles, setEditableTestRoles] = useState<typeof fetchedTestRoles>([]);
   if (editableModules !== fetchedModules && fetchedModules.length > 0 && editableModules.length === 0) {
     setEditableModules(fetchedModules);
   }
   if (editableTags !== fetchedTags && fetchedTags.length > 0 && editableTags.length === 0) {
     setEditableTags(fetchedTags);
   }
+  if (editableTestRoles !== fetchedTestRoles && fetchedTestRoles.length > 0 && editableTestRoles.length === 0) {
+    setEditableTestRoles(fetchedTestRoles);
+  }
 
   // --- Edit dialog ---
-  const toast = useRef<Toast>(null);
   const [editIssue, setEditIssue] = useState<IssueWithDetails | null>(null);
 
   function openEdit(row: IssueWithDetails) {
@@ -125,6 +135,7 @@ export function TestRunIssuesPage() {
         priority: data.priority,
         type: data.type,
         moduleId: data.moduleId,
+        targetRoleId: data.targetRoleId,
         externalLinks: data.externalLinks,
       },
       data.tagNames,
@@ -132,7 +143,7 @@ export function TestRunIssuesPage() {
     closeEdit();
     await reload();
     await invalidateProjectIssues();
-    toast.current?.show({ severity: 'success', summary: 'Issue updated' });
+    toastHelper.success('Issue updated');
   }
 
   async function invalidateProjectIssues() {
@@ -166,6 +177,7 @@ export function TestRunIssuesPage() {
       actualResult: row.actualResult ?? undefined,
       expectedResult: row.expectedResult ?? undefined,
       priority: row.priority,
+      targetRoleId: row.targetRoleId,
       externalLinks: row.externalLinks,
       tagNames: row.tags.map((t) => t.name),
       createdBy: user?.id ?? null,
@@ -220,7 +232,6 @@ export function TestRunIssuesPage() {
 
   return (
     <div>
-      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
 
       <Breadcrumb
@@ -337,6 +348,7 @@ export function TestRunIssuesPage() {
           status: editIssue.status,
           moduleId: editIssue.moduleId,
           assignedTo: editIssue.assignedTo,
+          targetRoleId: editIssue.targetRoleId,
           description: editIssue.description ?? '',
           actualResult: editIssue.actualResult ?? '',
           expectedResult: editIssue.expectedResult ?? '',
@@ -345,8 +357,10 @@ export function TestRunIssuesPage() {
         } : null}
         modules={editableModules}
         tags={editableTags}
+        testRoles={editableTestRoles}
         onModulesChange={setEditableModules}
         onTagsChange={setEditableTags}
+        onTestRolesChange={setEditableTestRoles}
       />
     </div>
   );

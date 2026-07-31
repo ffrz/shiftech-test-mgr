@@ -13,7 +13,6 @@ import { FloatLabel } from 'primereact/floatlabel';
 import { AutoComplete, type AutoCompleteCompleteEvent } from 'primereact/autocomplete';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import SearchInput from '../../components/ui/SearchInput';
-import { Toast } from 'primereact/toast';
 import { useTestRunDetail } from '../../hooks/useTestRunDetail';
 import { useIssuesByTestRun } from '../../hooks/useIssues';
 import { useAuthContext } from '../../hooks/useAuth';
@@ -25,6 +24,7 @@ import { projectMemberService } from '../../services/projectMemberService';
 import { issueService } from '../../services/issueService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
+import { testRoleService } from '../../services/testRoleService';
 import { testPlanService } from '../../services/testPlanService';
 import { projectService } from '../../services/projectService';
 import { profileRepository } from '../../repositories/profileRepository';
@@ -39,9 +39,11 @@ import type {
   IssueWithDetails,
   Module,
   Tag as DomainTag,
+  TestRole,
   TestCasePriority,
   TestResultStatus,
 } from '../../types/domain';
+import { toastHelper } from '../../helpers/toast';
 import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
@@ -82,7 +84,6 @@ export function TestRunResultDetailPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const resultId = searchParams.get('resultId');
   const navigate = useNavigate();
-  const toast = useRef<Toast>(null);
   const { user, profile: currentProfile } = useAuthContext();
 
   const queryClient = useQueryClient();
@@ -131,6 +132,11 @@ export function TestRunResultDetailPage() {
   const { data: projectTags = [] } = useQuery({
     queryKey: queryKeys.tags(projectId ?? ''),
     queryFn: () => tagService.listByProject(projectId!),
+    enabled: !!projectId,
+  });
+  const { data: projectTestRoles = [] } = useQuery({
+    queryKey: queryKeys.testRoles(projectId ?? ''),
+    queryFn: () => testRoleService.listByProject(projectId!),
     enabled: !!projectId,
   });
 
@@ -227,9 +233,9 @@ export function TestRunResultDetailPage() {
     try {
       await testRunService.syncResultWithTestCase(runId, activeResult.id);
       await reload();
-      toast.current?.show({ severity: 'success', summary: 'Test case synced' });
+      toastHelper.success('Test case synced');
     } catch (err) {
-      toast.current?.show({ severity: 'error', summary: 'Sync failed', detail: err instanceof Error ? err.message : undefined });
+      toastHelper.errorFromCatch('Sync failed', err);
     }
   }
 
@@ -261,14 +267,14 @@ export function TestRunResultDetailPage() {
     setResultNotes(notesDraft);
     setNotesDialogOpen(false);
     await saveResult({ notes: notesDraft });
-    toast.current?.show({ severity: 'success', summary: 'Notes saved' });
+    toastHelper.success('Notes saved');
   }
 
   async function handleClearNotes() {
     setResultNotes('');
     setNotesDialogOpen(false);
     await saveResult({ notes: '' });
-    toast.current?.show({ severity: 'success', summary: 'Notes cleared' });
+    toastHelper.success('Notes cleared');
   }
 
   // --- Link Issue: AutoComplete (no dialog, no MultiSelect) — type to search server-side,
@@ -340,8 +346,10 @@ export function TestRunResultDetailPage() {
   // Mutable copies so IssueEditor's quick-add can extend them without cache invalidation.
   const [editableModules, setEditableModules] = useState<Module[]>([]);
   const [editableTags, setEditableTags] = useState<DomainTag[]>([]);
+  const [editableTestRoles, setEditableTestRoles] = useState<TestRole[]>([]);
   if (editableModules.length === 0 && modules.length > 0) setEditableModules(modules);
   if (editableTags.length === 0 && projectTags.length > 0) setEditableTags(projectTags);
+  if (editableTestRoles.length === 0 && projectTestRoles.length > 0) setEditableTestRoles(projectTestRoles);
 
   function openCreateIssueDialog() {
     if (!activeResult) return;
@@ -353,6 +361,7 @@ export function TestRunResultDetailPage() {
       status: 'open',
       moduleId: null,
       assignedTo: null,
+      targetRoleId: null,
       description: '',
       actualResult: '',
       expectedResult: activeResult.testCaseExpectedResult,
@@ -376,12 +385,13 @@ export function TestRunResultDetailPage() {
       actualResult: data.actualResult,
       expectedResult: data.expectedResult,
       priority: data.priority,
+      targetRoleId: data.targetRoleId,
       createdBy: user?.id ?? null,
     });
     setIssueEditorOpen(false);
     setIssueEditorInitialData(null);
     await refreshLinkedIssues();
-    toast.current?.show({ severity: 'success', summary: 'Issue created and linked' });
+    toastHelper.success('Issue created and linked');
   }
 
   // --- Complete run dialog ---
@@ -418,7 +428,7 @@ export function TestRunResultDetailPage() {
     setCompleteDialogOpen(false);
     await reload();
     await invalidateTestRunSummaries();
-    toast.current?.show({ severity: 'success', summary: 'Test run completed' });
+    toastHelper.success('Test run completed');
   }
 
   async function handleReopenRun() {
@@ -433,7 +443,6 @@ export function TestRunResultDetailPage() {
 
   return (
     <div className="page-fade-in">
-      <Toast ref={toast} position="bottom-center" />
       <ConfirmDialog />
 
       <Breadcrumb
@@ -842,8 +851,6 @@ export function TestRunResultDetailPage() {
                     entityType="test_result"
                     entityId={activeResult.id}
                     canManage={canRunTests}
-                    onToastSuccess={(summary) => toast.current?.show({ severity: 'success', summary })}
-                    onToastError={(summary, detail) => toast.current?.show({ severity: 'error', summary, detail })}
                   />
                 </Card>
 
@@ -1025,8 +1032,10 @@ export function TestRunResultDetailPage() {
           projectMembers={projectMembers}
           modules={editableModules}
           tags={editableTags}
+          testRoles={editableTestRoles}
           onModulesChange={setEditableModules}
           onTagsChange={setEditableTags}
+          onTestRolesChange={setEditableTestRoles}
         />
       )}
 

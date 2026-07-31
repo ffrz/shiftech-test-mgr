@@ -26,6 +26,7 @@ export const issueService = {
       moduleIds?: string[];
       tagIds?: string[];
       types?: IssueType[];
+      testRoleIds?: string[];
       page: number;
       pageSize: number;
       sortField?: string;
@@ -53,6 +54,7 @@ export const issueService = {
     actualResult?: string;
     expectedResult?: string;
     priority?: IssuePriority;
+    targetRoleId?: string | null;
     externalLinks?: ExternalLink[];
     tagNames?: string[];
     // If given, the created issue is immediately linked to this test result — used by the
@@ -74,6 +76,7 @@ export const issueService = {
       priority: input.priority ?? 'medium',
       status: 'open',
       assignedTo: null,
+      targetRoleId: input.targetRoleId ?? null,
       externalLinks: input.externalLinks ?? [],
       createdBy: input.createdBy ?? null,
     });
@@ -146,6 +149,7 @@ export const issueService = {
       priority: IssuePriority;
       type: IssueType;
       moduleId: string | null;
+      targetRoleId?: string | null;
       externalLinks: ExternalLink[];
     },
     tagNames?: string[],
@@ -160,6 +164,7 @@ export const issueService = {
       priority: input.priority,
       type: input.type,
       moduleId: input.moduleId,
+      ...(input.targetRoleId !== undefined ? { targetRoleId: input.targetRoleId } : {}),
       externalLinks: input.externalLinks,
     });
     if (tagNames !== undefined) {
@@ -170,7 +175,7 @@ export const issueService = {
 
   async patchField(
     id: string,
-    changes: Partial<Pick<Issue, 'title' | 'priority' | 'type' | 'moduleId'>>,
+    changes: Partial<Pick<Issue, 'title' | 'priority' | 'type' | 'moduleId' | 'targetRoleId'>>,
   ) {
     if (changes.title !== undefined && !changes.title.trim()) {
       throw new Error('Issue title cannot be empty');

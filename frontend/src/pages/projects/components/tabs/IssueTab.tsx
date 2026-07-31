@@ -21,7 +21,7 @@ import { issueService } from '../../../../services/issueService';
 import { useAuthContext } from '../../../../hooks/useAuth';
 
 const UNDO_TIMEOUT_MS = 9000;
-type EditableField = 'status' | 'assignedTo' | 'title' | 'type' | 'priority' | 'moduleId';
+type EditableField = 'status' | 'assignedTo' | 'title' | 'type' | 'priority' | 'moduleId' | 'targetRoleId';
 import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
@@ -55,10 +55,13 @@ type IssueTabProps = {
   onTagFilterChange: (value: string[]) => void;
   typeFilter: IssueType[];
   onTypeFilterChange: (value: IssueType[]) => void;
+  testRoleFilter: string[];
+  onTestRoleFilterChange: (value: string[]) => void;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
   moduleOptions: { label: string; value: string }[];
   tagOptions: { label: string; value: string }[];
+  testRoleOptions: { label: string; value: string }[];
   sortField: string;
   sortOrder: 1 | -1;
   onSort: (e: DataTableStateEvent) => void;
@@ -99,10 +102,13 @@ export function IssueTab({
   onTagFilterChange,
   typeFilter,
   onTypeFilterChange,
+  testRoleFilter,
+  onTestRoleFilterChange,
   hasActiveFilters,
   onClearFilters,
   moduleOptions,
   tagOptions,
+  testRoleOptions,
   sortField,
   sortOrder,
   onSort,
@@ -205,8 +211,13 @@ export function IssueTab({
       await issueService.patchField(issueId, { moduleId });
       const module = moduleId ? { id: moduleId, name: moduleOptions.find((m) => m.value === moduleId)?.label ?? '' } : null;
       onPatchIssue(issueId, { moduleId, module } as Partial<IssueWithDetails>);
+    } else if (field === 'targetRoleId') {
+      const targetRoleId = value || null;
+      await issueService.patchField(issueId, { targetRoleId });
+      const targetRole = targetRoleId ? { id: targetRoleId, name: testRoleOptions.find((r) => r.value === targetRoleId)?.label ?? '' } : null;
+      onPatchIssue(issueId, { targetRoleId, targetRole } as any);
     }
-  }, [onPatchIssue, moduleOptions, user, actorName, projectMembers]);
+  }, [onPatchIssue, moduleOptions, testRoleOptions, user, actorName, projectMembers]);
 
   const handleUndo = useCallback(async (issueId: string, projectId: string, field: EditableField, previousValue: string | null) => {
     if (undoTimerRef.current) { clearTimeout(undoTimerRef.current); undoTimerRef.current = null; }
@@ -250,7 +261,7 @@ export function IssueTab({
     if (normalizedValue === normalizedPrevious) return;
 
     const fieldLabel: Record<EditableField, string> = {
-      status: 'Status', assignedTo: 'Assignee', title: 'Title', type: 'Type', priority: 'Priority', moduleId: 'Module',
+      status: 'Status', assignedTo: 'Assignee', title: 'Title', type: 'Type', priority: 'Priority', moduleId: 'Module', targetRoleId: 'Target Role',
     };
     try {
       await applyFieldChange(row.id, row.projectId, field, value);
@@ -328,6 +339,18 @@ export function IssueTab({
             selectAllLabel="All"
             filter
             virtualScrollerOptions={{ itemSize: 40 }}
+          />
+        </div>
+        <div className="col-12 md:col-2 p-1">
+          <MultiSelect
+            value={testRoleFilter}
+            options={testRoleOptions}
+            onChange={(e) => onTestRoleFilterChange(e.value)}
+            placeholder="All Roles"
+            className="w-full"
+            selectAll
+            selectAllLabel="All"
+            filter
           />
         </div>
         <div className="col-12 md:col-2 p-1">
@@ -473,6 +496,31 @@ export function IssueTab({
             return (
               <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'moduleId', row.moduleId); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
                 {row.module?.name ?? '-'}
+              </div>
+            );
+          }}
+        />
+        <Column
+          field="targetRoleName"
+          header="Target Role"
+          sortable
+          hidden={isMobile}
+          body={(row: IssueWithDetails) => {
+            const canEdit = canManageIssues && row.status !== 'closed';
+            const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'targetRoleId';
+            if (isEditing && canEdit) {
+              return (
+                <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'targetRoleId', editValue)}>
+                  <Dropdown value={editValue} options={testRoleOptions}
+                    onChange={(e) => confirmEdit(row, 'targetRoleId', e.value ?? null)}
+                    onHide={cancelEdit}
+                    placeholder="None" showClear autoFocus className="w-10rem" />
+                </div>
+              );
+            }
+            return (
+              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'targetRoleId', row.targetRoleId); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
+                {row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-'}
               </div>
             );
           }}
