@@ -91,7 +91,7 @@ export function ProjectDetailPage() {
   const isMobile = lt.sm;
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
-  const { canEditContent, canDeleteContent, canManageIssues, canRunTests } = useProjectRole(id);
+  const { canEditContent, canDeleteContent, canManageIssues, canRunTests, canManageSettings } = useProjectRole(id);
   const { user, profile } = useAuthContext();
   const actorName = profile?.displayName ?? profile?.username ?? null;
   const queryClient = useQueryClient();
@@ -108,7 +108,10 @@ export function ProjectDetailPage() {
   const project = projectQuery.data ?? null;
   const projectLoading = projectQuery.isLoading;
   const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
-  const projectOwnerProfile = useProjectOwnerProfile(project?.ownerId);
+  // useProjectOwnerProfile deliberately returns null for your own project (it only
+  // fetches to label projects someone else shared with you) — the "Owned by" line
+  // wants to always show someone, so fall back to the viewer's own profile in that case.
+  const projectOwnerProfile = useProjectOwnerProfile(project?.ownerId) ?? profile;
 
   const summaryCountsQuery = useQuery({
     queryKey: queryKeys.projectSummaryCounts(id ?? ''),
@@ -923,7 +926,7 @@ export function ProjectDetailPage() {
   async function handleIssueEditorAssigneeChange(assignedTo: string | null) {
     if (!id || !user || issueEditor?.mode !== 'edit' || !issueEditor.issueId) return;
     const assigneeName = assignedTo
-      ? projectMembers.find((m) => m.userId === assignedTo)?.profile.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile.username
+      ? projectMembers.find((m) => m.userId === assignedTo)?.profile?.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile?.username
       : null;
     await issueService.assign(issueEditor.issueId, assignedTo, { projectId: id, actorId: user.id, actorName, assigneeName });
   }
@@ -959,7 +962,7 @@ export function ProjectDetailPage() {
     }
     if (changes.assignedTo !== undefined) {
       const assigneeName = changes.assignedTo
-        ? projectMembers.find((m) => m.userId === changes.assignedTo)?.profile.displayName ?? projectMembers.find((m) => m.userId === changes.assignedTo)?.profile.username
+        ? projectMembers.find((m) => m.userId === changes.assignedTo)?.profile?.displayName ?? projectMembers.find((m) => m.userId === changes.assignedTo)?.profile?.username
         : null;
       await issueService.bulkAssign(ids, changes.assignedTo, { projectId: id, actorId: user.id, actorName, assigneeName });
     }
@@ -1013,12 +1016,15 @@ export function ProjectDetailPage() {
             <Tag value={PROJECT_STATUS_LABEL[project.status]} severity={PROJECT_STATUS_SEVERITY[project.status]} />
           </div>
           <div className="flex gap-2 flex-shrink-0 header-actions">
-            <Button text icon="pi pi-cog" rounded size="small" onClick={() => navigate(`/projects/${id}/settings`)} />
+            {canManageSettings && (
+              <Button text icon="pi pi-cog" rounded size="small" severity="secondary" onClick={() => navigate(`/projects/${id}/settings`)} />
+            )}
             <Button
               text
               icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'}
               rounded
               size="small"
+              severity="secondary"
               onClick={() => setDetailCollapsed(!detailCollapsed)}
               aria-label={detailCollapsed ? 'Expand' : 'Collapse'}
             />
@@ -1029,7 +1035,7 @@ export function ProjectDetailPage() {
           <>
             <p className="text-color-secondary text-sm mt-2 mb-0">{project.description || 'No description'}</p>
 
-            <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-3 text-xs">
+            <div className="flex flex-column sm:flex-row sm:flex-wrap gap-2 sm:column-gap-4 sm:row-gap-1 mt-3 mb-3 text-xs">
               {projectOwnerProfile && project && (
                 <span className="text-color-secondary">
                   <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
