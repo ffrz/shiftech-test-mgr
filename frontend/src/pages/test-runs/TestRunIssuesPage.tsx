@@ -323,9 +323,11 @@ export function TestRunIssuesPage() {
         onHide={closeEdit}
         onSave={handleSaveEdit}
         onStatusChange={(status) => handleChangeStatus(editIssue!, status)}
+        onAssigneeChange={(assignedTo) => handleAssign(editIssue!, assignedTo)}
         projectId={projectId ?? ''}
         mode="edit"
         issueId={editIssue?.id}
+        projectMembers={projectMembers}
         initialData={editIssue ? {
           code: editIssue.code,
           title: editIssue.title,
@@ -333,6 +335,7 @@ export function TestRunIssuesPage() {
           priority: editIssue.priority,
           status: editIssue.status,
           moduleId: editIssue.moduleId,
+          assignedTo: editIssue.assignedTo,
           description: editIssue.description ?? '',
           actualResult: editIssue.actualResult ?? '',
           expectedResult: editIssue.expectedResult ?? '',

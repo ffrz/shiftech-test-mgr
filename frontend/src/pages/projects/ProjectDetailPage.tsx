@@ -10,6 +10,7 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { ActivityLogTab } from './components/tabs/ActivityLogTab';
 import { TestPlanTab } from './components/tabs/TestPlanTab';
@@ -39,6 +40,8 @@ import { useProjectRole } from '../../hooks/useProjectRole';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectAccessGuard } from '../../hooks/useProjectAccessGuard';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
+import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
+import { useProjectOwnerProfile } from '../../hooks/useProjectOwnerProfile';
 import { useStoredState } from '../../hooks/useStoredState';
 import { queryKeys } from '../../hooks/queryKeys';
 import type {
@@ -76,6 +79,11 @@ const TAB_DEPENDENCIES: (typeof TAB_QUERY_NAMES[number])[][] = [
   ['issues', 'projectMembers'],
 ];
 
+// TabView panel order (index -> `tab` query param value) — keep in sync with the
+// <TabPanel> order below. Names, not indices, so links built elsewhere (breadcrumbs,
+// notifications) stay valid even if tabs are reordered.
+const PROJECT_TAB_NAMES = ['testPlans', 'testCases', 'testRuns', 'issues', 'activity', 'activityLog'] as const;
+
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -90,7 +98,7 @@ export function ProjectDetailPage() {
   useProjectAccessGuard(id, () => {
     toast.current?.show({ severity: 'warn', summary: 'Removed from project', detail: 'You no longer have access to this project.' });
   });
-  const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(0);
+  const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(PROJECT_TAB_NAMES, 0);
 
   const projectQuery = useQuery({
     queryKey: queryKeys.project(id ?? ''),
@@ -99,6 +107,8 @@ export function ProjectDetailPage() {
   });
   const project = projectQuery.data ?? null;
   const projectLoading = projectQuery.isLoading;
+  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
+  const projectOwnerProfile = useProjectOwnerProfile(project?.ownerId);
 
   const summaryCountsQuery = useQuery({
     queryKey: queryKeys.projectSummaryCounts(id ?? ''),
@@ -843,6 +853,7 @@ export function ProjectDetailPage() {
         priority: row.priority,
         status: row.status,
         moduleId: row.moduleId,
+        assignedTo: row.assignedTo,
         description: row.description ?? '',
         actualResult: row.actualResult ?? '',
         expectedResult: row.expectedResult ?? '',
@@ -862,6 +873,7 @@ export function ProjectDetailPage() {
         priority: row.priority,
         status: 'open',
         moduleId: row.moduleId,
+        assignedTo: null,
         description: row.description ?? '',
         actualResult: '',
         expectedResult: '',
@@ -906,6 +918,14 @@ export function ProjectDetailPage() {
   async function handleIssueEditorStatusChange(status: IssueStatus) {
     if (!id || !user || issueEditor?.mode !== 'edit' || !issueEditor.issueId) return;
     await issueService.changeStatus(issueEditor.issueId, status, { projectId: id, actorId: user.id, actorName });
+  }
+
+  async function handleIssueEditorAssigneeChange(assignedTo: string | null) {
+    if (!id || !user || issueEditor?.mode !== 'edit' || !issueEditor.issueId) return;
+    const assigneeName = assignedTo
+      ? projectMembers.find((m) => m.userId === assignedTo)?.profile.displayName ?? projectMembers.find((m) => m.userId === assignedTo)?.profile.username
+      : null;
+    await issueService.assign(issueEditor.issueId, assignedTo, { projectId: id, actorId: user.id, actorName, assigneeName });
   }
 
   // Mutable copies so IssueEditor's quick-add can extend them without cache invalidation.
@@ -982,7 +1002,7 @@ export function ProjectDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: project.name, path: `/projects/${id}` }
+          { label: projectBreadcrumbLabel, path: `/projects/${id}` }
         ]}
       />
 
@@ -1010,6 +1030,15 @@ export function ProjectDetailPage() {
             <p className="text-color-secondary text-sm mt-2 mb-0">{project.description || 'No description'}</p>
 
             <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-3 text-xs">
+              {projectOwnerProfile && project && (
+                <span className="text-color-secondary">
+                  <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
+                  Owned by{' '}
+                  <UserHoverCard userId={project.ownerId}>
+                    <span className="text-color entity-link">{projectOwnerProfile.displayName || projectOwnerProfile.username}</span>
+                  </UserHoverCard>
+                </span>
+              )}
               <span className="text-color-secondary">
                 <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
                 Created <span className="text-color">{formatDateTime(project.createdAt)}</span>
@@ -1358,9 +1387,11 @@ export function ProjectDetailPage() {
           onHide={() => setIssueEditor(null)}
           onSave={handleIssueEditorSave}
           onStatusChange={handleIssueEditorStatusChange}
+          onAssigneeChange={handleIssueEditorAssigneeChange}
           projectId={id ?? ''}
           mode={issueEditor.mode}
           issueId={issueEditor.issueId}
+          projectMembers={projectMembers}
           initialData={issueEditor.initialData ?? null}
           modules={editableModules}
           tags={editableTags}

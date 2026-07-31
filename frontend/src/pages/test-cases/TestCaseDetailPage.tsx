@@ -20,7 +20,9 @@ import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
 import { testCaseService } from '../../services/testCaseService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
+import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
 import { queryKeys } from '../../hooks/queryKeys';
 import type { TestCasePriority, TestCaseWithDetails } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
@@ -59,6 +61,13 @@ export function TestCaseDetailPage() {
     enabled: !!id && testCase?.stepType === 'detailed',
   });
   const { canEditContent, canDeleteContent } = useProjectRole(testCase?.project.id);
+
+  const { data: project } = useQuery({
+    queryKey: queryKeys.project(testCase?.project.id ?? ''),
+    queryFn: () => projectService.getById(testCase!.project.id),
+    enabled: !!testCase?.project.id,
+  });
+  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(testCase?.project.name, project?.ownerId);
 
   const { data: modules = [] } = useQuery({
     queryKey: queryKeys.modules(testCase?.project.id ?? ''),
@@ -257,7 +266,8 @@ export function TestCaseDetailPage() {
         <Breadcrumb
           items={[
             { label: 'Projects', path: '/projects' },
-            { label: testCase ? testCase.project.name : '', path: testCase ? `/projects/${testCase.project.id}` : undefined },
+            { label: testCase ? projectBreadcrumbLabel : '', path: testCase ? `/projects/${testCase.project.id}` : undefined },
+            { label: testCase ? 'Test Cases' : '', path: testCase ? `/projects/${testCase.project.id}?tab=testCases` : undefined },
             { label: loading ? '' : 'Test case not found' },
           ]}
         />
@@ -276,7 +286,8 @@ export function TestCaseDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: testCase.project.name, path: `/projects/${testCase.project.id}` },
+          { label: projectBreadcrumbLabel, path: `/projects/${testCase.project.id}` },
+          { label: 'Test Cases', path: `/projects/${testCase.project.id}?tab=testCases` },
           { label: `${testCase.code} — ${testCase.title}` },
         ]}
       />

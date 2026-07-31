@@ -18,6 +18,7 @@ import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useAuthContext } from '../../hooks/useAuth';
+import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
 import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
@@ -70,7 +71,7 @@ export function IssueDetailPage() {
     queryFn: () => projectService.getById(issue!.projectId),
     enabled: !!issue?.projectId,
   });
-  const projectName = project?.name ?? null;
+  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
 
   const { data: modules = [] } = useQuery({
     queryKey: queryKeys.modules(issue?.projectId ?? ''),
@@ -296,7 +297,8 @@ export function IssueDetailPage() {
   if (loading || !issue) {
     const breadcrumbItems: BreadcrumbItem[] = [
       { label: 'Projects', path: '/projects' },
-      { label: issue ? (projectName ?? '') : '', path: issue?.projectId ? `/projects/${issue.projectId}` : undefined },
+      { label: issue ? projectBreadcrumbLabel : '', path: issue?.projectId ? `/projects/${issue.projectId}` : undefined },
+      { label: issue ? 'Issues' : '', path: issue?.projectId ? `/projects/${issue.projectId}?tab=issues` : undefined },
       { label: loading ? '' : 'Issue not found' },
     ];
     return (
@@ -309,7 +311,8 @@ export function IssueDetailPage() {
 
   const breadcrumbItems: BreadcrumbItem[] = [
     { label: 'Projects', path: '/projects' },
-    { label: projectName ?? '', path: `/projects/${issue.projectId}` },
+    { label: projectBreadcrumbLabel, path: `/projects/${issue.projectId}` },
+    { label: 'Issues', path: `/projects/${issue.projectId}?tab=issues` },
     { label: issue.code, path: `/issues/${issue.id}` },
   ];
 
@@ -512,9 +515,11 @@ export function IssueDetailPage() {
             await handleIssueEditorAfterSave();
           }}
           onStatusChange={(status) => handleChangeStatus(status)}
+          onAssigneeChange={(assignedTo) => handleAssign(assignedTo)}
           projectId={issue.projectId}
           mode="edit"
           issueId={issue.id}
+          projectMembers={projectMembers}
           initialData={{
             code: issue.code,
             title: issue.title,
@@ -522,6 +527,7 @@ export function IssueDetailPage() {
             priority: issue.priority,
             status: issue.status,
             moduleId: issue.moduleId,
+            assignedTo: issue.assignedTo,
             description: issue.description ?? '',
             actualResult: issue.actualResult ?? '',
             expectedResult: issue.expectedResult ?? '',

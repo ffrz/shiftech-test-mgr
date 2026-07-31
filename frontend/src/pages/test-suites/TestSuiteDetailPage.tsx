@@ -28,6 +28,8 @@ import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { UserHoverCard } from '../../components/ui/UserHoverCard';
+import { formatOwnedEntityBreadcrumbLabel } from '../../helpers/breadcrumbFormatter';
 import { useStoredState } from '../../hooks/useStoredState';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import { ImportCasesDialog } from '../projects/components/dialogs/ImportCasesDialog';
@@ -495,8 +497,11 @@ export function TestSuiteDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Test Suite', path: '/test-suites' },
-          ...(suite ? [{ label: (suite as any)._authorUsername }] : []),
-          { label: suite ? suite.name : '' },
+          {
+            label: suite
+              ? (isOwner ? suite.name : formatOwnedEntityBreadcrumbLabel(suite.name, (suite as any)._authorUsername))
+              : '',
+          },
         ]}
       />
 
@@ -518,7 +523,14 @@ export function TestSuiteDetailPage() {
             <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-0 text-xs">
               <span className="text-color-secondary">
                 <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
-                by <span className="text-color">@{(suite as any)?._authorUsername}</span>
+                by{' '}
+                {suite?.ownerId ? (
+                  <UserHoverCard userId={suite.ownerId}>
+                    <span className="text-color entity-link">{(suite as any)?._authorUsername}</span>
+                  </UserHoverCard>
+                ) : (
+                  <span className="text-color">{(suite as any)?._authorUsername}</span>
+                )}
               </span>
               <span className="text-color-secondary">
                 <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />

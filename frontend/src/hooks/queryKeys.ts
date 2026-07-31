@@ -38,6 +38,7 @@ export const queryKeys = {
 
   users: () => ['users'] as const,
   profiles: () => ['profiles'] as const,
+  profile: (id: string) => ['profile', id] as const,
   projectMembers: (projectId: string) => ['projectMembers', projectId] as const,
   ownPendingInvitations: (userId: string) => ['projectMembers', 'ownPendingInvitations', userId] as const,
 

@@ -19,6 +19,7 @@ import { useIssuesByTestRun } from '../../hooks/useIssues';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
 import { testRunService } from '../../services/testRunService';
 import { projectMemberService } from '../../services/projectMemberService';
 import { issueService } from '../../services/issueService';
@@ -111,7 +112,7 @@ export function TestRunResultDetailPage() {
     queryFn: () => projectService.getById(projectId!),
     enabled: !!projectId,
   });
-  const projectName = project?.name ?? null;
+  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
 
   const { data: modules = [] } = useQuery({
     queryKey: queryKeys.modules(projectId ?? ''),
@@ -328,6 +329,7 @@ export function TestRunResultDetailPage() {
       priority: 'medium',
       status: 'open',
       moduleId: null,
+      assignedTo: null,
       description: '',
       actualResult: '',
       expectedResult: activeResult.testCaseExpectedResult,
@@ -413,12 +415,8 @@ export function TestRunResultDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: projectId ? (projectName ?? '') : '', path: projectId ? `/projects/${projectId}` : undefined },
-          // Custom/unplanned runs (E16) have no test_plan_id — skip this crumb entirely
-          // instead of showing a permanently-unresolved placeholder.
-          ...(testRun?.testPlanId
-            ? [{ label: testPlan ? testPlan.code : '', path: testPlan ? `/test-plans/${testPlan.id}` : undefined }]
-            : []),
+          { label: projectId ? projectBreadcrumbLabel : '', path: projectId ? `/projects/${projectId}` : undefined },
+          { label: projectId ? 'Test Runs' : '', path: projectId ? `/projects/${projectId}?tab=testRuns` : undefined },
           { label: testRun ? testRun.code : '', path: testRun ? `/test-runs/${testRun.id}` : undefined },
         ]}
       />
@@ -914,6 +912,7 @@ export function TestRunResultDetailPage() {
           projectId={projectId ?? ''}
           mode="create"
           initialData={issueEditorInitialData}
+          projectMembers={projectMembers}
           modules={editableModules}
           tags={editableTags}
           onModulesChange={setEditableModules}

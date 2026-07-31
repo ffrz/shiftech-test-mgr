@@ -20,6 +20,7 @@ import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { TestPlanDialog } from '../../components/dialogs/TestPlanDialog';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useProjectBreadcrumbLabel } from '../../hooks/useProjectBreadcrumbLabel';
 import { queryKeys } from '../../hooks/queryKeys';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
@@ -81,7 +82,7 @@ export function TestPlanDetailPage() {
     queryFn: () => projectService.getById(testPlan!.projectId),
     enabled: !!testPlan?.projectId,
   });
-  const projectName = project?.name ?? null;
+  const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
 
   const { data: modules = [] } = useQuery({
     queryKey: queryKeys.modules(testPlan?.projectId ?? ''),
@@ -302,7 +303,8 @@ export function TestPlanDetailPage() {
       <Breadcrumb
         items={[
           { label: 'Projects', path: '/projects' },
-          { label: testPlan ? (projectName ?? '') : '', path: testPlan ? `/projects/${testPlan.projectId}` : undefined },
+          { label: testPlan ? projectBreadcrumbLabel : '', path: testPlan ? `/projects/${testPlan.projectId}` : undefined },
+          { label: testPlan ? 'Test Plans' : '', path: testPlan ? `/projects/${testPlan.projectId}?tab=testPlans` : undefined },
           { label: testPlan ? testPlan.code : '' },
         ]}
       />
