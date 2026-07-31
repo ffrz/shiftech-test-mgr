@@ -193,6 +193,49 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
   background: var(--surface-100);
 }
 
+/* ===== Dense form variant (Quasar "dense" style) — opt-in via .dense-form on a
+   container, e.g. large dialogs like IssueEditor where the default .ifta-field padding
+   makes every field taller than it needs to be. Shrinks field/button padding, label size,
+   and row gaps further than the global compact baseline below; not applied globally
+   because most forms in the app are short enough that the extra breathing room reads
+   better. FloatLabel's resting position is `top: 50%` (see primereact/floatlabel), so it
+   re-centers on the shorter box automatically — no manual offset needed here. ===== */
+.dense-form .p-inputtext,
+.dense-form .p-dropdown .p-dropdown-label,
+.dense-form .p-multiselect .p-multiselect-label,
+.dense-form .p-inputtextarea,
+.dense-form .p-inputnumber-input {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.dense-form .p-button:not(.p-button-icon-only) {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.dense-form .ifta-field label {
+  font-size: 0.875rem;
+}
+
+.dense-form.flex.flex-column.gap-2 {
+  gap: 0.6rem;
+}
+
+.dense-form .flex.flex-column.gap-1 {
+  gap: 0.1rem;
+}
+
+.dense-form .grid {
+  margin: -0.25rem;
+}
+
+.dense-form .grid > div {
+  padding: 0.25rem;
+}
+
 /* ===== Compact / dense control sizing across PrimeReact components ===== */
 
 .p-inputtext,
@@ -1020,6 +1063,10 @@ html.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
   font-size: 0.75rem;
 }
 
+.p-toast {
+  max-width: calc(100vw - 2rem);
+}
+
 .p-toast .p-toast-message .p-toast-message-content {
   padding: 0.5rem;
   font-size: 0.8rem;
@@ -1174,6 +1221,12 @@ h6,
   border-radius: 12px 0 12px 0 !important;
 }
 
+/* Click-to-open user identity card (UserHoverCard) — GitHub-style hover card
+   shown for any username/avatar in the app. */
+.user-hover-card .p-overlaypanel-content {
+  padding: 1rem;
+}
+
 .p-inputtext,
 .p-multiselect,
 .p-dropdown,
@@ -1211,6 +1264,20 @@ h6,
    dialog form fields opt in explicitly via this class. */
 .ifta-field {
   margin-top: 0.5rem;
+}
+
+/* Stretch SelectButton options to fill the row on small screens (e.g. the
+   personal/public Test Suite toggle), while keeping the default inline-flex
+   sizing on wider viewports. */
+@media screen and (max-width: 576px) {
+  .select-button-full-mobile.p-selectbutton {
+    display: flex;
+    width: 100%;
+  }
+
+  .select-button-full-mobile .p-button {
+    flex: 1 1 0;
+  }
 }
 
 .ifta-field .p-inputtext,

@@ -9,7 +9,7 @@ import { Button } from 'primereact/button';
 import { FloatLabel } from 'primereact/floatlabel';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
-import type { Attachment, ExternalLink, IssuePriority, IssueStatus, IssueType, Module, Tag } from '../../types/domain';
+import type { Attachment, ExternalLink, IssuePriority, IssueStatus, IssueType, Module, ProjectMemberWithProfile, Tag } from '../../types/domain';
 import { ISSUE_PRIORITY_LABEL, ISSUE_STATUS_LABEL, ISSUE_TYPE_LABEL } from '../../helpers/statusLabels';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
@@ -22,6 +22,7 @@ export interface IssueFormData {
   priority: IssuePriority;
   status: IssueStatus;
   moduleId: string | null;
+  assignedTo: string | null;
   description: string;
   actualResult: string;
   expectedResult: string;
@@ -37,12 +38,17 @@ interface IssueEditorProps {
   // issueService.changeStatus (activity log + assignee notification), which needs actor
   // info this component doesn't have. Omit in create mode — new issues always start Open.
   onStatusChange?: (status: IssueStatus) => Promise<void>;
+  // Assignment is routed separately from onSave for the same reason as onStatusChange —
+  // issueService.assign needs actor info (activity log + assignee notification) this
+  // component doesn't have. Omit in create mode — new issues always start unassigned.
+  onAssigneeChange?: (assignedTo: string | null) => Promise<void>;
   projectId: string;
   mode: 'create' | 'edit';
   initialData?: IssueFormData | null;
   issueId?: string | null;
   modules: Module[];
   tags: Tag[];
+  projectMembers: ProjectMemberWithProfile[];
   onModulesChange?: (modules: Module[]) => void;
   onTagsChange?: (tags: Tag[]) => void;
   attachments?: Attachment[];
@@ -58,12 +64,14 @@ export function IssueEditor({
   onHide,
   onSave,
   onStatusChange,
+  onAssigneeChange,
   projectId,
   mode,
   initialData,
   issueId,
   modules,
   tags,
+  projectMembers,
   onModulesChange,
   onTagsChange,
   attachments,
@@ -77,6 +85,7 @@ export function IssueEditor({
   const [priority, setPriority] = useState<IssuePriority>('medium');
   const [status, setStatus] = useState<IssueStatus>('open');
   const [moduleId, setModuleId] = useState<string | null>(null);
+  const [assignedTo, setAssignedTo] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [actualResult, setActualResult] = useState('');
   const [expectedResult, setExpectedResult] = useState('');
@@ -108,6 +117,7 @@ export function IssueEditor({
     setPriority(initialData?.priority ?? 'medium');
     setStatus(initialData?.status ?? 'open');
     setModuleId(initialData?.moduleId ?? null);
+    setAssignedTo(initialData?.assignedTo ?? null);
     setDescription(initialData?.description ?? '');
     setActualResult(initialData?.actualResult ?? '');
     setExpectedResult(initialData?.expectedResult ?? '');
@@ -138,6 +148,7 @@ export function IssueEditor({
         priority,
         status,
         moduleId,
+        assignedTo,
         description: description.trim(),
         actualResult: actualResult.trim(),
         expectedResult: expectedResult.trim(),
@@ -146,6 +157,9 @@ export function IssueEditor({
       });
       if (mode === 'edit' && onStatusChange && initialData && status !== initialData.status) {
         await onStatusChange(status);
+      }
+      if (mode === 'edit' && onAssigneeChange && initialData && assignedTo !== initialData.assignedTo) {
+        await onAssigneeChange(assignedTo);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save issue');
@@ -216,14 +230,23 @@ export function IssueEditor({
         onHide={onHide}
         style={{ width: '36rem' }}
       >
-        <div className="flex flex-column gap-2">
+        <div className="dense-form flex flex-column gap-2">
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText id="issue-code" value={code} onChange={(e) => setCode(e.target.value)} className="w-full" />
+              <label htmlFor="issue-code">Code (automatic if empty)</label>
+            </FloatLabel>
+          </div>
+
+          <div className="flex flex-column gap-1">
+            <FloatLabel className="ifta-field">
+              <InputText id="issue-title" ref={titleRef} value={title} onChange={(e) => { setTitle(e.target.value); setTitleError(null); }} className={titleError ? 'p-invalid w-full' : 'w-full'} autoFocus />
+              <label htmlFor="issue-title" className={titleError ? 'p-error' : ''}>Title *</label>
+            </FloatLabel>
+            {titleError && <small className="p-error">{titleError}</small>}
+          </div>
+
           <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column">
-              <FloatLabel className="ifta-field">
-                <InputText id="issue-code" value={code} onChange={(e) => setCode(e.target.value)} className="w-full" />
-                <label htmlFor="issue-code">Code (automatic if empty)</label>
-              </FloatLabel>
-            </div>
             <div className="col-12 md:col-6 flex flex-column">
               <FloatLabel className="ifta-field">
                 <Dropdown
@@ -237,14 +260,20 @@ export function IssueEditor({
                 <label htmlFor="issue-status">Status</label>
               </FloatLabel>
             </div>
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <FloatLabel className="ifta-field">
-              <InputText id="issue-title" ref={titleRef} value={title} onChange={(e) => { setTitle(e.target.value); setTitleError(null); }} className={titleError ? 'p-invalid w-full' : 'w-full'} autoFocus />
-              <label htmlFor="issue-title" className={titleError ? 'p-error' : ''}>Title *</label>
-            </FloatLabel>
-            {titleError && <small className="p-error">{titleError}</small>}
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <Dropdown
+                  id="issue-assigned"
+                  value={assignedTo}
+                  options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
+                  onChange={(e) => setAssignedTo(e.value ?? null)}
+                  showClear
+                  disabled={mode === 'create' || !onAssigneeChange}
+                  className="w-full"
+                />
+                <label htmlFor="issue-assigned">Assigned To</label>
+              </FloatLabel>
+            </div>
           </div>
 
           <div className="grid">
