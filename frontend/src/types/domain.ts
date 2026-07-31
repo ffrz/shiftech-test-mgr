@@ -241,6 +241,7 @@ export interface TestRun {
   startedAt: string;
   completedAt: string | null;
   notes: string | null;
+  startedBy: string | null;
   createdAt: string;
   updatedAt: string;
 }

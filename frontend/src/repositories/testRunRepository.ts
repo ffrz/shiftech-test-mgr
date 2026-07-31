@@ -80,7 +80,7 @@ export const testRunRepository = {
   // `code` optional — omit/empty lets the `set_test_run_code` DB trigger auto-generate TR-####.
   // `testPlanId` null means a custom/unplanned run — `projectId` is always required so the
   // trigger/RLS chain can resolve the project without a plan.
-  async create(input: { projectId: string; testPlanId?: string | null; name: string; code?: string | null }): Promise<TestRun> {
+  async create(input: { projectId: string; testPlanId?: string | null; name: string; code?: string | null; startedBy?: string | null }): Promise<TestRun> {
     const { data, error } = await supabase
       .from('test_runs')
       .insert({
@@ -88,6 +88,7 @@ export const testRunRepository = {
         test_plan_id: input.testPlanId ?? null,
         name: input.name,
         code: input.code || undefined,
+        started_by: input.startedBy ?? null,
       })
       .select('*')
       .single();

@@ -57,7 +57,7 @@ export const testRunService = {
   // Starting a run snapshots every test case currently in the plan's scope into
   // test_results as 'not_run' — later edits to the plan's case list don't retroactively
   // change what this run covers, matching how a real regression cycle has a fixed scope.
-  async start(testPlanId: string, name: string, code?: string) {
+  async start(testPlanId: string, name: string, code?: string, startedBy?: string | null) {
     if (!name.trim()) throw new Error('Test run name cannot be empty');
 
     const plan = await testPlanRepository.findById(testPlanId);
@@ -73,6 +73,7 @@ export const testRunService = {
       testPlanId,
       name: name.trim(),
       code: code?.trim() || null,
+      startedBy: startedBy ?? null,
     });
     await testResultRepository.seedForRun(
       run.id,
@@ -82,7 +83,7 @@ export const testRunService = {
   },
 
   // Custom/unplanned run — no Test Plan involved, test cases are picked directly.
-  async startCustom(projectId: string, name: string, testCaseIds: string[], code?: string) {
+  async startCustom(projectId: string, name: string, testCaseIds: string[], code?: string, startedBy?: string | null) {
     if (!name.trim()) throw new Error('Test run name cannot be empty');
     if (testCaseIds.length === 0) throw new Error('Select at least one test case for this test run');
 
@@ -91,6 +92,7 @@ export const testRunService = {
       testPlanId: null,
       name: name.trim(),
       code: code?.trim() || null,
+      startedBy: startedBy ?? null,
     });
     await testResultRepository.seedForRun(run.id, testCaseIds);
     return run;

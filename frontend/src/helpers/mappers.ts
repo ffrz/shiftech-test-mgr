@@ -221,6 +221,7 @@ export function mapTestRunRow(row: any): TestRun {
     startedAt: row.started_at,
     completedAt: row.completed_at,
     notes: row.notes,
+    startedBy: row.started_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
