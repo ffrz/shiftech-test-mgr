@@ -27,10 +27,13 @@ import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { testPlanService } from '../../services/testPlanService';
 import { projectService } from '../../services/projectService';
+import { profileRepository } from '../../repositories/profileRepository';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
-import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
+import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
+import { UserHoverCard } from '../../components/ui/UserHoverCard';
+import { formatDateTime } from '../../helpers/dateFormatter';
 import { queryKeys } from '../../hooks/queryKeys';
 import type {
   IssueWithDetails,
@@ -114,6 +117,12 @@ export function TestRunResultDetailPage() {
   });
   const projectBreadcrumbLabel = useProjectBreadcrumbLabel(project?.name, project?.ownerId);
 
+  const { data: starterProfile = null } = useQuery({
+    queryKey: queryKeys.profile(testRun?.startedBy ?? ''),
+    queryFn: () => profileRepository.findById(testRun!.startedBy!),
+    enabled: !!testRun?.startedBy,
+  });
+
   const { data: modules = [] } = useQuery({
     queryKey: queryKeys.modules(projectId ?? ''),
     queryFn: () => moduleService.listByProject(projectId!),
@@ -124,6 +133,18 @@ export function TestRunResultDetailPage() {
     queryFn: () => tagService.listByProject(projectId!),
     enabled: !!projectId,
   });
+
+  // Distinct testers who have recorded a result on this run — matches the same
+  // "Tester" info already shown per-run on the Test Plan/Project test run lists
+  // (testResultRepository.getDistinctTestersByRunIds), but derived client-side here
+  // since `results` already carries each result's full tester profile.
+  const testers = useMemo(() => {
+    const seen = new Map<string, (typeof results)[number]['tester']>();
+    for (const r of results) {
+      if (r.tester && !seen.has(r.tester.id)) seen.set(r.tester.id, r.tester);
+    }
+    return [...seen.values()];
+  }, [results]);
 
   const activeResult = results.find((r) => r.id === resultId) ?? null;
 
@@ -150,6 +171,8 @@ export function TestRunResultDetailPage() {
     selectResult(results[0].id, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultId, results]);
+
+  const [detailCollapsed, setDetailCollapsed] = useState(false);
 
   // --- Panel kiri: filter/search ---
   const [search, setSearch] = useState('');
@@ -421,59 +444,127 @@ export function TestRunResultDetailPage() {
         ]}
       />
 
-      <PageHeader
-        title={testRun ? `${testRun.code} — ${testRun.name}` : 'Test Run'}
-        actions={
-          canRunTests ? (
-            testRun?.status === 'completed' ? (
-              <Button label="Reopen" icon="pi pi-replay" size="small" severity="secondary" outlined onClick={handleReopenRun} />
-            ) : (
-              <Button label="Complete" icon="pi pi-check" size="small" onClick={openCompleteDialog} />
-            )
-          ) : undefined
-        }
-      />
+      <Card className="mb-3">
+        <div className="flex align-items-center justify-content-between gap-2">
+          <div className="min-w-0 flex flex-column gap-1">
+            <h2 className="m-0 white-space-nowrap overflow-hidden text-overflow-ellipsis">
+              {testRun ? `${testRun.code} — ${testRun.name}` : 'Test Run'}
+            </h2>
+          </div>
+          <div className="flex gap-2 flex-shrink-0 header-actions">
+            {canRunTests && testRun && (
+              testRun.status === 'completed' ? (
+                <Button label="Reopen" icon="pi pi-replay" size="small" severity="secondary" outlined onClick={handleReopenRun} className="run-status-action-btn" />
+              ) : (
+                <Button label="Complete" icon="pi pi-check" size="small" onClick={openCompleteDialog} className="run-status-action-btn" />
+              )
+            )}
+            <Button
+              text
+              icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'}
+              rounded
+              size="small"
+              onClick={() => setDetailCollapsed(!detailCollapsed)}
+              aria-label={detailCollapsed ? 'Expand' : 'Collapse'}
+            />
+          </div>
+        </div>
 
-      {/* --- Summary/progress: desktop only --- */}
-      {!isMobile && testRun && (
-        <>
-          <div className="flex align-items-center flex-wrap gap-2 mb-3">
-            <Tag value={TEST_RUN_STATUS_LABEL[testRun.status]} severity={TEST_RUN_STATUS_SEVERITY[testRun.status]} />
-            <span className="text-color-secondary text-sm">
-              {summary.pass} pass · {summary.fail} fail · {summary.skip} skip · {summary.blocked} blocked · {summary.notRun} not run
-            </span>
+        <div>
+          {testRun && <Tag value={TEST_RUN_STATUS_LABEL[testRun.status]} severity={TEST_RUN_STATUS_SEVERITY[testRun.status]} />}
+        </div>
+        {!detailCollapsed && testRun && (
+          <>
             {testPlan && (
-              <span className="text-color-secondary text-sm">
-                · Test Plan:{' '}
+              <div className="mt-2 mb-1 text-sm text-color-secondary">
+                Test Plan:{' '}
                 <a className="entity-link" onClick={() => navigate(`/test-plans/${testPlan.id}`)}>
                   {testPlan.code} - {testPlan.name}
                 </a>
-              </span>
+              </div>
             )}
-          </div>
 
-          {testRun?.notes && (
-            <div className="mb-3 p-0 surface-100 border-round">
-              <div className="text-sm font-medium mb-1">Notes</div>
-              <div className="text-sm white-space-pre-line">{testRun.notes}</div>
+            <div className="flex flex-column sm:flex-row sm:flex-wrap gap-2 sm:column-gap-4 sm:row-gap-1 mt-3 mb-3 text-xs">
+              {testRun.startedBy && starterProfile && (
+                <span className="text-color-secondary">
+                  <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />
+                  Run by{' '}
+                  <UserHoverCard userId={testRun.startedBy}>
+                    <span className="text-color entity-link">{starterProfile.username}</span>
+                  </UserHoverCard>
+                </span>
+              )}
+              <span className="text-color-secondary">
+                <i className="pi pi-users mr-1" style={{ fontSize: '0.75rem' }} />
+                Tester{testers.length !== 1 ? 's' : ''}{' '}
+                {testers.length > 0 ? (
+                  testers.map((t, i) => (
+                    <span key={t!.id}>
+                      <UserHoverCard userId={t!.id}>
+                        <span className="text-color entity-link">{t!.username}</span>
+                      </UserHoverCard>
+                      {i < testers.length - 1 ? ', ' : ''}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-color">Not assigned yet</span>
+                )}
+              </span>
+              <span className="text-color-secondary">
+                <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
+                Started <span className="text-color">{formatDateTime(testRun.startedAt)}</span>
+              </span>
+              <span className="text-color-secondary">
+                <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
+                Updated <span className="text-color">{formatDateTime(testRun.updatedAt)}</span>
+              </span>
             </div>
-          )}
 
-          <div className="mb-4">
-            <div className="flex justify-content-between mb-1">
-              <span>{summary.executed} / {summary.total} executed</span>
-              <span>{summary.progressPercent}%</span>
+            {testRun?.notes && (
+              <div className="mb-3 p-0 surface-100 border-round">
+                <div className="text-sm font-medium mb-1">Notes</div>
+                <div className="text-sm white-space-pre-line">{testRun.notes}</div>
+              </div>
+            )}
+
+            <div className="project-stat-grid project-stat-grid-compact mb-3">
+              <div className="project-stat-tile project-stat-tile-compact project-stat-tile-pass">
+                <i className="pi pi-check-circle text-green-500" />
+                <span className="project-stat-value">{summary.pass}</span>
+                <span className="project-stat-label">Pass</span>
+              </div>
+              <div className="project-stat-tile project-stat-tile-compact project-stat-tile-fail">
+                <i className="pi pi-times-circle text-red-500" />
+                <span className="project-stat-value">{summary.fail}</span>
+                <span className="project-stat-label">Fail</span>
+              </div>
+              <div className="project-stat-tile project-stat-tile-compact project-stat-tile-skip">
+                <i className="pi pi-step-forward text-color-secondary" />
+                <span className="project-stat-value">{summary.skip}</span>
+                <span className="project-stat-label">Skip</span>
+              </div>
+              <div className="project-stat-tile project-stat-tile-compact project-stat-tile-blocked">
+                <i className="pi pi-ban text-yellow-500" />
+                <span className="project-stat-value">{summary.blocked}</span>
+                <span className="project-stat-label">Blocked</span>
+              </div>
+              <div className="project-stat-tile project-stat-tile-compact project-stat-tile-not-run">
+                <i className="pi pi-circle text-blue-500" />
+                <span className="project-stat-value">{summary.notRun}</span>
+                <span className="project-stat-label">Not Run</span>
+              </div>
             </div>
-            <ProgressBar value={summary.progressPercent} showValue={false} />
-          </div>
-        </>
-      )}
 
-      {testRun && (
-        <Panel header="Activity" toggleable collapsed className="mb-3">
-          <ActivityPanel projectId={testRun.projectId} entityType="test_run" entityId={testRun.id} />
-        </Panel>
-      )}
+            <div className="mb-1">
+              <div className="flex justify-content-between mb-1">
+                <span>{summary.executed} / {summary.total} executed</span>
+                <span>{summary.progressPercent}%</span>
+              </div>
+              <ProgressBar value={summary.progressPercent} showValue={false} />
+            </div>
+          </>
+        )}
+      </Card>
 
       <div className="grid">
         {/* --- Panel kiri: desktop — collapsible with filter via dialog --- */}
@@ -573,7 +664,7 @@ export function TestRunResultDetailPage() {
           <div
             ref={rightPanelRef}
             className={isMobile ? undefined : 'flex-grow-1'}
-            style={isMobile ? { paddingBottom: activeResult ? '6rem' : undefined } : { overflowY: 'auto' }}
+            style={isMobile ? undefined : { overflowY: 'auto' }}
             onScroll={isMobile ? undefined : (e) => setRightPanelScrolled(e.currentTarget.scrollTop > 0)}
           >
             {!activeResult ? (
@@ -583,69 +674,145 @@ export function TestRunResultDetailPage() {
             ) : (
               <>
                 <Card className="mb-3">
-                  <div className="flex align-items-center justify-content-between gap-2 mb-1">
-                    <div className="flex align-items-center gap-2">
-                      <h2 className="m-0">{activeResult.testCaseCode} — {activeResult.testCaseTitle}</h2>
-                    </div>
+                  <h2 className="m-0">{activeResult.testCaseCode} — {activeResult.testCaseTitle}</h2>
+
+                  <div className="flex flex-wrap align-items-center gap-2 mt-3 text-sm">
+                    <Tag value={TEST_CASE_PRIORITY_LABEL[activeResult.testCasePriority]} severity={TEST_CASE_PRIORITY_SEVERITY[activeResult.testCasePriority]} />
+                    <Tag value={TEST_RESULT_STATUS_LABEL[activeResult.status]} severity={TEST_RESULT_STATUS_SEVERITY[activeResult.status]} />
+                    {activeResult.testCase?.targetRole && <Tag value={activeResult.testCase.targetRole.name} severity="secondary" />}
+                    <span className="text-color-secondary">
+                      Module: <span className="text-color">{activeResult.testCase?.module?.name ?? '-'}</span>
+                    </span>
                   </div>
 
-                  <div className="flex flex-wrap align-items-center justify-content-between gap-2 mt-2 mb-1 text-sm">
-                    <div className="flex flex-wrap align-items-center gap-4">
-                      <div className="flex flex-wrap align-items-center gap-2">
-                        <Tag value={TEST_CASE_PRIORITY_LABEL[activeResult.testCasePriority]} severity={TEST_CASE_PRIORITY_SEVERITY[activeResult.testCasePriority]} />
-                        <Tag value={TEST_RESULT_STATUS_LABEL[activeResult.status]} severity={TEST_RESULT_STATUS_SEVERITY[activeResult.status]} />
-                      </div>
-                      <span className="text-color-secondary">
-                        Module: <span className="text-color">{activeResult.testCase?.module?.name ?? '-'}</span>
-                      </span>
-                      {activeResult.testCase?.targetRole && <Tag value={activeResult.testCase.targetRole.name} severity="secondary" />}
-                      {activeResult.testCase && activeResult.testCase.tags.length > 0 && (
-                        <span className="flex flex-wrap gap-1">
-                          {activeResult.testCase.tags.map((tag) => (
-                            <Tag key={tag.id} value={tag.name} severity="info" />
-                          ))}
-                        </span>
-                      )}
+                  {activeResult.testCase && activeResult.testCase.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {activeResult.testCase.tags.map((tag) => (
+                        <Tag key={tag.id} value={tag.name} severity="info" />
+                      ))}
                     </div>
-                    {canRunTests && testRun?.status !== 'completed' && activeResult.testCase && (
-                      <div className="flex gap-2">
-                        <Button label="Sync Original" icon="pi pi-sync" size="small" text onClick={handleSyncResult} />
-                        <Button
-                          label="View Original"
-                          icon="pi pi-external-link"
-                          size="small"
-                          text
-                          onClick={() => navigate(`/test-cases/${activeResult.testCase!.id}?projectId=${projectId ?? ''}`)}
-                        />
-                      </div>
-                    )}
-                  </div>
+                  )}
+
+                  {canRunTests && testRun?.status !== 'completed' && activeResult.testCase && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <Button label="Sync Original" icon="pi pi-sync" size="small" text severity="secondary" className="run-status-action-btn" onClick={handleSyncResult} />
+                      <Button
+                        label="View Original"
+                        icon="pi pi-external-link"
+                        size="small"
+                        text
+                        severity="secondary"
+                        className="run-status-action-btn"
+                        onClick={() => navigate(`/test-cases/${activeResult.testCase!.id}?projectId=${projectId ?? ''}`)}
+                      />
+                    </div>
+                  )}
 
                   {activeResult.testCase && activeResult.testCase.updatedAt > activeResult.updatedAt && (
-                    <small className="text-color-secondary">
+                    <small className="text-color-secondary block mt-3">
                       <i className="pi pi-info-circle mr-1" />
                       The original test case has been updated since this run started — this view is a snapshot taken when the run was created.
                     </small>
                   )}
+                </Card>
 
-                  {activeResult.testCaseObjective && (
-                    <div className="mt-3">
-                      <label className="block text-color-secondary text-sm mb-1">Objective</label>
-                      <p className="m-0">{activeResult.testCaseObjective}</p>
+                {activeResult.testCaseObjective && (
+                  <Card title="Objective" className="mb-3 detail-content-card">
+                    <p className="m-0">{activeResult.testCaseObjective}</p>
+                  </Card>
+                )}
+
+                {activeResult.testCasePreconditions && (
+                  <Card title="Preconditions" className="mb-3 detail-content-card">
+                    <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCasePreconditions}</p>
+                  </Card>
+                )}
+
+                {canRunTests && (
+                  <Card title="Execution Result" className="mb-3">
+                    <div className="grid">
+                      <div className="col-12 md:col-6 flex flex-column">
+                        <FloatLabel className="ifta-field">
+                          <Dropdown
+                            id="result-status"
+                            value={resultStatus}
+                            options={RESULT_OPTIONS}
+                            onChange={(e) => {
+                              setResultStatus(e.value);
+                              saveResult({ status: e.value });
+                            }}
+                            className="w-full"
+                            disabled={isCompleted}
+                          />
+                          <label htmlFor="result-status">Status</label>
+                        </FloatLabel>
+                      </div>
+                      <div className="col-12 md:col-6 flex flex-column">
+                        <FloatLabel className="ifta-field">
+                          <Dropdown
+                            id="result-tester"
+                            value={resultTesterId}
+                            options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
+                            onChange={(e) => {
+                              setResultTesterId(e.value);
+                              saveResult({ testerId: e.value });
+                            }}
+                            className="w-full"
+                            disabled={isCompleted}
+                          />
+                          <label htmlFor="result-tester">Tester</label>
+                        </FloatLabel>
+                      </div>
                     </div>
-                  )}
+                  </Card>
+                )}
 
-                  {activeResult.testCasePreconditions && (
-                    <div className="mt-3">
-                      <label className="block text-color-secondary text-sm mb-1">Preconditions</label>
-                      <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCasePreconditions}</p>
+                {/* One consistent slot for "Test Steps" — simple test cases render as free
+                    text, detailed ones render as a per-step checklist (each step also
+                    carries its own expected result). */}
+                {activeResult.stepResults.length === 0 ? (
+                  <Card title="Test Steps" className="mb-3 detail-content-card">
+                    <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseSteps}</p>
+                  </Card>
+                ) : (
+                  <Card title="Test Steps" className="mb-3 detail-content-card">
+                    <div className="flex flex-column gap-2">
+                      {activeResult.stepResults.map((sr) => (
+                        <div key={sr.id} className="flex align-items-start gap-2 p-2 border-round surface-100">
+                          <div className="text-sm flex-grow-1">
+                            <div>{sr.step.stepNumber}. {sr.step.action}</div>
+                            {sr.step.expectedResult && (
+                              <div className="text-color-secondary mt-1">
+                                Expected: {sr.step.expectedResult}
+                              </div>
+                            )}
+                          </div>
+                          <Dropdown
+                            value={sr.status === 'not_run' ? null : sr.status}
+                            options={[{ label: 'Pass', value: 'pass' }, { label: 'Fail', value: 'fail' }]}
+                            placeholder="-"
+                            onChange={async (e) => {
+                              await testRunService.recordStepResult(sr.id, e.value, sr.actualResult);
+                              await reload();
+                            }}
+                            className="w-8rem"
+                            disabled={isCompleted}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </Card>
+                )}
 
-                  {canRunTests && (
-                    <div className="mt-3">
-                      <div className="flex align-items-center gap-2 mb-1">
-                        <label className="block text-color-secondary text-sm m-0">Notes</label>
+                <Card title="Expected Result" className="mb-3 detail-content-card">
+                  <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseExpectedResult}</p>
+                </Card>
+
+                {canRunTests && (
+                  <Card
+                    title={
+                      <div className="flex align-items-center justify-content-between">
+                        <span>Notes</span>
                         <Button
                           icon="pi pi-pencil"
                           text
@@ -657,97 +824,27 @@ export function TestRunResultDetailPage() {
                           style={{ width: '1.5rem', height: '1.5rem' }}
                         />
                       </div>
-                      {resultNotes ? (
-                        <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{resultNotes}</p>
-                      ) : (
-                        <p className="m-0 text-color-secondary" style={{ fontStyle: 'italic' }}>No notes</p>
-                      )}
-                    </div>
-                  )}
-                </Card>
-
-                {canRunTests && (
-                  <Card title="Execution Result" className="mb-3">
-                    <div className="flex flex-column gap-3">
-                      <div className="grid">
-                        <div className="col-12 md:col-6 flex flex-column">
-                          <FloatLabel className="ifta-field">
-                            <Dropdown
-                              id="result-status"
-                              value={resultStatus}
-                              options={RESULT_OPTIONS}
-                              onChange={(e) => {
-                                setResultStatus(e.value);
-                                saveResult({ status: e.value });
-                              }}
-                              className="w-full"
-                              disabled={isCompleted}
-                            />
-                            <label htmlFor="result-status">Status</label>
-                          </FloatLabel>
-                        </div>
-                        <div className="col-12 md:col-6 flex flex-column">
-                          <FloatLabel className="ifta-field">
-                            <Dropdown
-                              id="result-tester"
-                              value={resultTesterId}
-                              options={projectMembers.map((m) => ({ label: m.profile.displayName ?? m.profile.username, value: m.userId }))}
-                              onChange={(e) => {
-                                setResultTesterId(e.value);
-                                saveResult({ testerId: e.value });
-                              }}
-                              className="w-full"
-                              disabled={isCompleted}
-                            />
-                            <label htmlFor="result-tester">Tester</label>
-                          </FloatLabel>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-color-secondary text-sm mb-1">Expected Result</label>
-                        <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseExpectedResult}</p>
-                      </div>
-
-                      {/* One consistent slot for "Test Steps" — simple test cases render as
-                          free text, detailed ones render as a per-step checklist (each step
-                          also carries its own expected result). */}
-                      {activeResult.stepResults.length === 0 ? (
-                        <div>
-                          <label className="block text-color-secondary text-sm mb-1">Test Steps</label>
-                          <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseSteps}</p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-column gap-2">
-                          <label>Test Steps</label>
-                          {activeResult.stepResults.map((sr) => (
-                            <div key={sr.id} className="flex align-items-start gap-2 p-2 border-round surface-100">
-                              <div className="text-sm flex-grow-1">
-                                <div>{sr.step.stepNumber}. {sr.step.action}</div>
-                                {sr.step.expectedResult && (
-                                  <div className="text-color-secondary mt-1">
-                                    Expected: {sr.step.expectedResult}
-                                  </div>
-                                )}
-                              </div>
-                              <Dropdown
-                                value={sr.status === 'not_run' ? null : sr.status}
-                                options={[{ label: 'Pass', value: 'pass' }, { label: 'Fail', value: 'fail' }]}
-                                placeholder="-"
-                                onChange={async (e) => {
-                                  await testRunService.recordStepResult(sr.id, e.value, sr.actualResult);
-                                  await reload();
-                                }}
-                                className="w-8rem"
-                                disabled={isCompleted}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    }
+                    className="mb-3 detail-content-card"
+                  >
+                    {resultNotes ? (
+                      <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{resultNotes}</p>
+                    ) : (
+                      <p className="m-0 text-color-secondary" style={{ fontStyle: 'italic' }}>No notes</p>
+                    )}
                   </Card>
                 )}
+
+                <Card title="Attachments" className="mb-3">
+                  <AttachmentPanel
+                    projectId={projectId ?? ''}
+                    entityType="test_result"
+                    entityId={activeResult.id}
+                    canManage={canRunTests}
+                    onToastSuccess={(summary) => toast.current?.show({ severity: 'success', summary })}
+                    onToastError={(summary, detail) => toast.current?.show({ severity: 'error', summary, detail })}
+                  />
+                </Card>
 
                 {canManageIssues && (
                   <Card
@@ -809,6 +906,18 @@ export function TestRunResultDetailPage() {
           </div>
         </div>
       </div>
+
+      {testRun && (
+        <Panel
+          header="Activity"
+          toggleable
+          collapsed
+          className="mt-3"
+          style={{ marginBottom: isMobile && activeResult ? '6rem' : '0.75rem' }}
+        >
+          <ActivityPanel projectId={testRun.projectId} entityType="test_run" entityId={testRun.id} />
+        </Panel>
+      )}
 
       {/* --- Mobile Prev/Next toolbar: fixed to the bottom of the viewport instead of
           scrolling with the page, so it's always reachable regardless of how far the
