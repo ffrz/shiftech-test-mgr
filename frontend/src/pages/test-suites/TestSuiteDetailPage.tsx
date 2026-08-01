@@ -8,12 +8,8 @@ import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { MultiSelect } from 'primereact/multiselect';
-import { CharacterCount } from '../../components/ui/CharacterCount';
 import { Dropdown } from 'primereact/dropdown';
-import { SelectButton } from 'primereact/selectbutton';
-import { FloatLabel } from 'primereact/floatlabel';
 import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
@@ -21,7 +17,7 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { testSuiteService } from '../../services/testSuiteService';
 import { queryKeys } from '../../hooks/queryKeys';
-import type { TestCasePriority, TestCaseStepType, TestSuiteItem, TestSuiteVisibility } from '../../types/domain';
+import type { TestCasePriority, TestSuiteItem, TestSuiteVisibility } from '../../types/domain';
 import { FilterToolbar } from '../../components/ui/FilterToolbar';
 import SearchInput from '../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
@@ -31,6 +27,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { useStoredState } from '../../hooks/useStoredState';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
+import { TestSuiteItemDialog } from '../../components/dialogs/TestSuiteItemDialog';
 import { ImportCasesDialog } from '../projects/components/dialogs/ImportCasesDialog';
 import { parseTestCaseCsv, downloadCsvTemplate } from '../../helpers/csvImport';
 import { TestSuiteDetailPageSkeleton } from './TestSuiteDetailPageSkeleton';
@@ -306,170 +303,40 @@ export function TestSuiteDetailPage() {
     navigate(`/test-suites/${newSuite.id}`);
   }
 
-  // --- Item dialog: same shape as the project Test Case dialog, minus project-scoped
-  // module/tag pickers (suites aren't project-scoped) — module/tags are free text here,
-  // resolved into real per-project rows only at clone time (testSuiteService.cloneItemsToProject).
+  // --- Item dialog: self-contained in TestSuiteItemDialog (same shape as the project
+  // Test Case dialog, minus project-scoped module/tag pickers — suites aren't
+  // project-scoped, module/tags are free text here, resolved into real per-project
+  // rows only at clone time via testSuiteService.cloneItemsToProject).
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const [itemDialogMode, setItemDialogMode] = useState<'create' | 'edit' | 'duplicate'>('create');
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [itemModuleName, setItemModuleName] = useState('');
-  const [itemTitle, setItemTitle] = useState('');
-  const [itemObjective, setItemObjective] = useState('');
-  const [itemPreconditions, setItemPreconditions] = useState('');
-  const [itemSteps, setItemSteps] = useState('');
-  const [itemExpectedResult, setItemExpectedResult] = useState('');
-  const [itemPriority, setItemPriority] = useState<TestCasePriority>('medium');
-  const [itemTargetRole, setItemTargetRole] = useState('');
-  const [itemTagNames, setItemTagNames] = useState('');
-  const [itemStepType, setItemStepType] = useState<TestCaseStepType>('simple');
-  const [itemDetailedSteps, setItemDetailedSteps] = useState<{ action: string; expectedResult: string }[]>([]);
-  const [itemNotes, setItemNotes] = useState('');
-  const [itemErrors, setItemErrors] = useState<Record<string, string>>({});
-  const itemTitleRef = useRef<HTMLInputElement>(null);
-  const itemStepsRef = useRef<HTMLTextAreaElement>(null);
-  const itemExpectedRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (itemErrors.title && itemTitleRef.current) {
-      itemTitleRef.current.focus();
-      itemTitleRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    } else if (itemErrors.steps && itemStepsRef.current) {
-      itemStepsRef.current.focus();
-      itemStepsRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    } else if (itemErrors.expectedResult && itemExpectedRef.current) {
-      itemExpectedRef.current.focus();
-      itemExpectedRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    }
-  }, [itemErrors]);
-
-  function mapServiceError(msg: string): Record<string, string> {
-    if (msg.includes('title cannot be empty')) return { title: msg };
-    if (msg.includes('Test steps cannot be empty')) return { steps: msg };
-    if (msg.includes('Expected result cannot be empty')) return { expectedResult: msg };
-    if (msg.includes('must have at least one step')) return { detailedSteps: msg };
-    return { title: msg };
-  }
+  const [editingItem, setEditingItem] = useState<TestSuiteItem | null>(null);
 
   function openCreateItemDialog() {
     setItemDialogMode('create');
-    setEditingItemId(null);
-    setItemModuleName('');
-    setItemTitle('');
-    setItemObjective('');
-    setItemPreconditions('');
-    setItemSteps('');
-    setItemExpectedResult('');
-    setItemPriority('medium');
-    setItemTargetRole('');
-    setItemTagNames('');
-    setItemStepType('simple');
-    setItemDetailedSteps([]);
-    setItemNotes('');
-    setItemErrors({});
+    setEditingItem(null);
     setItemDialogOpen(true);
   }
 
-  async function openEditItemDialog(row: TestSuiteItem) {
+  function openEditItemDialog(row: TestSuiteItem) {
     setItemDialogMode('edit');
-    setEditingItemId(row.id);
-    setItemModuleName(row.moduleName ?? '');
-    setItemTitle(row.title);
-    setItemObjective(row.objective ?? '');
-    setItemPreconditions(row.preconditions ?? '');
-    setItemSteps(row.steps);
-    setItemExpectedResult(row.expectedResult);
-    setItemPriority(row.priority);
-    setItemTargetRole(row.targetRole ?? '');
-    setItemTagNames(row.tagNames.join(', '));
-    setItemStepType(row.stepType);
-    setItemNotes(row.notes ?? '');
-    setItemErrors({});
+    setEditingItem(row);
     setItemDialogOpen(true);
-    if (row.stepType === 'detailed') {
-      const withSteps = await testSuiteService.getItemWithSteps(row);
-      setItemDetailedSteps(withSteps.detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? '' })));
-    } else {
-      setItemDetailedSteps([]);
-    }
   }
 
-  async function openDuplicateItemDialog(row: TestSuiteItem) {
+  function openDuplicateItemDialog(row: TestSuiteItem) {
     setItemDialogMode('duplicate');
-    setEditingItemId(null);
-    setItemModuleName(row.moduleName ?? '');
-    setItemTitle(`${row.title} (Copy)`);
-    setItemObjective(row.objective ?? '');
-    setItemPreconditions(row.preconditions ?? '');
-    setItemSteps(row.steps);
-    setItemExpectedResult(row.expectedResult);
-    setItemPriority(row.priority);
-    setItemTargetRole(row.targetRole ?? '');
-    setItemTagNames(row.tagNames.join(', '));
-    setItemStepType(row.stepType);
-    setItemNotes(row.notes ?? '');
-    setItemErrors({});
+    setEditingItem(row);
     setItemDialogOpen(true);
-    if (row.stepType === 'detailed') {
-      const withSteps = await testSuiteService.getItemWithSteps(row);
-      setItemDetailedSteps(withSteps.detailedSteps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? '' })));
-    } else {
-      setItemDetailedSteps([]);
-    }
   }
 
-  async function handleSaveItem() {
-    if (!id) return;
-    setItemErrors({});
-    const tagNames = itemTagNames.split(',').map((t) => t.trim()).filter(Boolean);
-    try {
-      if (editingItemId) {
-        await testSuiteService.updateItem(
-          editingItemId,
-          {
-            moduleName: itemModuleName.trim() || null,
-            title: itemTitle,
-            objective: itemObjective.trim() || null,
-            preconditions: itemPreconditions.trim() || null,
-            steps: itemSteps,
-            expectedResult: itemExpectedResult,
-            priority: itemPriority,
-            targetRole: itemTargetRole.trim() || null,
-            tagNames,
-            stepType: itemStepType,
-            notes: itemNotes.trim() || null,
-          },
-          itemStepType === 'detailed' ? itemDetailedSteps : undefined,
-        );
-      } else {
-        await testSuiteService.addItem({
-          suiteId: id,
-          moduleName: itemModuleName,
-          title: itemTitle,
-          objective: itemObjective,
-          preconditions: itemPreconditions,
-          steps: itemSteps,
-          expectedResult: itemExpectedResult,
-          priority: itemPriority,
-          targetRole: itemTargetRole,
-          tagNames,
-          stepType: itemStepType,
-          notes: itemNotes,
-          detailedSteps: itemStepType === 'detailed' ? itemDetailedSteps : undefined,
-          orderIndex: items.length,
-        });
-      }
-      setItemDialogOpen(false);
-      await reloadItems();
-      const summaryMap: Record<typeof itemDialogMode, string> = {
-        create: 'Item added',
-        edit: 'Item updated',
-        duplicate: 'Item duplicated',
-      };
-      toastHelper.success(summaryMap[itemDialogMode]);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to save item';
-      setItemErrors(mapServiceError(msg));
-    }
+  function handleItemSaved() {
+    const summaryMap: Record<string, string> = {
+      create: 'Item added',
+      edit: 'Item updated',
+      duplicate: 'Item duplicated',
+    };
+    toastHelper.success(summaryMap[itemDialogMode]);
+    reloadItems();
   }
 
   function handleDeleteItem(row: TestSuiteItem) {
@@ -686,146 +553,15 @@ export function TestSuiteDetailPage() {
         )}
       </DataTable>
 
-      {/* --- Item Dialog --- */}
-      <Dialog
-        header={
-          itemDialogMode === 'edit' ? 'Edit Item' : itemDialogMode === 'duplicate' ? 'Duplicate Item' : 'New Item'
-        }
+      <TestSuiteItemDialog
         visible={itemDialogOpen}
+        mode={itemDialogMode}
+        item={editingItem}
+        suiteId={id ?? ''}
+        nextOrderIndex={items.length}
         onHide={() => setItemDialogOpen(false)}
-        style={{ width: '40rem' }}
-      >
-        <div className="flex flex-column gap-2">
-          <div className="flex flex-column gap-1">
-            <FloatLabel className="ifta-field">
-              <InputText id="item-title" ref={itemTitleRef} value={itemTitle} onChange={(e) => { setItemTitle(e.target.value); setItemErrors({}); }} className={itemErrors.title ? 'p-invalid w-full' : 'w-full'} autoFocus />
-              <label htmlFor="item-title" className={itemErrors.title ? 'p-error' : ''}>Title</label>
-            </FloatLabel>
-            {itemErrors.title && <small className="p-error">{itemErrors.title}</small>}
-          </div>
-
-          <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column">
-              <FloatLabel className="ifta-field">
-                <Dropdown id="item-priority" value={itemPriority} options={PRIORITY_OPTIONS} onChange={(e) => setItemPriority(e.value)} className="w-full" />
-                <label htmlFor="item-priority">Priority</label>
-              </FloatLabel>
-            </div>
-
-            <div className="col-12 md:col-6 flex flex-column">
-              <FloatLabel className="ifta-field">
-                <InputText id="item-module" value={itemModuleName} onChange={(e) => setItemModuleName(e.target.value)} className="w-full" />
-                <label htmlFor="item-module">Module (optional)</label>
-              </FloatLabel>
-            </div>
-          </div>
-
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <InputText id="item-role" value={itemTargetRole} onChange={(e) => setItemTargetRole(e.target.value)} className="w-full" />
-              <label htmlFor="item-role">Role Target (optional, ex. Admin, Manager, Member)</label>
-            </FloatLabel>
-          </div>
-
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <InputText id="item-tags" value={itemTagNames} onChange={(e) => setItemTagNames(e.target.value)} className="w-full" />
-              <label htmlFor="item-tags">Tags (comma-separated, ex. Regression, Smoke)</label>
-            </FloatLabel>
-          </div>
-
-
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <InputText id="item-objective" value={itemObjective} onChange={(e) => setItemObjective(e.target.value)} className="w-full" />
-              <label htmlFor="item-objective">Objective (optional)</label>
-            </FloatLabel>
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <FloatLabel className="ifta-field">
-              <InputTextarea id="item-preconditions" value={itemPreconditions} onChange={(e) => setItemPreconditions(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
-              <label htmlFor="item-preconditions">Prerequisites</label>
-            </FloatLabel>
-            <CharacterCount value={itemPreconditions} maxLength={1000} />
-          </div>
-
-          <div className="flex flex-column">
-            <label className="text-sm text-color-secondary mb-1">Step Mode</label>
-            <SelectButton
-              value={itemStepType}
-              options={[
-                { label: 'Simple', value: 'simple' },
-                { label: 'Detailed', value: 'detailed' },
-              ]}
-              onChange={(e) => { if (e.value) { setItemStepType(e.value); setItemErrors({}); } }}
-            />
-          </div>
-
-          {itemStepType === 'simple' ? (
-            <>
-              <div className="flex flex-column gap-1">
-                <FloatLabel className="ifta-field">
-                  <InputTextarea id="item-steps" ref={itemStepsRef} value={itemSteps} onChange={(e) => { setItemSteps(e.target.value); setItemErrors({}); }} rows={1} autoResize maxLength={1000} className={itemErrors.steps ? 'p-invalid w-full' : 'w-full'} />
-                  <label htmlFor="item-steps" className={itemErrors.steps ? 'p-error' : ''}>Test Steps</label>
-                </FloatLabel>
-                <CharacterCount value={itemSteps} maxLength={1000} />
-                {itemErrors.steps && <small className="p-error">{itemErrors.steps}</small>}
-              </div>
-              <div className="flex flex-column gap-1">
-                <FloatLabel className="ifta-field">
-                  <InputTextarea id="item-expected" ref={itemExpectedRef} value={itemExpectedResult} onChange={(e) => { setItemExpectedResult(e.target.value); setItemErrors({}); }} rows={1} autoResize maxLength={1000} className={itemErrors.expectedResult ? 'p-invalid w-full' : 'w-full'} />
-                  <label htmlFor="item-expected" className={itemErrors.expectedResult ? 'p-error' : ''}>Expected Result</label>
-                </FloatLabel>
-                <CharacterCount value={itemExpectedResult} maxLength={1000} />
-                {itemErrors.expectedResult && <small className="p-error">{itemErrors.expectedResult}</small>}
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-column gap-2">
-              <label>Test Steps (Detailed)</label>
-              {itemDetailedSteps.map((step, i) => (
-                <div key={i} className="flex gap-2 align-items-start p-2 border-round surface-100">
-                  <span className="text-color-secondary text-sm mt-2">{i + 1}.</span>
-                  <div className="flex flex-column gap-1 flex-grow-1">
-                    <InputText
-                      placeholder="Action"
-                      value={step.action}
-                      onChange={(e) => setItemDetailedSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, action: e.target.value } : s)))}
-                    />
-                    <InputText
-                      placeholder="Expected result (optional)"
-                      value={step.expectedResult}
-                      onChange={(e) => setItemDetailedSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, expectedResult: e.target.value } : s)))}
-                    />
-                  </div>
-                  <Button icon="pi pi-times" text size="small" onClick={() => setItemDetailedSteps((prev) => prev.filter((_, idx) => idx !== i))} />
-                </div>
-              ))}
-              <Button
-                label="Add Step"
-                icon="pi pi-plus"
-                text
-                size="small"
-                onClick={() => setItemDetailedSteps((prev) => [...prev, { action: '', expectedResult: '' }])}
-              />
-            </div>
-          )}
-
-
-          <div className="flex flex-column gap-1">
-            <FloatLabel className="ifta-field">
-              <InputTextarea id="item-notes" value={itemNotes} onChange={(e) => setItemNotes(e.target.value)} rows={2} autoResize maxLength={2000} className="w-full" />
-              <label htmlFor="item-notes">Notes (optional)</label>
-            </FloatLabel>
-            <CharacterCount value={itemNotes} maxLength={2000} />
-          </div>
-
-          <div className="my-2"></div>
-
-          <Button label="Save" size="small" onClick={handleSaveItem} />
-        </div>
-      </Dialog>
+        onSaved={handleItemSaved}
+      />
 
       <TestSuiteDialog
         visible={editDialogOpen}

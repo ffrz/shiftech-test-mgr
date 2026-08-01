@@ -1,17 +1,23 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
+import { Button } from 'primereact/button';
 import { testSuiteService } from '../../services/testSuiteService';
 import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { TestSuiteItemDetailPageSkeleton } from './TestSuiteItemDetailPageSkeleton';
+import { TestSuiteItemDialog } from '../../components/dialogs/TestSuiteItemDialog';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY } from '../../helpers/statusLabels';
 import { formatDateTime } from '../../helpers/dateFormatter';
+import { useAuthContext } from '../../hooks/useAuth';
 
 export function TestSuiteItemDetailPage() {
   const { suiteId, itemId } = useParams<{ suiteId: string; itemId: string }>();
+  const { user } = useAuthContext();
+  const queryClient = useQueryClient();
+  const [editOpen, setEditOpen] = useState(false);
 
   const { data: suite = null } = useQuery({
     queryKey: queryKeys.testSuite(suiteId ?? ''),
@@ -57,6 +63,11 @@ export function TestSuiteItemDetailPage() {
         <Card className="mb-3">
           <div className="flex align-items-start justify-content-between gap-2">
             <h2 className="m-0">{item.title}</h2>
+            {suite?.ownerId === user?.id && (
+              <div className="flex header-actions gap-1">
+                <Button icon="pi pi-pencil" rounded size="small" text severity="secondary" onClick={() => setEditOpen(true)} />
+              </div>
+            )}
           </div>
 
           <div className="flex align-items-center gap-2 mt-3">
@@ -139,6 +150,19 @@ export function TestSuiteItemDetailPage() {
           </Card>
         )}
       </div>
+
+      <TestSuiteItemDialog
+        visible={editOpen}
+        mode="edit"
+        item={item}
+        suiteId={suiteId ?? ''}
+        onHide={() => setEditOpen(false)}
+        onSaved={() => {
+          setEditOpen(false);
+          queryClient.invalidateQueries({ queryKey: queryKeys.testSuiteItem(itemId ?? '') });
+          queryClient.invalidateQueries({ queryKey: ['testSuiteItem'] });
+        }}
+      />
     </div>
   );
 }
