@@ -1,0 +1,42 @@
+﻿
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/shiftech/software-projects/shiftech-test-mgr/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32mÔ£ô[39m src/services/testSuiteService.test.ts [2m([22m[2m42 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m42 passed[39m[22m[90m (42)[39m
+[2m   Start at [22m 12:11:22
+[2m   Duration [22m 1.08s[2m (transform 133ms, setup 0ms, import 241ms, tests 42ms, environment 0ms)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   22.96 |    28.43 |   18.18 |   22.74 |                   
+ services          |    23.6 |    28.97 |   18.36 |   23.37 |                   
+  ...ityService.ts |       0 |        0 |       0 |       0 | 9-85              
+  ...entService.ts |       0 |      100 |       0 |       0 | 6-52              
+  ...LogService.ts |       0 |      100 |       0 |       0 | 3-5               
+  ...ardService.ts |       0 |        0 |       0 |       0 | 4-46              
+  issueService.ts  |       0 |        0 |       0 |       0 | 8-251             
+  moduleService.ts |       0 |        0 |       0 |       0 | 3-25              
+  ...ionService.ts |       0 |        0 |       0 |       0 | 8-29              
+  ...ileService.ts |       0 |        0 |       0 |       0 | 5-33              
+  ...ateService.ts |       0 |        0 |       0 |       0 | 18-183            
+  ...berService.ts |       0 |        0 |       0 |       0 | 8-73              
+  ...ectService.ts |       0 |        0 |       0 |       0 | 6-81              
+  tagService.ts    |       0 |        0 |       0 |       0 | 4-78              
+  ...ortService.ts |       0 |        0 |       0 |       0 | 8-77              
+  ...aseService.ts |       0 |        0 |       0 |       0 | 10-248            
+  ...tepService.ts |       0 |        0 |       0 |       0 | 3-12              
+  ...lanService.ts |       0 |        0 |       0 |       0 | 9-119             
+  ...oleService.ts |       0 |        0 |       0 |       0 | 3-24              
+  ...RunService.ts |       0 |        0 |       0 |       0 | 8-175             
+  ...iteService.ts |   98.93 |    89.32 |   98.18 |     100 | ...90,410,434,459 
+  userService.ts   |       0 |        0 |       0 |       0 | 7-55              
+ services/storage  |       0 |        0 |       0 |       0 |                   
+  ...ageAdapter.ts |       0 |        0 |       0 |       0 |                   
+  ...ageAdapter.ts |       0 |        0 |       0 |       0 | 4-41              
+  index.ts         |       0 |      100 |     100 |       0 | 7                 
+-------------------|---------|----------|---------|---------|-------------------

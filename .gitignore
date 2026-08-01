@@ -27,6 +27,9 @@ dist-ssr
 # Vite build cache
 frontend/.vite/
 
+# Vitest coverage report
+frontend/coverage/
+
 # Playwright MCP browser artifacts
 .playwright-mcp/
 supabase/.env.local

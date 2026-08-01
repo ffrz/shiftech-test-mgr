@@ -1,0 +1,67 @@
+﻿
+> shiftech-test-mgr@0.0.0 test:coverage
+> vitest run --coverage
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/shiftech/software-projects/shiftech-test-mgr/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32mÔ£ô[39m src/services/testPlanService.test.ts [2m([22m[2m24 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32mÔ£ô[39m src/services/testSuiteService.test.ts [2m([22m[2m42 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32mÔ£ô[39m src/services/issueService.test.ts [2m([22m[2m39 tests[22m[2m)[22m[32m 81[2mms[22m[39m
+ [32mÔ£ô[39m src/services/testCaseService.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32mÔ£ô[39m src/services/testRunService.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32mÔ£ô[39m src/services/projectDuplicateService.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32mÔ£ô[39m src/services/projectService.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32mÔ£ô[39m src/services/activityService.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32mÔ£ô[39m src/services/tagService.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32mÔ£ô[39m src/services/storage/SupabaseStorageAdapter.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32mÔ£ô[39m src/services/userService.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32mÔ£ô[39m src/services/projectMemberService.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32mÔ£ô[39m src/services/profileService.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32mÔ£ô[39m src/services/moduleService.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32mÔ£ô[39m src/services/testCaseImportService.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32mÔ£ô[39m src/services/dashboardService.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32mÔ£ô[39m src/services/testRoleService.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32mÔ£ô[39m src/services/attachmentService.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32mÔ£ô[39m src/services/testCaseStepService.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32mÔ£ô[39m src/services/notificationService.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32mÔ£ô[39m src/services/auditLogService.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32mÔ£ô[39m src/services/storage/index.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m22 passed[39m[22m[90m (22)[39m
+[2m      Tests [22m [1m[32m308 passed[39m[22m[90m (308)[39m
+[2m   Start at [22m 12:12:24
+[2m   Duration [22m 6.52s[2m (transform 1.24s, setup 0ms, import 3.26s, tests 502ms, environment 19ms)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   99.62 |    96.13 |   99.32 |     100 |                   
+ services          |   99.61 |    96.06 |   99.31 |     100 |                   
+  ...ityService.ts |     100 |      100 |     100 |     100 |                   
+  ...entService.ts |     100 |      100 |     100 |     100 |                   
+  ...LogService.ts |     100 |      100 |     100 |     100 |                   
+  ...ardService.ts |     100 |      100 |     100 |     100 |                   
+  issueService.ts  |     100 |      100 |     100 |     100 |                   
+  moduleService.ts |     100 |      100 |     100 |     100 |                   
+  ...ionService.ts |     100 |      100 |     100 |     100 |                   
+  ...ileService.ts |     100 |      100 |     100 |     100 |                   
+  ...ateService.ts |     100 |    97.91 |     100 |     100 | 115               
+  ...berService.ts |     100 |      100 |     100 |     100 |                   
+  ...ectService.ts |     100 |      100 |     100 |     100 |                   
+  tagService.ts    |     100 |      100 |     100 |     100 |                   
+  ...ortService.ts |   97.22 |    96.77 |   91.66 |     100 | 65                
+  ...aseService.ts |     100 |    98.57 |     100 |     100 | 220               
+  ...tepService.ts |     100 |      100 |     100 |     100 |                   
+  ...lanService.ts |     100 |      100 |     100 |     100 |                   
+  ...oleService.ts |     100 |      100 |     100 |     100 |                   
+  ...RunService.ts |     100 |      100 |     100 |     100 |                   
+  ...iteService.ts |   98.93 |    89.32 |   98.18 |     100 | ...90,410,434,459 
+  userService.ts   |     100 |      100 |     100 |     100 |                   
+ services/storage  |     100 |      100 |     100 |     100 |                   
+  ...ageAdapter.ts |       0 |        0 |       0 |       0 |                   
+  ...ageAdapter.ts |     100 |      100 |     100 |     100 |                   
+  index.ts         |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------
