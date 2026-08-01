@@ -4,16 +4,24 @@ body {
 }
 
 .entity-link {
-  color: var(--primary-color);
+  color: #111827;
   cursor: pointer;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
   transition: color 0.15s;
 }
 
+html.dark .entity-link {
+  color: #ffffff;
+}
+
 .entity-link:hover {
-  color: var(--primary-700, var(--primary-color));
+  color: #111827;
   text-decoration: underline;
+}
+
+html.dark .entity-link:hover {
+  color: #ffffff;
 }
 
 /* Owner handle shown under a shared project's name in the projects list — secondary
