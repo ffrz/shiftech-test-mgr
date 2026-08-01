@@ -92,7 +92,9 @@ frontend/                      # Aplikasi React + Vite (SPA, di-serve di "/app")
     App.tsx                       # Route definitions (public: /login; protected: rest; /@:username lookup)
     main.tsx                      # Providers: ThemeProvider, PrimeReactProvider, QueryClientProvider, BrowserRouter, AuthProvider
 public-docs/                    # Docs site publik (Astro Starlight, di-serve di "/docs") — user guide + data model, konten asli
-backend/                        # Backend Go — PENDING/paused (lihat backend/README.md), dual MySQL+Postgres, domain/repository/service/transport lengkap
+backend/                        # Shared-core Go platform: MCP server (aktif) + REST API (plan)
+  ARCHITECTURE.md               # Otoritas arsitektur backend — baca ini dulu sebelum menyentuh kode di dalam backend/
+backend_archive/                # Go backend lama (eksperimental, tidak dipakai)
 supabase/
   migrations/                   # SOURCE OF TRUTH skema saat ini — dikelola via Supabase CLI (`supabase db push`)
   schema*.sql                   # Source historis awal, USANG sejak migrasi 20260722000001 — jangan jadikan acuan
@@ -227,6 +229,9 @@ Page/Component → Hook → Service → Repository → Supabase
 7. Page (`pages/{module}/`)
 8. Route (`App.tsx`)
 9. Menu item (`components/layout/AppMenu.tsx`) jika perlu entri sidebar baru
+
+Untuk modul **backend** (Go), jangan ikuti urutan di atas — baca
+`backend/ARCHITECTURE.md` sebagai gantinya, jangan membaca file satu per satu.
 
 ### Auth & RBAC
 

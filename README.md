@@ -27,7 +27,8 @@ ownership/visibility, invite/accept membership) yang sedang berjalan.
 landing/      → Landing page publik (HTML/CSS statis, di-serve di path "/")
 frontend/     → Aplikasi React + Vite (SPA, di-serve di path "/app" — lihat vite.config.ts base + main.tsx basename)
 public-docs/  → Docs site publik (Astro Starlight, di-serve di path "/docs" — user guide + data model)
-backend/      → (eksperimental, di-pending — lihat backend/README.md) backend Go, terpisah dari frontend
+backend/      → Backend Go platform: MCP server (aktif) + REST API (rencana).
+                 Lihat backend/ARCHITECTURE.md untuk detail arsitektur.
 supabase/     → Schema SQL shared (dikelola via Supabase CLI, lihat supabase/migrations/)
 docs/         → PRD, arsitektur (v1 + v2 redesign), roadmap, product constitution, task breakdown
 ```
