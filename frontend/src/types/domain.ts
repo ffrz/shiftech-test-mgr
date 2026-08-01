@@ -270,6 +270,7 @@ export interface TestResult {
   testCaseSteps: string;
   testCaseExpectedResult: string;
   testCasePriority: TestCasePriority;
+  testCaseNotes: string | null;
   // Snapshot of test_plan_cases.order at the moment the run started — so a run's item
   // order always matches the plan's order at that time, even if the plan is reordered later.
   order: number;

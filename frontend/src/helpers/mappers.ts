@@ -247,6 +247,7 @@ export function mapTestResultRow(row: any): TestResult {
     testCaseSteps: row.test_case_steps,
     testCaseExpectedResult: row.test_case_expected_result,
     testCasePriority: row.test_case_priority,
+    testCaseNotes: row.test_case_notes,
     order: row.order,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

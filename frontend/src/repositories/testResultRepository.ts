@@ -42,6 +42,7 @@ export const testResultRepository = {
       test_case_steps: tc.steps,
       test_case_expected_result: tc.expected_result,
       test_case_priority: tc.priority,
+      test_case_notes: tc.notes,
       order: orderByTestCaseId.get(tc.id) ?? 0,
     }));
     const { data: insertedResults, error } = await supabase.from('test_results').insert(rows).select('id, test_case_id');
@@ -130,6 +131,7 @@ export const testResultRepository = {
         test_case_steps: testCase.steps,
         test_case_expected_result: testCase.expected_result,
         test_case_priority: testCase.priority,
+        test_case_notes: testCase.notes,
       })
       .eq('id', id)
       .select('*')
