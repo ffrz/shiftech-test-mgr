@@ -112,6 +112,12 @@ export const testSuiteRepository = {
     return (data ?? []).map(mapTestSuiteItemRow);
   },
 
+  async findItemById(itemId: string): Promise<TestSuiteItem | null> {
+    const { data, error } = await supabase.from('test_suite_items').select('*').eq('id', itemId).maybeSingle();
+    if (error) throw error;
+    return data ? mapTestSuiteItemRow(data) : null;
+  },
+
   async createItem(
     input: Omit<TestSuiteItem, 'id' | 'createdAt' | 'updatedAt'>,
   ): Promise<TestSuiteItem> {
@@ -129,6 +135,7 @@ export const testSuiteRepository = {
         step_type: input.stepType,
         target_role: input.targetRole,
         tag_names: input.tagNames,
+        notes: input.notes,
         order_index: input.orderIndex,
       })
       .select('*')
@@ -149,6 +156,7 @@ export const testSuiteRepository = {
     if (changes.stepType !== undefined) payload.step_type = changes.stepType;
     if (changes.targetRole !== undefined) payload.target_role = changes.targetRole;
     if (changes.tagNames !== undefined) payload.tag_names = changes.tagNames;
+    if (changes.notes !== undefined) payload.notes = changes.notes;
     if (changes.orderIndex !== undefined) payload.order_index = changes.orderIndex;
 
     const { data, error } = await supabase.from('test_suite_items').update(payload).eq('id', id).select('*').single();
@@ -186,6 +194,7 @@ export const testSuiteRepository = {
           step_type: i.stepType,
           target_role: i.targetRole,
           tag_names: i.tagNames,
+          notes: i.notes,
           order_index: i.orderIndex,
         })),
       )

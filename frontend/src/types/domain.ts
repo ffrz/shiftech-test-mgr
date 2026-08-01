@@ -201,6 +201,7 @@ export interface TestSuiteItem {
   stepType: TestCaseStepType;
   targetRole: string | null;
   tagNames: string[];
+  notes: string | null;
   orderIndex: number;
   createdAt: string;
   updatedAt: string;

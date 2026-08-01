@@ -109,6 +109,7 @@ export const testSuiteService = {
         targetRole: item.targetRole ?? undefined,
         tagNames: item.tagNames,
         stepType: item.stepType,
+        notes: item.notes ?? undefined,
         detailedSteps:
           item.stepType === 'detailed'
             ? (stepsByItem.get(item.id) ?? []).map((s) => ({
@@ -132,6 +133,12 @@ export const testSuiteService = {
     return { ...item, detailedSteps };
   },
 
+  async getItemById(itemId: string): Promise<TestSuiteItemWithSteps | null> {
+    const item = await testSuiteRepository.findItemById(itemId);
+    if (!item) return null;
+    return this.getItemWithSteps(item);
+  },
+
   async addItem(input: {
     suiteId: string;
     moduleName?: string;
@@ -145,6 +152,7 @@ export const testSuiteService = {
     tagNames?: string[];
     stepType?: TestSuiteItem['stepType'];
     detailedSteps?: { action: string; expectedResult?: string }[];
+    notes?: string;
     orderIndex: number;
   }): Promise<TestSuiteItem> {
     if (!input.title.trim()) throw new Error('Test case title cannot be empty');
@@ -168,6 +176,7 @@ export const testSuiteService = {
       stepType,
       targetRole: input.targetRole?.trim() || null,
       tagNames: input.tagNames ?? [],
+      notes: input.notes?.trim() || null,
       orderIndex: input.orderIndex,
     });
 
@@ -195,6 +204,7 @@ export const testSuiteService = {
       tagNames?: string[];
       stepType?: TestSuiteItem['stepType'];
       detailedSteps?: { action: string; expectedResult?: string }[];
+      notes?: string;
       orderIndex: number;
     }[],
   ): Promise<TestSuiteItem[]> {
@@ -215,6 +225,7 @@ export const testSuiteService = {
           stepType,
           targetRole: input.targetRole?.trim() || null,
           tagNames: input.tagNames ?? [],
+          notes: input.notes?.trim() || null,
           orderIndex: input.orderIndex,
         };
       }),
@@ -294,6 +305,7 @@ export const testSuiteService = {
         targetRole: item.targetRole ?? undefined,
         tagNames: item.tagNames ?? [],
         stepType: item.stepType,
+        notes: item.notes ?? undefined,
         detailedSteps:
           item.stepType === 'detailed'
             ? (stepsByItem.get(item.id) ?? []).map((s) => ({
@@ -349,7 +361,7 @@ export const testSuiteService = {
         expectedResult: item.expectedResult,
         priority: item.priority,
         status: 'active' as const,
-        notes: null,
+        notes: item.notes ?? null,
         stepType: item.stepType,
         targetRoleId: item.targetRole ? roleIdByName.get(item.targetRole.toLowerCase()) ?? null : null,
         externalLinks: [],
@@ -426,6 +438,7 @@ export const testSuiteService = {
         targetRole: item.targetRole?.name ?? undefined,
         tagNames: item.tags.map((t) => t.name),
         stepType: item.stepType,
+        notes: item.notes ?? undefined,
         detailedSteps:
           item.stepType === 'detailed'
             ? (stepsByItem.get(item.id) ?? []).map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? undefined }))

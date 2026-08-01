@@ -176,6 +176,7 @@ export function mapTestSuiteItemRow(row: any): TestSuiteItem {
     stepType: row.step_type,
     targetRole: row.target_role,
     tagNames: row.tag_names ?? [],
+    notes: row.notes ?? null,
     orderIndex: row.order_index,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
