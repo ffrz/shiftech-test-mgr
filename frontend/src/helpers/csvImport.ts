@@ -29,6 +29,7 @@ export interface ParsedTestCaseRow {
   priority: TestCasePriority;
   tagNames: string[];
   targetRole: string | null;
+  notes: string | null;
 }
 
 export interface InvalidRow {
@@ -36,13 +37,13 @@ export interface InvalidRow {
   reason: string;
 }
 
-const EXPECTED_HEADERS = ['module', 'title', 'objective', 'preconditions', 'steps', 'expected result', 'priority', 'tags', 'target role'];
+const EXPECTED_HEADERS = ['module', 'title', 'objective', 'preconditions', 'steps', 'expected result', 'priority', 'tags', 'target role', 'notes'];
 const PRIORITIES: TestCasePriority[] = ['low', 'medium', 'high', 'critical'];
 
-const CSV_TEMPLATE_HEADER = 'Module,Title,Objective,Preconditions,Steps,Expected Result,Priority,Tags,Target Role';
+export const CSV_TEMPLATE_HEADER = 'Module,Title,Objective,Preconditions,Steps,Expected Result,Priority,Tags,Target Role,Notes';
 const CSV_TEMPLATE_SAMPLE_ROWS = [
-  '"Login","User can login with valid credentials","Verify authentication works","User is registered","Open login page;Enter valid email and password;Click Login","User is redirected to dashboard","high","auth,smoke",""',
-  '"Login","User can login step-by-step","","User is registered","1. Open login page | Login form is shown;2. Enter credentials | Fields accept input;3. Click Login | Redirected to dashboard","","medium","auth","Admin"',
+  '"Login","User can login with valid credentials","Verify authentication works","User is registered","Open login page;Enter valid email and password;Click Login","User is redirected to dashboard","high","auth,smoke","","Requires a seeded user"',
+  '"Login","User can login step-by-step","","User is registered","1. Open login page | Login form is shown;2. Enter credentials | Fields accept input;3. Click Login | Redirected to dashboard","","medium","auth","Admin",""',
 ];
 
 // Shared by every CSV import dialog (project Test Case tab, Test Suite item import) so the
@@ -127,7 +128,7 @@ function parseCsvText(text: string): string[][] {
 }
 
 export async function parseTestCaseCsv(file: File): Promise<{ valid: ParsedTestCaseRow[]; invalid: InvalidRow[] }> {
-  const text = await file.text();
+  const text = (await file.text()).replace(/^\uFEFF/, '');
   const rows = parseCsvText(text);
   if (rows.length === 0) return { valid: [], invalid: [] };
 
@@ -143,6 +144,7 @@ export async function parseTestCaseCsv(file: File): Promise<{ valid: ParsedTestC
     priority: colIndex('priority'),
     tags: colIndex('tags'),
     targetRole: colIndex('target role'),
+    notes: colIndex('notes'),
   };
 
   if (idx.title === -1) {
@@ -186,6 +188,7 @@ export async function parseTestCaseCsv(file: File): Promise<{ valid: ParsedTestC
       priority,
       tagNames: cell(idx.tags).split(',').map((t) => t.trim()).filter(Boolean),
       targetRole: cell(idx.targetRole) || null,
+      notes: cell(idx.notes) || null,
     });
   }
 
