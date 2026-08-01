@@ -251,7 +251,7 @@ cursor, bukan offset yang bisa skip/duplikat).
 
 ## Fase 4 — Write Tools + Governance
 
-### T4.1 — File baru `write_tools.go`
+### T4.1 — File baru `write_tools.go` — ✅ DONE (2026-08-01)
 
 **File baru:** `mcp-server/internal/tools/write_tools.go`
 
@@ -266,7 +266,23 @@ tanpa `explicit_approval: true` literal (Zod `z.literal(true)`) — versi Go
 harus punya penolakan setara, tulis sebagai test case eksplisit
 (`TestApproveTestPlan_RejectsWithoutExplicitApproval` atau serupa).
 
-### T4.2 — Governance middleware (rate-limit + audit)
+**Catatan implementasi:**
+- 13 tool terdaftar (bukan 12): createBulk/update/duplicate/archive test
+  case, create/addCases/removeCases/approve test plan,
+  create/recordResult/complete test run, create/updateStatus issue.
+- `issue.comment` dan `issue.detectDuplicate` di-defer dari Fase 4 —
+  `issue.comment` butuh migration tabel `issue_comments` yang belum ada,
+  `issue.detectDuplicate` butuh AI gateway (Fase 8). Ini sesuai catatan
+  `BACKLOG.md` Epic 3.
+- Semua write non-human-gate dibungkus `reviewOnly()` →
+  `{status:"draft", mode:"review_only", data}` setara `writeService.ts`.
+- Human-gate: `approveTestPlan` menolak semua kecuali literal JSON `true`
+  (`boolLiteral` menolak string `"true"`/number) + wajib `approver_id` UUID;
+  `completeTestRun` manual-only (tidak pernah inferred).
+- Validasi input manual (tanpa library validator, konsisten T3.2); batch
+  `createBulk`/`addCases`/`removeCases` di-clamp ke 100.
+
+### T4.2 — Governance middleware (rate-limit + audit) — ⛔ BLOCKED
 
 **File baru:** `mcp-server/internal/governance/governance.go` (atau taruh
 di `internal/tools/` — putuskan struktur saat implementasi).
@@ -283,7 +299,7 @@ tahu soal governance, murni middleware).
 audit dengan `latency_ms` terisi; call ke-N+1 dalam window rate-limit
 ditolak dengan error jelas, bukan silent pass.
 
-### T4.3 — Project-scope recursive guard
+### T4.3 — Project-scope recursive guard — ✅ DONE (2026-08-01)
 
 **File yang diubah:** `mcp-server/internal/auth/session.go` (tambah method
 setara `assertToolArguments`/`inspectProjectReferences`).
@@ -296,7 +312,13 @@ setara `assertToolArguments`/`inspectProjectReferences`).
 `project_id` field di dalamnya) yang project_id-nya beda dari session →
 harus ditolak, bukan lolos karena hanya cek top-level.
 
-### T4.4 — Aktifkan write tools di registry
+**Catatan implementasi:** `Session.AssertProjectReferences` walk args
+rekursif (`map[string]any` → object, `[]any` → elemen), cek key
+`project_id`/`projectId`, tolak non-string maupun mismatch. Dipanggil di
+`WriteTools.beginWrite` untuk semua write handler. Unit test:
+`TestAssertProjectReferences_*` di `session_test.go` (9 kasus).
+
+### T4.4 — Aktifkan write tools di registry — ✅ DONE (2026-08-01)
 
 **File yang diubah:** `mcp-server/internal/tools/registry.go` baris 37-39
 (uncomment `&WriteTools{r}`, dst — sesuaikan nama struct final dari T4.1).
@@ -304,6 +326,10 @@ harus ditolak, bukan lolos karena hanya cek top-level.
 **Acceptance:** `TM_MCP_READONLY=1` tetap **tidak** mendaftarkan write
 tools (sudah dijamin oleh `ReadOnly()` vs `Full()` yang ada, cukup pastikan
 tidak regresi).
+
+**Catatan implementasi:** `&WriteTools{r}` di-uncomment di `Registry.Full()`.
+`ReadOnly()` tidak berubah — write tools hanya muncul di Full mode.
+Unit test `TestWriteToolsRegister` (13 tool via MCPServer nyata).
 
 ---
 

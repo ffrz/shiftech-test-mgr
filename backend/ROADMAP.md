@@ -55,11 +55,11 @@ test manual.
 Melengkapi `repository/postgres/` untuk semua entity Testing Domain inti
 (Project sudah ada dan sudah diperbaiki di Fase 0).
 
-- [ ] T2.1 — `TestCaseRepo` (`core.TestCaseRepository`)
-- [ ] T2.2 — `TestPlanRepo` (`core.TestPlanRepository`)
-- [ ] T2.3 — `TestRunRepo` (`core.TestRunRepository`)
-- [ ] T2.4 — `IssueRepo` (`core.IssueRepository`)
-- [ ] T2.5 — Tambah port + repo `ModuleRepo`, `TagRepo`, `TestRoleRepo` ke
+- [x] T2.1 — `TestCaseRepo` (`core.TestCaseRepository`)
+- [x] T2.2 — `TestPlanRepo` (`core.TestPlanRepository`)
+- [x] T2.3 — `TestRunRepo` (`core.TestRunRepository`)
+- [x] T2.4 — `IssueRepo` (`core.IssueRepository`)
+- [x] T2.5 — Tambah port + repo `ModuleRepo`, `TagRepo`, `TestRoleRepo` ke
       `core/ports.go` (belum ada portnya sama sekali)
 
 **Dependency:** tidak butuh Fase 1 selesai untuk menulis kode, tapi butuh
@@ -77,12 +77,12 @@ tidak saling import) — bisa 4-5 agen paralel.
 
 ## Fase 3 — MCP Read Tools + Wiring Protokol (P0)
 
-- [ ] T3.1 — `go get github.com/mark3labs/mcp-go`, wire stdio server
+- [x] T3.1 — `go get github.com/mark3labs/mcp-go`, wire stdio server
       sungguhan di `main.go` (saat ini hanya `fmt.Println` placeholder)
-- [ ] T3.2 — Implementasi 11 read tool inti (project, testcase, testplan,
+- [x] T3.2 — Implementasi 11 read tool inti (project, testcase, testplan,
       testrun, testresult, issue — lihat BACKLOG Epic 2 tabel) di
       `read_tools.go`, ganti stub `Register()` yang sekarang return `nil`
-- [ ] T3.3 — Pola cursor pagination setara Node (`encodeXxxCursor`) untuk
+- [x] T3.3 — Pola cursor pagination setara Node (`encodeXxxCursor`) untuk
       `core.PageResult[T]`
 
 **Dependency:** Fase 2 (butuh repo asli, bukan `nil`), Fase 1 (butuh
@@ -101,13 +101,19 @@ benar.
 
 ## Fase 4 — MCP Write Tools + Governance Middleware (P1)
 
-- [ ] T4.1 — File baru `write_tools.go`, 12 write tool (BACKLOG Epic 3)
+- [x] T4.1 — File baru `write_tools.go`, 13 write tool (BACKLOG Epic 3;
+      `issue.comment` dan `issue.detectDuplicate` di-defer — butuh migration
+      `issue_comments` / AI gateway). Semua write non-human-gate dibungkus
+      review-only draft `{status:"draft", mode:"review_only", data}`.
+      `testplan.approve` menolak call tanpa literal `explicit_approval:true`
+      + `approver_id`; `testrun.complete` manual-only.
 - [ ] T4.2 — Governance middleware: rate-limit + audit wrapper di sekitar
       setiap tool call (BACKLOG Epic 4, pola `installToolGovernance` Node)
-- [ ] T4.3 — Project-scope recursive guard (`assertToolArguments` Node) —
-      perluas `session.go` yang sekarang baru cek scope token
-- [ ] T4.4 — Aktifkan `&WriteTools{r}` di `registry.go` (baris yang
-      sekarang di-comment)
+      — **blocked** oleh T1.2 (migration `mcp_tool_rate_limits` + RPC belum ada)
+- [x] T4.3 — Project-scope recursive guard (`assertToolArguments` Node) —
+      `Session.AssertProjectReferences` di `session.go`, walk args rekursif
+      ke object/array, cek `project_id`/`projectId` terhadap scope session
+- [x] T4.4 — Aktifkan `&WriteTools{r}` di `registry.go` (Full mode)
 
 **Dependency:** Fase 3 selesai (pola tool handler sudah teruji), Fase 1
 T1.2 (tabel rate-limit untuk T4.2).
@@ -115,6 +121,8 @@ T1.2 (tabel rate-limit untuk T4.2).
 **Exit criteria:** human-gate tools (`testplan.approve`, `testrun.complete`,
 `automation.rerunFailed` di atas limit) **menolak** call tanpa konfirmasi
 eksplisit — ini harus ditulis sebagai test case, bukan cuma manual check.
+✅ `TestApproveTestPlan_RejectsWithoutExplicitApproval` (4 varian argumen
+gagal) + `TestApproveTestPlan_WithExplicitApproval` di `write_tools_test.go`.
 
 ---
 
