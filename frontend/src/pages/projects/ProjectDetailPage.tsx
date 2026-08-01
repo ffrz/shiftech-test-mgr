@@ -12,6 +12,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { ActivityLogTab } from './components/tabs/ActivityLogTab';
+import { ProjectDetailPageSkeleton } from './components/ProjectDetailPageSkeleton';
 import { TestPlanTab } from './components/tabs/TestPlanTab';
 import { TestCaseTab } from './components/tabs/TestCaseTab';
 import { TestRunTab, type TestRunWithSummary } from './components/tabs/TestRunTab';
@@ -984,15 +985,16 @@ export function ProjectDetailPage() {
   }
 
   if (!project) {
+    if (projectLoading) return <ProjectDetailPageSkeleton />;
     return (
       <div className="page-fade-in">
         <Breadcrumb
           items={[
             { label: 'Projects', path: '/projects' },
-            { label: projectLoading ? '' : 'Project not found' },
+            { label: 'Project not found' },
           ]}
         />
-        {!projectLoading && <p>Project not found.</p>}
+        <p>Project not found.</p>
       </div>
     );
   }

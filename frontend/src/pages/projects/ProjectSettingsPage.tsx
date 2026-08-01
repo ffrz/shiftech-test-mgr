@@ -19,6 +19,7 @@ import { useTabQueryParam } from '../../hooks/useTabQueryParam';
 import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus, ProjectVisibility } from '../../types/domain';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
 import { ModulesTab } from './components/tabs/ModulesTab';
+import { ProjectSettingsPageSkeleton } from './components/ProjectSettingsPageSkeleton';
 import { TagsTab } from './components/tabs/TagsTab';
 import { TestRolesTab } from './components/tabs/TestRolesTab';
 import { MembersTab } from './components/tabs/MembersTab';
@@ -506,7 +507,7 @@ export function ProjectSettingsPage() {
     });
   }
 
-  if (loading || roleLoading) return <p>Loading...</p>;
+  if (loading || roleLoading) return <ProjectSettingsPageSkeleton />;
   if (!canManageSettings) return <Navigate to={`/projects/${id}`} replace />;
   if (!project) return <p>Project not found.</p>;
 
