@@ -15,6 +15,7 @@ import { supabase } from '../../config/supabaseClient';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useScreenSize } from '../../hooks/useScreenSize';
+import { useTabQueryParam } from '../../hooks/useTabQueryParam';
 import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus, ProjectVisibility } from '../../types/domain';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
 import { ModulesTab } from './components/tabs/ModulesTab';
@@ -37,6 +38,15 @@ export function ProjectSettingsPage() {
   const { loading: roleLoading, canManageSettings, canArchiveProject, canDeleteProject } = useProjectRole(id);
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+  // Danger Zone is conditional, so the tab-name list must match the rendered panel order.
+  const settingsTabNames = [
+    'modules',
+    'tags',
+    'testRoles',
+    'members',
+    ...(canArchiveProject || canDeleteProject ? ['dangerZone'] : []),
+  ] as const;
+  const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(settingsTabNames, 0);
 
   const [project, setProject] = useState<Project | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
@@ -534,7 +544,7 @@ export function ProjectSettingsPage() {
       </Card>
 
       <Card>
-        <TabView>
+        <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
           <TabPanel header="Modules">
             <ModulesTab
               modules={filteredModules}
