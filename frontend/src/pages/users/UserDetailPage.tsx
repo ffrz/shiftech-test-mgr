@@ -64,7 +64,7 @@ export function UserDetailPage() {
 
       <ProfileView profile={profile} projects={projects} suites={suites} adminOverlay={adminOverlay} />
 
-      <div className="detail-content-col">
+      <div className="detail-content-col mx-auto">
         <Card title="Account Info (Admin Only)" className="mt-3 detail-content-card">
           <div className="flex flex-wrap column-gap-4 row-gap-1 mb-3 text-xs">
             <span className="text-color-secondary">
