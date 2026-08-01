@@ -15,6 +15,7 @@ import { TestCasesPage } from './pages/test-cases/TestCasesPage';
 import { TestCaseDetailPage } from './pages/test-cases/TestCaseDetailPage';
 import { TestSuitesPage } from './pages/test-suites/TestSuitesPage';
 import { TestSuiteDetailPage } from './pages/test-suites/TestSuiteDetailPage';
+import { TestSuiteItemDetailPage } from './pages/test-suites/TestSuiteItemDetailPage';
 import { TestRunResultDetailPage } from './pages/test-runs/TestRunResultDetailPage';
 import { TestRunIssuesPage } from './pages/test-runs/TestRunIssuesPage';
 import { IssueDetailPage } from './pages/issues/IssueDetailPage';
@@ -44,6 +45,7 @@ function App() {
             <Route path="/test-cases/:id" element={<TestCaseDetailPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/test-suites" element={<TestSuitesPage />} />
+            <Route path="/test-suites/:suiteId/items/:itemId" element={<TestSuiteItemDetailPage />} />
             <Route path="/test-suites/:id" element={<TestSuiteDetailPage />} />
             <Route path="/test-runs/:id/issues" element={<TestRunIssuesPage />} />
             <Route path="/test-runs/:id" element={<TestRunResultDetailPage />} />

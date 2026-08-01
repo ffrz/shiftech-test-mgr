@@ -255,7 +255,12 @@ export function TestSuiteDetailPage() {
   }, [confirmEdit, cancelEdit]);
 
   async function reloadItems() {
-    if (id) await queryClient.invalidateQueries({ queryKey: queryKeys.testSuiteItems(id) });
+    if (id) {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.testSuiteItems(id) }),
+        queryClient.invalidateQueries({ queryKey: ['testSuiteItem'] }),
+      ]);
+    }
   }
 
   const moduleOptions = useMemo(() => {
@@ -318,6 +323,7 @@ export function TestSuiteDetailPage() {
   const [itemTagNames, setItemTagNames] = useState('');
   const [itemStepType, setItemStepType] = useState<TestCaseStepType>('simple');
   const [itemDetailedSteps, setItemDetailedSteps] = useState<{ action: string; expectedResult: string }[]>([]);
+  const [itemNotes, setItemNotes] = useState('');
   const [itemErrors, setItemErrors] = useState<Record<string, string>>({});
   const itemTitleRef = useRef<HTMLInputElement>(null);
   const itemStepsRef = useRef<HTMLTextAreaElement>(null);
@@ -358,6 +364,7 @@ export function TestSuiteDetailPage() {
     setItemTagNames('');
     setItemStepType('simple');
     setItemDetailedSteps([]);
+    setItemNotes('');
     setItemErrors({});
     setItemDialogOpen(true);
   }
@@ -375,6 +382,7 @@ export function TestSuiteDetailPage() {
     setItemTargetRole(row.targetRole ?? '');
     setItemTagNames(row.tagNames.join(', '));
     setItemStepType(row.stepType);
+    setItemNotes(row.notes ?? '');
     setItemErrors({});
     setItemDialogOpen(true);
     if (row.stepType === 'detailed') {
@@ -398,6 +406,7 @@ export function TestSuiteDetailPage() {
     setItemTargetRole(row.targetRole ?? '');
     setItemTagNames(row.tagNames.join(', '));
     setItemStepType(row.stepType);
+    setItemNotes(row.notes ?? '');
     setItemErrors({});
     setItemDialogOpen(true);
     if (row.stepType === 'detailed') {
@@ -427,6 +436,7 @@ export function TestSuiteDetailPage() {
             targetRole: itemTargetRole.trim() || null,
             tagNames,
             stepType: itemStepType,
+            notes: itemNotes.trim() || null,
           },
           itemStepType === 'detailed' ? itemDetailedSteps : undefined,
         );
@@ -443,6 +453,7 @@ export function TestSuiteDetailPage() {
           targetRole: itemTargetRole,
           tagNames,
           stepType: itemStepType,
+          notes: itemNotes,
           detailedSteps: itemStepType === 'detailed' ? itemDetailedSteps : undefined,
           orderIndex: items.length,
         });
@@ -664,6 +675,7 @@ export function TestSuiteDetailPage() {
             body={(row: TestSuiteItem) => (
               <RowActionsMenu
                 items={[
+                  { label: 'View Detail', icon: 'pi pi-external-link', command: () => navigate(`/test-suites/${id}/items/${row.id}`) },
                   { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateItemDialog(row) },
                   { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditItemDialog(row) },
                   { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => handleDeleteItem(row) },
@@ -707,6 +719,21 @@ export function TestSuiteDetailPage() {
               </FloatLabel>
             </div>
           </div>
+
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText id="item-role" value={itemTargetRole} onChange={(e) => setItemTargetRole(e.target.value)} className="w-full" />
+              <label htmlFor="item-role">Role Target (optional, ex. Admin, Manager, Member)</label>
+            </FloatLabel>
+          </div>
+
+          <div className="flex flex-column">
+            <FloatLabel className="ifta-field">
+              <InputText id="item-tags" value={itemTagNames} onChange={(e) => setItemTagNames(e.target.value)} className="w-full" />
+              <label htmlFor="item-tags">Tags (comma-separated, ex. Regression, Smoke)</label>
+            </FloatLabel>
+          </div>
+
 
           <div className="flex flex-column">
             <FloatLabel className="ifta-field">
@@ -785,18 +812,13 @@ export function TestSuiteDetailPage() {
             </div>
           )}
 
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <InputText id="item-role" value={itemTargetRole} onChange={(e) => setItemTargetRole(e.target.value)} className="w-full" />
-              <label htmlFor="item-role">Role Target (optional, ex. Admin, Manager, Member)</label>
-            </FloatLabel>
-          </div>
 
-          <div className="flex flex-column">
+          <div className="flex flex-column gap-1">
             <FloatLabel className="ifta-field">
-              <InputText id="item-tags" value={itemTagNames} onChange={(e) => setItemTagNames(e.target.value)} className="w-full" />
-              <label htmlFor="item-tags">Tags (comma-separated, ex. Regression, Smoke)</label>
+              <InputTextarea id="item-notes" value={itemNotes} onChange={(e) => setItemNotes(e.target.value)} rows={2} autoResize maxLength={2000} className="w-full" />
+              <label htmlFor="item-notes">Notes (optional)</label>
             </FloatLabel>
+            <CharacterCount value={itemNotes} maxLength={2000} />
           </div>
 
           <div className="my-2"></div>

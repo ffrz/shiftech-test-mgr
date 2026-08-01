@@ -24,6 +24,7 @@ export const queryKeys = {
   testSuites: () => ['testSuites'] as const,
   testSuite: (id: string) => ['testSuite', id] as const,
   testSuiteItems: (suiteId: string) => ['testSuiteItems', suiteId] as const,
+  testSuiteItem: (itemId: string) => ['testSuiteItem', itemId] as const,
 
   testRun: (id: string) => ['testRun', id] as const,
   testRunResults: (id: string) => ['testRunResults', id] as const,
