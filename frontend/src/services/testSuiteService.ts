@@ -133,6 +133,21 @@ export const testSuiteService = {
     return { ...item, detailedSteps };
   },
 
+  async getItemsWithSteps(suiteId: string): Promise<TestSuiteItemWithSteps[]> {
+    const items = await testSuiteRepository.findItemsBySuite(suiteId);
+    const detailedIds = items.filter((i) => i.stepType === 'detailed').map((i) => i.id);
+    const stepsByItem = new Map<string, TestSuiteItemStep[]>();
+    if (detailedIds.length > 0) {
+      const allSteps = await testSuiteRepository.findStepsByItems(detailedIds);
+      for (const step of allSteps) {
+        const arr = stepsByItem.get(step.suiteItemId);
+        if (arr) arr.push(step);
+        else stepsByItem.set(step.suiteItemId, [step]);
+      }
+    }
+    return items.map((item) => ({ ...item, detailedSteps: stepsByItem.get(item.id) ?? [] }));
+  },
+
   async getItemById(itemId: string): Promise<TestSuiteItemWithSteps | null> {
     const item = await testSuiteRepository.findItemById(itemId);
     if (!item) return null;

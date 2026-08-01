@@ -50,7 +50,7 @@ export const testCaseImportService = {
         expectedResult: row.expectedResult,
         priority: row.priority,
         status: 'active' as const,
-        notes: null,
+        notes: row.notes ?? null,
         stepType: row.stepType,
         targetRoleId: row.targetRole ? roleIdByName.get(row.targetRole.toLowerCase()) ?? null : null,
         externalLinks: [],

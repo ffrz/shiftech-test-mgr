@@ -54,6 +54,7 @@ export const issueService = {
     actualResult?: string;
     expectedResult?: string;
     priority?: IssuePriority;
+    status?: IssueStatus;
     targetRoleId?: string | null;
     externalLinks?: ExternalLink[];
     tagNames?: string[];
@@ -74,7 +75,7 @@ export const issueService = {
       actualResult: input.actualResult?.trim() || null,
       expectedResult: input.expectedResult?.trim() || null,
       priority: input.priority ?? 'medium',
-      status: 'open',
+      status: input.status ?? 'open',
       assignedTo: null,
       targetRoleId: input.targetRoleId ?? null,
       externalLinks: input.externalLinks ?? [],
@@ -101,6 +102,7 @@ export const issueService = {
     actualResult?: string;
     expectedResult?: string;
     priority?: IssuePriority;
+    status?: IssueStatus;
     externalLinks?: ExternalLink[];
     tagNames?: string[];
   }[]): Promise<Issue[]> {
@@ -118,7 +120,7 @@ export const issueService = {
         actualResult: input.actualResult?.trim() || null,
         expectedResult: input.expectedResult?.trim() || null,
         priority: input.priority ?? 'medium',
-        status: 'open' as IssueStatus,
+        status: input.status ?? 'open' as IssueStatus,
         assignedTo: null,
         externalLinks: input.externalLinks ?? [],
       })),
