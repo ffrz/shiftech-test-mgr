@@ -618,8 +618,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_domain_issue_entity",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "issue/entity.go"
     },
     {
@@ -629,8 +629,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "issue_type",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "type"
     },
     {
@@ -640,8 +640,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "issue_priority",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "priority"
     },
     {
@@ -651,8 +651,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "issue_status",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "status"
     },
     {
@@ -662,8 +662,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "issue_githublink",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "githublink"
     },
     {
@@ -673,8 +673,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "issue_issue",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "issue"
     },
     {
@@ -684,8 +684,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_domain_issue_entity_go_time",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "time"
     },
     {
@@ -695,8 +695,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "issue_link",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "link"
     },
     {
@@ -706,8 +706,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "issue_taglink",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "taglink"
     },
     {
@@ -7372,8 +7372,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_service_issue_service",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "issue/service.go"
     },
     {
@@ -7383,8 +7383,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "issue_service",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": "service"
     },
     {
@@ -7394,8 +7394,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_service_issue_service_go_repository",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": "repository"
     },
     {
@@ -7405,8 +7405,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "backend_internal_service_issue_service_newservice",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": "newservice()"
     },
     {
@@ -7416,8 +7416,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "issue_service_getbyid",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".getbyid()"
     },
     {
@@ -7427,8 +7427,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_service_issue_service_go_context",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": "context"
     },
     {
@@ -7438,8 +7438,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_service_issue_service_go_issue",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": "issue"
     },
     {
@@ -7449,8 +7449,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "issue_service_listbyproject",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".listbyproject()"
     },
     {
@@ -7460,8 +7460,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "issue_service_listbytestrun",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".listbytestrun()"
     },
     {
@@ -7471,8 +7471,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "issue_service_listbytestresult",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".listbytestresult()"
     },
     {
@@ -7482,8 +7482,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "issue_createinput",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "createinput"
     },
     {
@@ -7493,8 +7493,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_service_issue_service_go_priority",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "priority"
     },
     {
@@ -7504,8 +7504,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "issue_service_create",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".create()"
     },
     {
@@ -7515,8 +7515,8 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "issue_updateinput",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 147,
+      "community_name": "entityAttachmentRepository.ts",
       "norm_label": "updateinput"
     },
     {
@@ -7526,8 +7526,8 @@
       "source_location": "L121",
       "_origin": "ast",
       "id": "issue_service_update",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".update()"
     },
     {
@@ -7537,8 +7537,8 @@
       "source_location": "L152",
       "_origin": "ast",
       "id": "issue_service_changestatus",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".changestatus()"
     },
     {
@@ -7548,8 +7548,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_service_issue_service_go_status",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": "status"
     },
     {
@@ -7559,8 +7559,8 @@
       "source_location": "L161",
       "_origin": "ast",
       "id": "issue_service_assign",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".assign()"
     },
     {
@@ -7570,8 +7570,8 @@
       "source_location": "L165",
       "_origin": "ast",
       "id": "issue_service_remove",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".remove()"
     },
     {
@@ -7581,8 +7581,8 @@
       "source_location": "L169",
       "_origin": "ast",
       "id": "issue_service_linktotestresult",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".linktotestresult()"
     },
     {
@@ -7592,8 +7592,8 @@
       "source_location": "L173",
       "_origin": "ast",
       "id": "issue_service_unlinkfromtestresult",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 144,
+      "community_name": "testplan/entity.go",
       "norm_label": ".unlinkfromtestresult()"
     },
     {
@@ -8725,8 +8725,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_service_testrun_port",
-      "community": 16,
-      "community_name": "Backend Test Case HTTP Layer",
+      "community": 148,
+      "community_name": "testSuiteService.test.ts",
       "norm_label": "testrun/port.go"
     },
     {
@@ -8758,8 +8758,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "testrun_testcaserepository",
-      "community": 16,
-      "community_name": "Backend Test Case HTTP Layer",
+      "community": 148,
+      "community_name": "testSuiteService.test.ts",
       "norm_label": "testcaserepository"
     },
     {
@@ -8769,8 +8769,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "testrun_testplancaserepository",
-      "community": 16,
-      "community_name": "Backend Test Case HTTP Layer",
+      "community": 148,
+      "community_name": "testSuiteService.test.ts",
       "norm_label": "testplancaserepository"
     },
     {
@@ -8780,8 +8780,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "testrun_repository",
-      "community": 16,
-      "community_name": "Backend Test Case HTTP Layer",
+      "community": 148,
+      "community_name": "testSuiteService.test.ts",
       "norm_label": "repository"
     },
     {
@@ -8813,8 +8813,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_service_testrun_service_go_repository",
-      "community": 16,
-      "community_name": "Backend Test Case HTTP Layer",
+      "community": 18,
+      "community_name": "Backend Test Run Service",
       "norm_label": "repository"
     },
     {
@@ -8824,8 +8824,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_service_testrun_service_go_testcaserepository",
-      "community": 16,
-      "community_name": "Backend Test Case HTTP Layer",
+      "community": 18,
+      "community_name": "Backend Test Run Service",
       "norm_label": "testcaserepository"
     },
     {
@@ -8835,8 +8835,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "backend_internal_service_testrun_service_newservice",
-      "community": 16,
-      "community_name": "Backend Test Case HTTP Layer",
+      "community": 18,
+      "community_name": "Backend Test Run Service",
       "norm_label": "newservice()"
     },
     {
@@ -9220,8 +9220,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_bind",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 14,
+      "community_name": "Backend Test Plan HTTP Layer",
       "norm_label": "bind.go"
     },
     {
@@ -9231,8 +9231,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_bind_bindandvalidate",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 14,
+      "community_name": "Backend Test Plan HTTP Layer",
       "norm_label": "bindandvalidate()"
     },
     {
@@ -9242,8 +9242,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_internal_transport_http_dto_bind_go_context",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 14,
+      "community_name": "Backend Test Plan HTTP Layer",
       "norm_label": "context"
     },
     {
@@ -10474,8 +10474,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "handler_authhandler_refresh",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 67,
+      "community_name": "Backend Auth HTTP DTO",
       "norm_label": ".refresh()"
     },
     {
@@ -10672,8 +10672,8 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "handler_issuehandler_update",
-      "community": 53,
-      "community_name": "Backend Auth HTTP Handler",
+      "community": 13,
+      "community_name": "Backend Issue HTTP Layer",
       "norm_label": ".update()"
     },
     {
@@ -10815,8 +10815,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "handler_modulehandler_update",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 39,
+      "community_name": "Backend Module HTTP DTO",
       "norm_label": ".update()"
     },
     {
@@ -10925,8 +10925,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "handler_projecthandler_update",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 17,
+      "community_name": "Backend Project HTTP Layer",
       "norm_label": ".update()"
     },
     {
@@ -10936,8 +10936,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "handler_projecthandler_changestatus",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 17,
+      "community_name": "Backend Project HTTP Layer",
       "norm_label": ".changestatus()"
     },
     {
@@ -11035,8 +11035,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "handler_taghandler_rename",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 40,
+      "community_name": "Backend Tag HTTP DTO",
       "norm_label": ".rename()"
     },
     {
@@ -11442,8 +11442,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "handler_testrolehandler_update",
-      "community": 25,
-      "community_name": "Backend Test Run HTTP Layer",
+      "community": 41,
+      "community_name": "Backend Test Role HTTP DTO",
       "norm_label": ".update()"
     },
     {
@@ -11970,8 +11970,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_internal_transport_http_response_response_created",
-      "community": 14,
-      "community_name": "Backend Test Plan HTTP Layer",
+      "community": 137,
+      "community_name": "Created",
       "norm_label": "created()"
     },
     {
@@ -12719,8 +12719,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "ref_react",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "react"
     },
     {
@@ -13874,8 +13874,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "testsuitedialog.tsx"
     },
     {
@@ -13885,8 +13885,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog_visibility_options",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "visibility_options"
     },
     {
@@ -13896,8 +13896,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog_testsuitedialogmode",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "testsuitedialogmode"
     },
     {
@@ -13907,8 +13907,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog_testsuitedialogprops",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "testsuitedialogprops"
     },
     {
@@ -13918,8 +13918,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_components_dialogs_testsuitedialog_testsuitedialog",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "testsuitedialog()"
     },
     {
@@ -14479,8 +14479,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_profile_profileview",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "profileview.tsx"
     },
     {
@@ -14611,8 +14611,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_apptoast",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "apptoast.tsx"
     },
     {
@@ -14622,8 +14622,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_components_ui_apptoast_apptoast",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "apptoast()"
     },
     {
@@ -14666,8 +14666,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "breadcrumb.tsx"
     },
     {
@@ -14677,8 +14677,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb_breadcrumbitem",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "breadcrumbitem"
     },
     {
@@ -14688,8 +14688,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb_breadcrumbprops",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "breadcrumbprops"
     },
     {
@@ -14732,8 +14732,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "frontend_src_components_ui_breadcrumb_breadcrumb",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "breadcrumb()"
     },
     {
@@ -14842,8 +14842,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_commenteditor",
-      "community": 116,
-      "community_name": "MentionTextarea.tsx",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "commenteditor.tsx"
     },
     {
@@ -14853,8 +14853,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_components_ui_commenteditor_commenteditorprops",
-      "community": 116,
-      "community_name": "MentionTextarea.tsx",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "commenteditorprops"
     },
     {
@@ -14864,8 +14864,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_components_ui_commenteditor_commenteditor",
-      "community": 116,
-      "community_name": "MentionTextarea.tsx",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "commenteditor()"
     },
     {
@@ -14930,8 +14930,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_markdownpreview",
-      "community": 116,
-      "community_name": "MentionTextarea.tsx",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "markdownpreview.tsx"
     },
     {
@@ -14941,8 +14941,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_components_ui_markdownpreview_markdownpreviewprops",
-      "community": 116,
-      "community_name": "MentionTextarea.tsx",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "markdownpreviewprops"
     },
     {
@@ -14952,8 +14952,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_components_ui_markdownpreview_markdownpreview",
-      "community": 116,
-      "community_name": "MentionTextarea.tsx",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "markdownpreview()"
     },
     {
@@ -15106,8 +15106,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_relativetime",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "relativetime.tsx"
     },
     {
@@ -15117,8 +15117,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_components_ui_relativetime_relativetimeprops",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "relativetimeprops"
     },
     {
@@ -15128,8 +15128,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_components_ui_relativetime_relativetime",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "relativetime()"
     },
     {
@@ -15260,8 +15260,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_components_ui_usernamepicker_usernamepicker",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "usernamepicker()"
     },
     {
@@ -15337,8 +15337,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "activitydescribe.ts"
     },
     {
@@ -15348,8 +15348,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_status_label_by_entity",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "status_label_by_entity"
     },
     {
@@ -15359,8 +15359,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_statuslabel",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "statuslabel()"
     },
     {
@@ -15370,8 +15370,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_describesystemevent",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "describesystemevent()"
     },
     {
@@ -15381,8 +15381,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_event_type_label",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "event_type_label"
     },
     {
@@ -15392,8 +15392,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "frontend_src_helpers_activitydescribe_eventtypelabel",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "eventtypelabel()"
     },
     {
@@ -15623,8 +15623,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_dateformatter",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "dateformatter.ts"
     },
     {
@@ -15634,8 +15634,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_dateformatter_formatdate",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "formatdate()"
     },
     {
@@ -15645,8 +15645,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_helpers_dateformatter_formatdatetime",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "formatdatetime()"
     },
     {
@@ -15656,8 +15656,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_helpers_dateformatter_relative_units",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "relative_units"
     },
     {
@@ -15667,8 +15667,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_helpers_dateformatter_relativetimeformatter",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "relativetimeformatter"
     },
     {
@@ -15678,8 +15678,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_helpers_dateformatter_formatrelativetime",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "formatrelativetime()"
     },
     {
@@ -15854,8 +15854,8 @@
       "source_location": "L217",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_maptestrunrow",
-      "community": 93,
-      "community_name": "Backend Project Member Repository (MySQL)",
+      "community": 68,
+      "community_name": "supabaseClient.ts",
       "norm_label": "maptestrunrow()"
     },
     {
@@ -15953,8 +15953,8 @@
       "source_location": "L353",
       "_origin": "ast",
       "id": "frontend_src_helpers_mappers_mapnotificationrow",
-      "community": 93,
-      "community_name": "Backend Project Member Repository (MySQL)",
+      "community": 68,
+      "community_name": "supabaseClient.ts",
       "norm_label": "mapnotificationrow()"
     },
     {
@@ -16052,8 +16052,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "statuslabels.ts"
     },
     {
@@ -16063,8 +16063,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_tagseverity",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "tagseverity"
     },
     {
@@ -16074,8 +16074,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_status_label",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "project_status_label"
     },
     {
@@ -16085,8 +16085,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_status_severity",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "project_status_severity"
     },
     {
@@ -16096,8 +16096,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_visibility_label",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "project_visibility_label"
     },
     {
@@ -16107,8 +16107,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_visibility_severity",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "project_visibility_severity"
     },
     {
@@ -16118,8 +16118,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_suite_visibility_label",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_suite_visibility_label"
     },
     {
@@ -16129,8 +16129,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_suite_visibility_severity",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_suite_visibility_severity"
     },
     {
@@ -16151,8 +16151,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_plan_status_severity",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_plan_status_severity"
     },
     {
@@ -16162,8 +16162,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_status_label",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "test_case_status_label"
     },
     {
@@ -16173,8 +16173,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_status_severity",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_case_status_severity"
     },
     {
@@ -16184,8 +16184,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_case_priority_label",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "test_case_priority_label"
     },
     {
@@ -16206,8 +16206,8 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_run_status_label",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "test_run_status_label"
     },
     {
@@ -16217,8 +16217,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_run_status_severity",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "test_run_status_severity"
     },
     {
@@ -16228,8 +16228,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_result_status_label",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "test_result_status_label"
     },
     {
@@ -16239,8 +16239,8 @@
       "source_location": "L112",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_test_result_status_severity",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "test_result_status_severity"
     },
     {
@@ -16283,8 +16283,8 @@
       "source_location": "L145",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_issue_status_severity",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issue_status_severity"
     },
     {
@@ -16305,8 +16305,8 @@
       "source_location": "L163",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_issue_type_severity",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issue_type_severity"
     },
     {
@@ -16338,8 +16338,8 @@
       "source_location": "L180",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_member_role_label",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "project_member_role_label"
     },
     {
@@ -16349,8 +16349,8 @@
       "source_location": "L187",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_member_role_severity",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "project_member_role_severity"
     },
     {
@@ -16360,8 +16360,8 @@
       "source_location": "L194",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_member_status_label",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "project_member_status_label"
     },
     {
@@ -16371,8 +16371,8 @@
       "source_location": "L200",
       "_origin": "ast",
       "id": "frontend_src_helpers_statuslabels_project_member_status_severity",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "project_member_status_severity"
     },
     {
@@ -16382,8 +16382,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_helpers_toast",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "toast.ts"
     },
     {
@@ -16393,8 +16393,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_helpers_toast_settoastref",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "settoastref()"
     },
     {
@@ -16404,8 +16404,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_helpers_toast_show",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "show()"
     },
     {
@@ -16415,8 +16415,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_helpers_toast_toasthelper",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "toasthelper"
     },
     {
@@ -16448,8 +16448,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useactivity",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "useactivity.ts"
     },
     {
@@ -16503,8 +16503,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_hooks_useauth_authprovider",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "authprovider()"
     },
     {
@@ -16525,8 +16525,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedashboard",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "usedashboard.ts"
     },
     {
@@ -16536,8 +16536,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_hooks_usedashboard_usedashboard",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "usedashboard()"
     },
     {
@@ -16569,8 +16569,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useissues",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "useissues.ts"
     },
     {
@@ -16580,8 +16580,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_useissues_useissuesbyproject",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "useissuesbyproject()"
     },
     {
@@ -16591,8 +16591,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "frontend_src_hooks_useissues_useissuesbytestrun",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "useissuesbytestrun()"
     },
     {
@@ -16668,8 +16668,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojectbreadcrumbitems",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "useprojectbreadcrumbitems.ts"
     },
     {
@@ -16690,8 +16690,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojectinvitations",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "useprojectinvitations.ts"
     },
     {
@@ -16701,8 +16701,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojectinvitations_useprojectinvitations",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "useprojectinvitations()"
     },
     {
@@ -16712,8 +16712,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojectownerprofile",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "useprojectownerprofile.ts"
     },
     {
@@ -16767,8 +16767,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useprojectrole",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "useprojectrole.ts"
     },
     {
@@ -17009,8 +17009,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestplans_usetestplans",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "usetestplans()"
     },
     {
@@ -17020,8 +17020,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "usetestrundetail.ts"
     },
     {
@@ -17031,8 +17031,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail_summary",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "summary"
     },
     {
@@ -17042,8 +17042,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail_empty_summary",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "empty_summary"
     },
     {
@@ -17053,8 +17053,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestrundetail_usetestrundetail",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "usetestrundetail()"
     },
     {
@@ -17064,8 +17064,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestruns",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "usetestruns.ts"
     },
     {
@@ -17075,8 +17075,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_hooks_usetestruns_testrunwithsummary",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrunwithsummary"
     },
     {
@@ -17207,8 +17207,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_hooks_useusers",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "useusers.ts"
     },
     {
@@ -17218,8 +17218,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_hooks_useusers_useusers",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "useusers()"
     },
     {
@@ -17229,8 +17229,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_main",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "main.tsx"
     },
     {
@@ -17273,8 +17273,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homepage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "homepage.tsx"
     },
     {
@@ -17284,8 +17284,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homepage_homepage",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "homepage()"
     },
     {
@@ -17295,8 +17295,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homesectionsskeleton",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "homesectionsskeleton.tsx"
     },
     {
@@ -17306,8 +17306,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homesectionsskeleton_myworksectionskeleton",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "myworksectionskeleton()"
     },
     {
@@ -17317,8 +17317,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homesectionsskeleton_continueworkingsectionskeleton",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "continueworkingsectionskeleton()"
     },
     {
@@ -17328,8 +17328,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homesectionsskeleton_recentprojectssectionskeleton",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "recentprojectssectionskeleton()"
     },
     {
@@ -17339,8 +17339,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homesectionsskeleton_statisticssectionskeleton",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "statisticssectionskeleton()"
     },
     {
@@ -17350,8 +17350,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "frontend_src_pages_home_homesectionsskeleton_activityfeedsectionskeleton",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "activityfeedsectionskeleton()"
     },
     {
@@ -17427,8 +17427,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_pages_profiles_publicprofilepage_publicprofilepage",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "publicprofilepage()"
     },
     {
@@ -17438,8 +17438,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "projectdetailpage.tsx"
     },
     {
@@ -17449,8 +17449,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage_tab_query_names",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "tab_query_names"
     },
     {
@@ -17460,8 +17460,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage_empty_array",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "empty_array"
     },
     {
@@ -17471,8 +17471,8 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage_tab_dependencies",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "tab_dependencies"
     },
     {
@@ -17482,8 +17482,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectdetailpage_project_tab_names",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "project_tab_names"
     },
     {
@@ -17504,8 +17504,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectsettingspage",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "projectsettingspage.tsx"
     },
     {
@@ -17526,8 +17526,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectspage",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "projectspage.tsx"
     },
     {
@@ -17537,8 +17537,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_projectspage_enrichedproject",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "enrichedproject"
     },
     {
@@ -17570,8 +17570,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_createprojectdialog",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "createprojectdialog.tsx"
     },
     {
@@ -17581,8 +17581,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_createprojectdialog_createprojectdialogprops",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "createprojectdialogprops"
     },
     {
@@ -17592,8 +17592,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_createprojectdialog_createprojectdialog",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "createprojectdialog()"
     },
     {
@@ -17603,8 +17603,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_projectdetailpageskeleton",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "projectdetailpageskeleton.tsx"
     },
     {
@@ -17614,8 +17614,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_projectdetailpageskeleton_projectdetailpageskeleton",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "projectdetailpageskeleton()"
     },
     {
@@ -17625,8 +17625,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_projectsettingspageskeleton",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "projectsettingspageskeleton.tsx"
     },
     {
@@ -17636,8 +17636,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_projectsettingspageskeleton_projectsettingspageskeleton",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "projectsettingspageskeleton()"
     },
     {
@@ -17647,8 +17647,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_createtestrundialog",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "createtestrundialog.tsx"
     },
     {
@@ -17658,8 +17658,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_createtestrundialog_createtestrundialogprops",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "createtestrundialogprops"
     },
     {
@@ -17669,8 +17669,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_createtestrundialog_createtestrundialog",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "createtestrundialog()"
     },
     {
@@ -17680,8 +17680,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_duplicateprojectdialog",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "duplicateprojectdialog.tsx"
     },
     {
@@ -17713,8 +17713,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_duplicatetestplandialog",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "projects/components/dialogs/duplicatetestplandialog.tsx"
     },
     {
@@ -17724,8 +17724,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_duplicatetestplandialog_duplicatetestplandialogprops",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "duplicatetestplandialogprops"
     },
     {
@@ -17735,8 +17735,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_duplicatetestplandialog_duplicatetestplandialog",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "duplicatetestplandialog()"
     },
     {
@@ -17834,8 +17834,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_invitememberdialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "invitememberdialog.tsx"
     },
     {
@@ -17845,8 +17845,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_invitememberdialog_invitememberdialogprops",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "invitememberdialogprops"
     },
     {
@@ -17856,8 +17856,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_invitememberdialog_invitememberdialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "invitememberdialog()"
     },
     {
@@ -17867,8 +17867,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_moduledialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "moduledialog.tsx"
     },
     {
@@ -17878,8 +17878,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_moduledialog_moduledialogprops",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "moduledialogprops"
     },
     {
@@ -17889,8 +17889,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_moduledialog_moduledialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "moduledialog()"
     },
     {
@@ -17900,8 +17900,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_quickadddialog",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "quickadddialog.tsx"
     },
     {
@@ -17911,8 +17911,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_quickadddialog_quickadddialogprops",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "quickadddialogprops"
     },
     {
@@ -17922,8 +17922,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_quickadddialog_quickadddialog",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "quickadddialog()"
     },
     {
@@ -17933,8 +17933,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_tagdialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "tagdialog.tsx"
     },
     {
@@ -17944,8 +17944,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_tagdialog_tagdialogprops",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "tagdialogprops"
     },
     {
@@ -17955,8 +17955,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_tagdialog_tagdialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "tagdialog()"
     },
     {
@@ -18021,8 +18021,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_testroledialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "testroledialog.tsx"
     },
     {
@@ -18032,8 +18032,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_testroledialog_testroledialogprops",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "testroledialogprops"
     },
     {
@@ -18043,8 +18043,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_dialogs_testroledialog_testroledialog",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "testroledialog()"
     },
     {
@@ -18054,8 +18054,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_activitylogtab",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "activitylogtab.tsx"
     },
     {
@@ -18065,8 +18065,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_activitylogtab_entity_type_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "entity_type_options"
     },
     {
@@ -18076,8 +18076,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_activitylogtab_activitylogtab",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "activitylogtab()"
     },
     {
@@ -18087,8 +18087,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_dangerzonetab",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "dangerzonetab.tsx"
     },
     {
@@ -18098,8 +18098,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_dangerzonetab_dangerzonetabprops",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "dangerzonetabprops"
     },
     {
@@ -18109,8 +18109,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_dangerzonetab_section_style",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "section_style"
     },
     {
@@ -18120,8 +18120,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_dangerzonetab_dangerzonetab",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "dangerzonetab()"
     },
     {
@@ -18131,8 +18131,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issuetab.tsx"
     },
     {
@@ -18142,8 +18142,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_editablefield",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "editablefield"
     },
     {
@@ -18153,8 +18153,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_issue_status_options",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issue_status_options"
     },
     {
@@ -18164,8 +18164,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_issue_priority_options",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issue_priority_options"
     },
     {
@@ -18175,8 +18175,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_issuetabprops",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issuetabprops"
     },
     {
@@ -18186,8 +18186,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_issuetab_issuetab",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "issuetab()"
     },
     {
@@ -18197,8 +18197,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_memberstab",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "memberstab.tsx"
     },
     {
@@ -18208,30 +18208,30 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_memberstab_member_role_options",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "member_role_options"
     },
     {
       "label": "MembersTabProps",
       "file_type": "code",
       "source_file": "frontend/src/pages/projects/components/tabs/MembersTab.tsx",
-      "source_location": "L23",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_memberstab_memberstabprops",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "memberstabprops"
     },
     {
       "label": "MembersTab()",
       "file_type": "code",
       "source_file": "frontend/src/pages/projects/components/tabs/MembersTab.tsx",
-      "source_location": "L44",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_memberstab_memberstab",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "memberstab()"
     },
     {
@@ -18263,8 +18263,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_modulestab_modulestab",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "modulestab()"
     },
     {
@@ -18296,8 +18296,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_tagstab_tagstab",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "tagstab()"
     },
     {
@@ -18362,8 +18362,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testcasetab_testcasetab",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testcasetab()"
     },
     {
@@ -18406,8 +18406,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testplantab_testplantab",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testplantab()"
     },
     {
@@ -18439,8 +18439,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testrolestab_testrolestab",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testrolestab()"
     },
     {
@@ -18450,8 +18450,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testruntab",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testruntab.tsx"
     },
     {
@@ -18461,8 +18461,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testruntab_test_run_status_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "test_run_status_options"
     },
     {
@@ -18472,8 +18472,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testruntab_testrunwithsummary",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrunwithsummary"
     },
     {
@@ -18483,8 +18483,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testruntab_testruntabprops",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testruntabprops"
     },
     {
@@ -18494,8 +18494,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "frontend_src_pages_projects_components_tabs_testruntab_testruntab",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testruntab()"
     },
     {
@@ -18637,8 +18637,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplandetailpage_testplandetailpage",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "testplandetailpage()"
     },
     {
@@ -18670,8 +18670,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplanspage",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "testplanspage.tsx"
     },
     {
@@ -18681,8 +18681,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplanspage_test_plan_status_options",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "test_plan_status_options"
     },
     {
@@ -18692,8 +18692,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_testplanspage_testplanspage",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 8,
+      "community_name": "Frontend Auth & User Settings",
       "norm_label": "testplanspage()"
     },
     {
@@ -18835,8 +18835,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_tabs_plantestcasestab_plantestcasestab",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "plantestcasestab()"
     },
     {
@@ -18846,8 +18846,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_tabs_plantestrunstab",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "plantestrunstab.tsx"
     },
     {
@@ -18857,8 +18857,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_tabs_plantestrunstab_test_run_status_options",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "test_run_status_options"
     },
     {
@@ -18868,8 +18868,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_tabs_plantestrunstab_plantestrunstabprops",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "plantestrunstabprops"
     },
     {
@@ -18879,8 +18879,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_pages_test_plans_components_tabs_plantestrunstab_plantestrunstab",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "plantestrunstab()"
     },
     {
@@ -18923,8 +18923,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrunresultdetailpage.tsx"
     },
     {
@@ -18934,8 +18934,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage_result_options",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "result_options"
     },
     {
@@ -18945,8 +18945,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage_status_filter_options",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "status_filter_options"
     },
     {
@@ -18956,8 +18956,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage_priority_filter_options",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "priority_filter_options"
     },
     {
@@ -18967,8 +18967,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpage_testrunresultdetailpage",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrunresultdetailpage()"
     },
     {
@@ -18978,8 +18978,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpageskeleton",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrunresultdetailpageskeleton.tsx"
     },
     {
@@ -18989,8 +18989,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_pages_test_runs_testrunresultdetailpageskeleton_testrunresultdetailpageskeleton",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrunresultdetailpageskeleton()"
     },
     {
@@ -19022,8 +19022,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "frontend_src_pages_test_suites_testsuitedetailpage_testsuitedetailpage",
-      "community": 49,
-      "community_name": "Backend RBAC Middleware",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testsuitedetailpage()"
     },
     {
@@ -19066,8 +19066,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_pages_test_suites_testsuiteitemdetailpage_testsuiteitemdetailpage",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "testsuiteitemdetailpage()"
     },
     {
@@ -19154,8 +19154,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_pages_users_userdetailpage_userdetailpage",
-      "community": 7,
-      "community_name": "Frontend Issue Management UI",
+      "community": 38,
+      "community_name": "Backend Test Run DTO",
       "norm_label": "userdetailpage()"
     },
     {
@@ -19418,8 +19418,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_profilerepository",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "profilerepository.ts"
     },
     {
@@ -19429,8 +19429,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_repositories_profilerepository_profilerepository",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "profilerepository"
     },
     {
@@ -19517,8 +19517,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_repositories_projectrepository_projectrepository",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "projectrepository"
     },
     {
@@ -19561,8 +19561,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_testcaserepository_testcaserepository",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testcaserepository"
     },
     {
@@ -19583,8 +19583,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_testcasesteprepository_testcasesteprepository",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testcasesteprepository"
     },
     {
@@ -19605,8 +19605,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_repositories_testplanrepository_testplanrepository",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testplanrepository"
     },
     {
@@ -19660,8 +19660,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_repositories_testrunrepository",
-      "community": 93,
-      "community_name": "Backend Project Member Repository (MySQL)",
+      "community": 68,
+      "community_name": "supabaseClient.ts",
       "norm_label": "testrunrepository.ts"
     },
     {
@@ -19671,8 +19671,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_repositories_testrunrepository_testrunrepository",
-      "community": 93,
-      "community_name": "Backend Project Member Repository (MySQL)",
+      "community": 68,
+      "community_name": "supabaseClient.ts",
       "norm_label": "testrunrepository"
     },
     {
@@ -19748,8 +19748,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_activityservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "activityservice.ts"
     },
     {
@@ -19759,8 +19759,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_services_activityservice_extractmentionedusernames",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "extractmentionedusernames()"
     },
     {
@@ -19770,8 +19770,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_services_activityservice_activityservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "activityservice"
     },
     {
@@ -19990,8 +19990,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_services_notificationservice_notificationservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "notificationservice"
     },
     {
@@ -20089,8 +20089,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_projectduplicateservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "projectduplicateservice.ts"
     },
     {
@@ -20100,8 +20100,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_services_projectduplicateservice_projectduplicateselection",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "projectduplicateselection"
     },
     {
@@ -20111,8 +20111,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_services_projectduplicateservice_projectduplicateservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "projectduplicateservice"
     },
     {
@@ -20133,8 +20133,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_projectmemberservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "projectmemberservice.ts"
     },
     {
@@ -20144,8 +20144,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_services_projectmemberservice_projectmemberservice",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 7,
+      "community_name": "Frontend Issue Management UI",
       "norm_label": "projectmemberservice"
     },
     {
@@ -20342,8 +20342,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_tagservice_test",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "tagservice.test.ts"
     },
     {
@@ -20353,8 +20353,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_services_tagservice_test_maketag",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "maketag()"
     },
     {
@@ -20463,8 +20463,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testcaseservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testcaseservice.ts"
     },
     {
@@ -20474,8 +20474,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_services_testcaseservice_testcaseservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testcaseservice"
     },
     {
@@ -20496,8 +20496,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testcasestepservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testcasestepservice.ts"
     },
     {
@@ -20507,8 +20507,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_services_testcasestepservice_testcasestepservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testcasestepservice"
     },
     {
@@ -20529,8 +20529,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testplanservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testplanservice.ts"
     },
     {
@@ -20540,8 +20540,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_services_testplanservice_testplanservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testplanservice"
     },
     {
@@ -20562,8 +20562,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testroleservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testroleservice.ts"
     },
     {
@@ -20573,8 +20573,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_services_testroleservice_testroleservice",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testroleservice"
     },
     {
@@ -20595,8 +20595,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testrunservice",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrunservice.ts"
     },
     {
@@ -20606,8 +20606,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_services_testrunservice_testrunservice",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrunservice"
     },
     {
@@ -20617,8 +20617,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testsuiteservice_test",
-      "community": 144,
-      "community_name": "testplan/entity.go",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "testsuiteservice.test.ts"
     },
     {
@@ -20628,8 +20628,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "frontend_src_services_testsuiteservice_test_makeitem",
-      "community": 144,
-      "community_name": "testplan/entity.go",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "makeitem()"
     },
     {
@@ -20639,8 +20639,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "frontend_src_services_testsuiteservice_test_makestep",
-      "community": 144,
-      "community_name": "testplan/entity.go",
+      "community": 93,
+      "community_name": "Backend Project Member Repository (MySQL)",
       "norm_label": "makestep()"
     },
     {
@@ -20650,8 +20650,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_services_testsuiteservice",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testsuiteservice.ts"
     },
     {
@@ -20661,8 +20661,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_services_testsuiteservice_testsuiteservice",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testsuiteservice"
     },
     {
@@ -20716,8 +20716,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_types_domain_userrole",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "userrole"
     },
     {
@@ -20815,8 +20815,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "frontend_src_types_domain_projectmemberrole",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "projectmemberrole"
     },
     {
@@ -20826,8 +20826,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "frontend_src_types_domain_projectmemberstatus",
-      "community": 1,
-      "community_name": "Frontend Repository/Mapper Layer",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "projectmemberstatus"
     },
     {
@@ -20870,8 +20870,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "frontend_src_types_domain_module",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "module"
     },
     {
@@ -20914,8 +20914,8 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testplan",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "testplan"
     },
     {
@@ -20925,8 +20925,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testcasepriority",
-      "community": 11,
-      "community_name": "Frontend Test Run/Plan Detail UI",
+      "community": 10,
+      "community_name": "Frontend Routes & Pages",
       "norm_label": "testcasepriority"
     },
     {
@@ -20936,8 +20936,8 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testcasestatus",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 11,
+      "community_name": "Frontend Test Run/Plan Detail UI",
       "norm_label": "testcasestatus"
     },
     {
@@ -20991,8 +20991,8 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testsuitevisibility",
-      "community": 10,
-      "community_name": "Frontend Routes & Pages",
+      "community": 49,
+      "community_name": "Backend RBAC Middleware",
       "norm_label": "testsuitevisibility"
     },
     {
@@ -21013,8 +21013,8 @@
       "source_location": "L190",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testsuiteitem",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "testsuiteitem"
     },
     {
@@ -21035,8 +21035,8 @@
       "source_location": "L218",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testsuiteitemwithsteps",
-      "community": 38,
-      "community_name": "Backend Test Run DTO",
+      "community": 26,
+      "community_name": "Frontend Test Plan UI",
       "norm_label": "testsuiteitemwithsteps"
     },
     {
@@ -21068,8 +21068,8 @@
       "source_location": "L235",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testrunstatus",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrunstatus"
     },
     {
@@ -21079,8 +21079,8 @@
       "source_location": "L237",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testrun",
-      "community": 8,
-      "community_name": "Frontend Auth & User Settings",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testrun"
     },
     {
@@ -21090,8 +21090,8 @@
       "source_location": "L253",
       "_origin": "ast",
       "id": "frontend_src_types_domain_testresultstatus",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 1,
+      "community_name": "Frontend Repository/Mapper Layer",
       "norm_label": "testresultstatus"
     },
     {
@@ -21211,8 +21211,8 @@
       "source_location": "L353",
       "_origin": "ast",
       "id": "frontend_src_types_domain_issuewithdetails",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 126,
+      "community_name": "NotFound",
       "norm_label": "issuewithdetails"
     },
     {
@@ -21222,8 +21222,8 @@
       "source_location": "L367",
       "_origin": "ast",
       "id": "frontend_src_types_domain_activityentitytype",
-      "community": 26,
-      "community_name": "Frontend Test Plan UI",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "activityentitytype"
     },
     {
@@ -21244,8 +21244,8 @@
       "source_location": "L379",
       "_origin": "ast",
       "id": "frontend_src_types_domain_attachment",
-      "community": 126,
-      "community_name": "NotFound",
+      "community": 29,
+      "community_name": "Frontend Test Run Dialogs",
       "norm_label": "attachment"
     },
     {
@@ -23059,9 +23059,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 66,
+      "community": 71,
       "norm_label": "testing domain (unchanged)",
-      "community_name": "Architecture V2 Migration Docs",
+      "community_name": "Architecture & Design Review Docs",
       "id": "archv2_testing_domain_unchanged"
     },
     {
@@ -69397,18 +69397,6 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_pages_projects_components_tabs_memberstab",
-      "target": "frontend_src_helpers_statuslabels_project_member_role_severity",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/projects/components/tabs/MembersTab.tsx",
-      "source_location": "L12",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_src_pages_projects_components_tabs_memberstab",
       "target": "frontend_src_helpers_statuslabels_project_member_status_label",
       "confidence_score": 1.0
     },
@@ -77656,7 +77644,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/pages/projects/components/tabs/MembersTab.tsx",
-      "source_location": "L44",
+      "source_location": "L42",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_pages_projects_components_tabs_memberstab",
@@ -77667,7 +77655,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/pages/projects/components/tabs/MembersTab.tsx",
-      "source_location": "L23",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_pages_projects_components_tabs_memberstab",

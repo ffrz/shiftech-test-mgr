@@ -1,11 +1,11 @@
 # Graph Report - shiftech-test-mgr  (2026-08-01)
 
 ## Corpus Check
-- 449 files · ~226,121 words
+- 448 files · ~224,053 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2171 nodes · 5488 edges · 164 communities (124 shown, 40 thin omitted)
+- 2171 nodes · 5487 edges · 166 communities (126 shown, 40 thin omitted)
 - Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 541 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
@@ -156,8 +156,11 @@
 - @tanstack/react-query
 - ProjectMemberRepository
 - test-plans/components/dialogs/DuplicateTestPlanDialog.tsx
+- testplan/entity.go
 - Recover
 - projectDuplicateService.test.ts
+- entityAttachmentRepository.ts
+- testSuiteService.test.ts
 - react-hook-form
 - react-markdown
 - attachmentService.test.ts
@@ -198,15 +201,15 @@
 - **Identity and access model: User/Profile split with per-project roles** — entity_user, entity_profile, entity_projectmember, role_manager, role_supervisor, role_tester, role_member [EXTRACTED 0.85]
 - **Starlight docs site branding assets** — public_docs_public_favicon_svg, public_docs_src_assets_houston, astro_starlight_framework [INFERRED 0.75]
 
-## Communities (164 total, 40 thin omitted)
+## Communities (166 total, 40 thin omitted)
 
 ### Community 0 - "Test Run Repository (MySQL+Postgres)"
 Cohesion: 0.12
 Nodes (23): Time, fromDomainTestRun(), Context, DB, Status, TestResult, TestResultStep, TestRun (+15 more)
 
 ### Community 1 - "Frontend Repository/Mapper Layer"
-Cohesion: 0.08
-Nodes (28): UsernamePicker(), PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_ROLE_SEVERITY, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY, PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY, InviteMemberDialog() (+20 more)
+Cohesion: 0.10
+Nodes (31): RelativeTime(), RelativeTimeProps, formatDate(), formatDateTime(), formatRelativeTime(), RELATIVE_UNITS, relativeTimeFormatter, TEST_RESULT_STATUS_SEVERITY (+23 more)
 
 ### Community 2 - "Backend App Bootstrap & Config"
 Cohesion: 0.07
@@ -230,23 +233,23 @@ Nodes (21): devDependencies, oxlint, sharp, @types/node, @types/react, @types/re
 
 ### Community 7 - "Frontend Issue Management UI"
 Cohesion: 0.08
-Nodes (37): App(), AdminRoute(), ProtectedRoute(), BreadcrumbItem, AuthProvider(), useAuthContext(), useDialogResizeFix(), useProjectAccessGuard() (+29 more)
+Nodes (33): App(), AdminRoute(), ProtectedRoute(), useAuthContext(), useDashboard(), useDialogResizeFix(), useProjectAccessGuard(), useProjectBreadcrumbItems() (+25 more)
 
 ### Community 8 - "Frontend Auth & User Settings"
-Cohesion: 0.07
-Nodes (30): STATUS_OPTIONS, TestPlanDialog(), TestPlanDialogProps, AttachmentPanel(), UserHoverCard(), UserHoverCardProps, TEST_CASE_STATUS_SEVERITY, TEST_PLAN_STATUS_LABEL (+22 more)
+Cohesion: 0.09
+Nodes (23): STATUS_OPTIONS, TestPlanDialog(), TestPlanDialogProps, AppToast(), AttachmentPanel(), UserHoverCard(), UserHoverCardProps, TEST_PLAN_STATUS_LABEL (+15 more)
 
 ### Community 9 - "Frontend Test Case UI"
 Cohesion: 0.11
 Nodes (19): date-fns, dependencies, date-fns, @hookform/resolvers, primeicons, react-dom, react-hook-form, react-markdown (+11 more)
 
 ### Community 10 - "Frontend Routes & Pages"
-Cohesion: 0.09
-Nodes (20): TestSuiteDialog(), TestSuiteDialogMode, TestSuiteDialogProps, VISIBILITY_OPTIONS, PRIORITY_OPTIONS, STEP_TYPE_OPTIONS, TestSuiteItemDialog(), TestSuiteItemDialogMode (+12 more)
+Cohesion: 0.14
+Nodes (15): PRIORITY_OPTIONS, STEP_TYPE_OPTIONS, TestSuiteItemDialog(), TestSuiteItemDialogMode, TestSuiteItemDialogProps, CharacterCount(), CharacterCountProps, TEST_CASE_PRIORITY_LABEL (+7 more)
 
 ### Community 11 - "Frontend Test Run/Plan Detail UI"
-Cohesion: 0.08
-Nodes (43): BulkActionsBar(), BulkActionsBarProps, dataTablePaginatorProps, dataTablePaginatorTemplate, FilterToolbar(), FilterToolbarProps, RowActionsMenu(), RowActionsMenuProps (+35 more)
+Cohesion: 0.06
+Nodes (54): BulkActionsBar(), BulkActionsBarProps, dataTablePaginatorProps, dataTablePaginatorTemplate, FilterToolbar(), FilterToolbarProps, RowActionsMenu(), RowActionsMenuProps (+46 more)
 
 ### Community 12 - "Backend Profile Repository"
 Cohesion: 0.13
@@ -257,24 +260,24 @@ Cohesion: 0.13
 Nodes (18): FromIssue(), FromIssues(), Issue, Time, toDomainGithubLinks(), Context, Service, NewIssueHandler() (+10 more)
 
 ### Community 14 - "Backend Test Plan HTTP Layer"
-Cohesion: 0.12
-Nodes (19): FromTestPlan(), FromTestPlanCase(), FromTestPlanCases(), FromTestPlans(), TestPlan, Time, Context, Service (+11 more)
+Cohesion: 0.11
+Nodes (20): BindAndValidate(), Context, FromTestPlan(), FromTestPlanCase(), FromTestPlanCases(), FromTestPlans(), TestPlan, Time (+12 more)
 
 ### Community 15 - "Backend Issue Domain & Service"
 Cohesion: 0.23
 Nodes (11): Internal(), Context, fromDomainIssue(), Context, DB, Issue, Status, NewIssueRepository() (+3 more)
 
 ### Community 16 - "Backend Test Case HTTP Layer"
-Cohesion: 0.20
-Nodes (9): computeSummary(), Repository, Summary, TestCaseRepository, NewService(), Repository, TestCaseRepository, TestPlanCaseRepository (+1 more)
+Cohesion: 0.60
+Nodes (3): computeSummary(), Summary, WithResults
 
 ### Community 17 - "Backend Project HTTP Layer"
 Cohesion: 0.13
 Nodes (18): Time, FromProject(), FromProjects(), Project, Time, Context, Service, NewProjectHandler() (+10 more)
 
 ### Community 18 - "Backend Test Run Service"
-Cohesion: 0.32
-Nodes (4): Validation(), Context, TestRun, Service
+Cohesion: 0.26
+Nodes (7): Validation(), Context, Repository, TestCaseRepository, TestRun, NewService(), Service
 
 ### Community 19 - "Frontend Project Management UI"
 Cohesion: 0.20
@@ -301,12 +304,12 @@ Cohesion: 0.16
 Nodes (17): FromTestCase(), FromTestCases(), FromTestCaseWithDetails(), TestCase, Time, Context, Service, NewTestCaseHandler() (+9 more)
 
 ### Community 25 - "Backend Test Run HTTP Layer"
-Cohesion: 0.15
-Nodes (11): BindAndValidate(), Context, FromTestRun(), FromTestRuns(), TestRun, Context, Service, NewTestRunHandler() (+3 more)
+Cohesion: 0.21
+Nodes (9): FromTestRun(), FromTestRuns(), TestRun, Context, Service, NewTestRunHandler(), OK(), TestRunResponse (+1 more)
 
 ### Community 26 - "Frontend Test Plan UI"
 Cohesion: 0.11
-Nodes (30): DuplicateProjectDialog(), DuplicateProjectDialogProps, ContinueWorkingItem, ProjectOwnerFilter, ProjectPaginatedQuery, ProjectQuery, SORT_COLUMN, testCaseRepository (+22 more)
+Nodes (28): PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY, CreateProjectDialog(), CreateProjectDialogProps, DuplicateProjectDialog(), DuplicateProjectDialogProps, DangerZoneTab(), DangerZoneTabProps (+20 more)
 
 ### Community 27 - "Backend Test Plan Repository (Postgres)"
 Cohesion: 0.21
@@ -317,8 +320,8 @@ Cohesion: 0.31
 Nodes (7): Context, DB, NewTestCaseSnapshotRepository(), NewTestPlanCaseReader(), TestCaseSnapshotRepository, TestPlanCaseReader, TestCaseStepSnapshot
 
 ### Community 29 - "Frontend Test Run Dialogs"
-Cohesion: 0.20
-Nodes (10): ActivityPanel(), ActivityPanelProps, ActivityPanelSkeleton(), extractIssueCodes(), extractMentionUsernames(), extractTestCaseCodes(), KnownRefs, linkifyMentionsMarkdown() (+2 more)
+Cohesion: 0.10
+Nodes (25): ActivityPanel(), ActivityPanelProps, ActivityPanelSkeleton(), CommentEditor(), CommentEditorProps, MarkdownPreview(), MarkdownPreviewProps, describeSystemEvent() (+17 more)
 
 ### Community 30 - "AGENTS.md Conventions"
 Cohesion: 0.14
@@ -353,8 +356,8 @@ Cohesion: 0.83
 Nodes (3): DB, NewProjectMemberRepository(), ProjectMemberRepository
 
 ### Community 38 - "Backend Test Run DTO"
-Cohesion: 0.10
-Nodes (29): ProfileView(), ProfileViewProps, ProfileViewSkeleton(), UsernamePickerProps, PROJECT_VISIBILITY_LABEL, PROJECT_VISIBILITY_SEVERITY, TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY (+21 more)
+Cohesion: 0.09
+Nodes (31): ProfileView(), ProfileViewProps, ProfileViewSkeleton(), Breadcrumb(), BreadcrumbItem, BreadcrumbProps, UsernamePicker(), UsernamePickerProps (+23 more)
 
 ### Community 39 - "Backend Module HTTP DTO"
 Cohesion: 0.20
@@ -397,8 +400,8 @@ Cohesion: 0.27
 Nodes (9): Forbidden(), Context, Context, CanDeleteProject(), CanEditProject(), CanManageIssues(), CanManageTests(), Member (+1 more)
 
 ### Community 49 - "Backend RBAC Middleware"
-Cohesion: 0.10
-Nodes (35): AppToast(), Breadcrumb(), BreadcrumbProps, ColumnHeaderMenu(), ColumnHeaderMenuProps, PageHeader(), PageHeaderProps, RelativeTime() (+27 more)
+Cohesion: 0.11
+Nodes (23): TestSuiteDialog(), TestSuiteDialogMode, TestSuiteDialogProps, VISIBILITY_OPTIONS, ColumnHeaderMenu(), ColumnHeaderMenuProps, PageHeader(), PageHeaderProps (+15 more)
 
 ### Community 50 - "Backend JWT & Auth Service"
 Cohesion: 0.20
@@ -413,8 +416,8 @@ Cohesion: 0.30
 Nodes (7): Context, Module, Repository, NewService(), CreateInput, Service, UpdateInput
 
 ### Community 53 - "Backend Auth HTTP Handler"
-Cohesion: 0.09
-Nodes (26): Time, fromDomainIssue(), Context, DB, Issue, Status, NewIssueRepository(), toDomainIssue() (+18 more)
+Cohesion: 0.26
+Nodes (9): fromDomainIssue(), Context, DB, Issue, Status, NewIssueRepository(), toDomainIssue(), toDomainIssues() (+1 more)
 
 ### Community 54 - "Backend Attachment Repository (MySQL)"
 Cohesion: 0.36
@@ -465,16 +468,16 @@ Cohesion: 0.28
 Nodes (9): Auth & RBAC Detail (project-scoped RLS), RBAC per-project (project_members roles), E01 - Fondasi Arsitektur, E09 - Restrukturisasi Monorepo, E13 - Test Run Detail Page + Sequence, E14 - React Query + Realtime Sync, E15 - RBAC Per-Project, TASKS - TestManager work breakdown (+1 more)
 
 ### Community 66 - "Architecture V2 Migration Docs"
-Cohesion: 0.33
-Nodes (9): Updated Bounded Contexts (Platform vs Testing), Entity-by-entity Disposition table, Migration Strategy (8 ordered steps), Organization-readiness without building organizations, project_members Invite/Accept Lifecycle, Project Ownership + Visibility, Test Suite Ownership + Visibility, Testing Domain (unchanged) (+1 more)
+Cohesion: 0.39
+Nodes (8): Updated Bounded Contexts (Platform vs Testing), Entity-by-entity Disposition table, Migration Strategy (8 ordered steps), Organization-readiness without building organizations, project_members Invite/Accept Lifecycle, Project Ownership + Visibility, Test Suite Ownership + Visibility, users/profiles Identity Split
 
 ### Community 67 - "Backend Auth HTTP DTO"
-Cohesion: 0.18
+Cohesion: 0.17
 Nodes (12): FromProfile(), Profile, Context, ProfileRepository, Service, NewAuthHandler(), GoogleCallbackRequest, LogoutRequest (+4 more)
 
 ### Community 68 - "supabaseClient.ts"
-Cohesion: 0.22
-Nodes (7): supabase, mapUserRow(), moduleRepository, notificationRepository, tagRepository, testRoleRepository, userRepository
+Cohesion: 0.17
+Nodes (10): supabase, mapNotificationRow(), mapTestRunRow(), mapUserRow(), moduleRepository, notificationRepository, tagRepository, testRoleRepository (+2 more)
 
 ### Community 69 - "Backend HTTP Response Helpers"
 Cohesion: 0.38
@@ -485,8 +488,8 @@ Cohesion: 0.22
 Nodes (8): plugins, rules, react/only-export-components, react/rules-of-hooks, $schema, oxc, typescript, warn
 
 ### Community 71 - "Architecture & Design Review Docs"
-Cohesion: 0.29
-Nodes (8): Database Schema (Supabase/Postgres), Entity Code Auto-Generate mechanism (next_entity_code), Test Management Workflow design rationale, Decision: Full history instead of last-result, Design Review - Test Management v2, E08 - Test Management v2, Entity Code Auto-Generate Feature, Projects Feature Module
+Cohesion: 0.25
+Nodes (9): Database Schema (Supabase/Postgres), Entity Code Auto-Generate mechanism (next_entity_code), Test Management Workflow design rationale, Testing Domain (unchanged), Decision: Full history instead of last-result, Design Review - Test Management v2, E08 - Test Management v2, Entity Code Auto-Generate Feature (+1 more)
 
 ### Community 72 - "PrimeReact UI Convention"
 Cohesion: 0.25
@@ -545,16 +548,16 @@ Cohesion: 0.50
 Nodes (3): ProfileRepository, ProjectMemberRepository, RefreshTokenRepository
 
 ### Community 93 - "Backend Project Member Repository (MySQL)"
-Cohesion: 0.13
-Nodes (19): mapNotificationRow(), mapProjectMemberInvitationRow(), mapProjectMemberRow(), mapProjectMemberWithProfileRow(), mapTestCaseStepRow(), mapTestRunRow(), mapTestSuiteItemRow(), mapTestSuiteItemStepRow() (+11 more)
+Cohesion: 0.14
+Nodes (16): mapProjectMemberInvitationRow(), mapProjectMemberRow(), mapProjectMemberWithProfileRow(), mapTestCaseStepRow(), mapTestSuiteItemRow(), mapTestSuiteItemStepRow(), mapTestSuiteRow(), projectMemberRepository (+8 more)
 
 ### Community 100 - "ResultStep"
 Cohesion: 0.27
 Nodes (10): fromDomainTestCase(), Context, DB, Query, TestCase, TestCaseStep, NewTestCaseRepository(), toDomainTestCase() (+2 more)
 
 ### Community 116 - "MentionTextarea.tsx"
-Cohesion: 0.20
-Nodes (8): CommentEditor(), CommentEditorProps, MarkdownPreview(), MarkdownPreviewProps, MentionTextarea(), MentionTextareaProps, Suggestion, Trigger
+Cohesion: 0.33
+Nodes (4): MentionTextarea(), MentionTextareaProps, Suggestion, Trigger
 
 ### Community 123 - "frontend/scripts/generate-icons.mjs"
 Cohesion: 0.15
@@ -570,7 +573,7 @@ Nodes (7): mapProjectRow(), mapTestPlanRow(), DashboardCounts, dashboardReposito
 
 ### Community 126 - "NotFound"
 Cohesion: 0.08
-Nodes (45): IssueEditor(), IssueEditorProps, IssueFormData, PRIORITY_OPTIONS, STATUS_OPTIONS, TYPE_OPTIONS, ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY (+37 more)
+Nodes (48): IssueEditor(), IssueEditorProps, IssueFormData, PRIORITY_OPTIONS, STATUS_OPTIONS, TYPE_OPTIONS, ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY (+40 more)
 
 ### Community 127 - "RequireAuth"
 Cohesion: 0.33
@@ -609,8 +612,8 @@ Cohesion: 0.40
 Nodes (4): name, private, type, version
 
 ### Community 137 - "Created"
-Cohesion: 0.33
-Nodes (8): Context, HTTPErrorHandler(), httpMessage(), OKWithMeta(), statusFor(), HTTPError, envelope, errorBody
+Cohesion: 0.31
+Nodes (9): Created(), Context, HTTPErrorHandler(), httpMessage(), OKWithMeta(), statusFor(), HTTPError, envelope (+1 more)
 
 ### Community 138 - "TestCaseSnapshotRepository"
 Cohesion: 0.67
@@ -620,6 +623,10 @@ Nodes (5): DB, NewTestCaseSnapshotRepository(), NewTestPlanCaseReader(), TestCas
 Cohesion: 0.83
 Nodes (3): DB, NewProjectMemberRepository(), ProjectMemberRepository
 
+### Community 144 - "testplan/entity.go"
+Cohesion: 0.26
+Nodes (6): Context, Issue, Repository, Status, NewService(), Service
+
 ### Community 145 - "Recover"
 Cohesion: 0.20
 Nodes (10): Logger, MiddlewareFunc, Recover(), Logger, ProjectMemberRepository, Service, NewRouter(), Echo (+2 more)
@@ -628,8 +635,16 @@ Nodes (10): Logger, MiddlewareFunc, Recover(), Logger, ProjectMemberRepository, 
 Cohesion: 0.18
 Nodes (7): TestCaseDetail, AddCaseToPlanDialog(), AddCaseToPlanDialogProps, makeTestCase(), makeTestCaseWithDetails(), TestCase, TestCaseWithDetails
 
+### Community 147 - "entityAttachmentRepository.ts"
+Cohesion: 0.27
+Nodes (11): Time, Priority, CreateInput, GithubLink, Issue, Link, Priority, Status (+3 more)
+
+### Community 148 - "testSuiteService.test.ts"
+Cohesion: 0.50
+Nodes (3): Repository, TestCaseRepository, TestPlanCaseRepository
+
 ## Knowledge Gaps
-- **324 isolated node(s):** `$schema`, `.opencode/plugins/graphify.js`, `github.com/shiftech/testmgr-backend`, `TagLink`, `Summary` (+319 more)
+- **325 isolated node(s):** `$schema`, `.opencode/plugins/graphify.js`, `github.com/shiftech/testmgr-backend`, `TagLink`, `Summary` (+320 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **40 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -638,9 +653,9 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Internal()` connect `Backend Issue Domain & Service` to `Test Run Repository (MySQL+Postgres)`, `Test Case Backend (Domain+Service+Repo)`, `.Update`, `Backend Profile Repository`, `Recover`, `Frontend Project Management UI`, `Backend Test Plan Repository (MySQL)`, `Backend Test Plan Repository (Postgres)`, `Backend Issue Repository (Postgres)`, `Backend Google OAuth Service`, `Backend Project Repository (MySQL)`, `Backend Project Repository (Postgres)`, `Backend Module Repository (MySQL)`, `Backend Project Membership & Auth Policy`, `Backend JWT & Auth Service`, `Backend Test Role Repository (MySQL)`, `Backend Auth HTTP Handler`, `Backend Attachment Repository (MySQL)`, `Backend Tag Repository (MySQL)`, `Backend Attachment Repository (Postgres)`, `Backend Refresh Token Repository (MySQL)`, `Backend Refresh Token Repository (Postgres)`, `Backend HTTP Response Helpers`, `ResultStep`?**
   _High betweenness centrality (0.126) - this node is a cross-community bridge._
-- **Why does `Validation()` connect `Backend Test Run Service` to `Backend Test Plan Service`, `Test Case Backend (Domain+Service+Repo)`, `Backend Project Service`, `Backend Issue HTTP Layer`, `Backend Attachment HTTP DTO`, `Backend Test Plan HTTP Layer`, `Backend Project HTTP Layer`, `Backend Test Role Repository (MySQL)`, `Backend Module Service`, `Backend Auth HTTP Handler`, `Backend Issue Repository (MySQL)`, `Backend Test Run HTTP Layer`, `Backend Attachment Service`, `Backend Tag Service`, `Backend Test Role Service`?**
+- **Why does `Validation()` connect `Backend Test Run Service` to `Backend Test Plan Service`, `Test Case Backend (Domain+Service+Repo)`, `Backend Project Service`, `Backend Issue HTTP Layer`, `Backend Attachment HTTP DTO`, `Backend Test Plan HTTP Layer`, `testplan/entity.go`, `Backend Project HTTP Layer`, `Backend Test Role Repository (MySQL)`, `Backend Module Service`, `Backend Issue Repository (MySQL)`, `Backend Test Run HTTP Layer`, `Backend Attachment Service`, `Backend Tag Service`, `Backend Test Role Service`?**
   _High betweenness centrality (0.072) - this node is a cross-community bridge._
-- **Why does `BindAndValidate()` connect `Backend Test Run HTTP Layer` to `Backend Auth HTTP DTO`, `Backend Module HTTP DTO`, `Backend Tag HTTP DTO`, `Backend Test Role HTTP DTO`, `Backend Issue HTTP Layer`, `Backend Attachment HTTP DTO`, `Backend Test Plan HTTP Layer`, `Backend Project HTTP Layer`, `Backend Test Run Service`, `Backend Auth HTTP Handler`, `Backend Issue Repository (MySQL)`?**
+- **Why does `BindAndValidate()` connect `Backend Test Plan HTTP Layer` to `Backend Auth HTTP DTO`, `Backend Module HTTP DTO`, `Backend Tag HTTP DTO`, `Backend Test Role HTTP DTO`, `Backend Issue HTTP Layer`, `Backend Attachment HTTP DTO`, `Backend Project HTTP Layer`, `Backend Test Run Service`, `Backend Issue Repository (MySQL)`, `Backend Test Run HTTP Layer`?**
   _High betweenness centrality (0.036) - this node is a cross-community bridge._
 - **Are the 160 inferred relationships involving `Internal()` (e.g. with `.issueTokenPair()` and `toDomainIssues()`) actually correct?**
   _`Internal()` has 160 INFERRED edges - model-reasoned connections that need verification._
@@ -649,4 +664,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 33 inferred relationships involving `Validation()` (e.g. with `.Create()` and `BindAndValidate()`) actually correct?**
   _`Validation()` has 33 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `$schema`, `.opencode/plugins/graphify.js`, `github.com/shiftech/testmgr-backend` to the rest of the system?**
-  _324 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _325 weakly-connected nodes found - possible documentation gaps or missing edges._

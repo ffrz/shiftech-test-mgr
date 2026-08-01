@@ -765,7 +765,7 @@
     "semantic_hash": ""
   },
   "frontend/src/helpers/statusLabels.ts": {
-    "mtime": 1785561237.5328684,
+    "mtime": 1785413334.1007628,
     "ast_hash": "2de403fc0ec2f04ca5db6d5eb063ff36",
     "semantic_hash": ""
   },
@@ -1955,8 +1955,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/MembersTab.tsx": {
-    "mtime": 1785562278.1694424,
-    "ast_hash": "0541a05cc7c7eebf4735fcafb7326211",
+    "mtime": 1785560914.2060082,
+    "ast_hash": "61072af2cf72fe6cc09ab2df25287417",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/ModulesTab.tsx": {
@@ -2270,7 +2270,7 @@
     "semantic_hash": ""
   },
   "frontend/src/services/projectMemberService.test.ts": {
-    "mtime": 1785562204.2577288,
+    "mtime": 1785560660.4791398,
     "ast_hash": "94e76442a7b86739ecc1c0b43640ba77",
     "semantic_hash": ""
   },
@@ -2337,16 +2337,6 @@
   "supabase/migrations/20260801000004_lock_project_owner_membership.sql": {
     "mtime": 1785560847.3075519,
     "ast_hash": "d67c1309d9c32cd2ed4d27cc0eceb612",
-    "semantic_hash": ""
-  },
-  "frontend/cov-full.txt": {
-    "mtime": 1785561151.504608,
-    "ast_hash": "f7777c85aaf0b9428c63f2bd56743ffb",
-    "semantic_hash": ""
-  },
-  "frontend/cov-suite.txt": {
-    "mtime": 1785561084.0627348,
-    "ast_hash": "d8cb179525ac86bb2d76d4540fd25c66",
     "semantic_hash": ""
   }
 }
