@@ -9,6 +9,7 @@ import (
 	"github.com/shiftech/testify-platform/mcp-server/internal/auth"
 	"github.com/shiftech/testify-platform/mcp-server/internal/tools"
 	"github.com/shiftech/testify-platform/repository/postgres"
+	"github.com/shiftech/testify-platform/service"
 	pgdriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -26,15 +27,20 @@ func main() {
 		log.Fatalf("db connect: %v", err)
 	}
 
-	// 2. Wire repositories (postgres implements core ports)
+	// 2. Wire repositories (postgres implements core ports), then wrap each
+	// in its service — tool handlers only ever see Services, never Repos.
 	tokenRepo := postgres.NewTokenRepo(db)
-	repos := tools.Repos{
-		Project:  postgres.NewProjectRepo(db),
-		TestCase: nil, // TODO: implement
-		TestPlan: nil, // TODO: implement
-		TestRun:  nil, // TODO: implement
-		Issue:    nil, // TODO: implement
-		Token:    tokenRepo,
+	services := tools.Services{
+		Project:    service.NewProjectService(postgres.NewProjectRepo(db)),
+		TestCase:   service.NewTestCaseService(postgres.NewTestCaseRepo(db)),
+		TestPlan:   service.NewTestPlanService(postgres.NewTestPlanRepo(db)),
+		TestRun:    service.NewTestRunService(postgres.NewTestRunRepo(db)),
+		TestResult: service.NewTestResultService(postgres.NewTestResultRepo(db)),
+		Issue:      service.NewIssueService(postgres.NewIssueRepo(db)),
+		Module:     service.NewModuleService(postgres.NewModuleRepo(db)),
+		Tag:        service.NewTagService(postgres.NewTagRepo(db)),
+		TestRole:   service.NewTestRoleService(postgres.NewTestRoleRepo(db)),
+		Token:      tokenRepo,
 	}
 
 	// 3. Authenticate session
@@ -46,7 +52,7 @@ func main() {
 		session.Identity.TokenID, session.ProjectID, session.Identity.Scopes)
 
 	// 4. Choose tool set based on read-only flag
-	registry := &tools.Registry{Session: session, Repos: repos}
+	registry := &tools.Registry{Session: session, Services: services}
 	var registrars []tools.ToolRegistrar
 	if os.Getenv("TM_MCP_READONLY") == "1" {
 		registrars = registry.ReadOnly()

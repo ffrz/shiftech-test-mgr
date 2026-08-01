@@ -77,6 +77,62 @@ func (s *Session) EnsureScope(required core.TokenScope) error {
 	return nil
 }
 
+// projectRefKeys are the argument keys that may carry a project reference.
+// Mirrors the Node authService inspectProjectReferences: it walks every
+// argument (recursively into objects and arrays) looking for a
+// "project_id"/"projectId" key and asserts it matches the session scope.
+var projectRefKeys = []string{"project_id", "projectId"}
+
+// AssertProjectReferences walks the tool arguments recursively and verifies
+// that every project reference matches the session's project scope. This is
+// the defence-in-depth layer behind MCP scopes: even if a token carries the
+// right write:xxx scope, a tool call can only ever target the project the
+// token was issued for. Returns an error on the first mismatch, or nil when
+// the arguments carry no project reference at all.
+func (s *Session) AssertProjectReferences(args map[string]any) error {
+	if len(args) == 0 {
+		return nil
+	}
+	return s.walkProjectReferences("arguments", args)
+}
+
+func (s *Session) walkProjectReferences(path string, node any) error {
+	switch v := node.(type) {
+	case map[string]any:
+		for key, val := range v {
+			child := path + "." + key
+			for _, refKey := range projectRefKeys {
+				if key == refKey {
+					if err := s.assertProjectRef(child, val); err != nil {
+						return err
+					}
+				}
+			}
+			if err := s.walkProjectReferences(child, val); err != nil {
+				return err
+			}
+		}
+	case []any:
+		for i, item := range v {
+			if err := s.walkProjectReferences(fmt.Sprintf("%s[%d]", path, i), item); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (s *Session) assertProjectRef(path string, val any) error {
+	strVal, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("%s must be a string project reference", path)
+	}
+	if strVal != s.ProjectID {
+		return fmt.Errorf("%s references project %q, but session is scoped to project %q", path, strVal, s.ProjectID)
+	}
+	return nil
+}
+
 // contextKey avoids collisions with context keys from other packages.
 type contextKey struct{}
 

@@ -7,6 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/shiftech/testify-platform/core"
 	"github.com/shiftech/testify-platform/mcp-server/internal/auth"
+	"github.com/shiftech/testify-platform/service"
 )
 
 // Registry holds all tool groups and wires them to the MCP server.
@@ -20,8 +21,8 @@ import (
 // SessionFor(ctx) rather than read r.Session directly, so the same handler
 // works under both transports.
 type Registry struct {
-	Session *auth.Session
-	Repos   Repos
+	Session  *auth.Session
+	Services Services
 }
 
 // SessionFor resolves the Session for one tool call: the context-scoped
@@ -37,13 +38,20 @@ func (r *Registry) SessionFor(ctx context.Context) (*auth.Session, error) {
 	return nil, fmt.Errorf("no session available for this call")
 }
 
-type Repos struct {
-	Project  core.ProjectRepository
-	TestCase core.TestCaseRepository
-	TestPlan core.TestPlanRepository
-	TestRun  core.TestRunRepository
-	Issue    core.IssueRepository
-	Token    core.TokenRepository
+// Services holds one service per aggregate. Tool handlers depend on these,
+// never on core.XxxRepository directly — repositories are only constructed
+// and injected into services once, at wiring time in main.go.
+type Services struct {
+	Project    *service.ProjectService
+	TestCase   *service.TestCaseService
+	TestPlan   *service.TestPlanService
+	TestRun    *service.TestRunService
+	TestResult *service.TestResultService
+	Issue      *service.IssueService
+	Module     *service.ModuleService
+	Tag        *service.TagService
+	TestRole   *service.TestRoleService
+	Token      core.TokenRepository // auth check, not a business-logic repo — no service wrapper needed
 }
 
 // ReadOnly returns a subset of registrars for TM_MCP_READONLY=1 mode.
@@ -57,7 +65,7 @@ func (r *Registry) ReadOnly() []ToolRegistrar {
 func (r *Registry) Full() []ToolRegistrar {
 	return []ToolRegistrar{
 		&ReadTools{r},
-		// &WriteTools{r},
+		&WriteTools{r},
 		// &AutomationTools{r},
 		// &AnalysisTools{r},
 	}

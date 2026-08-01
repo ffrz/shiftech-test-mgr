@@ -21,6 +21,7 @@ import (
 	"github.com/shiftech/testify-platform/mcp-server/internal/auth"
 	"github.com/shiftech/testify-platform/mcp-server/internal/tools"
 	"github.com/shiftech/testify-platform/repository/postgres"
+	"github.com/shiftech/testify-platform/service"
 	pgdriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -36,15 +37,23 @@ func main() {
 	}
 
 	tokenRepo := postgres.NewTokenRepo(db)
-	repos := tools.Repos{
-		Project: postgres.NewProjectRepo(db),
-		Token:   tokenRepo,
+	services := tools.Services{
+		Project:    service.NewProjectService(postgres.NewProjectRepo(db)),
+		TestCase:   service.NewTestCaseService(postgres.NewTestCaseRepo(db)),
+		TestPlan:   service.NewTestPlanService(postgres.NewTestPlanRepo(db)),
+		TestRun:    service.NewTestRunService(postgres.NewTestRunRepo(db)),
+		TestResult: service.NewTestResultService(postgres.NewTestResultRepo(db)),
+		Issue:      service.NewIssueService(postgres.NewIssueRepo(db)),
+		Module:     service.NewModuleService(postgres.NewModuleRepo(db)),
+		Tag:        service.NewTagService(postgres.NewTagRepo(db)),
+		TestRole:   service.NewTestRoleService(postgres.NewTestRoleRepo(db)),
+		Token:      tokenRepo,
 	}
 
 	// No Session set here — HTTP transport has no single client to
 	// authenticate at startup. Each request's Session is derived by
 	// authenticateRequest below and attached to that request's context.
-	registry := &tools.Registry{Repos: repos}
+	registry := &tools.Registry{Services: services}
 	var registrars []tools.ToolRegistrar
 	if os.Getenv("TM_MCP_READONLY") == "1" {
 		registrars = registry.ReadOnly()
