@@ -7,6 +7,7 @@ import { profileService } from '../../services/profileService';
 import { projectService } from '../../services/projectService';
 import { testSuiteService } from '../../services/testSuiteService';
 import { ProfileView } from '../../components/profile/ProfileView';
+import { ProfileViewSkeleton } from '../../components/profile/ProfileViewSkeleton';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import type { User, Profile, Project, TestSuite } from '../../types/domain';
 import { formatDateTime } from '../../helpers/dateFormatter';
@@ -38,7 +39,7 @@ export function UserDetailPage() {
     });
   }, [id]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <ProfileViewSkeleton />;
   if (!user) return <p>User not found.</p>;
   if (!profile) return <p>Profile not found.</p>;
 

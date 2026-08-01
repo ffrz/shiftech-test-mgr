@@ -4,6 +4,7 @@ import { profileService } from '../../services/profileService';
 import { projectService } from '../../services/projectService';
 import { testSuiteService } from '../../services/testSuiteService';
 import { ProfileView } from '../../components/profile/ProfileView';
+import { ProfileViewSkeleton } from '../../components/profile/ProfileViewSkeleton';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { useAuthContext } from '../../hooks/useAuth';
 import type { Profile, Project, TestSuite } from '../../types/domain';
@@ -51,7 +52,7 @@ export function PublicProfilePage() {
     return () => { cancelled = true; };
   }, [username, isOwnProfile]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <ProfileViewSkeleton />;
   if (!profile) return <p>User not found.</p>;
 
   return (
