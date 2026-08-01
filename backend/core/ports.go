@@ -46,6 +46,35 @@ type IssueRepository interface {
 	UpdateStatus(ctx context.Context, id string, status IssueStatus) error
 }
 
+type ModuleRepository interface {
+	ListByProject(ctx context.Context, projectID string) ([]Module, error)
+	Get(ctx context.Context, id string) (*Module, error)
+}
+
+type TagRepository interface {
+	ListByProject(ctx context.Context, projectID string) ([]Tag, error)
+	Get(ctx context.Context, id string) (*Tag, error)
+}
+
+type TestRoleRepository interface {
+	ListByProject(ctx context.Context, projectID string) ([]TestRole, error)
+	Get(ctx context.Context, id string) (*TestRole, error)
+}
+
+type TestResultRepository interface {
+	List(ctx context.Context, filter TestResultFilter) (*PageResult[TestResult], error)
+	Get(ctx context.Context, id string) (*TestResult, error)
+}
+
+type TestResultFilter struct {
+	ProjectID string
+	RunID     *string
+	Status    *TestResultStatus
+	TesterID  *string
+	Cursor    *string
+	Limit     int
+}
+
 type TokenRepository interface {
 	Authenticate(ctx context.Context, token string) (*APITokenIdentity, error)
 	ValidateScopes(ctx context.Context, tokenID string, required ...TokenScope) error
@@ -65,6 +94,8 @@ type ProjectFilter struct {
 type TestCaseFilter struct {
 	ProjectID string
 	ModuleID  *string
+	Module    *string // case-insensitive exact module name or code
+	Tag       *string // case-insensitive exact tag name
 	Priority  *TestCasePriority
 	Status    *TestCaseStatus
 	Search    *string
@@ -93,6 +124,7 @@ type UpdateTestCaseInput struct {
 
 type TestPlanFilter struct {
 	ProjectID string
+	Status    *TestPlanStatus
 	Search    *string
 	Cursor    *string
 	Limit     int
@@ -102,6 +134,7 @@ type CreateTestPlanInput struct {
 	ProjectID   string
 	Name        string
 	Description string
+	Status      TestPlanStatus
 }
 
 type TestRunFilter struct {
@@ -132,6 +165,8 @@ type IssueFilter struct {
 	Status     *IssueStatus
 	Priority   *TestCasePriority
 	AssigneeID *string
+	RunID      *string
+	CaseID     *string
 	Search     *string
 	Cursor     *string
 	Limit      int

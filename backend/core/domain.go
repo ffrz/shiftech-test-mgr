@@ -102,14 +102,30 @@ type TestCase struct {
 // ---------------------------------------------------------------------------
 
 type TestPlan struct {
-	ID          string    `json:"id"`
-	Code        string    `json:"code"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	ProjectID   string    `json:"projectId"`
-	CaseIDs     []string  `json:"caseIds"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	ID          string         `json:"id"`
+	Code        string         `json:"code"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Status      TestPlanStatus `json:"status"`
+	ProjectID   string         `json:"projectId"`
+	CaseIDs     []string       `json:"caseIds"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+}
+
+type Tag struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	ProjectID string    `json:"projectId"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type TestRole struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	ProjectID string    `json:"projectId"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // ---------------------------------------------------------------------------
@@ -170,10 +186,23 @@ type RunSummary struct {
 type IssueStatus string
 
 const (
-	IssueOpen     IssueStatus = "open"
+	IssueBacklog    IssueStatus = "backlog"
+	IssueOpen       IssueStatus = "open"
 	IssueInProgress IssueStatus = "in_progress"
-	IssueResolved IssueStatus = "resolved"
-	IssueClosed   IssueStatus = "closed"
+	IssueResolved   IssueStatus = "resolved"
+	IssueVerified   IssueStatus = "verified"
+	IssueClosed     IssueStatus = "closed"
+	IssueRejected   IssueStatus = "rejected"
+	IssueDuplicate  IssueStatus = "duplicate"
+)
+
+type TestPlanStatus string
+
+const (
+	PlanDraft     TestPlanStatus = "draft"
+	PlanActive    TestPlanStatus = "active"
+	PlanCompleted TestPlanStatus = "completed"
+	PlanArchived  TestPlanStatus = "archived"
 )
 
 type IssueType string
