@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -8,6 +7,7 @@ import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
+import { UserHoverCard } from '../../../../components/ui/UserHoverCard';
 import type { ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus } from '../../../../types/domain';
 import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../../../helpers/statusLabels';
 
@@ -57,22 +57,21 @@ export function MembersTab({
   onRemove,
   onBulkRemove,
 }: MembersTabProps) {
-  const navigate = useNavigate();
-
   function isOwner(userId: string) { return userId === ownerId; }
-
-  function goToUser(userId: string) {
-    return (e: React.MouseEvent) => {
-      e.stopPropagation();
-      navigate(`/users/${userId}`);
-    };
-  }
 
   const mobileBody = (row: ProjectMemberWithProfile) => (
     <div className="flex align-items-start justify-content-between gap-2 py-1">
       <div className="flex flex-column gap-2">
-        <div className="font-medium entity-link" onClick={goToUser(row.userId)}>{row.profile?.displayName ?? '-'}</div>
-        <div className="text-sm username-text cursor-pointer" onClick={goToUser(row.userId)}>{row.profile?.username ?? '-'}</div>
+        <div className="font-medium">{row.profile?.displayName ?? '-'}</div>
+        <div className="text-sm">
+          {row.profile?.username ? (
+            <UserHoverCard userId={row.userId}>
+              <span className="entity-link">@{row.profile.username}</span>
+            </UserHoverCard>
+          ) : (
+            <span className="username-text">-</span>
+          )}
+        </div>
         <div className="text-sm text-color-secondary">
           Status: <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
         </div>
@@ -147,8 +146,12 @@ export function MembersTab({
       >
         {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
         {isMobile && <Column header="Member" body={mobileBody} />}
-        {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => <span className="entity-link" onClick={goToUser(row.userId)}>{row.profile?.displayName ?? '-'}</span>} />}
-        {!isMobile && <Column header="Username" body={(row: ProjectMemberWithProfile) => <span className="username-text cursor-pointer" onClick={goToUser(row.userId)}>{row.profile?.username ?? '-'}</span>} />}
+        {!isMobile && <Column header="Username" body={(row: ProjectMemberWithProfile) => row.profile?.username ? (
+          <UserHoverCard userId={row.userId}>
+            <span className="entity-link">{row.profile.username}</span>
+          </UserHoverCard>
+        ) : '-'} />}
+        {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => <span>{row.profile?.displayName ?? '-'}</span>} />}
         {!isMobile && (
           <Column
             header="Status"
