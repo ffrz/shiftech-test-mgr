@@ -66,7 +66,7 @@ export function MembersTab({
         <div className="text-sm">
           {row.profile?.username ? (
             <UserHoverCard userId={row.userId}>
-              <span className="entity-link">@{row.profile.username}</span>
+              <span className="username-link">@{row.profile.username}</span>
             </UserHoverCard>
           ) : (
             <span className="username-text">-</span>
@@ -148,7 +148,7 @@ export function MembersTab({
         {isMobile && <Column header="Member" body={mobileBody} />}
         {!isMobile && <Column header="Username" body={(row: ProjectMemberWithProfile) => row.profile?.username ? (
           <UserHoverCard userId={row.userId}>
-            <span className="entity-link">{row.profile.username}</span>
+            <span className="username-link">{row.profile.username}</span>
           </UserHoverCard>
         ) : '-'} />}
         {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => <span>{row.profile?.displayName ?? '-'}</span>} />}

@@ -77,6 +77,30 @@ html.dark .username-text {
   color: #ffffff;
 }
 
+/* Username link (e.g. project members table) — neutral black/white instead of the
+   primary-tinted .entity-link, bold, with underline only on hover so it reads as a
+   plain handle until the mouse gets there. */
+.username-link {
+  color: #111827;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 700;
+  transition: color 0.15s;
+}
+
+html.dark .username-link {
+  color: #ffffff;
+}
+
+.username-link:hover {
+  color: #111827;
+  text-decoration: underline;
+}
+
+html.dark .username-link:hover {
+  color: #ffffff;
+}
+
 /* Muted action links (Reply/Edit/Delete on a comment) — same affordance as .entity-link
    but without the bold primary color, so a comment's action row doesn't compete visually
    with actual content links (mentions, #test-case/!issue refs) inside the comment body. */
