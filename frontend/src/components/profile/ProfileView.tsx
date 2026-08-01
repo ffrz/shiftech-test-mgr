@@ -2,7 +2,7 @@ import { Card } from 'primereact/card';
 import { Avatar } from 'primereact/avatar';
 import { Tag } from 'primereact/tag';
 import { Link } from 'react-router-dom';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../ui/RelativeTime';
 import {
   PROJECT_VISIBILITY_LABEL,
   PROJECT_VISIBILITY_SEVERITY,
@@ -48,7 +48,7 @@ export function ProfileView({ profile, projects, suites, isSpying, adminOverlay 
         <div className="flex flex-wrap column-gap-4 row-gap-1 text-xs">
           <span className="text-color-secondary">
             <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
-            Member since <span className="text-color">{profile.createdAt ? formatDateTime(profile.createdAt) : '-'}</span>
+            Member since {profile.createdAt ? <RelativeTime value={profile.createdAt} className="text-color" /> : <span className="text-color">-</span>}
           </span>
         </div>
       </Card>

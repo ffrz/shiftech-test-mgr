@@ -3,7 +3,7 @@ import { Button } from 'primereact/button';
 import { Badge } from 'primereact/badge';
 import { classNames } from 'primereact/utils';
 import type { Notification } from '../../types/domain';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../ui/RelativeTime';
 
 const NOTIFICATION_TYPE_ICON: Record<string, string> = {
   project_invite: 'pi-user-plus',
@@ -118,7 +118,7 @@ export function NotificationPanel({
                     </div>
                   )}
                   <div className="text-xs text-color-secondary mt-1">
-                    {formatDateTime(n.createdAt)}
+                    <RelativeTime value={n.createdAt} />
                   </div>
                 </div>
               </div>

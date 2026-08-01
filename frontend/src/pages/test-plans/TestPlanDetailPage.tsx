@@ -19,7 +19,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { profileRepository } from '../../repositories/profileRepository';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 import { TestPlanDialog } from '../../components/dialogs/TestPlanDialog';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
@@ -368,11 +368,11 @@ export function TestPlanDetailPage() {
               )}
               <span className="text-color-secondary">
                 <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
-                Created <span className="text-color">{formatDateTime(testPlan.createdAt)}</span>
+                Created <RelativeTime value={testPlan.createdAt} className="text-color" />
               </span>
               <span className="text-color-secondary">
                 <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
-                Updated <span className="text-color">{formatDateTime(testPlan.updatedAt)}</span>
+                Updated <RelativeTime value={testPlan.updatedAt} className="text-color" />
               </span>
             </div>
           </>

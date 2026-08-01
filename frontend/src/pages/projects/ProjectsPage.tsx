@@ -143,20 +143,26 @@ export function ProjectsPage() {
 
   const [menuRow, setMenuRow] = useState<Project | null>(null);
 
+  const isOwnerOf = (row: Project) => row.ownerId === currentUser?.id;
+
   const menuItems = menuRow
     ? [
       { label: 'View Details', icon: 'pi pi-eye', command: () => navigate(`/projects/${menuRow.id}`) },
-      { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditDialog(menuRow) },
       { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(menuRow) },
-      { separator: true },
-      ...(menuRow.status !== 'active'
-        ? [{ label: 'Set Active', icon: 'pi pi-play', command: () => handleChangeStatus(menuRow, 'active') }]
-        : []),
-      ...(menuRow.status !== 'inactive'
-        ? [{ label: 'Set Inactive', icon: 'pi pi-pause', command: () => handleChangeStatus(menuRow, 'inactive') }]
-        : []),
-      ...(menuRow.status !== 'archived'
-        ? [{ label: 'Archive', icon: 'pi pi-inbox', command: () => handleChangeStatus(menuRow, 'archived') }]
+      ...(isOwnerOf(menuRow)
+        ? [
+          { separator: true },
+          { label: 'Edit', icon: 'pi pi-pencil', command: () => openEditDialog(menuRow) },
+          ...(menuRow.status !== 'active'
+            ? [{ label: 'Set Active', icon: 'pi pi-play', command: () => handleChangeStatus(menuRow, 'active') }]
+            : []),
+          ...(menuRow.status !== 'inactive'
+            ? [{ label: 'Set Inactive', icon: 'pi pi-pause', command: () => handleChangeStatus(menuRow, 'inactive') }]
+            : []),
+          ...(menuRow.status !== 'archived'
+            ? [{ label: 'Archive', icon: 'pi pi-inbox', command: () => handleChangeStatus(menuRow, 'archived') }]
+            : []),
+        ]
         : []),
     ]
     : [];

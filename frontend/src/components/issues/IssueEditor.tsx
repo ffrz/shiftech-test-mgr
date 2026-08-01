@@ -38,7 +38,8 @@ interface IssueEditorProps {
   onSave: (data: IssueFormData) => Promise<void>;
   // Status changes are routed separately from onSave because they go through
   // issueService.changeStatus (activity log + assignee notification), which needs actor
-  // info this component doesn't have. Omit in create mode — new issues always start Open.
+  // info this component doesn't have. Omit in create mode — new issues pick their initial
+  // status (e.g. backlog) from the form and save it via onSave.
   onStatusChange?: (status: IssueStatus) => Promise<void>;
   // Assignment is routed separately from onSave for the same reason as onStatusChange —
   // issueService.assign needs actor info (activity log + assignee notification) this
@@ -281,7 +282,7 @@ export function IssueEditor({
                   options={STATUS_OPTIONS}
                   onChange={(e) => setStatus(e.value)}
                   className="w-full"
-                  disabled={mode === 'create' || !onStatusChange}
+                  disabled={mode !== 'create' && !onStatusChange}
                 />
                 <label htmlFor="issue-status">Status</label>
               </FloatLabel>

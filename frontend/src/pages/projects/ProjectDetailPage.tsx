@@ -60,7 +60,7 @@ import type {
   IssuePriority,
   IssueType,
 } from '../../types/domain';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 import { toastHelper } from '../../helpers/toast';
 import {
   PROJECT_STATUS_LABEL,
@@ -919,6 +919,7 @@ export function ProjectDetailPage() {
         title: data.title,
         description: data.description,
         priority: data.priority,
+        status: data.status,
         targetRoleId: data.targetRoleId,
         tagNames: data.tagNames,
         createdBy: user?.id ?? null,
@@ -1060,11 +1061,11 @@ export function ProjectDetailPage() {
               )}
               <span className="text-color-secondary">
                 <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
-                Created <span className="text-color">{formatDateTime(project.createdAt)}</span>
+                Created <RelativeTime value={project.createdAt} className="text-color" />
               </span>
               <span className="text-color-secondary">
                 <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
-                Updated <span className="text-color">{formatDateTime(project.updatedAt)}</span>
+                Updated <RelativeTime value={project.updatedAt} className="text-color" />
               </span>
             </div>
 

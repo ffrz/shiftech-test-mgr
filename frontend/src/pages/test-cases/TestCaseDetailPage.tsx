@@ -28,7 +28,7 @@ import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { profileRepository } from '../../repositories/profileRepository';
 import { queryKeys } from '../../hooks/queryKeys';
 import type { TestCasePriority, TestCaseWithDetails } from '../../types/domain';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 import { toastHelper } from '../../helpers/toast';
 import {
   TEST_CASE_PRIORITY_LABEL,
@@ -365,11 +365,11 @@ export function TestCaseDetailPage() {
             )}
             <span className="text-color-secondary">
               <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
-              Created <span className="text-color">{formatDateTime(testCase.createdAt)}</span>
+              Created <RelativeTime value={testCase.createdAt} className="text-color" />
             </span>
             <span className="text-color-secondary">
               <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
-              Updated <span className="text-color">{formatDateTime(testCase.updatedAt)}</span>
+              Updated <RelativeTime value={testCase.updatedAt} className="text-color" />
             </span>
           </div>
 

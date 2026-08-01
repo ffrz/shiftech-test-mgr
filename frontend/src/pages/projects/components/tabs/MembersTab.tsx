@@ -9,13 +9,15 @@ import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { UserHoverCard } from '../../../../components/ui/UserHoverCard';
 import type { ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus } from '../../../../types/domain';
-import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../../../helpers/statusLabels';
+import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_ROLE_SEVERITY, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../../../helpers/statusLabels';
 
 const MEMBER_ROLE_OPTIONS: { label: string; value: ProjectMemberRole }[] = [
   { label: PROJECT_MEMBER_ROLE_LABEL.member, value: 'member' },
   { label: PROJECT_MEMBER_ROLE_LABEL.supervisor, value: 'supervisor' },
   { label: PROJECT_MEMBER_ROLE_LABEL.tester, value: 'tester' },
-  { label: PROJECT_MEMBER_ROLE_LABEL.manager, value: 'manager' },
+  // 'manager' is intentionally excluded — it is labelled "Owner" and must not appear
+  // as an assignable option because adding/creating a new owner through the role select
+  // is forbidden. Ownership transfer is a future Danger Zone feature.
 ];
 
 type MembersTabProps = {
@@ -59,6 +61,16 @@ export function MembersTab({
 }: MembersTabProps) {
   function isOwner(userId: string) { return userId === ownerId; }
 
+  // The owner's membership is immutable — no role dropdown and no actions, so ownership
+  // can't be moved from the members tab. Ownership transfer belongs in a future Danger
+  // Zone feature, not here.
+  const lockedOwnerBadge = (
+    <div className="flex align-items-center gap-2">
+      <Tag value="Owner" severity="info" />
+      <i className="pi pi-lock text-color-secondary" style={{ fontSize: '0.8rem' }} title="Owner — cannot be changed here" />
+    </div>
+  );
+
   const mobileBody = (row: ProjectMemberWithProfile) => (
     <div className="flex align-items-start justify-content-between gap-2 py-1">
       <div className="flex flex-column gap-2">
@@ -75,13 +87,18 @@ export function MembersTab({
         <div className="text-sm text-color-secondary">
           Status: <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
         </div>
-        <Dropdown
-          value={row.role}
-          options={MEMBER_ROLE_OPTIONS}
-          disabled={isOwner(row.userId)}
-          onChange={(e) => onChangeRole(row, e.value)}
-          className="w-10rem"
-        />
+        {isOwner(row.userId)
+          ? lockedOwnerBadge
+          : row.role === 'manager'
+            ? <Tag value={PROJECT_MEMBER_ROLE_LABEL[row.role]} severity={PROJECT_MEMBER_ROLE_SEVERITY[row.role]} />
+            : (
+              <Dropdown
+                value={row.role}
+                options={MEMBER_ROLE_OPTIONS}
+                onChange={(e) => onChangeRole(row, e.value)}
+                className="w-10rem"
+              />
+            )}
       </div>
       {!isOwner(row.userId) && (
         <RowActionsMenu
@@ -163,15 +180,18 @@ export function MembersTab({
         {!isMobile && (
           <Column
             header="Role"
-            body={(row: ProjectMemberWithProfile) => (
-              <Dropdown
-                value={row.role}
-                options={MEMBER_ROLE_OPTIONS}
-                disabled={isOwner(row.userId)}
-                onChange={(e) => onChangeRole(row, e.value)}
-                className="w-10rem"
-              />
-            )}
+            body={(row: ProjectMemberWithProfile) => isOwner(row.userId)
+              ? lockedOwnerBadge
+              : row.role === 'manager'
+                ? <Tag value={PROJECT_MEMBER_ROLE_LABEL[row.role]} severity={PROJECT_MEMBER_ROLE_SEVERITY[row.role]} />
+                : (
+                  <Dropdown
+                    value={row.role}
+                    options={MEMBER_ROLE_OPTIONS}
+                    onChange={(e) => onChangeRole(row, e.value)}
+                    className="w-10rem"
+                  />
+                )}
           />
         )}
         {!isMobile && (

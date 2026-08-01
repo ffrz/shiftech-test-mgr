@@ -35,6 +35,7 @@ import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { TestRunResultDetailPageSkeleton } from './TestRunResultDetailPageSkeleton';
 import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 import { queryKeys } from '../../hooks/queryKeys';
 import type {
   IssueWithDetails,
@@ -386,6 +387,7 @@ export function TestRunResultDetailPage() {
       actualResult: data.actualResult,
       expectedResult: data.expectedResult,
       priority: data.priority,
+      status: data.status,
       targetRoleId: data.targetRoleId,
       createdBy: user?.id ?? null,
     });
@@ -529,7 +531,7 @@ export function TestRunResultDetailPage() {
               </span>
               <span className="text-color-secondary">
                 <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
-                Updated <span className="text-color">{formatDateTime(testRun.updatedAt)}</span>
+                Updated <RelativeTime value={testRun.updatedAt} className="text-color" />
               </span>
             </div>
 
@@ -738,6 +740,12 @@ export function TestRunResultDetailPage() {
                 {activeResult.testCasePreconditions && (
                   <Card title="Preconditions" className="mb-3 detail-content-card">
                     <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCasePreconditions}</p>
+                  </Card>
+                )}
+
+                {activeResult.testCaseNotes && (
+                  <Card title="Case Notes" className="mb-3 detail-content-card">
+                    <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseNotes}</p>
                   </Card>
                 )}
 

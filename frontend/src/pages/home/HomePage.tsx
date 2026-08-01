@@ -20,7 +20,7 @@ import {
 import { profileRepository } from '../../repositories/profileRepository';
 import { pathForActivityEntity, ACTIVITY_ENTITY_LABEL } from '../../helpers/activityRoutes';
 import { describeSystemEvent } from '../../helpers/activityDescribe';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 import { toastHelper } from '../../helpers/toast';
 import { PROJECT_MEMBER_ROLE_LABEL, ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL } from '../../helpers/statusLabels';
 import type { ActivityEntityType } from '../../types/domain';
@@ -341,7 +341,7 @@ export function HomePage() {
                         {entry.eventType === 'comment' ? 'commented on' : describeSystemEvent(entry)}{' '}
                         <span className="text-color-secondary">{ACTIVITY_ENTITY_LABEL[entityType] ?? entry.entityType}</span>
                       </div>
-                      <div className="text-xs text-color-secondary">{formatDateTime(entry.createdAt)}</div>
+                      <div className="text-xs text-color-secondary"><RelativeTime value={entry.createdAt} /></div>
                     </div>
                   </div>
                 );

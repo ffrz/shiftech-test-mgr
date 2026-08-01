@@ -12,12 +12,12 @@ import { attachmentService } from '../../services/attachmentService';
 import { useActivity } from '../../hooks/useActivity';
 import { useAuthContext } from '../../hooks/useAuth';
 import { queryKeys } from '../../hooks/queryKeys';
-import { formatDateTime } from '../../helpers/dateFormatter';
 import { describeSystemEvent } from '../../helpers/activityDescribe';
 import { extractMentionUsernames, extractTestCaseCodes, extractIssueCodes, linkifyMentionsMarkdown } from '../../helpers/renderMentions';
 import { CommentEditor } from './CommentEditor';
 import { MarkdownPreview } from './MarkdownPreview';
 import { ActivityPanelSkeleton } from './ActivityPanelSkeleton';
+import { RelativeTime } from './RelativeTime';
 import type { ActivityEntityType, ActivityEntry, Attachment, Profile } from '../../types/domain';
 
 // One comment's attachments, read-only display (view mode only) — its own query, scoped by
@@ -368,10 +368,12 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
             ) : (
               <span className="font-bold">Unknown</span>
             )}
-            <span className="text-color-secondary">commented {formatDateTime(entry.createdAt)}</span>
+            <span className="text-color-secondary">
+              commented <RelativeTime value={entry.createdAt} />
+            </span>
             {entry.updatedAt && !isDeleted && (
-              <span className="text-color-secondary font-italic" title={formatDateTime(entry.updatedAt)}>
-                &middot; edited {formatDateTime(entry.updatedAt)}
+              <span className="text-color-secondary font-italic">
+                &middot; edited <RelativeTime value={entry.updatedAt} />
               </span>
             )}
           </div>
@@ -428,7 +430,7 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
           ) : (
             <span className="font-medium text-color">Unknown</span>
           )}{' '}
-          {describeSystemEvent(entry)} &middot; {formatDateTime(entry.createdAt)}
+          {describeSystemEvent(entry)} &middot; <RelativeTime value={entry.createdAt} />
         </span>
       </div>
     );

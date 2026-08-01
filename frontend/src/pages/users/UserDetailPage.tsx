@@ -10,7 +10,7 @@ import { ProfileView } from '../../components/profile/ProfileView';
 import { ProfileViewSkeleton } from '../../components/profile/ProfileViewSkeleton';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import type { User, Profile, Project, TestSuite } from '../../types/domain';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 import { USER_ROLE_LABEL, USER_ROLE_SEVERITY } from '../../helpers/statusLabels';
 
 export function UserDetailPage() {
@@ -70,11 +70,11 @@ export function UserDetailPage() {
           <div className="flex flex-wrap column-gap-4 row-gap-1 mb-3 text-xs">
             <span className="text-color-secondary">
               <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
-              Registered <span className="text-color">{formatDateTime(user.createdAt)}</span>
+              Registered <RelativeTime value={user.createdAt} className="text-color" />
             </span>
             <span className="text-color-secondary">
               <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
-              Updated <span className="text-color">{formatDateTime(user.updatedAt)}</span>
+              Updated <RelativeTime value={user.updatedAt} className="text-color" />
             </span>
           </div>
           <div className="project-stat-tile" style={{ maxWidth: 'fit-content' }}>

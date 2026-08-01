@@ -30,8 +30,9 @@ import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import { TestSuiteItemDialog } from '../../components/dialogs/TestSuiteItemDialog';
 import { ImportCasesDialog } from '../projects/components/dialogs/ImportCasesDialog';
 import { parseTestCaseCsv, downloadCsvTemplate } from '../../helpers/csvImport';
+import { downloadTestSuiteCsv } from '../../helpers/csvExport';
 import { TestSuiteDetailPageSkeleton } from './TestSuiteDetailPageSkeleton';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY, TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
 
@@ -154,6 +155,7 @@ export function TestSuiteDetailPage() {
           tagNames: row.tagNames ?? [],
           stepType: row.stepType,
           detailedSteps: row.detailedSteps,
+          notes: row.notes ?? undefined,
           orderIndex: existingItems.length + i,
         })),
       );
@@ -280,7 +282,7 @@ export function TestSuiteDetailPage() {
     { label: 'Detailed', value: 'detailed' },
   ];
 
-  const filteredItems = useMemo(() => items.filter((item) => {
+  const itemMatchesFilters = useCallback((item: TestSuiteItem): boolean => {
     if (moduleFilter.length && item.moduleName && !moduleFilter.includes(item.moduleName)) return false;
     if (priorityFilter.length && !priorityFilter.includes(item.priority)) return false;
     if (stepTypeFilter.length && !stepTypeFilter.includes(item.stepType)) return false;
@@ -291,9 +293,23 @@ export function TestSuiteDetailPage() {
       if (!item.title.toLowerCase().includes(q) && !(item.moduleName?.toLowerCase().includes(q))) return false;
     }
     return true;
-  }), [items, moduleFilter, priorityFilter, stepTypeFilter, targetRoleFilter, tagFilter, search]);
+  }, [moduleFilter, priorityFilter, stepTypeFilter, targetRoleFilter, tagFilter, search]);
+
+  const filteredItems = useMemo(() => items.filter(itemMatchesFilters), [items, itemMatchesFilters]);
 
   const hasActiveFilters = moduleFilter.length > 0 || priorityFilter.length > 0 || stepTypeFilter.length > 0 || targetRoleFilter.length > 0 || tagFilter.length > 0 || search.length > 0;
+
+  async function handleExportCsv() {
+    if (!id) return;
+    const withSteps = await testSuiteService.getItemsWithSteps(id);
+    const exportItems = withSteps.filter(itemMatchesFilters);
+    if (exportItems.length === 0) {
+      toastHelper.warn('No test cases to export with the current filters');
+      return;
+    }
+    downloadTestSuiteCsv(exportItems, suite?.name ?? 'test-suite');
+    toastHelper.success(`Exported ${exportItems.length} test case(s)`);
+  }
 
   async function handleDuplicateSuite(data: { name: string; description: string; visibility: TestSuiteVisibility }) {
     if (!id) return;
@@ -412,7 +428,7 @@ export function TestSuiteDetailPage() {
               </span>
               <span className="text-color-secondary">
                 <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
-                Updated <span className="text-color">{suite ? formatDateTime(suite.updatedAt) : ''}</span>
+                Updated {suite && <RelativeTime value={suite.updatedAt} className="text-color" />}
               </span>
             </div>
           </>
@@ -422,12 +438,15 @@ export function TestSuiteDetailPage() {
       <FilterToolbar
         visible
         secondaryActions={
-          isOwner && (
-            <div className="flex align-items-center">
-              <Button icon="pi pi-copy" rounded size="large" text severity="secondary" onClick={openImportTemplateDialog} />
-              <Button icon="pi pi-file-excel" rounded size="large" text severity="secondary" onClick={() => setImportCsvDialogOpen(true)} tooltip="Import CSV" tooltipOptions={{ position: 'bottom' }} />
-            </div>
-          )
+          <div className="flex align-items-center">
+            {isOwner && (
+              <>
+                <Button icon="pi pi-copy" rounded size="large" text severity="secondary" onClick={openImportTemplateDialog} tooltip="Advance Import" tooltipOptions={{ position: 'bottom' }} />
+                <Button icon="pi pi-file-excel" rounded size="large" text severity="secondary" onClick={() => setImportCsvDialogOpen(true)} tooltip="Import CSV" tooltipOptions={{ position: 'bottom' }} />
+              </>
+            )}
+            <Button icon="pi pi-download" rounded size="large" text severity="secondary" onClick={handleExportCsv} tooltip="Export CSV" tooltipOptions={{ position: 'bottom' }} />
+          </div>
         }
         primaryAction={isOwner && <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} />}
       >
@@ -600,7 +619,7 @@ export function TestSuiteDetailPage() {
             <>
               <p className="text-color-secondary text-sm m-0">
                 CSV file with header: Module, Title, Objective, Preconditions, Steps, Expected Result, Priority, Tags,
-                Target Role. Only <strong>Title</strong> is required. Tags are comma-separated.
+                Target Role, Notes. Only <strong>Title</strong> is required. Tags are comma-separated.
               </p>
               <Button
                 label="Download CSV Template"
@@ -632,6 +651,7 @@ export function TestSuiteDetailPage() {
                 <Column field="moduleName" header="Module" body={(row: any) => row.moduleName ?? '-'} />
                 <Column field="priority" header="Priority" />
                 <Column field="targetRole" header="Target Role" body={(row: any) => row.targetRole ?? '-'} />
+                <Column field="notes" header="Notes" body={(row: any) => row.notes ?? '-'} />
               </DataTable>
               <Button label={`Import ${csvValidRows.length} Test Case${csvValidRows.length !== 1 ? 's' : ''}`} size="small" loading={csvImporting} disabled={csvValidRows.length === 0} onClick={handleImportCsv} />
             </>

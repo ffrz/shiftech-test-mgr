@@ -28,7 +28,7 @@ import { profileRepository } from '../../repositories/profileRepository';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import type { BreadcrumbItem } from '../../components/ui/Breadcrumb';
 import type { Attachment, IssueStatus } from '../../types/domain';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 import { toastHelper } from '../../helpers/toast';
 import {
   ISSUE_PRIORITY_LABEL,
@@ -387,11 +387,11 @@ export function IssueDetailPage() {
             )}
             <span className="text-color-secondary">
               <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
-              Created <span className="text-color">{formatDateTime(issue.createdAt)}</span>
+              Created <RelativeTime value={issue.createdAt} className="text-color" />
             </span>
             <span className="text-color-secondary">
               <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
-              Updated <span className="text-color">{formatDateTime(issue.updatedAt)}</span>
+              Updated <RelativeTime value={issue.updatedAt} className="text-color" />
             </span>
           </div>
 

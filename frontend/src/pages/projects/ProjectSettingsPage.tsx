@@ -39,17 +39,19 @@ export function ProjectSettingsPage() {
   const { loading: roleLoading, canManageSettings, canArchiveProject, canDeleteProject } = useProjectRole(id);
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
-  // Danger Zone is conditional, so the tab-name list must match the rendered panel order.
+  const [project, setProject] = useState<Project | null>(null);
+  // Member management + Danger Zone are owner-only (see useProjectRole: managers can still
+  // open Settings for Modules/Tags/Test Roles, but not manage users or project lifecycle).
+  const isOwner = !!currentUser && !!project && project.ownerId === currentUser.id;
+  // Members/Danger Zone are conditional, so the tab-name list must match the rendered panel order.
   const settingsTabNames = [
     'modules',
     'tags',
     'testRoles',
-    'members',
-    ...(canArchiveProject || canDeleteProject ? ['dangerZone'] : []),
+    ...(isOwner ? ['members', 'dangerZone'] : []),
   ] as const;
   const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(settingsTabNames, 0);
 
-  const [project, setProject] = useState<Project | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [testRoles, setTestRoles] = useState<TestRole[]>([]);
@@ -539,7 +541,7 @@ export function ProjectSettingsPage() {
             </div>
           </div>
           <div className="flex-shrink-0 header-actions">
-            <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={() => setEditDialogOpen(true)} />
+            {isOwner && <Button rounded icon="pi pi-pencil" size="small" text severity="secondary" onClick={() => setEditDialogOpen(true)} />}
           </div>
         </div>
       </Card>
@@ -609,28 +611,30 @@ export function ProjectSettingsPage() {
             />
           </TabPanel>
 
-          <TabPanel header="Project Members">
-            <MembersTab
-              members={filteredMembers}
-              isMobile={isMobile}
-              ownerId={project?.ownerId ?? ''}
-              search={memberSearch}
-              onSearchChange={setMemberSearch}
-              roleFilter={memberRoleFilter}
-              onRoleFilterChange={setMemberRoleFilter}
-              statusFilter={memberStatusFilter}
-              onStatusFilterChange={setMemberStatusFilter}
-              selected={selectedMembers}
-              onSelectedChange={setSelectedMembers}
-              onInvite={openAddMemberDialog}
-              onChangeRole={handleChangeMemberRole}
-              onReinvite={handleReinviteMember}
-              onRemove={handleRemoveMember}
-              onBulkRemove={handleBulkRemoveMembers}
-            />
-          </TabPanel>
+          {isOwner && (
+            <TabPanel header="Project Members">
+              <MembersTab
+                members={filteredMembers}
+                isMobile={isMobile}
+                ownerId={project?.ownerId ?? ''}
+                search={memberSearch}
+                onSearchChange={setMemberSearch}
+                roleFilter={memberRoleFilter}
+                onRoleFilterChange={setMemberRoleFilter}
+                statusFilter={memberStatusFilter}
+                onStatusFilterChange={setMemberStatusFilter}
+                selected={selectedMembers}
+                onSelectedChange={setSelectedMembers}
+                onInvite={openAddMemberDialog}
+                onChangeRole={handleChangeMemberRole}
+                onReinvite={handleReinviteMember}
+                onRemove={handleRemoveMember}
+                onBulkRemove={handleBulkRemoveMembers}
+              />
+            </TabPanel>
+          )}
 
-          {(canArchiveProject || canDeleteProject) && (
+          {isOwner && (
             <TabPanel header="Danger Zone">
               <DangerZoneTab
                 project={project}

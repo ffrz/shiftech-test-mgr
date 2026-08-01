@@ -124,6 +124,21 @@ html.dark .username-link:hover {
   text-decoration: underline;
 }
 
+/* Relative timestamp (RelativeTime.tsx, e.g. "5 minutes ago") — underline appears only on
+   hover as an affordance that the Tooltip (bound via data-pr-tooltip) will reveal the exact
+   datetime instantly, matching .comment-action-link's muted-to-solid hover pattern. */
+.relative-time {
+  color: var(--text-color-secondary);
+  cursor: default;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.relative-time:hover {
+  color: var(--text-color);
+  text-decoration: underline;
+}
+
 /* GitHub-issue-style comment thread — ActivityPanel.tsx. Visual only, no data model change:
    comment rows render as a bordered card (avatar sits inside the card header, GitHub-style),
    system events (status_change/assignment) render as a compact timeline row instead of a
@@ -596,6 +611,42 @@ h6 {
 
 .p-tag {
   font-size: 0.8rem;
+}
+
+/* Retune the theme's neon severity greens/reds/oranges/blues (Tailwind 500-shade
+   defaults like success #22c55e) to muted 600/400 shades that sit quietly next to
+   the teal primary instead of fighting it. Solid + white text is kept for contrast. */
+.p-tag.p-tag-success {
+  background-color: #059669;
+  color: #ffffff;
+}
+.p-tag.p-tag-info {
+  background-color: #0284c7;
+  color: #ffffff;
+}
+.p-tag.p-tag-warning {
+  background-color: #d97706;
+  color: #ffffff;
+}
+.p-tag.p-tag-danger {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+html.dark .p-tag.p-tag-success {
+  background-color: #34d399;
+  color: #022c22;
+}
+html.dark .p-tag.p-tag-info {
+  background-color: #38bdf8;
+  color: #082f49;
+}
+html.dark .p-tag.p-tag-warning {
+  background-color: #fbbf24;
+  color: #451a03;
+}
+html.dark .p-tag.p-tag-danger {
+  background-color: #f87171;
+  color: #450a0a;
 }
 
 .p-dialog .p-dialog-header {
@@ -1879,18 +1930,18 @@ h6,
 }
 
 .stat-icon-orange {
-  background: rgba(249, 115, 22, 0.12);
-  color: #f97316;
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
 }
 
 .stat-icon-red {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
 }
 
 .stat-icon-green {
-  background: rgba(34, 197, 94, 0.12);
-  color: #22c55e;
+  background: rgba(5, 150, 105, 0.12);
+  color: #059669;
 }
 
 .stat-icon-indigo {

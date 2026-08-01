@@ -10,7 +10,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { TestSuiteItemDetailPageSkeleton } from './TestSuiteItemDetailPageSkeleton';
 import { TestSuiteItemDialog } from '../../components/dialogs/TestSuiteItemDialog';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY } from '../../helpers/statusLabels';
-import { formatDateTime } from '../../helpers/dateFormatter';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 import { useAuthContext } from '../../hooks/useAuth';
 
 export function TestSuiteItemDetailPage() {
@@ -79,11 +79,11 @@ export function TestSuiteItemDetailPage() {
           <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-3 text-xs">
             <span className="text-color-secondary">
               <i className="pi pi-calendar-plus mr-1" style={{ fontSize: '0.75rem' }} />
-              Created <span className="text-color">{formatDateTime(item.createdAt)}</span>
+              Created <RelativeTime value={item.createdAt} className="text-color" />
             </span>
             <span className="text-color-secondary">
               <i className="pi pi-clock mr-1" style={{ fontSize: '0.75rem' }} />
-              Updated <span className="text-color">{formatDateTime(item.updatedAt)}</span>
+              Updated <RelativeTime value={item.updatedAt} className="text-color" />
             </span>
           </div>
 

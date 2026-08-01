@@ -50,7 +50,7 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
         <>
           <p className="text-color-secondary text-sm m-0">
             CSV file with header: Module, Title, Objective, Preconditions, Steps, Expected Result, Priority, Tags,
-            Target Role. Only <strong>Title</strong> is required. Tags are comma-separated. Save your Excel file as
+            Target Role, Notes. Only <strong>Title</strong> is required. Tags are comma-separated. Save your Excel file as
             CSV first.
             <br />
             <strong>Steps</strong> is free text by default (simple). To import detailed, per-step
@@ -96,6 +96,7 @@ export function ExcelImportPanel({ projectId, onImported }: { projectId: string;
               body={(row: ParsedTestCaseRow) => (row.stepType === 'detailed' ? `Detailed (${row.detailedSteps.length})` : 'Simple')}
             />
             <Column field="targetRole" header="Target Role" body={(row: ParsedTestCaseRow) => row.targetRole ?? '-'} />
+            <Column field="notes" header="Notes" body={(row: ParsedTestCaseRow) => row.notes ?? '-'} />
           </DataTable>
 
           <Button
