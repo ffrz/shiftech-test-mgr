@@ -181,7 +181,7 @@ export function TestSuitesPage() {
         <span>
           <i className="pi pi-user mr-1" style={{ fontSize: '0.7rem' }} />
           <UserHoverCard userId={row.ownerId}>
-            <span className="entity-link">{row._authorUsername}</span>
+            <span className="username-link">{row._authorUsername}</span>
           </UserHoverCard>
         </span>
         <span><i className="pi pi-clock mr-1" style={{ fontSize: '0.7rem' }} />{formatDateTime(row.updatedAt)}</span>
@@ -281,7 +281,7 @@ export function TestSuitesPage() {
                 <span className="text-xs text-color-secondary">
                   by{' '}
                   <UserHoverCard userId={row.ownerId}>
-                    <span className="entity-link">{row._authorUsername}</span>
+                    <span className="username-link">{row._authorUsername}</span>
                   </UserHoverCard>
                 </span>
               </div>
