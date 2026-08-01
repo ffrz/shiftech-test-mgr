@@ -36,8 +36,11 @@ Bug kompilasi & mismatch tipe di scaffold awal sudah diperbaiki:
 bisa jalan sama sekali — tidak ada tool yang bisa dites end-to-end.
 
 - [ ] T1.1 — Migration `api_tokens` (BACKLOG Epic 6)
-- [ ] T1.2 — Migration `mcp_tool_rate_limits` + RPC `mcp_begin_tool_call`/
-      `mcp_complete_tool_call` (BACKLOG Epic 4/6)
+- [x] T1.2 — Migration `mcp_tool_rate_limits` + RPC `mcp_begin_tool_call`/
+      `mcp_complete_tool_call` (BACKLOG Epic 4/6) — `supabase/migrations/
+      20260801140000_backend_mcp_governance.sql` (buat tabel + 2 RPC
+      security-definer + validasi format token/tool + grant anon; verifikasi
+      `supabase db push` masih pending)
 
 **Exit criteria:** `supabase db push` sukses, tabel `api_tokens` dan
 `mcp_tool_rate_limits` ada di database, minimal satu token dummy bisa
@@ -107,9 +110,19 @@ benar.
       review-only draft `{status:"draft", mode:"review_only", data}`.
       `testplan.approve` menolak call tanpa literal `explicit_approval:true`
       + `approver_id`; `testrun.complete` manual-only.
-- [ ] T4.2 — Governance middleware: rate-limit + audit wrapper di sekitar
-      setiap tool call (BACKLOG Epic 4, pola `installToolGovernance` Node)
-      — **blocked** oleh T1.2 (migration `mcp_tool_rate_limits` + RPC belum ada)
+- [x] T4.2 — Governance middleware: rate-limit + audit wrapper di sekitar
+      setiap tool call (BACKLOG Epic 4, pola `installToolGovernance` Node).
+      Paket baru `internal/governance`: `Service.Wrap` = begin → `!allowed`
+      tolak `ErrRateLimited` → handler → complete `completed`/`failed` +
+      latency; `Server` membungkus `AddTool` sehingga semua tool ter-govern
+      tanpa tiap tool tahu; `PostgresRepository` memanggil RPC
+      `mcp_begin_tool_call`/`mcp_complete_tool_call`. Resolver session per-call
+      (`SessionResolver` → `Registry.SessionFor`) agar sama-sama benar di
+      stdio (1 session) dan HTTP (per-request). Aktif via env
+      `TM_MCP_GOVERNANCE=1`, budget `TM_TOOL_RATE_LIMIT` (default 120) /
+      `TM_TOOL_RATE_LIMIT_WINDOW_SECONDS` (default 60). 11 unit test
+      (allowed/rate-limited/handler-error/IsError/resolver-error/begin-error/
+      complete-error/latency clamp/with-rate-limit/all-governed).
 - [x] T4.3 — Project-scope recursive guard (`assertToolArguments` Node) —
       `Session.AssertProjectReferences` di `session.go`, walk args rekursif
       ke object/array, cek `project_id`/`projectId` terhadap scope session

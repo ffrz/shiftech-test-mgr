@@ -49,25 +49,28 @@ baris 8–20 (hanya bagian `api_tokens`, bukan `webhooks` — belum dibutuhkan).
 - Insert manual 1 row test token, `SELECT scopes FROM api_tokens` return
   array Postgres asli (bukan string)
 
-### T1.2 — Migration `mcp_tool_rate_limits` + RPC governance
+### T1.2 — Migration `mcp_tool_rate_limits` + RPC governance ✅ DONE
 
-**File baru:** `supabase/migrations/<timestamp>_backend_mcp_governance.sql`
+**File:** `supabase/migrations/20260801140000_backend_mcp_governance.sql`
 
 **Referensi:** `../../NvlFr-testify/supabase/schema_059_mcp_rate_limit_audit.sql`
-— baca isi lengkap file ini dulu sebelum menulis (belum dibaca detail saat
-riset awal, jangan asumsikan struktur RPC tanpa cek).
 
-**Yang perlu porting:**
-- Tabel rate-limit window (nama tabel di referensi:
-  `mcp_tool_rate_limits`) + tabel/kolom audit (`ai_audit_events` atau
-  serupa — cek definisi asli)
-- RPC `mcp_begin_tool_call(p_token, p_project_id, p_tool_name, p_limit, p_window_seconds)`
-  → return `(audit_id, allowed)`
+**Yang di-port:**
+- `mcp_tool_rate_limits` (PK token_id+tool_name+window_started_at, RLS,
+  revoke dari public/anon/authenticated — internal-only, hanya dipakai RPC)
+- `ai_audit_events` (dibuat di sini karena project ini belum punya migration
+  AI-integration schema_023; hanya kolom yang dibutuhkan governance: project,
+  tool_name, status started/completed/failed/rate_limited, latency, timestamps)
+- RPC `mcp_begin_tool_call(p_token, p_project_id, p_tool_name, p_limit=120, p_window_seconds=60)`
+  → `table(audit_id uuid, allowed boolean)` — validasi format token
+  `^tm_[0-9a-f]{64}$` & tool `^testify\.[a-z0-9_]+\.[a-zA-Z0-9_]+$`, hash
+  token via `extensions.digest`, upsert counter window `clock_timestamp()`
+  floor, insert audit `started`/`rate_limited`, hapus window lama
 - RPC `mcp_complete_tool_call(p_token, p_project_id, p_audit_id, p_status, p_latency_ms)`
+  — hanya transisi `started` → `completed`/`failed`
 
-**Acceptance:**
-- RPC bisa dipanggil manual via `psql`/Supabase SQL editor dan return
-  bentuk row yang didokumentasikan
+**Acceptance:** ✅ RPC ditulis mengikuti referensi. ⏳ Verifikasi
+`supabase db push` + panggil manual RPC masih pending (butuh akses DB).
 
 ---
 
@@ -282,10 +285,21 @@ harus punya penolakan setara, tulis sebagai test case eksplisit
 - Validasi input manual (tanpa library validator, konsisten T3.2); batch
   `createBulk`/`addCases`/`removeCases` di-clamp ke 100.
 
-### T4.2 — Governance middleware (rate-limit + audit) — ⛔ BLOCKED
+### T4.2 — Governance middleware (rate-limit + audit) — ✅ DONE
 
-**File baru:** `mcp-server/internal/governance/governance.go` (atau taruh
-di `internal/tools/` — putuskan struktur saat implementasi).
+**File baru:** `mcp-server/internal/governance/` — `repository.go`
+(interface `Repository` + `BeginResult` + `SessionResolver`),
+`postgres.go` (`PostgresRepository`, RPC via `db.Raw`),
+`service.go` (`Service.Wrap`: begin → `!allowed` → `ErrRateLimited` →
+handler → complete `completed`/`failed` + latency clamp),
+`server.go` (`Server` membungkus `AddTool`, setara `installToolGovernance`).
+
+**File yang diubah:** `registry.go` (interface `ToolAdder` menggantikan
+`*server.MCPServer` di `Register`), `read_tools.go`/`write_tools.go`
+(signature `Register(ToolAdder)`), `cmd/main.go` + `cmd-http/main.go`
+(wiring via env `TM_MCP_GOVERNANCE=1`, `TM_TOOL_RATE_LIMIT` default 120,
+`TM_TOOL_RATE_LIMIT_WINDOW_SECONDS` default 60), `auth/session.go`
+(field `RawToken` memory-only untuk RPC).
 
 **Referensi:** `../../NvlFr-testify/mcp/src/repositories/governanceRepository.ts`
 (RPC call shape — `beginToolCall`/`completeToolCall`) dan
@@ -293,11 +307,14 @@ di `internal/tools/` — putuskan struktur saat implementasi).
 (`installToolGovernance` — pola wrap semua tool handler tanpa tiap tool
 tahu soal governance, murni middleware).
 
-**Dependency:** T1.2 (tabel + RPC harus sudah ada).
+**Dependency:** T1.2 ✅ (migration ditulis; `supabase db push` pending).
 
-**Acceptance:** setiap tool call (read maupun write) tercatat di tabel
-audit dengan `latency_ms` terisi; call ke-N+1 dalam window rate-limit
-ditolak dengan error jelas, bukan silent pass.
+**Acceptance:** ✅ 11 unit test di `governance_test.go`: allowed,
+rate-limited (tanpa complete call — row `rate_limited` ditulis RPC begin),
+handler-error→`failed`, `IsError`→`failed`, resolver/begin/complete error,
+latency clamp, `WithRateLimit`, semua handler ter-govern lewat `Server`.
+Coverage package: service 95-100%, `postgres.go` butuh DB nyata (0%, sama
+pola postgres repo lain).
 
 ### T4.3 — Project-scope recursive guard — ✅ DONE (2026-08-01)
 
