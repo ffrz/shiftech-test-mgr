@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/shiftech/testify-platform/core"
 	"github.com/shiftech/testify-platform/mcp-server/internal/auth"
@@ -74,8 +75,16 @@ func (r *Registry) Full() []ToolRegistrar {
 // ToolRegistrar is the interface every tool group implements.
 // Register registers all tools from this group onto the MCP server.
 type ToolRegistrar interface {
-	Register(s *server.MCPServer) error
+	Register(s ToolAdder) error
 	Name() string
+}
+
+// ToolAdder is the minimal server surface registrars need. It is satisfied by
+// *server.MCPServer and by the governance wrapper (*governance.Server), so
+// main wiring can choose whether tool calls are governed without touching
+// any registrar code.
+type ToolAdder interface {
+	AddTool(tool mcp.Tool, handler server.ToolHandlerFunc)
 }
 
 // EnsureWriteScope is a helper used by write tools.

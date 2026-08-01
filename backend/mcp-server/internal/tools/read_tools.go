@@ -6,7 +6,6 @@ import (
 	"regexp"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/mark3labs/mcp-go/server"
 	"github.com/shiftech/testify-platform/core"
 )
 
@@ -24,7 +23,7 @@ type ReadTools struct {
 
 func (t *ReadTools) Name() string { return "read" }
 
-func (t *ReadTools) Register(s *server.MCPServer) error {
+func (t *ReadTools) Register(s ToolAdder) error {
 	// project
 	s.AddTool(mcp.NewTool("testify.project.list",
 		mcp.WithDescription("List projects accessible to this project-scoped API token."),

@@ -16,6 +16,11 @@ import (
 type Session struct {
 	Identity  core.APITokenIdentity
 	ProjectID string
+	// RawToken keeps the bearer token for the duration of this session so
+	// governance middleware can pass it to the mcp_begin_tool_call /
+	// mcp_complete_tool_call RPCs (they hash it server-side). Stored in
+	// memory only, never logged or persisted.
+	RawToken string
 }
 
 // Load creates a Session by authenticating the API token from env.
@@ -56,6 +61,7 @@ func LoadFromToken(ctx context.Context, tokenRepo core.TokenRepository, rawToken
 	return &Session{
 		Identity:  *id,
 		ProjectID: projectID,
+		RawToken:  rawToken,
 	}, nil
 }
 

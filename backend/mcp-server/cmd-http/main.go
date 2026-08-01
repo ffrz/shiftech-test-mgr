@@ -14,11 +14,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/shiftech/testify-platform/core"
 	"github.com/shiftech/testify-platform/mcp-server/internal/auth"
+	"github.com/shiftech/testify-platform/mcp-server/internal/governance"
 	"github.com/shiftech/testify-platform/mcp-server/internal/tools"
 	"github.com/shiftech/testify-platform/repository/postgres"
 	"github.com/shiftech/testify-platform/service"
@@ -62,8 +64,14 @@ func main() {
 	}
 
 	mcpServer := server.NewMCPServer("testify", "0.1.0")
+	var target tools.ToolAdder = mcpServer
+	if os.Getenv("TM_MCP_GOVERNANCE") == "1" {
+		gov := governance.NewService(governance.NewPostgresRepository(db), registry).
+			WithRateLimit(governanceLimit(), governanceWindow())
+		target = governance.NewServer(mcpServer, gov)
+	}
 	for _, registrar := range registrars {
-		if err := registrar.Register(mcpServer); err != nil {
+		if err := registrar.Register(target); err != nil {
 			log.Fatalf("register tool group %s: %v", registrar.Name(), err)
 		}
 	}
@@ -81,6 +89,28 @@ func main() {
 	if err := httpServer.Start(":" + addr); err != nil {
 		log.Fatalf("mcp http server error: %v", err)
 	}
+}
+
+// governanceLimit and governanceWindow read the per-window call budget from
+// env with the RPC defaults as fallback.
+func governanceLimit() int {
+	return governanceInt("TM_TOOL_RATE_LIMIT", governance.DefaultRateLimit)
+}
+
+func governanceWindow() int {
+	return governanceInt("TM_TOOL_RATE_LIMIT_WINDOW_SECONDS", governance.DefaultRateLimitWindow)
+}
+
+func governanceInt(key string, def int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil || n <= 0 {
+		return def
+	}
+	return n
 }
 
 // authenticateRequest reads "Authorization: Bearer <token>" and

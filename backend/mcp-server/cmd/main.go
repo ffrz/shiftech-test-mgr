@@ -4,9 +4,11 @@ import (
 	"context"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/shiftech/testify-platform/mcp-server/internal/auth"
+	"github.com/shiftech/testify-platform/mcp-server/internal/governance"
 	"github.com/shiftech/testify-platform/mcp-server/internal/tools"
 	"github.com/shiftech/testify-platform/repository/postgres"
 	"github.com/shiftech/testify-platform/service"
@@ -60,11 +62,17 @@ func main() {
 		registrars = registry.Full()
 	}
 
-	// 5. Start MCP server (stdio transport)
+	// 5. Start MCP server (stdio transport), optionally governed.
 	log.Printf("starting MCP server with %d tool groups", len(registrars))
 	mcpServer := server.NewMCPServer("testify", "0.1.0")
+	target := toolAdder(mcpServer)
+	if os.Getenv("TM_MCP_GOVERNANCE") == "1" {
+		gov := governance.NewService(governance.NewPostgresRepository(db), registry).
+			WithRateLimit(governanceLimit(), governanceWindow())
+		target = governance.NewServer(mcpServer, gov)
+	}
 	for _, registrar := range registrars {
-		if err := registrar.Register(mcpServer); err != nil {
+		if err := registrar.Register(target); err != nil {
 			log.Fatalf("register tool group %s: %v", registrar.Name(), err)
 		}
 	}
@@ -72,4 +80,29 @@ func main() {
 	if err := server.ServeStdio(mcpServer); err != nil {
 		log.Fatalf("mcp server error: %v", err)
 	}
+}
+
+// toolAdder adapts *server.MCPServer to the minimal registrar interface.
+func toolAdder(s *server.MCPServer) tools.ToolAdder { return s }
+
+// governanceLimit and governanceWindow read the per-window call budget from
+// env with the RPC defaults as fallback.
+func governanceLimit() int {
+	return governanceInt("TM_TOOL_RATE_LIMIT", governance.DefaultRateLimit)
+}
+
+func governanceWindow() int {
+	return governanceInt("TM_TOOL_RATE_LIMIT_WINDOW_SECONDS", governance.DefaultRateLimitWindow)
+}
+
+func governanceInt(key string, def int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil || n <= 0 {
+		return def
+	}
+	return n
 }

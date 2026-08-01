@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/mark3labs/mcp-go/server"
 	"github.com/shiftech/testify-platform/core"
 	"github.com/shiftech/testify-platform/mcp-server/internal/auth"
 )
@@ -36,7 +35,7 @@ type WriteTools struct {
 
 func (t *WriteTools) Name() string { return "write" }
 
-func (t *WriteTools) Register(s *server.MCPServer) error {
+func (t *WriteTools) Register(s ToolAdder) error {
 	// test case
 	s.AddTool(mcp.NewTool("testify.testcase.createBulk",
 		mcp.WithDescription("Create one or more test cases in the scoped project as a review-only draft."),
