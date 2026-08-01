@@ -4,6 +4,16 @@ Titik mulai sesi kerja. Update file ini setiap kali mulai/selesai mengerjakan se
 
 ## Siap Dikerjakan (next up)
 
+**Unit test Service layer — selesai (2026-08-01).**
+Breakdown lengkap 18 ticket (SVC-T01–T18, prioritas tinggi/menengah/rendah +
+aturan wajib untuk semua ticket) ada di
+[`docs/TASKS_UNIT_TEST_SERVICES.md`](docs/TASKS_UNIT_TEST_SERVICES.md).
+18 dari 19 file sudah ditest (SVC-T01–T17 baru ditambahkan; satu-satunya yang
+di-skip `auditLogService` = pass-through murni). Jumlah test sekarang 156,
+semua hijau; coverage service layer ~73% statements (`npm run test:coverage`).
+Kalau mau lanjut, lihat "Di luar scope dokumen ini" (Repository/Hook/Component/
+E2E test).
+
 **Platform Evolution V2 — Phase 1–6 done, Phase 7 (closing phase) sedang berjalan.**
 Governed by [`docs/PRODUCT_CONSTITUTION.md`](docs/PRODUCT_CONSTITUTION.md) (product
 rules, MVP success criteria), lihat [`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md)
@@ -49,6 +59,15 @@ uji app ini:**
 - [ ] Ganti filter `TestSuitesPage` dari "All Visible Templates" → "Browse Templates" (hanya public milik orang lain, exclude milik sendiri)
 - [ ] Brainstorm: metadata Test Suite Template (category/difficulty/est. time/app type/coverage tags) — masih butuh diskusi taxonomy sebelum di-scope
 - [ ] Open question: apakah `TestPlanCase` butuh snapshot Test Case + mekanisme sync (edit test case setelah masuk plan tapi sebelum run dimulai saat ini silently ikut versi terbaru) — Testing Domain, bukan V2, belum condong ke arah manapun
+- [ ] Repository adapter/port pattern — belum ada (ditemukan saat setup unit test 2026-08-01,
+      lihat `docs/ARCHITECTURE.md` §1.2/§7.4). Repository saat ini import `supabase` client
+      langsung, bukan lewat interface, jadi ganti backend berarti menulis ulang tiap file
+      repository, bukan tukar satu implementasi. Kalau dikerjakan: mulai dari 1 repository
+      (mis. `testCaseRepository`) sebagai pilot — ekstrak interface, jadikan implementasi
+      Supabase saat ini sebagai satu adapter, baru tambah adapter kedua (SQLite/in-memory)
+      untuk test. JANGAN retrofit ke semua repository sekaligus — scope besar, risiko tinggi
+      untuk app yang sudah jalan, dan baru bernilai kalau ada kebutuhan nyata (test
+      Repository-level, atau migrasi backend beneran terjadi)
 
 **Platform Evolution V2 — Phase 8 (Collaboration & Workflow), baru ditambahkan
 2026-07-30** — lihat `docs/ROADMAP_V2.md` bagian "Phase 8" untuk detail lengkap +
@@ -322,3 +341,27 @@ _(kosong)_
 - [x] Comment editor: mention autocomplete + cross-reference (2026-07-30) — `@username` sebelumnya cuma teks placeholder tanpa dropdown asli; ditambah `MentionTextarea.tsx` (dropdown live saat mengetik `@`/`#`/`!`), diperluas ke `#code` (Test Case) dan `!code` (Issue) selain `@username` (profile), semua resolve ke link asli kalau kodenya valid, tetap teks polos kalau tidak ketemu. Fix bug background dropdown transparan (`surface-overlay` → `var(--surface-card)`). Verified (diminta user): pencarian/resolusi `#`/`!` sudah project-scoped end-to-end (lewat `projectId` di tiap query, bukan cuma RLS), dan kode entity (`entity_code_sequences`) sudah unik per project (restart dari awal tiap project baru) — lihat `docs/ROADMAP_V2.md` Phase 8 addendum untuk detail lengkap
 - [x] Comment editor lanjutan #2 — konfirmasi hapus, extract `CommentEditor.tsx`, Markdown write/preview, reply 1-level (kolom DB `parent_comment_id`), attach file di comment baru/reply (stage-lalu-upload), polish visual tombol, fix crash `getBoundingClientRect` — lihat detail lengkap di `docs/ROADMAP_V2.md` Phase 8 addendum "reply, delete confirmation, Markdown, attach-before-send" (2026-07-30)
 - [x] Status Issue diperluas 5 → 8 nilai: tambah `backlog`/`rejected`/`duplicate` (migrasi `20260730000004_issue_status_expand.sql`) — lihat `docs/ROADMAP_V2.md` Phase 8 addendum "Issue status expanded" (2026-07-30)
+- [x] Setup unit test frontend (Vitest, 2026-08-01) — `npm test`/`test:watch`/`test:coverage`
+      di `frontend/package.json`, config di `vite.config.ts` (`environment: 'node'`, tanpa
+      jsdom karena belum ada Component test). Scope disengajakan Service layer saja (bukan
+      Repository) — dikonfirmasi ke user dulu: mock SQLite untuk Repository ditunda karena
+      Repository saat ini bicara ke Supabase lewat query-builder chain (gaya PostgREST),
+      bukan SQL biasa, jadi mock SQLite yang meniru chain itu mahal & rapuh dibanding
+      manfaatnya sekarang. Sekalian dikonfirmasi: project **belum punya** adapter/port
+      pattern di Repository (langsung import `supabase` client, bukan lewat interface) —
+      SQLite baru masuk akal setelah ada boundary itu, dicatat sebagai task terpisah di
+      bawah, bukan digabung ke setup testing ini. 2 contoh test ditulis:
+      `testCaseService.test.ts` (validasi create — title/steps/expectedResult kosong,
+      simple vs detailed) dan `testRunService.test.ts` (start() menolak plan tanpa test
+      case, getWithResults() kalkulasi summary derived, syncResultWithTestCase() menolak
+      run completed) — repository di-mock via `vi.mock()`. Detail lengkap + rationale di
+      `docs/ARCHITECTURE.md` §7 (Testing) yang baru ditambahkan, §1.2 diupdate untuk jujur
+      soal repository belum swappable
+- [x] Code coverage (Vitest, 2026-08-01) — `npm run test:coverage`, provider v8
+      (`@vitest/coverage-v8` sudah terpasang sejak setup awal). Config `vite.config.ts`
+      `test.coverage.include` di-scope ke `src/services/**/*.ts` saja (dikonfirmasi ke
+      user) — kalau basis-nya seluruh `src/`, persentase selalu rendah & menyesatkan
+      karena Repository/Hook/Component belum ditest sama sekali, bukan mencerminkan
+      seberapa baik Service layer yang memang ditest sudah dicover. Reporter `text`+`html`,
+      `frontend/coverage/` ditambah ke `.gitignore` (hasil tidak pernah dikomit). Detail di
+      `docs/ARCHITECTURE.md` §7.2

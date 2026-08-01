@@ -125,7 +125,8 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] **Supabase Realtime sync** (E14) — satu subscriber terpusat (`useRealtimeSync`, dipasang sekali di `AppLayout`) memetakan `postgres_changes` ke invalidation React Query, sehingga perubahan dari tab/user lain otomatis ter-refresh tanpa perlu refresh manual
 - [x] PrimeReact + PrimeFlex setup, dark/light/system theme toggle
 - [x] Restrukturisasi monorepo (`frontend/` + `backend/` disiapkan untuk migrasi PHP+SQLite)
-- [ ] Test suite (Vitest)
+- [x] Unit test Service layer (Vitest, 2026-08-01) — co-located `*.test.ts` di `frontend/src/services/`, repository di-mock via `vi.mock()`; belum cover Repository/Hook/Component/E2E, lihat `docs/ARCHITECTURE.md` §7
+- [x] Code coverage (`npm run test:coverage`, v8 provider, 2026-08-01) — di-scope ke `services/` saja supaya persentase representatif terhadap apa yang benar-benar ditest; report `text`+`html` (`frontend/coverage/`, gitignored), lihat `docs/ARCHITECTURE.md` §7.2
 - [x] Storage adapter interface (`StorageAdapter`) — implementasi awal `SupabaseStorageAdapter` (bucket private, signed URL), slot disiapkan untuk backend upload internal (E12)
 
 ## Reporting (belum diprioritaskan — desain di-skip untuk saat ini)

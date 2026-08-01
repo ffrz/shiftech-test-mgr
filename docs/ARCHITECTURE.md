@@ -30,7 +30,7 @@ via `supabase-js`).
 dijalankan dari dalam folder ini, served at `/app`) + `public-docs/` (Astro
 Starlight docs site, served at `/docs` — user guide + data model, real
 authored content) + `backend/` (Go backend, **PENDING/paused** — far more
-built-out than a stub, see §7 and `backend/README.md`) + `supabase/` (schema
+built-out than a stub, see §8 and `backend/README.md`) + `supabase/` (schema
 SQL + `migrations/`, the actual source of truth) + `docs/`. Deploy via
 `deploy/deploy-vps.sh` (rsync + atomic symlink swap of all three built
 outputs into one release directory).
@@ -44,7 +44,7 @@ outputs into one release directory).
 **Client-side SPA murni** — tidak ada backend custom, tidak ada API routes,
 tidak ada SSR. React berjalan penuh di browser dan berkomunikasi langsung dengan
 Supabase (Postgres) via `@supabase/supabase-js` (REST/PostgREST di baliknya).
-Ini akan berubah kalau migrasi ke backend PHP terjadi (lihat §7) — karena itu
+Ini akan berubah kalau migrasi ke backend PHP terjadi (lihat §8) — karena itu
 Repository sengaja dijaga sebagai satu-satunya layer yang boleh tahu tentang
 Supabase.
 
@@ -78,10 +78,22 @@ Tujuan eksperimen ini adalah memvalidasi bahwa pola clean architecture backend
 direplikasi di sisi frontend SPA, supaya:
 
 - Business rule (validasi, kalkulasi summary) tidak tercampur dengan kode UI
-- Repository bisa diganti (mis. Supabase → Firebase → REST API lain) tanpa
-  mengubah service/component
-- Mudah di-test terpisah per layer (meski test suite belum ditulis di iterasi
-  awal ini)
+- Repository *seharusnya* bisa diganti (mis. Supabase → Firebase → REST API
+  lain) tanpa mengubah service/component — **catatan jujur:** ini belum
+  benar-benar terwujud. Repository saat ini import `supabase` client
+  langsung dari `config/supabaseClient.ts` (lihat §2.1), belum ada
+  interface/port yang dijadikan boundary. Selama repository tetap konsisten
+  "hanya query mentah, tanpa business rule", Service layer tidak perlu tahu
+  detail Supabase — tapi mengganti backend hari ini tetap butuh menulis ulang
+  isi tiap file repository, bukan sekadar tukar implementasi di satu titik.
+  Kalau kebutuhan swap backend jadi nyata, ini area kerja terpisah: ekstrak
+  interface per repository + implementasi Supabase saat ini jadi satu
+  adapter, baru implementasi lain (mis. SQLite untuk test, REST API lain)
+  jadi adapter kedua
+- Mudah di-test terpisah per layer — lihat §7 Testing di bawah untuk state
+  saat ini (Service layer sudah punya unit test dengan repository di-mock;
+  Repository sendiri belum punya test karena belum ada boundary adapter
+  untuk itu, lihat poin di atas)
 
 ---
 
@@ -941,11 +953,108 @@ HomePage ("Pending Invitations" card) / AppTopbar (bell) → useProjectInvitatio
 
 ---
 
-## 7. Architectural Risks & Notes
+## 7. Testing
+
+**Status: unit test Service layer saja (frontend), sejak 2026-08-01.** Belum
+ada test untuk Repository, Hook, Component, atau E2E.
+
+### 7.1 Setup
+
+- **Vitest** (`frontend/vite.config.ts` — blok `test`, `environment: 'node'`,
+  `include: ["src/**/*.test.ts"]`). Tidak pakai jsdom/Testing Library karena
+  belum ada Component test.
+- Script: `npm test` (`vitest run`, sekali jalan — cocok untuk CI), `npm run
+  test:watch` (mode watch, untuk development), `npm run test:coverage`
+  (`vitest run --coverage`, butuh `@vitest/coverage-v8` yang sudah terpasang
+  sebagai devDependency).
+- File test **co-located** — nama file sama dengan yang ditest + suffix
+  `.test.ts`, bersebelahan langsung (bukan folder `__tests__/` terpisah),
+  mis. `services/testCaseService.test.ts` di sebelah `services/testCaseService.ts`.
+
+### 7.2 Code Coverage
+
+- `npm run test:coverage` (`vitest run --coverage`, provider **v8**, sudah
+  terpasang lewat `@vitest/coverage-v8`).
+- Config di `vite.config.ts` blok `test.coverage` — `include:
+  ["src/services/**/*.ts"]`, sengaja **di-scope ke `services/` saja**, bukan
+  seluruh `src/`. Alasan: Repository/Hook/Component belum punya test sama
+  sekali (§7.5), jadi kalau basis coverage seluruh `src/`, persentase akan
+  selalu rendah dan menyesatkan — bukan mencerminkan seberapa baik Service
+  layer (satu-satunya yang ditest) sudah dicover. Scope ini perlu diperluas
+  manual di config kalau layer lain (Repository/Hook/Component) mulai
+  ditest.
+- Reporter: `text` (ringkasan di terminal) + `html` (laporan lengkap
+  klik-per-baris di `frontend/coverage/index.html`, buka manual di browser).
+  Folder `frontend/coverage/` di-gitignore — hasil coverage tidak pernah
+  dikomit, selalu dibangkitkan ulang.
+- Belum ada threshold minimum (`coverage.thresholds`) yang menggagalkan CI —
+  belum relevan karena belum ada CI yang menjalankan test sama sekali
+  (§7.5). Tambahkan kalau CI sudah ada dan tim mau menegakkan angka minimum.
+
+### 7.3 Kenapa mock repository, bukan SQLite?
+
+Sempat didiskusikan pakai SQLite untuk mock data layer di test, tapi
+diputuskan **tidak** untuk iterasi ini — alasannya terkait langsung ke gap
+adapter yang disebut di §1.2: repository saat ini bicara ke Supabase lewat
+query-builder chain (`.from().select().eq().order()...`, gaya PostgREST),
+bukan SQL biasa yang bisa dieksekusi lewat SQLite. Membuat mock SQLite yang
+meniru chain itu secara meyakinkan lebih mahal dan rapuh dibanding manfaatnya
+untuk saat ini.
+
+Pendekatan yang dipakai: **Service layer di-test dengan Repository di-mock**
+lewat `vi.mock('../../repositories/xRepository')`. Ini pas dengan layering
+Repository→Service (§2.1–2.2) — Service adalah tempat business logic hidup
+(validasi, orkestrasi, kalkulasi derived value), jadi itu yang paling
+bernilai untuk di-test dulu. Repository sendiri sengaja "hanya query mentah,
+tanpa business rule" (§2.1), jadi risiko regresi paling besar bukan di sana.
+
+SQLite (atau in-memory adapter lain) baru masuk akal **setelah** ada boundary
+adapter yang nyata di Repository (lihat catatan di §1.2) — baru saat itu
+"implementasi test" (SQLite/in-memory) bisa jadi adapter kedua yang setara
+dengan implementasi Supabase, dan repository test bisa mengeksekusi query
+sungguhan alih-alih menstub respons.
+
+### 7.4 Contoh test yang sudah ada
+
+- `services/testCaseService.test.ts` — validasi `create()` (title/
+  steps/expectedResult kosong ditolak, aturan berbeda untuk `stepType`
+  `simple` vs `detailed`), trimming field, delegasi tag/detailed-steps ke
+  service lain saat diberikan.
+- `services/testRunService.test.ts` — `start()` menolak nama
+  kosong dan plan tanpa test case; `getWithResults()` — kalkulasi summary
+  (pass/fail/skip/blocked/progress%) yang **selalu derived on-the-fly, tidak
+  pernah disimpan** (aturan produk, lihat §2.2); `syncResultWithTestCase()`
+  menolak sync saat run sudah `completed`.
+
+Pola untuk service baru: mock semua repository/service yang di-import di
+bagian atas file test (`vi.mock(...)` sebelum `import` dinamis), lalu
+`await import(...)` modul yang di-mock supaya mock ter-resolve dulu. Fokus
+test ke business rule (validasi, percabangan, kalkulasi) — bukan sekadar
+"apakah repository dipanggil", meski assert itu juga berguna untuk
+memverifikasi argumen yang di-trim/di-transform sebelum diteruskan.
+
+### 7.5 Belum ada, sengaja ditunda
+
+- **Repository test** — nunggu adapter/port layer (lihat catatan §1.2). Kalau
+  itu dikerjakan, mulai dari satu repository (mis. `testCaseRepository`)
+  sebagai pilot: ekstrak interface, implementasi Supabase saat ini jadi satu
+  adapter, tambah adapter kedua (SQLite/in-memory) khusus test.
+- **Hook test** — butuh `@testing-library/react` + jsdom (belum terpasang).
+  Belum banyak logic non-trivial di Hook (§2.3) untuk dijustifikasi
+  sekarang, mayoritas cuma lifecycle React di atas Service.
+- **Component test** — sama seperti Hook, butuh Testing Library + jsdom.
+- **E2E/integration test** — belum ada Playwright/Cypress. Regresi
+  fungsional saat ini masih via dogfooding manual (lihat `TODO.md`).
+- **CI** — belum ada workflow yang menjalankan `npm test` otomatis saat
+  push/PR. Saat ini `npm test` hanya dijalankan manual lokal.
+
+---
+
+## 8. Architectural Risks & Notes
 
 | Risiko                                                      | Keterangan                                                                                                                                                                                                                                                                                                                                                           |
 | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tidak ada test suite                                        | Belum ada Vitest/Testing Library — tambahkan jika project ini berkembang lebih jauh                                                                                                                                                                                                                                                                                  |
+| Unit test baru cover Service layer                          | Vitest sudah terpasang (2026-08-01, lihat §7) tapi baru menguji `services/*.ts` (repository di-mock). Repository, Hook, dan Component belum punya test sama sekali — Repository karena belum ada adapter boundary untuk di-swap ke SQLite/in-memory (lihat §1.2), Hook/Component karena belum ada Testing Library/jsdom terpasang |
 | PrimeReact v11 belum dipakai                                | Perlu revisit saat versi stable-nya rilis dengan sistem tema yang jelas                                                                                                                                                                                                                                                                                              |
 | Bundle size                                                 | Build menghasilkan chunk >1MB (belum code-split) — cukup untuk skala aplikasi internal ini, revisit kalau modul terus bertambah                                                                                                                                                                                                                                      |
 | Admin pertama manual                                        | Tidak ada seed/CLI untuk assign admin pertama — harus lewat Supabase Table Editor. Didokumentasikan, bukan bug                                                                                                                                                                                                                                                       |
@@ -953,6 +1062,6 @@ HomePage ("Pending Invitations" card) / AppTopbar (bell) → useProjectInvitatio
 | Backend Go (`backend/`) — PENDING/paused, jauh lebih lengkap dari sekadar rencana | Bukan sekadar folder kosong: domain/repository (dual MySQL+Postgres)/service/transport HTTP layer sudah lengkap dan mem-porting business rule frontend 1:1 (lihat header comment `internal/service/testrun/service.go`). Sengaja di-pause sampai Platform Evolution V2 selesai (lihat `backend/README.md`, `docs/ARCHITECTURE_V2.md` §8). Repository layer frontend sengaja jadi satu-satunya titik yang tahu tentang Supabase supaya migrasi nanti tinggal ganti implementasi repository tanpa menyentuh service/hook/component. RLS Supabase perlu direplikasi manual jadi authorization check di sisi Go saat migrasi terjadi — tidak otomatis ikut pindah |
 | Tiga build statis independen, tanpa workspace root | `landing/` (statis, tanpa build step), `frontend/` (Vite), `public-docs/` (Astro Starlight) masing-masing punya toolchain sendiri, tidak ada root `package.json`/workspaces. Disatukan hanya saat deploy (`deploy/deploy-vps.sh` — rsync + symlink swap ke satu release dir: `/`, `/app`, `/docs`). Root `README.md` sempat tidak menyebut `public-docs/` sama sekali di struktur repo — perbaiki kalau menemukan drift serupa lagi |
 | Tag junction full-replace                                   | `tagService.saveTagsForTestCase` selalu delete+insert ulang seluruh `test_case_tags` untuk test case tsb saat disimpan — sederhana tapi berarti setiap save test case menyentuh baris junction meski tag tidak berubah. Cukup untuk skala saat ini (jumlah tag per test case kecil)                                                                                  |
-| Storage adapter (E12) pola baru di codebase                  | Interface + implementasi terpisah (`StorageAdapter`) belum ada contohnya di layer lain (Repository saat ini langsung bicara ke Supabase, bukan lewat interface) — jadi validasi pertama pola "swappable provider" di luar rencana migrasi backend PHP                                                                                                                |
+| Storage adapter (E12) pola baru di codebase                  | Interface + implementasi terpisah (`StorageAdapter`) belum ada contohnya di layer lain (Repository saat ini langsung bicara ke Supabase, bukan lewat interface) — jadi validasi pertama pola "swappable provider" di luar rencana migrasi backend PHP. Pola ini yang perlu direplikasi ke Repository kalau adapter test (SQLite/in-memory) mau dibangun, lihat §7.3/§7.5                                                                                                                |
 | Realtime invalidation pakai prefix luas untuk sebagian tabel (E14) | `test_runs` dan `test_plan_cases` tidak punya `project_id` di payload Realtime (cuma `test_plan_id`), jadi event tabel itu invalidate prefix `['testRuns']` penuh (semua varian `testRunsByProject`/`testRunsByPlan` yang sedang ter-cache), bukan key spesifik — sedikit overfetch tapi menghindari query lookup tambahan di jalur event handler. Keputusan produk, bukan bug |
 | Dua channel Realtime terpisah untuk `profiles`                | `useAuth.tsx` subscribe channel `profile-role-${userId}` (filter row sendiri, untuk reload profil pribadi) dan `useRealtimeSync` subscribe channel `app-realtime-sync` (semua row, untuk invalidate `queryKeys.profiles()` dipakai halaman admin) — dua channel berbeda tujuan, sengaja tidak dikonsolidasi karena scope-nya beda (auth state individual vs cache list global)                                                                                                            |
