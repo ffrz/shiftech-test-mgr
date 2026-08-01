@@ -10,6 +10,13 @@ import { useDashboard } from '../../hooks/useDashboard';
 import { useProjectInvitations } from '../../hooks/useProjectInvitations';
 import { OwnerProjectLabel } from '../../components/ui/OwnerProjectLabel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
+import {
+  MyWorkSectionSkeleton,
+  ContinueWorkingSectionSkeleton,
+  RecentProjectsSectionSkeleton,
+  StatisticsSectionSkeleton,
+  ActivityFeedSectionSkeleton,
+} from './HomeSectionsSkeleton';
 import { profileRepository } from '../../repositories/profileRepository';
 import { pathForActivityEntity, ACTIVITY_ENTITY_LABEL } from '../../helpers/activityRoutes';
 import { describeSystemEvent } from '../../helpers/activityDescribe';
@@ -21,7 +28,7 @@ import type { ActivityEntityType } from '../../types/domain';
 export function HomePage() {
   const navigate = useNavigate();
   const { profile } = useAuthContext();
-  const { counts, recentProjects, continueWorking, myWorkIssues, myWorkLoading, recentActivity, activityLoading, loading } = useDashboard();
+  const { counts, recentProjects, continueWorking, myWorkIssues, countsLoading, recentProjectsLoading, continueWorkingLoading, myWorkLoading, recentActivity, activityLoading } = useDashboard();
   const { invitations, accept, decline } = useProjectInvitations();
 
   const activityActorIds = useMemo(() => [...new Set(recentActivity.map((a) => a.actorId))], [recentActivity]);
@@ -95,7 +102,9 @@ export function HomePage() {
         </div>
       )}
 
-      {!myWorkLoading && myWorkIssues.length > 0 && (
+      {myWorkLoading ? (
+        <MyWorkSectionSkeleton />
+      ) : myWorkIssues.length > 0 && (
         <div className="mb-4">
           <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-briefcase text-primary" />My Work</h3>
           <div className="flex flex-column gap-2">
@@ -129,7 +138,9 @@ export function HomePage() {
         </div>
       )}
 
-      {!loading && continueWorking.length > 0 && (
+      {continueWorkingLoading ? (
+        <ContinueWorkingSectionSkeleton />
+      ) : continueWorking.length > 0 && (
         <div className="mb-4">
           <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-history text-primary" />Continue Working</h3>
           <div className="flex flex-column gap-2">
@@ -160,10 +171,13 @@ export function HomePage() {
         </div>
       )}
 
+      {recentProjectsLoading ? (
+        <RecentProjectsSectionSkeleton />
+      ) : (
       <div className="mb-4">
         <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-folder text-primary" />Recent Projects</h3>
         <Card pt={{ body: { className: 'p-2' }, content: { className: 'p-0' } }}>
-          {recentProjects.length === 0 && !loading && (
+          {recentProjects.length === 0 && (
             <div className="flex flex-column align-items-center gap-2 py-4 text-color-secondary">
               <i className="pi pi-folder-open text-3xl" />
               <span>No projects yet. Create one to get started.</span>
@@ -186,6 +200,7 @@ export function HomePage() {
           </div>
         </Card>
       </div>
+      )}
 
       <div className="mb-4">
         <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-bolt text-primary" />Quick Actions</h3>
@@ -195,6 +210,9 @@ export function HomePage() {
         </div>
       </div>
 
+      {countsLoading ? (
+        <StatisticsSectionSkeleton />
+      ) : (
       <div className="mb-4">
         <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-chart-bar text-primary" />Statistics</h3>
         <div className="grid">
@@ -291,8 +309,11 @@ export function HomePage() {
           </div>
         </div>
       </div>
+      )}
 
-      {!activityLoading && recentActivity.length > 0 && (
+      {activityLoading ? (
+        <ActivityFeedSectionSkeleton />
+      ) : recentActivity.length > 0 && (
         <div className="mb-4">
           <h3 className="mb-2 flex align-items-center gap-2"><i className="pi pi-list text-primary" />Activity Feed</h3>
           <Card pt={{ body: { className: 'p-2' }, content: { className: 'p-0' } }}>

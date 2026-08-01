@@ -48,6 +48,9 @@ export function useDashboard() {
     myWorkIssues: myWorkIssues ?? [],
     recentActivity: recentActivity ?? [],
     loading: countsLoading || recentProjectsLoading || continueWorkingLoading,
+    countsLoading,
+    recentProjectsLoading,
+    continueWorkingLoading,
     myWorkLoading,
     activityLoading,
   };
