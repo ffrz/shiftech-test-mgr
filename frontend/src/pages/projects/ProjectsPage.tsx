@@ -12,6 +12,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useStoredState } from '../../hooks/useStoredState';
+import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { projectService } from '../../services/projectService';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
 import { DuplicateProjectDialog } from './components/dialogs/DuplicateProjectDialog';
@@ -209,6 +210,8 @@ export function ProjectsPage() {
   return (
     <div>
       <Menu model={menuItems} popup ref={menuRef} appendTo={document.body} />
+
+      <Breadcrumb items={[{ label: 'Projects' }]} />
 
       <PageHeader
         title="Projects"

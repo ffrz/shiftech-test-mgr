@@ -16,6 +16,7 @@ import SearchInput from '../../components/ui/SearchInput';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import type { TestSuite, TestSuiteVisibility } from '../../types/domain';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
@@ -191,6 +192,7 @@ export function TestSuitesPage() {
   return (
     <div>
       <ConfirmDialog />
+      <Breadcrumb items={[{ label: 'Test Suite' }]} />
       <PageHeader
         title="Test Suite"
         actions={
