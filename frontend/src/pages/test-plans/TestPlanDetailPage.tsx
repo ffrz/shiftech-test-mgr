@@ -29,6 +29,7 @@ import { useScreenSize } from '../../hooks/useScreenSize';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { PlanTestCasesTab } from './components/tabs/PlanTestCasesTab';
 import { PlanTestRunsTab } from './components/tabs/PlanTestRunsTab';
+import { TestPlanDetailPageSkeleton } from './TestPlanDetailPageSkeleton';
 import { AddCaseToPlanDialog } from './components/dialogs/AddCaseToPlanDialog';
 import { StartTestRunDialog } from './components/dialogs/StartTestRunDialog';
 import { toastHelper } from '../../helpers/toast';
@@ -38,7 +39,7 @@ export function TestPlanDetailPage() {
   const navigate = useNavigate();
 
   const queryClient = useQueryClient();
-  const { data: testPlan = null } = useQuery({
+  const { data: testPlan = null, isLoading: planLoading } = useQuery({
     queryKey: queryKeys.testPlan(id ?? ''),
     queryFn: () => testPlanService.getById(id!),
     enabled: !!id,
@@ -308,6 +309,8 @@ export function TestPlanDetailPage() {
       },
     });
   }
+
+  if (planLoading) return <TestPlanDetailPageSkeleton />;
 
   return (
     <div>

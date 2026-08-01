@@ -16,6 +16,7 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
+import { TestCaseDetailPageSkeleton } from './TestCaseDetailPageSkeleton';
 import { testCaseService } from '../../services/testCaseService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
@@ -302,17 +303,18 @@ export function TestCaseDetailPage() {
   }
 
   if (loading || !testCase) {
+    if (loading) return <TestCaseDetailPageSkeleton />;
     return (
       <div>
         <Breadcrumb
           items={[
             { label: 'Projects', path: '/projects' },
             ...projectBreadcrumbItems,
-            { label: testCase ? 'Test Cases' : '', path: testCase ? `/projects/${testCase.project.id}?tab=testCases` : undefined },
-            { label: loading ? '' : 'Test case not found' },
+            { label: 'Test Cases' },
+            { label: 'Test case not found' },
           ]}
         />
-        {!loading && <p>Test case not found.</p>}
+        <p>Test case not found.</p>
       </div>
     );
   }

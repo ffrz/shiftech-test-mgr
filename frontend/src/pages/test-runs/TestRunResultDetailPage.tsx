@@ -33,6 +33,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
+import { TestRunResultDetailPageSkeleton } from './TestRunResultDetailPageSkeleton';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { queryKeys } from '../../hooks/queryKeys';
 import type {
@@ -440,6 +441,8 @@ export function TestRunResultDetailPage() {
 
   const moduleOptions = modules.map((m) => ({ label: m.name, value: m.id }));
   const tagOptions = projectTags.map((t) => ({ label: t.name, value: t.id }));
+
+  if (loading && !testRun) return <TestRunResultDetailPageSkeleton />;
 
   return (
     <div className="page-fade-in">

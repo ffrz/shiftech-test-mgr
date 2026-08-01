@@ -23,6 +23,7 @@ import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
+import { IssueDetailPageSkeleton } from './IssueDetailPageSkeleton';
 import { profileRepository } from '../../repositories/profileRepository';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import type { BreadcrumbItem } from '../../components/ui/Breadcrumb';
@@ -323,16 +324,17 @@ export function IssueDetailPage() {
   }
 
   if (loading || !issue) {
+    if (loading) return <IssueDetailPageSkeleton />;
     const breadcrumbItems: BreadcrumbItem[] = [
       { label: 'Projects', path: '/projects' },
       ...projectBreadcrumbItems,
-      { label: issue ? 'Issues' : '', path: issue?.projectId ? `/projects/${issue.projectId}?tab=issues` : undefined },
-      { label: loading ? '' : 'Issue not found' },
+      { label: 'Issues' },
+      { label: 'Issue not found' },
     ];
     return (
       <div>
         <Breadcrumb items={breadcrumbItems} />
-        {!loading && <p>Issue not found.</p>}
+        <p>Issue not found.</p>
       </div>
     );
   }

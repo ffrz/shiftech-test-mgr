@@ -17,6 +17,7 @@ import { describeSystemEvent } from '../../helpers/activityDescribe';
 import { extractMentionUsernames, extractTestCaseCodes, extractIssueCodes, linkifyMentionsMarkdown } from '../../helpers/renderMentions';
 import { CommentEditor } from './CommentEditor';
 import { MarkdownPreview } from './MarkdownPreview';
+import { ActivityPanelSkeleton } from './ActivityPanelSkeleton';
 import type { ActivityEntityType, ActivityEntry, Attachment, Profile } from '../../types/domain';
 
 // One comment's attachments, read-only display (view mode only) — its own query, scoped by
@@ -480,7 +481,7 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
 
   return (
     <div>
-      {loading && entries.length === 0 && <p className="text-color-secondary text-sm m-0">Loading activity...</p>}
+      {loading && entries.length === 0 && <ActivityPanelSkeleton />}
       {!loading && entries.length === 0 && <p className="text-color-secondary text-sm m-0">No activity yet.</p>}
 
       <div className="comment-thread mt-3">

@@ -33,6 +33,7 @@ import { useStoredState } from '../../hooks/useStoredState';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
 import { ImportCasesDialog } from '../projects/components/dialogs/ImportCasesDialog';
 import { parseTestCaseCsv, downloadCsvTemplate } from '../../helpers/csvImport';
+import { TestSuiteDetailPageSkeleton } from './TestSuiteDetailPageSkeleton';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY, TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
@@ -60,7 +61,7 @@ export function TestSuiteDetailPage() {
   const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [search, setSearch] = useState('');
 
-  const { data: suite = null } = useQuery({
+  const { data: suite = null, isLoading: suiteLoading } = useQuery({
     queryKey: queryKeys.testSuite(id ?? ''),
     queryFn: () => testSuiteService.getSuite(id!),
     enabled: !!id,
@@ -488,6 +489,8 @@ export function TestSuiteDetailPage() {
     </div>
   ), []);
 
+  if (suiteLoading) return <TestSuiteDetailPageSkeleton />;
+
   return (
     <div>
       <Toast ref={undoToast} position="bottom-center" />
@@ -681,27 +684,28 @@ export function TestSuiteDetailPage() {
         style={{ width: '40rem' }}
       >
         <div className="flex flex-column gap-2">
-          <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column">
-              <FloatLabel className="ifta-field">
-                <InputText id="item-module" value={itemModuleName} onChange={(e) => setItemModuleName(e.target.value)} className="w-full" />
-                <label htmlFor="item-module">Module (optional, ex. Auth, Checkout)</label>
-              </FloatLabel>
-            </div>
-            <div className="col-12 md:col-6 flex flex-column">
-              <FloatLabel className="ifta-field">
-                <Dropdown id="item-priority" value={itemPriority} options={PRIORITY_OPTIONS} onChange={(e) => setItemPriority(e.value)} className="w-full" />
-                <label htmlFor="item-priority">Priority</label>
-              </FloatLabel>
-            </div>
-          </div>
-
           <div className="flex flex-column gap-1">
             <FloatLabel className="ifta-field">
               <InputText id="item-title" ref={itemTitleRef} value={itemTitle} onChange={(e) => { setItemTitle(e.target.value); setItemErrors({}); }} className={itemErrors.title ? 'p-invalid w-full' : 'w-full'} autoFocus />
               <label htmlFor="item-title" className={itemErrors.title ? 'p-error' : ''}>Title</label>
             </FloatLabel>
             {itemErrors.title && <small className="p-error">{itemErrors.title}</small>}
+          </div>
+
+          <div className="grid">
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <Dropdown id="item-priority" value={itemPriority} options={PRIORITY_OPTIONS} onChange={(e) => setItemPriority(e.value)} className="w-full" />
+                <label htmlFor="item-priority">Priority</label>
+              </FloatLabel>
+            </div>
+
+            <div className="col-12 md:col-6 flex flex-column">
+              <FloatLabel className="ifta-field">
+                <InputText id="item-module" value={itemModuleName} onChange={(e) => setItemModuleName(e.target.value)} className="w-full" />
+                <label htmlFor="item-module">Module (optional)</label>
+              </FloatLabel>
+            </div>
           </div>
 
           <div className="flex flex-column">
@@ -794,6 +798,8 @@ export function TestSuiteDetailPage() {
               <label htmlFor="item-tags">Tags (comma-separated, ex. Regression, Smoke)</label>
             </FloatLabel>
           </div>
+
+          <div className="my-2"></div>
 
           <Button label="Save" size="small" onClick={handleSaveItem} />
         </div>
