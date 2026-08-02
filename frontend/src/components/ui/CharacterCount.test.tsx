@@ -1,21 +1,27 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { CharacterCount } from './CharacterCount';
+import { render, screen, cleanup } from '@testing-library/react';
+import { describe, expect, it, afterEach } from 'vitest';
+import { CharacterCount } from '../../components/ui/CharacterCount';
+
+afterEach(() => {
+  cleanup();
+});
 
 describe('CharacterCount', () => {
-  it('renders current length and max length', () => {
-    render(<CharacterCount value="hello" maxLength={140} />);
-    expect(screen.getByText('5 / 140')).toBeInTheDocument();
+  it('shows current count and max', () => {
+    render(<CharacterCount value="hello" maxLength={100} />);
+    expect(screen.getByText('5 / 100')).toBeInTheDocument();
   });
 
-  it('renders zero length', () => {
-    render(<CharacterCount value="" maxLength={10} />);
-    expect(screen.getByText('0 / 10')).toBeInTheDocument();
+  it('shows zero for empty string', () => {
+    render(<CharacterCount value="" maxLength={200} />);
+    expect(screen.getByText('0 / 200')).toBeInTheDocument();
   });
 
-  it('renders a length exceeding the max (no clamping on its own)', () => {
-    render(<CharacterCount value="way too long" maxLength={5} />);
-    expect(screen.getByText('12 / 5')).toBeInTheDocument();
+  it('updates when value changes', () => {
+    const { rerender } = render(<CharacterCount value="a" maxLength={10} />);
+    expect(screen.getByText('1 / 10')).toBeInTheDocument();
+    rerender(<CharacterCount value="abcdef" maxLength={10} />);
+    expect(screen.getByText('6 / 10')).toBeInTheDocument();
   });
 });

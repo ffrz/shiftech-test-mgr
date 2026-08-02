@@ -1,63 +1,97 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
-import { FilterToolbar } from './FilterToolbar';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, expect, it, vi, afterEach } from 'vitest';
+import { FilterToolbar } from '../../components/ui/FilterToolbar';
+
+afterEach(() => {
+  cleanup();
+});
 
 describe('FilterToolbar', () => {
-  it('renders children when filter is visible by default', () => {
-    render(
-      <FilterToolbar>
-        <input aria-label="search" />
-      </FilterToolbar>,
-    );
-    expect(screen.getByLabelText('search')).toBeInTheDocument();
-  });
-
-  it('hides children after toggling the filter off', async () => {
-    const user = userEvent.setup();
-    render(
-      <FilterToolbar>
-        <input aria-label="search" />
-      </FilterToolbar>,
-    );
-    await user.click(screen.getByRole('button'));
-    expect(screen.queryByLabelText('search')).not.toBeInTheDocument();
-  });
-
-  it('renders primary and secondary actions', () => {
-    render(
-      <FilterToolbar
-        primaryAction={<button type="button">New Issue</button>}
-        secondaryActions={<button type="button">Import</button>}
-      >
-        <div />
-      </FilterToolbar>,
-    );
-    expect(screen.getByRole('button', { name: 'New Issue' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument();
-  });
-
-  it('renders nothing when visible=false', () => {
+  it('returns null when visible=false', () => {
     const { container } = render(
       <FilterToolbar visible={false}>
-        <input aria-label="search" />
+        <div>filters</div>
       </FilterToolbar>,
     );
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstChild).toBeNull();
   });
 
-  it('supports controlled filterVisible + onToggleFilterVisible', async () => {
-    const user = userEvent.setup();
-    const onToggle = () => {};
+  it('renders filter toggle button', () => {
     render(
-      <FilterToolbar filterVisible onToggleFilterVisible={onToggle} defaultFilterVisible={false}>
-        <input aria-label="search" />
+      <FilterToolbar>
+        <div>filters</div>
       </FilterToolbar>,
     );
-    expect(screen.getByLabelText('search')).toBeInTheDocument();
-    await user.click(screen.getByRole('button'));
-    // Controlled mode: parent owns state, component does not flip it internally.
-    expect(screen.getByLabelText('search')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
+  });
+
+  it('shows children by default (defaultFilterVisible=true)', () => {
+    render(
+      <FilterToolbar>
+        <div>Filter Fields</div>
+      </FilterToolbar>,
+    );
+    expect(screen.getByText('Filter Fields')).toBeInTheDocument();
+  });
+
+  it('hides children when defaultFilterVisible=false', () => {
+    render(
+      <FilterToolbar defaultFilterVisible={false}>
+        <div>Filter Fields</div>
+      </FilterToolbar>,
+    );
+    expect(screen.queryByText('Filter Fields')).not.toBeInTheDocument();
+  });
+
+  it('toggles filter visibility on button click', () => {
+    render(
+      <FilterToolbar defaultFilterVisible={false}>
+        <div>Filters</div>
+      </FilterToolbar>,
+    );
+    expect(screen.queryByText('Filters')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button'));
+    expect(screen.getByText('Filters')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button'));
+    expect(screen.queryByText('Filters')).not.toBeInTheDocument();
+  });
+
+  it('renders primary action', () => {
+    render(
+      <FilterToolbar primaryAction={<button>New Item</button>}>
+        <div>filters</div>
+      </FilterToolbar>,
+    );
+    expect(screen.getByText('New Item')).toBeInTheDocument();
+  });
+
+  it('renders secondary actions', () => {
+    render(
+      <FilterToolbar secondaryActions={<button>Import</button>}>
+        <div>filters</div>
+      </FilterToolbar>,
+    );
+    expect(screen.getByText('Import')).toBeInTheDocument();
+  });
+
+  it('uses parent-controlled filterVisible when provided', () => {
+    render(
+      <FilterToolbar filterVisible onToggleFilterVisible={vi.fn()}>
+        <div>Always Visible</div>
+      </FilterToolbar>,
+    );
+    expect(screen.getByText('Always Visible')).toBeInTheDocument();
+  });
+
+  it('calls onToggleFilterVisible in controlled mode', () => {
+    const onToggle = vi.fn();
+    render(
+      <FilterToolbar filterVisible onToggleFilterVisible={onToggle}>
+        <div>filters</div>
+      </FilterToolbar>,
+    );
+    fireEvent.click(screen.getByRole('button'));
+    expect(onToggle).toHaveBeenCalledOnce();
   });
 });

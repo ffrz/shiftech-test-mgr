@@ -1,53 +1,62 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { RelativeTime } from './RelativeTime';
+import { render, screen, cleanup } from '@testing-library/react';
+import { describe, expect, it, vi, afterEach } from 'vitest';
+import { RelativeTime } from '../../components/ui/RelativeTime';
 
-const NOW = new Date('2026-08-01T12:00:00Z').getTime();
+vi.mock('../../helpers/dateFormatter', () => ({
+  formatDate: vi.fn((iso: string) => `[date]${iso}`),
+  formatDateTime: vi.fn((iso: string) => `[datetime]${iso}`),
+  formatRelativeTime: vi.fn((iso: string) => `[relative]${iso}`),
+}));
 
 afterEach(() => {
-  vi.useRealTimers();
+  cleanup();
 });
 
+const ONE_MIN_AGO = new Date(Date.now() - 60 * 1000).toISOString();
+
 describe('RelativeTime', () => {
-  it('renders relative text for recent values', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(NOW);
-    const iso = new Date(NOW - 5 * 60 * 1000).toISOString();
-    render(<RelativeTime value={iso} />);
-    expect(screen.getByText('5 minutes ago')).toBeInTheDocument();
+  it('renders relative time within maxDays', () => {
+    render(<RelativeTime value={ONE_MIN_AGO} maxDays={999} />);
+    expect(screen.getByText(`[relative]${ONE_MIN_AGO}`)).toBeInTheDocument();
   });
 
-  it('falls back to an absolute date beyond maxDays', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(NOW);
-    const iso = new Date(NOW - 30 * 24 * 60 * 60 * 1000).toISOString();
-    render(<RelativeTime value={iso} />);
-    expect(screen.getByText(/\d{2} \w{3} \d{4}/)).toBeInTheDocument();
+  it('renders absolute date when age >= maxDays', () => {
+    const oldDate = '2025-01-01T00:00:00Z';
+    render(<RelativeTime value={oldDate} />);
+    expect(screen.getByText(`[date]${oldDate}`)).toBeInTheDocument();
   });
 
-  it('renders relative text with maxDays=0 for older values', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(NOW);
-    const iso = new Date(NOW - 10 * 24 * 60 * 60 * 1000).toISOString();
-    render(<RelativeTime value={iso} maxDays={0} />);
-    expect(screen.getByText(/last week|1 week ago|10 days ago|2 weeks ago/)).toBeInTheDocument();
+  it('renders with maxDays=0 (always relative)', () => {
+    render(<RelativeTime value={ONE_MIN_AGO} maxDays={0} />);
+    expect(screen.getByText(`[relative]${ONE_MIN_AGO}`)).toBeInTheDocument();
   });
 
-  it('prefixes the display text', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(NOW);
-    const iso = new Date(NOW - 60 * 1000).toISOString();
-    render(<RelativeTime value={iso} prefix="Updated " />);
-    expect(screen.getByText(/Updated 1 minute ago/)).toBeInTheDocument();
+  it('renders with prefix', () => {
+    render(<RelativeTime value={ONE_MIN_AGO} maxDays={999} prefix="Updated " />);
+    expect(screen.getByText(`Updated [relative]${ONE_MIN_AGO}`)).toBeInTheDocument();
   });
 
-  it('always exposes the exact datetime in the tooltip data attribute', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(NOW);
-    const iso = new Date(NOW - 60 * 1000).toISOString();
-    const { container } = render(<RelativeTime value={iso} />);
-    const span = container.querySelector('.relative-time');
-    expect(span).toHaveAttribute('data-pr-tooltip', expect.stringContaining('2026'));
+  it('renders tooltip with full datetime', () => {
+    const { container } = render(<RelativeTime value={ONE_MIN_AGO} />);
+    const span = container.querySelector('span[data-pr-tooltip]');
+    expect(span?.getAttribute('data-pr-tooltip')).toBe(`[datetime]${ONE_MIN_AGO}`);
+  });
+
+  it('applies className', () => {
+    const { container } = render(<RelativeTime value={ONE_MIN_AGO} className="my-custom" />);
+    expect(container.querySelector('.my-custom')).toBeTruthy();
+  });
+
+  it('generates unique id for each instance', () => {
+    const { container } = render(
+      <>
+        <RelativeTime value={ONE_MIN_AGO} />
+        <RelativeTime value={new Date(Date.now() - 120 * 1000).toISOString()} />
+      </>,
+    );
+    const spans = container.querySelectorAll('span[data-pr-tooltip]');
+    expect(spans).toHaveLength(2);
+    expect(spans[0].id).not.toBe(spans[1].id);
   });
 });

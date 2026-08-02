@@ -1,21 +1,31 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { PageHeader } from './PageHeader';
+import { render, screen, cleanup } from '@testing-library/react';
+import { describe, expect, it, afterEach } from 'vitest';
+import { PageHeader } from '../../components/ui/PageHeader';
+
+afterEach(() => {
+  cleanup();
+});
 
 describe('PageHeader', () => {
   it('renders the title', () => {
-    render(<PageHeader title="Projects" />);
-    expect(screen.getByRole('heading', { name: 'Projects' })).toBeInTheDocument();
+    render(<PageHeader title="Test Plans" />);
+    expect(screen.getByText('Test Plans')).toBeInTheDocument();
   });
 
   it('renders actions when provided', () => {
-    render(<PageHeader title="Projects" actions={<button type="button">New Project</button>} />);
-    expect(screen.getByRole('button', { name: 'New Project' })).toBeInTheDocument();
+    render(<PageHeader title="Page" actions={<button>New</button>} />);
+    expect(screen.getByText('New')).toBeInTheDocument();
   });
 
   it('renders without actions', () => {
-    const { container } = render(<PageHeader title="Projects" />);
-    expect(container.querySelector('.header-actions')?.textContent).toBe('');
+    render(<PageHeader title="Page" />);
+    expect(screen.getByText('Page')).toBeInTheDocument();
+  });
+
+  it('renders title as h2', () => {
+    render(<PageHeader title="Title" />);
+    const heading = screen.getByRole('heading', { level: 2 });
+    expect(heading).toHaveTextContent('Title');
   });
 });

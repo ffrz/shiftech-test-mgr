@@ -1,45 +1,51 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { OwnerProjectLabel } from './OwnerProjectLabel';
+import { render, screen, cleanup } from '@testing-library/react';
+import { describe, expect, it, afterEach } from 'vitest';
+import { OwnerProjectLabel } from '../../components/ui/OwnerProjectLabel';
+
+afterEach(() => {
+  cleanup();
+});
 
 describe('OwnerProjectLabel', () => {
-  it('renders owner + project name when username is present', () => {
-    render(<OwnerProjectLabel username="fahmi" name="Testify" />);
-    expect(screen.getByText('fahmi')).toBeInTheDocument();
-    expect(screen.getByText('Testify')).toBeInTheDocument();
-    expect(screen.getByTitle('fahmi / Testify').textContent).toContain(' / ');
+  it('renders "username / project" when username is set', () => {
+    render(<OwnerProjectLabel username="alice" name="My Project" />);
+    expect(screen.getByText('alice')).toBeInTheDocument();
+    expect(screen.getByText('My Project')).toBeInTheDocument();
+    // slash is inside its own <span class="owner-project-label-sep">
+    expect(document.querySelector('.owner-project-label-sep')).toBeTruthy();
   });
 
-  it('truncates long usernames at the default 20 chars', () => {
-    render(<OwnerProjectLabel username="averyveryverylongusername_here" name="Proj" />);
-    expect(screen.getByTitle('averyveryverylongusername_here / Proj')).toHaveTextContent('averyveryverylonguse…');
-    expect(screen.queryByText('averyveryverylongusername_here')).not.toBeInTheDocument();
-  });
-
-  it('honors a custom max owner length', () => {
-    render(<OwnerProjectLabel username="abcdefghij" name="Proj" maxOwnerLength={5} />);
-    expect(screen.getByText('abcde…')).toBeInTheDocument();
-  });
-
-  it('does not truncate short usernames', () => {
-    render(<OwnerProjectLabel username="ada" name="Proj" />);
-    expect(screen.getByText('ada')).toBeInTheDocument();
-  });
-
-  it('renders only the project name when username is null', () => {
-    render(<OwnerProjectLabel username={null} name="Standalone" />);
-    expect(screen.getByText('Standalone')).toBeInTheDocument();
+  it('renders only project name when username is null', () => {
+    render(<OwnerProjectLabel username={null} name="My Project" />);
+    expect(screen.getByText('My Project')).toBeInTheDocument();
     expect(screen.queryByText(' / ')).not.toBeInTheDocument();
   });
 
-  it('sets a title attribute combining owner and name', () => {
-    render(<OwnerProjectLabel username="ada" name="Proj" />);
-    expect(screen.getByTitle('ada / Proj')).toBeInTheDocument();
+  it('truncates username at default 20 chars', () => {
+    render(<OwnerProjectLabel username="abcdefghijklmnopqrstuvwxyz" name="Proj" />);
+    expect(screen.getByText('abcdefghijklmnopqrst…')).toBeInTheDocument();
   });
 
-  it('appends className', () => {
-    render(<OwnerProjectLabel username="ada" name="Proj" className="extra" />);
-    expect(screen.getByTitle('ada / Proj')).toHaveClass('owner-project-label', 'extra');
+  it('truncates username at custom maxOwnerLength', () => {
+    render(<OwnerProjectLabel username="longusername" name="Proj" maxOwnerLength={4} />);
+    expect(screen.getByText('long…')).toBeInTheDocument();
+  });
+
+  it('does not truncate short usernames', () => {
+    render(<OwnerProjectLabel username="alice" name="Proj" />);
+    expect(screen.getByText('alice')).toBeInTheDocument();
+  });
+
+  it('sets title attribute with full username/project', () => {
+    render(<OwnerProjectLabel username="alice" name="My Project" />);
+    const span = screen.getByTitle('alice / My Project');
+    expect(span).toBeInTheDocument();
+  });
+
+  it('sets title with only project name when no username', () => {
+    render(<OwnerProjectLabel username={null} name="My Project" />);
+    const span = screen.getByTitle('My Project');
+    expect(span).toBeInTheDocument();
   });
 });

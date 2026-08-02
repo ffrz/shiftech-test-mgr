@@ -1,37 +1,58 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
-import SearchInput from './SearchInput';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, expect, it, vi, afterEach } from 'vitest';
+import SearchInput from '../../components/ui/SearchInput';
+
+afterEach(() => {
+  cleanup();
+});
 
 describe('SearchInput', () => {
-  it('calls onChange with the typed value', async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
-    render(<SearchInput value="" onChange={onChange} />);
-    await user.type(screen.getByPlaceholderText('Search...'), 'abc');
-    expect(onChange).toHaveBeenCalledWith('a');
-    expect(onChange).toHaveBeenCalledWith('b');
-    expect(onChange).toHaveBeenCalledWith('c');
+  describe('inline mode (default)', () => {
+    it('renders with placeholder', () => {
+      render(<SearchInput value="" onChange={vi.fn()} />);
+      expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument();
+    });
+
+    it('renders with custom placeholder', () => {
+      render(<SearchInput value="" onChange={vi.fn()} placeholder="Find..." />);
+      expect(screen.getByPlaceholderText('Find...')).toBeInTheDocument();
+    });
+
+    it('calls onChange when value changes', () => {
+      const onChange = vi.fn();
+      render(<SearchInput value="" onChange={onChange} />);
+      fireEvent.change(screen.getByPlaceholderText('Search...'), { target: { value: 'test' } });
+      expect(onChange).toHaveBeenCalledWith('test');
+    });
+
+    it('shows clear icon when value is not empty', () => {
+      const { container } = render(<SearchInput value="test" onChange={vi.fn()} />);
+      expect(container.querySelector('.pi-times')).toBeTruthy();
+    });
+
+    it('does not show clear icon when value is empty', () => {
+      const { container } = render(<SearchInput value="" onChange={vi.fn()} />);
+      expect(container.querySelector('.pi-times')).toBeFalsy();
+    });
+
+    it('clears value when clear icon is clicked', () => {
+      const onChange = vi.fn();
+      const { container } = render(<SearchInput value="test" onChange={onChange} />);
+      fireEvent.click(container.querySelector('.pi-times')!);
+      expect(onChange).toHaveBeenCalledWith('');
+    });
   });
 
-  it('shows a clear button when a value exists and clears on click', async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
-    const { container } = render(<SearchInput value="query" onChange={onChange} />);
-    const clearIcon = container.querySelector('.pi-times');
-    expect(clearIcon).not.toBeNull();
-    await user.click(clearIcon!);
-    expect(onChange).toHaveBeenCalledWith('');
-  });
+  describe('floating mode', () => {
+    it('renders with label when floating=true', () => {
+      render(<SearchInput value="" onChange={vi.fn()} floating label="Filter" />);
+      expect(screen.getByText('Filter')).toBeInTheDocument();
+    });
 
-  it('does not render a clear button when value is empty', () => {
-    const { container } = render(<SearchInput value="" onChange={vi.fn()} />);
-    expect(container.querySelector('.pi-times')).toBeNull();
-  });
-
-  it('renders a floating label variant with the label text', () => {
-    render(<SearchInput value="" onChange={vi.fn()} floating label="Cari" id="search-f" />);
-    expect(screen.getByLabelText('Cari')).toBeInTheDocument();
+    it('renders without clear icon in floating mode', () => {
+      const { container } = render(<SearchInput value="test" onChange={vi.fn()} floating />);
+      expect(container.querySelector('.pi-times')).toBeFalsy();
+    });
   });
 });
