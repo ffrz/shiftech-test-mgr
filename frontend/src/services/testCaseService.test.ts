@@ -373,7 +373,7 @@ describe('testCaseService.archive / reactivate', () => {
   it('reactivates the case and logs a status_change event', async () => {
     vi.mocked(testCaseRepository.update).mockResolvedValue(makeTestCase({ status: 'active' }));
 
-    const result = await testCaseService.reactivate('tc-1', { projectId: 'proj-1', actorId: 'u-1' });
+    await testCaseService.reactivate('tc-1', { projectId: 'proj-1', actorId: 'u-1' });
 
     expect(testCaseRepository.update).toHaveBeenCalledWith('tc-1', { status: 'active' });
     expect(activityService.logEvent).toHaveBeenCalledWith({
@@ -397,7 +397,7 @@ describe('testCaseService.cloneToProject', () => {
     const item: TestCaseWithDetails = makeTestCaseWithDetails({
       id: 'src-1',
       moduleId: 'mod-1',
-      module: { id: 'mod-1', projectId: 'proj-1', name: 'Auth', createdAt: '', updatedAt: '' },
+      module: { id: 'mod-1', projectId: 'proj-1', code: 'M-1', name: 'Auth', createdAt: '', updatedAt: '' },
       targetRoleId: 'role-1',
       targetRole: { id: 'role-1', projectId: 'proj-1', name: 'Admin', createdAt: '', updatedAt: '' },
       tags: [{ id: 'tag-1', projectId: 'proj-1', name: 'smoke', createdAt: '' }],
@@ -405,7 +405,7 @@ describe('testCaseService.cloneToProject', () => {
     });
     vi.mocked(testCaseRepository.findByIdsWithDetails).mockResolvedValue([item]);
     vi.mocked(moduleService.listByProject).mockResolvedValue([
-      { id: 'mod-1', projectId: 'proj-2', name: 'Auth', createdAt: '', updatedAt: '' },
+      { id: 'mod-1', projectId: 'proj-2', code: 'M-1', name: 'Auth', createdAt: '', updatedAt: '' },
     ]);
     vi.mocked(testRoleService.listByProject).mockResolvedValue([
       { id: 'role-1', projectId: 'proj-2', name: 'Admin', createdAt: '', updatedAt: '' },
@@ -449,7 +449,7 @@ describe('testCaseService.cloneToProject', () => {
   it('creates new modules and roles when names are not found', async () => {
     const item: TestCaseWithDetails = makeTestCaseWithDetails({
       id: 'src-1',
-      module: { id: 'mod-1', projectId: 'proj-1', name: 'Auth', createdAt: '', updatedAt: '' },
+      module: { id: 'mod-1', projectId: 'proj-1', code: 'M-1', name: 'Auth', createdAt: '', updatedAt: '' },
       targetRole: { id: 'role-1', projectId: 'proj-1', name: 'Admin', createdAt: '', updatedAt: '' },
       tags: [],
       stepType: 'simple',
@@ -458,7 +458,7 @@ describe('testCaseService.cloneToProject', () => {
     vi.mocked(moduleService.listByProject).mockResolvedValue([]);
     vi.mocked(testRoleService.listByProject).mockResolvedValue([]);
     vi.mocked(moduleService.createMany).mockResolvedValue([
-      { id: 'mod-new', projectId: 'proj-2', name: 'Auth', createdAt: '', updatedAt: '' },
+      { id: 'mod-new', projectId: 'proj-2', code: 'M-NEW', name: 'Auth', createdAt: '', updatedAt: '' },
     ]);
     vi.mocked(testRoleService.createMany).mockResolvedValue([
       { id: 'role-new', projectId: 'proj-2', name: 'Admin', createdAt: '', updatedAt: '' },
@@ -492,7 +492,7 @@ describe('testCaseService.cloneToProject', () => {
   it('falls back to null module/role ids when the created name does not match the item reference', async () => {
     const item: TestCaseWithDetails = makeTestCaseWithDetails({
       id: 'src-1',
-      module: { id: 'mod-1', projectId: 'proj-1', name: 'Auth', createdAt: '', updatedAt: '' },
+      module: { id: 'mod-1', projectId: 'proj-1', code: 'M-1', name: 'Auth', createdAt: '', updatedAt: '' },
       targetRole: { id: 'role-1', projectId: 'proj-1', name: 'Admin', createdAt: '', updatedAt: '' },
       tags: [],
       stepType: 'simple',
@@ -502,7 +502,7 @@ describe('testCaseService.cloneToProject', () => {
     vi.mocked(testRoleService.listByProject).mockResolvedValue([]);
     // Defensive: createMany returns a row whose name never made it into the map.
     vi.mocked(moduleService.createMany).mockResolvedValue([
-      { id: 'mod-other', projectId: 'proj-2', name: 'Other', createdAt: '', updatedAt: '' },
+      { id: 'mod-other', projectId: 'proj-2', code: 'M-O', name: 'Other', createdAt: '', updatedAt: '' },
     ]);
     vi.mocked(testRoleService.createMany).mockResolvedValue([
       { id: 'role-other', projectId: 'proj-2', name: 'Other', createdAt: '', updatedAt: '' },

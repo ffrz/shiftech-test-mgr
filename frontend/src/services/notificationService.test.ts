@@ -17,7 +17,7 @@ beforeEach(() => {
 
 describe('notificationService.create', () => {
   it('calls the create_notification RPC with mapped params', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({ error: null });
+    vi.mocked(supabase.rpc).mockResolvedValue({ error: null } as never);
 
     await notificationService.create('user-b', 'project_invite', 'You were invited', 'Role: Viewer', 'project_member', 'member-1');
 
@@ -32,7 +32,7 @@ describe('notificationService.create', () => {
   });
 
   it('coalesces nullish optional params to null', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({ error: null });
+    vi.mocked(supabase.rpc).mockResolvedValue({ error: null } as never);
 
     await notificationService.create('user-b', 'mention', 'Mentioned');
 
@@ -47,7 +47,7 @@ describe('notificationService.create', () => {
   });
 
   it('throws when the RPC returns an error', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({ error: new Error('rpc failed') });
+    vi.mocked(supabase.rpc).mockResolvedValue({ error: new Error('rpc failed') } as never);
 
     await expect(notificationService.create('user-b', 'mention', 'Mentioned')).rejects.toThrow('rpc failed');
   });

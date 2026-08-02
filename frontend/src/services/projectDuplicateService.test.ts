@@ -99,7 +99,7 @@ beforeEach(() => {
   vi.mocked(tagService.saveTagsForTestCaseMany).mockResolvedValue(undefined);
   vi.mocked(issueService.createMany).mockResolvedValue([] as never);
   vi.mocked(testPlanService.create).mockResolvedValue({ id: 'new-plan-1' } as never);
-  vi.mocked(testPlanService.addCasesMany).mockResolvedValue(undefined);
+  vi.mocked(testPlanService.addCasesMany).mockResolvedValue([] as never);
 });
 
 describe('projectDuplicateService.duplicateProject', () => {

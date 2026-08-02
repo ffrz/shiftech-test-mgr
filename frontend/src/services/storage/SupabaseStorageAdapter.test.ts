@@ -25,7 +25,7 @@ beforeEach(() => {
 
 describe('supabaseStorageAdapter.upload', () => {
   it('uploads to the attachments bucket with a uuid path and returns a signed URL payload', async () => {
-    vi.mocked(bucketMock.upload).mockResolvedValue({ error: null });
+    vi.mocked(bucketMock.upload).mockResolvedValue({ data: { id: 'abc', path: 'x', fullPath: 'x' }, error: null });
     vi.mocked(bucketMock.createSignedUrl).mockResolvedValue({
       data: { signedUrl: 'https://x/sign/attachments/abc-file.png?token=1' },
       error: null,
@@ -50,7 +50,7 @@ describe('supabaseStorageAdapter.upload', () => {
   });
 
   it('omits contentType when the file type is empty', async () => {
-    vi.mocked(bucketMock.upload).mockResolvedValue({ error: null });
+    vi.mocked(bucketMock.upload).mockResolvedValue({ data: { id: 'abc', path: 'x', fullPath: 'x' }, error: null });
     vi.mocked(bucketMock.createSignedUrl).mockResolvedValue({
       data: { signedUrl: 'https://x/1' },
       error: null,
@@ -63,7 +63,7 @@ describe('supabaseStorageAdapter.upload', () => {
   });
 
   it('throws the upload error when upload fails', async () => {
-    vi.mocked(bucketMock.upload).mockResolvedValue({ error: new Error('upload failed') });
+    vi.mocked(bucketMock.upload).mockResolvedValue({ data: null, error: new Error('upload failed') } as never);
 
     await expect(supabaseStorageAdapter.upload(new File(['c'], 'a.png', { type: 'image/png' }))).rejects.toThrow(
       'upload failed',
@@ -71,11 +71,11 @@ describe('supabaseStorageAdapter.upload', () => {
   });
 
   it('throws the signing error when signing fails', async () => {
-    vi.mocked(bucketMock.upload).mockResolvedValue({ error: null });
+    vi.mocked(bucketMock.upload).mockResolvedValue({ data: { id: 'abc', path: 'x', fullPath: 'x' }, error: null });
     vi.mocked(bucketMock.createSignedUrl).mockResolvedValue({
       data: { signedUrl: '' },
       error: new Error('sign failed'),
-    });
+    } as never);
 
     await expect(supabaseStorageAdapter.upload(new File(['c'], 'a.png', { type: 'image/png' }))).rejects.toThrow(
       'sign failed',
@@ -85,7 +85,7 @@ describe('supabaseStorageAdapter.upload', () => {
 
 describe('supabaseStorageAdapter.remove', () => {
   it('extracts the storage path from a signed URL and removes it', async () => {
-    vi.mocked(bucketMock.remove).mockResolvedValue({ error: null });
+    vi.mocked(bucketMock.remove).mockResolvedValue({ data: [{ id: 'x', name: 'folder/x.png', metadata: {} }] as never, error: null });
 
     await supabaseStorageAdapter.remove('https://base/storage/v1/object/sign/attachments/folder/x.png?token=abc');
 
@@ -100,7 +100,7 @@ describe('supabaseStorageAdapter.remove', () => {
   });
 
   it('throws when the remove call fails', async () => {
-    vi.mocked(bucketMock.remove).mockResolvedValue({ error: new Error('remove failed') });
+    vi.mocked(bucketMock.remove).mockResolvedValue({ data: null, error: new Error('remove failed') } as never);
 
     await expect(supabaseStorageAdapter.remove('https://base/storage/v1/object/sign/attachments/x.png')).rejects.toThrow(
       'remove failed',

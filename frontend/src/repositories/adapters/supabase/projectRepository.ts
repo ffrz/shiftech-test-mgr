@@ -1,0 +1,130 @@
+import { supabase } from '../../../config/supabaseClient';
+import { mapProjectRow } from '../../../helpers/mappers';
+import type { Project, ProjectSortField, ProjectStatus, ProjectVisibility } from '../../../types/domain';
+import type {
+  ProjectPaginatedQuery,
+  ProjectQuery,
+  ProjectRepository,
+  ProjectSummaryCounts,
+} from '../../interfaces/projectRepository';
+
+const SORT_COLUMN: Record<ProjectSortField, string> = {
+  name: 'name',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+};
+
+export const projectRepositoryAdapter: ProjectRepository = {
+  async findAll(query: ProjectQuery = {}): Promise<Project[]> {
+    let builder = supabase.from('projects').select('*');
+
+    if (query.search?.trim()) {
+      builder = builder.ilike('name', `%${query.search.trim()}%`);
+    }
+    if (query.status && query.status !== 'all') {
+      builder = builder.eq('status', query.status);
+    }
+
+    const sortField = query.sortField ?? 'name';
+    const { data, error } = await builder.order(SORT_COLUMN[sortField], {
+      ascending: (query.sortDirection ?? 'asc') === 'asc',
+    });
+
+    if (error) throw error;
+    return (data ?? []).map(mapProjectRow);
+  },
+
+  async findAllPaginated(query: ProjectPaginatedQuery): Promise<{ data: Project[]; total: number }> {
+    const sortCol = SORT_COLUMN[query.sortField as ProjectSortField] ?? 'name';
+    let builder = supabase.from('projects').select('*', { count: 'exact' });
+
+    if (query.search?.trim()) {
+      builder = builder.ilike('name', `%${query.search.trim()}%`);
+    }
+    if (query.statuses?.length) {
+      builder = builder.in('status', query.statuses);
+    }
+    if (query.visibilities?.length) {
+      builder = builder.in('visibility', query.visibilities);
+    }
+    if (query.ownerFilter === 'mine' && query.currentUserId) {
+      builder = builder.eq('owner_id', query.currentUserId);
+    } else if (query.ownerFilter === 'shared' && query.currentUserId) {
+      builder = builder.neq('owner_id', query.currentUserId);
+    }
+
+    builder = builder.order(sortCol, { ascending: (query.sortOrder ?? 'asc') === 'asc' });
+
+    const from = (query.page - 1) * query.pageSize;
+    builder = builder.range(from, from + query.pageSize - 1);
+
+    const { data, error, count } = await builder;
+    if (error) throw error;
+    return { data: (data ?? []).map(mapProjectRow), total: count ?? 0 };
+  },
+
+  async findByOwner(ownerId: string, visibilityFilter?: string[]): Promise<Project[]> {
+    let builder = supabase.from('projects').select('*').eq('owner_id', ownerId);
+    if (visibilityFilter?.length) {
+      builder = builder.in('visibility', visibilityFilter);
+    }
+    const { data, error } = await builder.order('name');
+    if (error) throw error;
+    return (data ?? []).map(mapProjectRow);
+  },
+
+  async findById(id: string): Promise<Project | null> {
+    const { data, error } = await supabase.from('projects').select('*').eq('id', id).maybeSingle();
+    if (error) throw error;
+    return data ? mapProjectRow(data) : null;
+  },
+
+  async create(input: { name: string; description: string | null; visibility?: ProjectVisibility }): Promise<Project> {
+    const { data, error } = await supabase.from('projects').insert(input).select('*').single();
+    if (error) throw error;
+    return mapProjectRow(data);
+  },
+
+  async update(id: string, changes: Partial<Pick<Project, 'name' | 'description' | 'visibility'>>): Promise<Project> {
+    const { data, error } = await supabase.from('projects').update(changes).eq('id', id).select('*').single();
+    if (error) throw error;
+    return mapProjectRow(data);
+  },
+
+  async updateStatus(id: string, status: ProjectStatus): Promise<Project> {
+    const { data, error } = await supabase.from('projects').update({ status }).eq('id', id).select('*').single();
+    if (error) throw error;
+    return mapProjectRow(data);
+  },
+
+  async deletePermanently(id: string): Promise<void> {
+    const { error } = await supabase.from('projects').delete().eq('id', id);
+    if (error) throw error;
+  },
+
+  // Unfiltered totals for the project detail header — must stay independent from whatever
+  // search/filter state the tabs below currently have applied.
+  async getSummaryCounts(projectId: string): Promise<ProjectSummaryCounts> {
+    const [testPlans, testCases, testRuns, issues, members] = await Promise.all([
+      supabase.from('test_plans').select('*', { count: 'exact', head: true }).eq('project_id', projectId),
+      supabase.from('test_cases').select('*', { count: 'exact', head: true }).eq('project_id', projectId),
+      supabase.from('test_runs').select('*', { count: 'exact', head: true }).eq('project_id', projectId),
+      supabase.from('issues').select('*', { count: 'exact', head: true }).eq('project_id', projectId),
+      supabase.from('project_members').select('*', { count: 'exact', head: true }).eq('project_id', projectId).eq('status', 'accepted'),
+    ]);
+
+    if (testPlans.error) throw testPlans.error;
+    if (testCases.error) throw testCases.error;
+    if (testRuns.error) throw testRuns.error;
+    if (issues.error) throw issues.error;
+    if (members.error) throw members.error;
+
+    return {
+      testPlanCount: testPlans.count ?? 0,
+      testCaseCount: testCases.count ?? 0,
+      testRunCount: testRuns.count ?? 0,
+      issueCount: issues.count ?? 0,
+      memberCount: members.count ?? 0,
+    };
+  },
+};
