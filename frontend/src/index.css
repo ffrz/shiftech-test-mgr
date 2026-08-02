@@ -52,6 +52,7 @@ html.dark .entity-link:hover {
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
+  color: var(--text-color-secondary);
 }
 
 .owner-project-label-owner {
@@ -350,7 +351,7 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
   margin: -0.25rem;
 }
 
-.dense-form .grid > div {
+.dense-form .grid>div {
   padding: 0.25rem;
 }
 
@@ -620,30 +621,37 @@ h6 {
   background-color: #059669;
   color: #ffffff;
 }
+
 .p-tag.p-tag-info {
   background-color: #0284c7;
   color: #ffffff;
 }
+
 .p-tag.p-tag-warning {
   background-color: #d97706;
   color: #ffffff;
 }
+
 .p-tag.p-tag-danger {
   background-color: #dc2626;
   color: #ffffff;
 }
+
 html.dark .p-tag.p-tag-success {
   background-color: #34d399;
   color: #022c22;
 }
+
 html.dark .p-tag.p-tag-info {
   background-color: #38bdf8;
   color: #082f49;
 }
+
 html.dark .p-tag.p-tag-warning {
   background-color: #fbbf24;
   color: #451a03;
 }
+
 html.dark .p-tag.p-tag-danger {
   background-color: #f87171;
   color: #450a0a;
@@ -1360,6 +1368,7 @@ html.dark .p-toast .p-toast-message .p-toast-icon-close:hover {
    edge-to-edge — width still caps at 24rem above, this only guarantees breathing
    room on phones where 24rem may exceed the viewport. */
 @media screen and (max-width: 576px) {
+
   .p-toast.p-toast-bottom-center,
   .p-toast.p-toast-top-center {
     left: 1rem !important;
@@ -1539,6 +1548,7 @@ h6,
    (its appendTo="self" mode), just applied via CSS since appendTo="self"
    risks clipping inside scrollable Dialogs elsewhere in the app. */
 @media screen and (max-width: 768px) {
+
   .p-multiselect-panel,
   .p-dropdown-panel {
     left: 1rem !important;
@@ -1858,12 +1868,14 @@ h6,
 
 /* Markdown-rendered comment body (MarkdownPreview) — compact spacing since it sits inside
    a small comment/activity timeline, not a full document. */
-.markdown-preview > *:first-child {
+.markdown-preview>*:first-child {
   margin-top: 0;
 }
-.markdown-preview > *:last-child {
+
+.markdown-preview>*:last-child {
   margin-bottom: 0;
 }
+
 .markdown-preview p,
 .markdown-preview ul,
 .markdown-preview ol,
@@ -1872,30 +1884,36 @@ h6,
 .markdown-preview table {
   margin: 0.35rem 0;
 }
+
 .markdown-preview pre {
   background: var(--surface-100);
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   overflow-x: auto;
 }
+
 .markdown-preview code {
   background: var(--surface-100);
   padding: 0.1rem 0.3rem;
   border-radius: 4px;
   font-size: 0.85em;
 }
+
 .markdown-preview pre code {
   background: none;
   padding: 0;
 }
+
 .markdown-preview blockquote {
   border-left: 3px solid var(--surface-border);
   padding-left: 0.75rem;
   color: var(--text-color-secondary);
 }
+
 .markdown-preview table {
   border-collapse: collapse;
 }
+
 .markdown-preview th,
 .markdown-preview td {
   border: 1px solid var(--surface-border);

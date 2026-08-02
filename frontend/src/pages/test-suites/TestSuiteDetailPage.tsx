@@ -405,10 +405,24 @@ export function TestSuiteDetailPage() {
             <h2 className="m-0">{suite?.name ?? ''}</h2>
             {suite && <Tag value={TEST_SUITE_VISIBILITY_LABEL[suite.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[suite.visibility]} />}
           </div>
-          <div className="flex align-items-center gap-1">
-            <Button icon="pi pi-copy" text rounded severity="secondary" size="small" onClick={() => setDuplicateDialogOpen(true)} tooltip="Duplicate Suite" tooltipOptions={{ position: 'bottom' }} />
-            {isOwner && <Button icon="pi pi-pencil" text rounded severity="secondary" size="small" onClick={() => setEditDialogOpen(true)} />}
-            <Button text icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'} rounded size="small" onClick={() => setDetailCollapsed(!detailCollapsed)} aria-label={detailCollapsed ? 'Expand' : 'Collapse'} />
+          <div className="flex align-items-center gap-1 header-actions">
+            <Button
+              icon="pi pi-copy"
+              text
+              rounded
+              severity="secondary"
+              size="small"
+              onClick={() => setDuplicateDialogOpen(true)}
+              tooltip="Duplicate Suite"
+              tooltipOptions={{ position: 'bottom' }}
+            />
+            {isOwner &&
+              <Button
+                icon="pi pi-pencil" text rounded severity="secondary" size="small"
+                onClick={() => setEditDialogOpen(true)}
+                tooltip="Edit Test Suite"
+                tooltipOptions={{ position: 'bottom' }} />}
+            <Button text icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'} severity="secondary" rounded size="small" onClick={() => setDetailCollapsed(!detailCollapsed)} aria-label={detailCollapsed ? 'Expand' : 'Collapse'} />
           </div>
         </div>
         {!detailCollapsed && (
