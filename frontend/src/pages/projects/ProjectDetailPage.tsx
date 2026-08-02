@@ -753,14 +753,20 @@ export function ProjectDetailPage() {
   const [runFormName, setRunFormName] = useState('');
   const [runFormPlanId, setRunFormPlanId] = useState<string | null>(null);
   const [runFormCaseIds, setRunFormCaseIds] = useState<string[]>([]);
+  const [runFormCases, setRunFormCases] = useState<TestCaseWithDetails[]>([]);
   const [runFormError, setRunFormError] = useState<string | null>(null);
 
-  function openCreateRunDialog() {
+  async function openCreateRunDialog() {
     setRunMode('plan');
     setRunFormName(`Run ${new Date().toLocaleDateString('en-US')}`);
     setRunFormPlanId(null);
     setRunFormCaseIds([]);
     setRunFormError(null);
+    if (id) {
+      // Load the full active-case list so the custom-mode picker can filter by
+      // module/tag/priority/role independent of the Test Cases tab's own filters.
+      setRunFormCases(await testCaseService.listByProjectWithDetails(id, { statuses: ['active'] }));
+    }
     setRunDialogOpen(true);
   }
 
@@ -1307,7 +1313,10 @@ export function ProjectDetailPage() {
         onCaseIdsChange={setRunFormCaseIds}
         error={runFormError}
         testPlans={testPlans}
-        testCases={testCases}
+        testCases={runFormCases}
+        modules={modules}
+        tags={tags}
+        testRoles={testRoles}
         onHide={() => setRunDialogOpen(false)}
         onCreate={handleCreateRun}
       />

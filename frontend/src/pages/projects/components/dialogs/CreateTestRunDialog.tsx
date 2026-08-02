@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
@@ -6,7 +6,15 @@ import { MultiSelect } from 'primereact/multiselect';
 import { SelectButton } from 'primereact/selectbutton';
 import { Button } from 'primereact/button';
 import { FloatLabel } from 'primereact/floatlabel';
-import type { TestPlan, TestCaseWithDetails } from '../../../../types/domain';
+import type { Module, Tag as TagEntity, TestCasePriority, TestCaseWithDetails, TestPlan, TestRole } from '../../../../types/domain';
+import { TEST_CASE_PRIORITY_LABEL } from '../../../../helpers/statusLabels';
+
+const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
+  { label: TEST_CASE_PRIORITY_LABEL.low, value: 'low' },
+  { label: TEST_CASE_PRIORITY_LABEL.medium, value: 'medium' },
+  { label: TEST_CASE_PRIORITY_LABEL.high, value: 'high' },
+  { label: TEST_CASE_PRIORITY_LABEL.critical, value: 'critical' },
+];
 
 type CreateTestRunDialogProps = {
   visible: boolean;
@@ -21,6 +29,9 @@ type CreateTestRunDialogProps = {
   error: string | null;
   testPlans: TestPlan[];
   testCases: TestCaseWithDetails[];
+  modules: Module[];
+  tags: TagEntity[];
+  testRoles: TestRole[];
   onHide: () => void;
   onCreate: () => void;
 };
@@ -38,10 +49,17 @@ export function CreateTestRunDialog({
   error,
   testPlans,
   testCases,
+  modules,
+  tags,
+  testRoles,
   onHide,
   onCreate,
 }: CreateTestRunDialogProps) {
   const nameRef = useRef<HTMLInputElement>(null);
+  const [moduleFilter, setModuleFilter] = useState<string[]>([]);
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [priorityFilter, setPriorityFilter] = useState<TestCasePriority[]>([]);
+  const [testRoleFilter, setTestRoleFilter] = useState<string[]>([]);
 
   useEffect(() => {
     if (error && nameRef.current) {
@@ -50,8 +68,30 @@ export function CreateTestRunDialog({
     }
   }, [error]);
 
+  function filterCases(modules: string[], tags: string[], priorities: TestCasePriority[], testRoles: string[]) {
+    return testCases.filter((c) => {
+      if (c.status !== 'active') return false;
+      if (modules.length > 0 && !(c.moduleId && modules.includes(c.moduleId))) return false;
+      if (tags.length > 0 && !c.tags.some((t) => tags.includes(t.id))) return false;
+      if (priorities.length > 0 && !priorities.includes(c.priority)) return false;
+      if (testRoles.length > 0 && !(c.targetRoleId && testRoles.includes(c.targetRoleId))) return false;
+      return true;
+    });
+  }
+
+  function applyFilters(modules: string[], tags: string[], priorities: TestCasePriority[], testRoles: string[]) {
+    setModuleFilter(modules);
+    setTagFilter(tags);
+    setPriorityFilter(priorities);
+    setTestRoleFilter(testRoles);
+    const visible = new Set(filterCases(modules, tags, priorities, testRoles).map((c) => c.id));
+    onCaseIdsChange(caseIds.filter((id) => visible.has(id)));
+  }
+
+  const filteredCases = filterCases(moduleFilter, tagFilter, priorityFilter, testRoleFilter);
+
   return (
-    <Dialog header="Create Test Run" visible={visible} onHide={onHide} style={{ width: '32rem' }}>
+    <Dialog header="Create Test Run" visible={visible} onHide={onHide} style={{ width: '38rem' }}>
       <div className="flex flex-column gap-2">
         <SelectButton
           value={mode}
@@ -83,20 +123,70 @@ export function CreateTestRunDialog({
             </FloatLabel>
           </div>
         ) : (
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <MultiSelect
-                id="run-cases"
-                value={caseIds}
-                options={testCases.filter((c) => c.status === 'active').map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
-                onChange={(e) => onCaseIdsChange(e.value)}
-                filter
-                display="chip"
-                className="w-full"
-              />
-              <label htmlFor="run-cases">Test Case</label>
-            </FloatLabel>
-          </div>
+          <>
+            <div className="grid p-1">
+              <div className="col-12 md:col-3 p-1">
+                <MultiSelect
+                  value={moduleFilter}
+                  options={modules.map((m) => ({ label: m.name, value: m.id }))}
+                  onChange={(e) => applyFilters(e.value, tagFilter, priorityFilter, testRoleFilter)}
+                  placeholder="All Modules"
+                  className="w-full"
+                  display="chip"
+                  filter
+                  virtualScrollerOptions={{ itemSize: 40 }}
+                />
+              </div>
+              <div className="col-12 md:col-3 p-1">
+                <MultiSelect
+                  value={tagFilter}
+                  options={tags.map((t) => ({ label: t.name, value: t.id }))}
+                  onChange={(e) => applyFilters(moduleFilter, e.value, priorityFilter, testRoleFilter)}
+                  placeholder="All Tags"
+                  className="w-full"
+                  display="chip"
+                  filter
+                  virtualScrollerOptions={{ itemSize: 40 }}
+                />
+              </div>
+              <div className="col-12 md:col-3 p-1">
+                <MultiSelect
+                  value={priorityFilter}
+                  options={PRIORITY_OPTIONS}
+                  onChange={(e) => applyFilters(moduleFilter, tagFilter, e.value, testRoleFilter)}
+                  placeholder="All Priorities"
+                  className="w-full"
+                  display="chip"
+                  selectAllLabel="All"
+                />
+              </div>
+              <div className="col-12 md:col-3 p-1">
+                <MultiSelect
+                  value={testRoleFilter}
+                  options={testRoles.map((r) => ({ label: r.name, value: r.id }))}
+                  onChange={(e) => applyFilters(moduleFilter, tagFilter, priorityFilter, e.value)}
+                  placeholder="All Roles"
+                  className="w-full"
+                  display="chip"
+                  filter
+                />
+              </div>
+            </div>
+            <div className="flex flex-column">
+              <FloatLabel className="ifta-field">
+                <MultiSelect
+                  id="run-cases"
+                  value={caseIds}
+                  options={filteredCases.map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
+                  onChange={(e) => onCaseIdsChange(e.value)}
+                  filter
+                  display="chip"
+                  className="w-full"
+                />
+                <label htmlFor="run-cases">Test Case ({filteredCases.length})</label>
+              </FloatLabel>
+            </div>
+          </>
         )}
         <Button label="Create" size="small" onClick={onCreate} />
       </div>
