@@ -28,6 +28,7 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { queryKeys } from '../../hooks/queryKeys';
 import { ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
+import { memberSelectLabel } from '../../helpers/memberLabels';
 
 const STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
   ['backlog', 'open', 'in_progress', 'resolved', 'verified', 'closed', 'rejected', 'duplicate'] as const
@@ -298,7 +299,7 @@ export function TestRunIssuesPage() {
               <div onClick={(e) => e.stopPropagation()}>
                 <Dropdown
                   value={row.assignedTo}
-                  options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
+                  options={projectMembers.map((m) => ({ label: memberSelectLabel(m), value: m.userId }))}
                   onChange={(e) => handleAssign(row, e.value)}
                   placeholder="Unassigned"
                   showClear

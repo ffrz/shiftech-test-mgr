@@ -79,21 +79,19 @@ direplikasi di sisi frontend SPA, supaya:
 
 - Business rule (validasi, kalkulasi summary) tidak tercampur dengan kode UI
 - Repository *seharusnya* bisa diganti (mis. Supabase → Firebase → REST API
-  lain) tanpa mengubah service/component — **catatan jujur:** ini belum
-  benar-benar terwujud. Repository saat ini import `supabase` client
-  langsung dari `config/supabaseClient.ts` (lihat §2.1), belum ada
-  interface/port yang dijadikan boundary. Selama repository tetap konsisten
-  "hanya query mentah, tanpa business rule", Service layer tidak perlu tahu
-  detail Supabase — tapi mengganti backend hari ini tetap butuh menulis ulang
-  isi tiap file repository, bukan sekadar tukar implementasi di satu titik.
-  Kalau kebutuhan swap backend jadi nyata, ini area kerja terpisah: ekstrak
-  interface per repository + implementasi Supabase saat ini jadi satu
-  adapter, baru implementasi lain (mis. SQLite untuk test, REST API lain)
-  jadi adapter kedua
-- Mudah di-test terpisah per layer — lihat §7 Testing di bawah untuk state
-  saat ini (Service layer sudah punya unit test dengan repository di-mock;
-  Repository sendiri belum punya test karena belum ada boundary adapter
-  untuk itu, lihat poin di atas)
+  lain) tanpa mengubah service/component
+- Mudah di-test terpisah per layer — lihat §7 Testing
+
+**Update 2026-08-01 — gap ini mulai ditutup:** poin kedua di atas sempat
+"belum benar-benar terwujud" (repository import `supabase` client langsung,
+tanpa interface/port sebagai boundary — mengganti backend berarti menulis
+ulang tiap file repository, bukan tukar satu implementasi). `projectRepository`
+sekarang jadi **pilot pertama** pola adapter (ports & adapters / hexagonal)
+yang menutup gap itu — lihat §2.1a untuk struktur lengkapnya dan §2.1b untuk
+cara menambah repository/service baru mengikuti pola ini. 18 repository
+lain (`issueRepository`, `testCaseRepository`, dst) masih pakai bentuk lama
+(§2.1, akses `supabase` langsung) — migrasi bertahap, bukan big-bang, lihat
+prompt migrasi di `frontend/../scratchpad` atau task tracker terkait.
 
 ---
 
@@ -101,17 +99,176 @@ direplikasi di sisi frontend SPA, supaya:
 
 Semua path relatif terhadap `frontend/src/`.
 
-### 2.1 Repository (`repositories/*.ts`)
+### 2.1 Repository (`repositories/*.ts`) — pola lama, masih dipakai sebagian besar repository
 
-- Satu file per aggregate root: `projectRepository`, `moduleRepository`,
-  `tagRepository`, `testPlanRepository`, `testCaseRepository`,
-  `testRunRepository`, `testResultRepository`, `issueRepository`,
-  `profileRepository`
+- Satu file per aggregate root: `moduleRepository`, `tagRepository`,
+  `testPlanRepository`, `testCaseRepository`, `testRunRepository`,
+  `testResultRepository`, `issueRepository`, `profileRepository`, dst
+  (`projectRepository` sudah migrasi ke pola adapter, lihat §2.1a)
 - Isinya HANYA: query Supabase (`.select`, `.insert`, `.update`, `.delete`) +
   panggil mapper dari `helpers/mappers.ts`
 - Tidak ada validasi, tidak ada business rule
 - Contoh: `testPlanRepository.findAllByProject(projectId)` — query mentah,
   return `TestPlan[]`
+- Import `supabase` client langsung dari `config/supabaseClient.ts` — tidak
+  ada interface/port di antaranya, jadi ganti backend berarti menulis ulang
+  isi file, bukan tukar implementasi (gap yang dicatat di §1.2)
+
+### 2.1a Repository dengan pola Adapter (Ports & Adapters) — pola baru, mulai dari `projectRepository`
+
+Menutup gap di §1.2: repository yang sudah migrasi punya boundary interface
+eksplisit, sehingga backend bisa diganti tanpa menyentuh service/hook/page
+sama sekali. Struktur per domain (contoh `project`):
+
+```
+repositories/
+  interfaces/
+    projectRepository.ts        # port: interface ProjectRepository { findAll, findById, create, ... }
+  adapters/
+    createDataSourceResolver.ts # factory generik, dipakai semua domain
+    projectResolver.ts          # resolver khusus Project: pilih adapter aktif via VITE_DATA_SOURCE
+    supabase/
+      projectRepository.ts      # adapter: implementasi penuh, isi sama seperti pola lama (§2.1)
+    rest/
+      projectRepository.ts      # adapter: panggil backend/rest-api/ (Go) — HANYA ada utk Project saat ini
+    mock/
+      projectRepository.ts      # adapter: in-memory stateful, factory createMockProjectRepository(seed?)
+      projectRepository.test.ts # round-trip test (create→list→update→delete) terhadap mock
+  projectRepository.ts           # entry point publik — pure delegation ke adapter aktif, TIDAK ada
+                                 # kode supabase.from(...) sama sekali di file ini
+  index.ts                       # barrel export semua repository
+  adapters/index.ts              # barrel export semua adapter/resolver
+```
+
+Aturan penamaan (jangan menyimpang — pernah dikoreksi beberapa kali sebelum
+disepakati final):
+
+- **Interface**: nama domain polos, tanpa prefix `I` dan tanpa suffix
+  `Adapter`/`Contract` — `ProjectRepository`, bukan `IProjectRepository` atau
+  `ProjectRepositoryAdapter`. Prefix `I` adalah konvensi C#/Java, dianggap
+  anti-pattern di TypeScript modern (`@typescript-eslint` bahkan punya rule
+  yang melarangnya)
+- **File adapter**: nama file sama persis di tiap folder backend
+  (`supabase/projectRepository.ts`, `rest/projectRepository.ts`,
+  `mock/projectRepository.ts`) — yang membedakan adalah folder, bukan nama
+  file
+- **Resolver per domain**: `<domain>Resolver.ts` (mis. `projectResolver.ts`,
+  nanti `issueResolver.ts`) — BUKAN `<domain>.ts` polos (ambigu, sempat salah
+  dipakai) dan BUKAN `<domain>AdapterResolver.ts` (berlebihan, kata
+  "Adapter" tidak menambah informasi karena sudah jelas dari folder
+  `adapters/`)
+- **Adapter object literal, bukan `class`** — konsisten dengan seluruh
+  codebase frontend yang tidak pakai `class` di layer ini sama sekali
+  (lihat §1.1, tidak ada DI container ala Angular di React). Lihat catatan
+  di bawah kalau ada yang mengusulkan migrasi ke `class`
+- **Resolver adalah *satu-satunya* tempat pilih adapter** — `dataSourceConfig.ts`
+  terpusat (nama lama, sekarang tidak dipakai lagi) sengaja dihindari karena
+  akan membengkak begitu banyak domain ditambah; setiap domain punya file
+  resolver sendiri yang kecil, memanggil `createDataSourceResolver` generik
+
+**Kenapa object literal, bukan `class` + constructor injection ala Angular:**
+React tidak punya DI container bawaan seperti Angular (`@Injectable`,
+constructor injection, module providers). Pola DI yang dipakai di sini
+adalah module-level singleton (`export const projectRepositoryAdapter = {...}`)
+yang di-import langsung, dipilih oleh resolver saat module di-load. Ini valid
+untuk React/TypeScript modern — bukan kekurangan, cuma beda konvensi dari
+OOP klasik. `interface` di TypeScript memang dipakai untuk describe shape
+apa saja (object literal, function, class) — tidak eksklusif untuk `class`
+seperti di Java/C#, jadi tidak ada kebutuhan mengubah gaya kode existing
+untuk menerapkan pola adapter ini.
+
+**Kenapa ada `mock/` di samping `supabase/`:** dua kebutuhan berbeda yang
+sudah lama tercatat sebagai gap di §7.3/§7.5 — (1) unit test yang butuh
+skenario round-trip nyata (create→list→update mencerminkan perubahan), yang
+tidak praktis diekspresikan lewat `vi.mock()` per-call stub biasa; (2)
+kemungkinan jalanin app di `VITE_DATA_SOURCE=mock` tanpa Supabase/backend
+sama sekali (dev/demo). Mock adalah implementasi **stateful** penuh
+(`Map`-based in-memory store) dari interface yang sama, diekspor sebagai
+**factory** (`createMockProjectRepository(seed?)`) bukan singleton — supaya
+tiap test dapat instance baru yang terisolasi, tidak berbagi state.
+
+**Kapan `rest/` boleh ditambah:** hanya kalau backend Go
+(`backend/rest-api/`) benar-benar punya endpoint untuk domain itu (lihat
+`backend/BACKLOG.md`). Domain platform/identity (User, Profile,
+ProjectMember, Notification) sengaja **tidak akan pernah** punya adapter
+`rest/` — itu di luar scope Testing Domain yang di-cover backend Go MCP
+(lihat `backend/CLAUDE.md`/`backend/BACKLOG.md` §Non-goals). Adapter yang
+belum didukung backend harus `throw new Error('... not implemented ...')`
+per method, bukan diam-diam fallback ke Supabase — supaya caller langsung
+tahu operasi itu belum tersedia di data source itu.
+
+### 2.1b Cara menambah repository baru (atau migrasi repository lama ke pola adapter)
+
+Ikuti `projectRepository` sebagai referensi persis, langkah per langkah:
+
+1. Baca file repository lama secara penuh (mis. `issueRepository.ts`).
+2. Ekstrak semua method public jadi `interfaces/issueRepository.ts`
+   (`interface IssueRepository { ... }`) + semua type filter/input/return
+   pendukung yang dipakai (pola sama seperti `ProjectQuery`,
+   `ProjectPaginatedQuery`, `ProjectSummaryCounts` di
+   `interfaces/projectRepository.ts`).
+3. Pindahkan isi implementasi lama **verbatim** ke
+   `adapters/supabase/issueRepository.ts`, implement interface itu, ekspor
+   dengan nama `issueRepositoryAdapter`.
+4. Tulis `adapters/mock/issueRepository.ts` — factory
+   `createMockIssueRepository(seed?)`, implementasi in-memory **beneran**
+   (bukan stub `throw`) yang meniru *behavior* filter/sort/pagination dari
+   adapter Supabase, bukan cuma tipe. Tulis juga
+   `adapters/mock/issueRepository.test.ts` — minimal: create→list terlihat,
+   update→read reflect, delete→hilang, dua instance tidak share state.
+5. Tulis `adapters/issueResolver.ts`:
+   `createDataSourceResolver<IssueRepository>({ supabase: issueRepositoryAdapter, mock: createMockIssueRepository() })`.
+   Tambah `rest` ke map ini **hanya** kalau `backend/rest-api/` sudah punya
+   endpoint untuk domain ini.
+6. Tulis ulang `repositories/issueRepository.ts` jadi pure delegation ke
+   resolver — setiap method cuma memanggil
+   `issueRepositoryAdapter.xxx(...)`. **Nol** `supabase.from(...)`/`.rpc(...)`
+   boleh tersisa di file ini. Nama file & lokasi file ini **tidak berubah**
+   — consumer (`services/*.ts`) tidak perlu tahu apa-apa soal migrasi ini.
+7. Update `repositories/adapters/index.ts` dan `repositories/index.ts` untuk
+   re-export yang baru.
+8. Jalankan `npx tsc -b --noEmit` dan `npx vitest run` — pastikan 0 error
+   baru dan semua test baru pass.
+9. **Jangan sentuh** `services/*.ts`, `hooks/*.ts`, atau `pages/*.tsx` —
+   kalau migrasi ini butuh mengubah salah satu dari itu, berarti langkah 2
+   (interface) tidak benar-benar sama dengan kontrak lama, cek ulang.
+
+Referensi implementasi lengkap: `repositories/interfaces/projectRepository.ts`,
+`repositories/adapters/{supabase,rest,mock}/projectRepository.ts`,
+`repositories/adapters/projectResolver.ts`,
+`repositories/adapters/createDataSourceResolver.ts`,
+`repositories/projectRepository.ts`.
+
+### 2.1c Cara menambah service baru
+
+Service (§2.2) tidak berubah oleh pola adapter §2.1a/§2.1b — service tetap
+import dari `repositories/xxxRepository.ts` (entry point publik), tidak
+pernah dari `repositories/adapters/...` langsung. Pola adapter itu detail
+implementasi *di bawah* repository, service tidak perlu (dan tidak boleh)
+tahu soal itu — itulah gunanya boundary ini.
+
+Langkah menambah service baru:
+
+1. Buat `services/xxxService.ts`, import `xxxRepository` dari
+   `'../repositories/xxxRepository'` (bukan dari `adapters/...`).
+2. Isi business logic: validasi input, orkestrasi lintas repository (lihat
+   contoh non-trivial `testRunService.start()` di §2.2), kalkulasi derived
+   value yang **tidak boleh** disimpan sebagai kolom (lihat aturan produk
+   di §2.2 dan §4.0).
+3. Tulis `services/xxxService.test.ts` — `vi.mock('../repositories/xxxRepository', ...)`
+   di atas, `await import(...)` modul yang di-mock, assert business rule
+   (bukan sekadar "repository dipanggil") — lihat §7.4 untuk pola lengkap.
+   Ini tetap berlaku sama persis baik `xxxRepository` sudah migrasi ke pola
+   adapter atau belum — `vi.mock()` mem-mock modul `repositories/xxxRepository.ts`
+   itu sendiri, tidak peduli apa yang ada di baliknya.
+4. Kalau service butuh skenario round-trip yang sulit diekspresikan lewat
+   stub `vi.fn()` (mis. create lalu baca lagi harus mencerminkan
+   perubahan), dan `xxxRepository` sudah punya adapter `mock/`
+   (§2.1a/§2.1b), pertimbangkan test tambahan yang pakai
+   `createMockXxxRepository()` langsung alih-alih `vi.mock()` — lihat
+   `repositories/adapters/mock/projectRepository.test.ts` sebagai contoh
+   pola ini (catatan: ini menguji adapter itu sendiri, bukan service;
+   service tetap di-test dengan repository di-mock seperti biasa).
 
 ### 2.2 Service (`services/*.ts`)
 
@@ -955,34 +1112,43 @@ HomePage ("Pending Invitations" card) / AppTopbar (bell) → useProjectInvitatio
 
 ## 7. Testing
 
-**Status: unit test Service layer saja (frontend), sejak 2026-08-01.** Belum
-ada test untuk Repository, Hook, Component, atau E2E.
+**Status: unit test Service + Repository + Hook + Component layer (frontend),
+sejak 2026-08-01.** Service layer lengkap sejak awal Agustus; Repository
+(diffasilitasi adapter pattern), Hook, dan Component menyusul 2026-08-01–02.
+Sisa scope: E2E (ditunda, lihat §7.5).
 
 ### 7.1 Setup
 
 - **Vitest** (`frontend/vite.config.ts` — blok `test`, `environment: 'node'`,
-  `include: ["src/**/*.test.ts"]`). Tidak pakai jsdom/Testing Library karena
-  belum ada Component test.
+  `include: ["src/**/*.test.ts"]`). Test yang butuh DOM menandai dirinya
+  sendiri dengan `// @vitest-environment jsdom` di baris pertama file
+  (mis. hook/component test yang render React), sisanya tetap node
+  environment. jsdom + Testing Library dipakai untuk Hook/Component test.
 - Script: `npm test` (`vitest run`, sekali jalan — cocok untuk CI), `npm run
   test:watch` (mode watch, untuk development), `npm run test:coverage`
   (`vitest run --coverage`, butuh `@vitest/coverage-v8` yang sudah terpasang
   sebagai devDependency).
 - File test **co-located** — nama file sama dengan yang ditest + suffix
-  `.test.ts`, bersebelahan langsung (bukan folder `__tests__/` terpisah),
+  `.test.ts(x)`, bersebelahan langsung (bukan folder `__tests__/` terpisah),
   mis. `services/testCaseService.test.ts` di sebelah `services/testCaseService.ts`.
+- Test support: `src/test/setup.ts` (auto-cleanup `@testing-library/react`
+  via `afterEach(cleanup)` — vitest tidak pakai `globals: true` sehingga
+  auto-cleanup bawaan Testing Library tidak aktif — plus stub
+  `window.matchMedia` untuk jsdom). `@testing-library/user-event` dipasang
+  untuk interaksi realistis (klik, ketik).
 
 ### 7.2 Code Coverage
 
 - `npm run test:coverage` (`vitest run --coverage`, provider **v8**, sudah
   terpasang lewat `@vitest/coverage-v8`).
-- Config di `vite.config.ts` blok `test.coverage` — `include:
-  ["src/services/**/*.ts"]`, sengaja **di-scope ke `services/` saja**, bukan
-  seluruh `src/`. Alasan: Repository/Hook/Component belum punya test sama
-  sekali (§7.5), jadi kalau basis coverage seluruh `src/`, persentase akan
-  selalu rendah dan menyesatkan — bukan mencerminkan seberapa baik Service
-  layer (satu-satunya yang ditest) sudah dicover. Scope ini perlu diperluas
-  manual di config kalau layer lain (Repository/Hook/Component) mulai
-  ditest.
+- Config di `vite.config.ts` blok `test.coverage` — `include`
+  mencakup `src/services/**/*.ts`, `src/helpers/**/*.ts`,
+  `src/hooks/**/*.ts`, `src/components/**/*.tsx`, dan
+  `src/pages/**/*.tsx`. Service + helper selesai; Hook/Component baru
+  sebagian punya test (lihat §7.5), jadi persentase gabungan memang bukan
+  angka tunggal yang menyesatkan — baca breakdown per-folder di laporan
+  html. Scope `include` perlu disesuaikan manual kalau layer lain mulai
+  ditest penuh.
 - Reporter: `text` (ringkasan di terminal) + `html` (laporan lengkap
   klik-per-baris di `frontend/coverage/index.html`, buka manual di browser).
   Folder `frontend/coverage/` di-gitignore — hasil coverage tidak pernah
@@ -991,28 +1157,41 @@ ada test untuk Repository, Hook, Component, atau E2E.
   belum relevan karena belum ada CI yang menjalankan test sama sekali
   (§7.5). Tambahkan kalau CI sudah ada dan tim mau menegakkan angka minimum.
 
-### 7.3 Kenapa mock repository, bukan SQLite?
+### 7.3 Kenapa mock repository (in-memory), bukan SQLite?
 
-Sempat didiskusikan pakai SQLite untuk mock data layer di test, tapi
-diputuskan **tidak** untuk iterasi ini — alasannya terkait langsung ke gap
-adapter yang disebut di §1.2: repository saat ini bicara ke Supabase lewat
-query-builder chain (`.from().select().eq().order()...`, gaya PostgREST),
-bukan SQL biasa yang bisa dieksekusi lewat SQLite. Membuat mock SQLite yang
-meniru chain itu secara meyakinkan lebih mahal dan rapuh dibanding manfaatnya
-untuk saat ini.
+Sempat didiskusikan pakai SQLite untuk mock data layer di test. Untuk
+repository yang **belum** migrasi ke pola adapter (§2.1, mayoritas saat
+ini), ini masih ditunda — repository bicara ke Supabase lewat query-builder
+chain (`.from().select().eq().order()...`, gaya PostgREST), bukan SQL biasa
+yang bisa dieksekusi lewat SQLite. Membuat mock SQLite yang meniru chain itu
+secara meyakinkan lebih mahal dan rapuh dibanding manfaatnya.
 
-Pendekatan yang dipakai: **Service layer di-test dengan Repository di-mock**
-lewat `vi.mock('../../repositories/xRepository')`. Ini pas dengan layering
-Repository→Service (§2.1–2.2) — Service adalah tempat business logic hidup
-(validasi, orkestrasi, kalkulasi derived value), jadi itu yang paling
-bernilai untuk di-test dulu. Repository sendiri sengaja "hanya query mentah,
-tanpa business rule" (§2.1), jadi risiko regresi paling besar bukan di sana.
+Pendekatan yang dipakai untuk repository pola lama: **Service layer di-test
+dengan Repository di-mock** lewat `vi.mock('../../repositories/xRepository')`.
+Ini pas dengan layering Repository→Service (§2.1–2.2) — Service adalah
+tempat business logic hidup (validasi, orkestrasi, kalkulasi derived value),
+jadi itu yang paling bernilai untuk di-test dulu. Repository sendiri sengaja
+"hanya query mentah, tanpa business rule" (§2.1), jadi risiko regresi
+paling besar bukan di sana.
 
-SQLite (atau in-memory adapter lain) baru masuk akal **setelah** ada boundary
-adapter yang nyata di Repository (lihat catatan di §1.2) — baru saat itu
-"implementasi test" (SQLite/in-memory) bisa jadi adapter kedua yang setara
-dengan implementasi Supabase, dan repository test bisa mengeksekusi query
-sungguhan alih-alih menstub respons.
+**Update 2026-08-01 — untuk repository yang sudah migrasi ke pola adapter
+(§2.1a, mulai dari `projectRepository`):** gap di atas sudah tertutup, tapi
+solusinya bukan SQLite — solusinya adalah `adapters/mock/xxxRepository.ts`,
+implementasi **in-memory murni TypeScript** (`Map`-based store) dari
+interface yang sama dengan adapter Supabase. Ini lebih murah dibanding
+SQLite (tidak perlu translate query-builder chain ke SQL sama sekali — mock
+mengimplementasikan ulang *behavior* filter/sort/pagination langsung di
+TypeScript) dan tetap memberi manfaat yang sama: repository test bisa
+mengeksekusi operasi round-trip sungguhan (create→list→update→delete)
+alih-alih menstub respons per-call. Lihat
+`repositories/adapters/mock/projectRepository.test.ts` sebagai contoh.
+
+Dua pendekatan ini melengkapi, bukan saling menggantikan:
+`vi.mock('../../repositories/xRepository')` tetap dipakai untuk test
+**Service** (assert business rule, terlepas dari apakah repository yang
+di-mock itu sendiri sudah migrasi ke pola adapter atau belum);
+`createMockXxxRepository()` dipakai untuk test **adapter/repository itu
+sendiri** — dua target test yang berbeda.
 
 ### 7.4 Contoh test yang sudah ada
 
@@ -1035,14 +1214,21 @@ memverifikasi argumen yang di-trim/di-transform sebelum diteruskan.
 
 ### 7.5 Belum ada, sengaja ditunda
 
-- **Repository test** — nunggu adapter/port layer (lihat catatan §1.2). Kalau
-  itu dikerjakan, mulai dari satu repository (mis. `testCaseRepository`)
-  sebagai pilot: ekstrak interface, implementasi Supabase saat ini jadi satu
-  adapter, tambah adapter kedua (SQLite/in-memory) khusus test.
-- **Hook test** — butuh `@testing-library/react` + jsdom (belum terpasang).
-  Belum banyak logic non-trivial di Hook (§2.3) untuk dijustifikasi
-  sekarang, mayoritas cuma lifecycle React di atas Service.
-- **Component test** — sama seperti Hook, butuh Testing Library + jsdom.
+- **Hook test** — **selesai untuk hook non-trivial (2026-08-02)**:
+  `useProjectRole` (matrix kapabilitas per role), `useStoredState`
+  (localStorage init/persist), `useTabQueryParam` (baca/tulis `?tab=`),
+  `useTheme` (mode system/light/dark + persist), `useProjectOwnerProfile`,
+  `useProjectBreadcrumbItems`. Pola: `renderHook` + wrapper
+  `QueryClientProvider` untuk hook yang pakai react-query, `vi.mock` untuk
+  `useAuthContext` dan service/repository yang di-import. Hook data-layer
+  lain yang mayoritas pass-through plumbing React belum semua ditest — itu
+  sengaja, mengikuti logika yang sama dengan Service pass-through.
+- **Component test** — **selesai untuk komponen UI ringan (2026-08-02)**:
+  `PageHeader`, `SearchInput`, `CharacterCount`, `BulkActionsBar`,
+  `MarkdownPreview`, `FilterToolbar`, `OwnerProjectLabel`, `RelativeTime`.
+  Pola: `// @vitest-environment jsdom` + `render` + `userEvent` untuk
+  interaksi. Komponen yang butuh mock berat (Tooltip/DataTable PrimeReact,
+  router, auth) belum semua ditest.
 - **E2E/integration test** — belum ada Playwright/Cypress. Regresi
   fungsional saat ini masih via dogfooding manual (lihat `TODO.md`).
 - **CI** — belum ada workflow yang menjalankan `npm test` otomatis saat
@@ -1054,7 +1240,7 @@ memverifikasi argumen yang di-trim/di-transform sebelum diteruskan.
 
 | Risiko                                                      | Keterangan                                                                                                                                                                                                                                                                                                                                                           |
 | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit test baru cover Service layer                          | Vitest sudah terpasang (2026-08-01, lihat §7) tapi baru menguji `services/*.ts` (repository di-mock). Repository, Hook, dan Component belum punya test sama sekali — Repository karena belum ada adapter boundary untuk di-swap ke SQLite/in-memory (lihat §1.2), Hook/Component karena belum ada Testing Library/jsdom terpasang |
+| Unit test cover Service + Repository + Hook + Component; E2E belum | Vitest sudah terpasang (2026-08-01, lihat §7). Service layer di-test dengan repository di-mock (`vi.mock`); repository yang sudah migrasi ke pola adapter (§2.1a) di-test langsung terhadap `adapters/mock/*` in-memory. Hook test (`useProjectRole`, `useTheme`, dst) dan Component test (komponen UI ringan) menyusul 2026-08-02 — butuh jsdom + `@testing-library/react` + auto-cleanup di `src/test/setup.ts`. E2E/Playwright masih ditunda (§7.5) — regresi fungsional via dogfooding manual |
 | PrimeReact v11 belum dipakai                                | Perlu revisit saat versi stable-nya rilis dengan sistem tema yang jelas                                                                                                                                                                                                                                                                                              |
 | Bundle size                                                 | Build menghasilkan chunk >1MB (belum code-split) — cukup untuk skala aplikasi internal ini, revisit kalau modul terus bertambah                                                                                                                                                                                                                                      |
 | Admin pertama manual                                        | Tidak ada seed/CLI untuk assign admin pertama — harus lewat Supabase Table Editor. Didokumentasikan, bukan bug                                                                                                                                                                                                                                                       |
@@ -1062,6 +1248,7 @@ memverifikasi argumen yang di-trim/di-transform sebelum diteruskan.
 | Backend Go (`backend/`) — PENDING/paused, jauh lebih lengkap dari sekadar rencana | Bukan sekadar folder kosong: domain/repository (dual MySQL+Postgres)/service/transport HTTP layer sudah lengkap dan mem-porting business rule frontend 1:1 (lihat header comment `internal/service/testrun/service.go`). Sengaja di-pause sampai Platform Evolution V2 selesai (lihat `backend/README.md`, `docs/ARCHITECTURE_V2.md` §8). Repository layer frontend sengaja jadi satu-satunya titik yang tahu tentang Supabase supaya migrasi nanti tinggal ganti implementasi repository tanpa menyentuh service/hook/component. RLS Supabase perlu direplikasi manual jadi authorization check di sisi Go saat migrasi terjadi — tidak otomatis ikut pindah |
 | Tiga build statis independen, tanpa workspace root | `landing/` (statis, tanpa build step), `frontend/` (Vite), `public-docs/` (Astro Starlight) masing-masing punya toolchain sendiri, tidak ada root `package.json`/workspaces. Disatukan hanya saat deploy (`deploy/deploy-vps.sh` — rsync + symlink swap ke satu release dir: `/`, `/app`, `/docs`). Root `README.md` sempat tidak menyebut `public-docs/` sama sekali di struktur repo — perbaiki kalau menemukan drift serupa lagi |
 | Tag junction full-replace                                   | `tagService.saveTagsForTestCase` selalu delete+insert ulang seluruh `test_case_tags` untuk test case tsb saat disimpan — sederhana tapi berarti setiap save test case menyentuh baris junction meski tag tidak berubah. Cukup untuk skala saat ini (jumlah tag per test case kecil)                                                                                  |
-| Storage adapter (E12) pola baru di codebase                  | Interface + implementasi terpisah (`StorageAdapter`) belum ada contohnya di layer lain (Repository saat ini langsung bicara ke Supabase, bukan lewat interface) — jadi validasi pertama pola "swappable provider" di luar rencana migrasi backend PHP. Pola ini yang perlu direplikasi ke Repository kalau adapter test (SQLite/in-memory) mau dibangun, lihat §7.3/§7.5                                                                                                                |
+| Storage adapter (E12) — polanya sekarang direplikasi ke Repository | Interface + implementasi terpisah (`StorageAdapter`) tadinya validasi pertama pola "swappable provider" di codebase ini. Pola yang sama sekarang direplikasi ke Repository lewat §2.1a (`projectRepository` sebagai pilot: `interfaces/` + `adapters/{supabase,rest,mock}/` + resolver per-domain) — lihat §2.1b untuk cara migrasi repository lain mengikuti pola ini |
+| Migrasi pola adapter Repository baru mencakup 1 dari 19 repository | `projectRepository` sudah pola adapter penuh (§2.1a). 18 repository lain (`issueRepository`, `testCaseRepository`, `testRunRepository`, dst) masih pola lama (§2.1) — akses `supabase` client langsung, tanpa boundary interface. Migrasi bertahap per repository mengikuti §2.1b, scope disengaja dibatasi ke adapter `supabase`+`mock` dulu (tanpa `rest`, karena `backend/rest-api/` baru punya endpoint Project) — lihat task migrasi terkait di scratchpad/task tracker |
 | Realtime invalidation pakai prefix luas untuk sebagian tabel (E14) | `test_runs` dan `test_plan_cases` tidak punya `project_id` di payload Realtime (cuma `test_plan_id`), jadi event tabel itu invalidate prefix `['testRuns']` penuh (semua varian `testRunsByProject`/`testRunsByPlan` yang sedang ter-cache), bukan key spesifik — sedikit overfetch tapi menghindari query lookup tambahan di jalur event handler. Keputusan produk, bukan bug |
 | Dua channel Realtime terpisah untuk `profiles`                | `useAuth.tsx` subscribe channel `profile-role-${userId}` (filter row sendiri, untuk reload profil pribadi) dan `useRealtimeSync` subscribe channel `app-realtime-sync` (semua row, untuk invalidate `queryKeys.profiles()` dipakai halaman admin) — dua channel berbeda tujuan, sengaja tidak dikonsolidasi karena scope-nya beda (auth state individual vs cache list global)                                                                                                            |

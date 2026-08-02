@@ -928,6 +928,7 @@ export function ProjectDetailPage() {
         status: data.status,
         targetRoleId: data.targetRoleId,
         tagNames: data.tagNames,
+        assignedTo: data.assignedTo,
         createdBy: user?.id ?? null,
       });
       toastSuccess('Issue created');

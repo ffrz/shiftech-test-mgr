@@ -14,7 +14,28 @@ semua hijau; coverage service layer ~73% statements (`npm run test:coverage`).
 Kalau mau lanjut, lihat "Di luar scope dokumen ini" (Repository/Hook/Component/
 E2E test).
 
-**Platform Evolution V2 — Phase 1–6 done, Phase 7 (closing phase) sedang berjalan.**
+**Repository-level test — selesai (2026-08-01), difasilitasi adapter pattern.**
+Setelah semua 19 repository punya mock adapter (lihat backlog "Repository
+adapter/port pattern" di bawah), ditulis 18 file test
+(`repositories/<domain>Repository.test.ts`) yang menguji jalur wiring penuh:
+public repository file → resolver → mock adapter, dengan `VITE_DATA_SOURCE=mock`
+(`vi.stubEnv` + dynamic `import`). Ini beda dari `adapters/mock/*.test.ts`
+(yang menguji mock factory-nya langsung). Total suite sekarang 69 file / 731
+test, semua hijau.
+
+**Hook + Component test — selesai untuk scope ringan (2026-08-02).**
+Ditulis test untuk hook non-trivial (`useProjectRole`, `useStoredState`,
+`useTabQueryParam`, `useTheme`, `useProjectOwnerProfile`,
+`useProjectBreadcrumbItems`) dan komponen UI ringan (`PageHeader`,
+`SearchInput`, `CharacterCount`, `BulkActionsBar`, `MarkdownPreview`,
+`FilterToolbar`, `OwnerProjectLabel`, `RelativeTime`) — jsdom + Testing
+Library + `user-event` dipasang, auto-cleanup + stub `matchMedia` di
+`src/test/setup.ts`. Total suite sekarang 83 file / 798 test, semua hijau;
+`tsc -b` clean total (type-drift di `services/*.test.ts` akibat migrasi
+adapter ikut dibersihkan 2026-08-02). Sisa scope yang belum: E2E test
+(§7.5) + `coverage.thresholds` di CI (belum ada CI yang menjalankan test).
+
+**Platform Evolution V2 — Phase 1–7 done (2026-08-01), termasuk closing phase.**
 Governed by [`docs/PRODUCT_CONSTITUTION.md`](docs/PRODUCT_CONSTITUTION.md) (product
 rules, MVP success criteria), lihat [`docs/ARCHITECTURE_V2.md`](docs/ARCHITECTURE_V2.md)
 (desain) dan [`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) (fase + task detail, framed di
@@ -22,52 +43,44 @@ sekitar golden path 9-langkah dari Constitution). Backend Go (`backend/`) **teta
 di-pending** selama roadmap ini berjalan — lihat `backend/README.md`.
 
 - [x] V2-P7-T01 — Golden-path walkthrough — **dianggap selesai via smoke test manual
-      (2026-07-29)**, bukan checklist 9-langkah penuh dengan 2 akun terpisah. Detail
-      per-fitur (test case granular) menyusul lewat dogfooding di bawah
+      (2026-07-29)**, bukan checklist 9-langkah penuh dengan 2 akun terpisah
 - [x] V2-P7-T02 — Regresi Testing Domain — **dianggap selesai via smoke test manual
-      (2026-07-29)**, sama seperti T01: coverage detail menyusul dari dogfooding, bukan
-      dari checklist regresi terpisah
+      (2026-07-29)**, sama seperti T01
 - [x] V2-P7-T03 — Sinkronisasi dokumen ke model V2 yang sudah shipped (CLAUDE.md,
       AGENTS.md, README.md, docs/ARCHITECTURE.md, docs/PRD.md, FEATURES.md — selesai
       2026-07-28, disegarkan lagi 2026-07-29), lihat "Selesai (recent)" di bawah
-- [ ] V2-P7-T04 — Bersihkan TODO.md dari item V2 roadmap, kembali ke sprint board normal
-      — tunda sampai dogfooding round pertama (lihat item baru di bawah) selesai, supaya
-      gap yang ketemu saat dogfood sempat masuk backlog dulu
-- [ ] V2-P7-T05 — Merge `feature/platform-foundation` → `master` (setelah T04)
-
-**Dogfooding — susun Test Suite/Test Plan untuk Testify sendiri, pakai app ini untuk
-uji app ini:**
-- [ ] Buat project "Testify" di Testify sendiri (atau pakai project existing), isi Module
-      sesuai domain: Auth, Project, Test Suite, Test Plan/Run/Result, Issue, Settings/
-      Profile, Membership/Notification
-- [ ] Tulis Test Case untuk golden-path 9-langkah Constitution (register → create project →
-      invite → test case → test plan → test run → record result → create issue → timing)
-      — ini gantinya walkthrough manual T01, tapi terekam sebagai Test Case beneran,
-      bisa di-run ulang tiap rilis
-- [ ] Tulis Test Case untuk fitur yang baru landed 2026-07-29 dan belum pernah ditest
-      end-to-end: Delete Account + auto-reactivation, `/@username` portfolio-lite (list
-      Project/Test Suite publik/unlisted), owner-lock di Members tab, auth race fix
-      (`loadProfile` + session)
-- [ ] Jalankan Test Run pertama dari Test Plan di atas, catat hasil PASS/FAIL — FAIL jadi
-      Issue asli di project ini (dogfood penuh: temuan bug dari testing manual masuk
-      lewat modul Issue Testify sendiri, bukan catatan terpisah)
+- [x] V2-P7-T04 — Bersihkan TODO.md dari item V2 roadmap, kembali ke sprint board normal
+      (2026-08-01)
+- [x] V2-P7-T05 — Merge `feature/platform-foundation` → `master` (2026-08-01, terkonfirmasi
+      sudah di-merge via PR #2/#3 — branch sudah dihapus)
 
 **Backlog (2026-07-25, dari Phase 7 walkthrough)** — belum di-scope, lihat
 `docs/ROADMAP_V2.md` bagian "Backlog — captured, not yet scoped or scheduled":
-- [ ] Fitur activate/deactivate user (banned sementara/permanen) — butuh diskusi dulu
-- [ ] Search/browse Test Suite Template berdasarkan kategori
-- [ ] Ganti filter `TestSuitesPage` dari "All Visible Templates" → "Browse Templates" (hanya public milik orang lain, exclude milik sendiri)
-- [ ] Brainstorm: metadata Test Suite Template (category/difficulty/est. time/app type/coverage tags) — masih butuh diskusi taxonomy sebelum di-scope
-- [ ] Open question: apakah `TestPlanCase` butuh snapshot Test Case + mekanisme sync (edit test case setelah masuk plan tapi sebelum run dimulai saat ini silently ikut versi terbaru) — Testing Domain, bukan V2, belum condong ke arah manapun
-- [ ] Repository adapter/port pattern — belum ada (ditemukan saat setup unit test 2026-08-01,
-      lihat `docs/ARCHITECTURE.md` §1.2/§7.4). Repository saat ini import `supabase` client
-      langsung, bukan lewat interface, jadi ganti backend berarti menulis ulang tiap file
-      repository, bukan tukar satu implementasi. Kalau dikerjakan: mulai dari 1 repository
-      (mis. `testCaseRepository`) sebagai pilot — ekstrak interface, jadikan implementasi
-      Supabase saat ini sebagai satu adapter, baru tambah adapter kedua (SQLite/in-memory)
-      untuk test. JANGAN retrofit ke semua repository sekaligus — scope besar, risiko tinggi
-      untuk app yang sudah jalan, dan baru bernilai kalau ada kebutuhan nyata (test
-      Repository-level, atau migrasi backend beneran terjadi)
+- [ ] Fitur activate/deactivate user (banned sementara/permanen) — **belum ada**, butuh
+      diskusi dulu. Sebagian yang mirip sudah ada: `projects.status` activate/inactive
+      (DangerZoneTab), `users.deleted_at` soft-delete admin (userService.softDelete) —
+      yang belum: suspend sementara dengan alasan + reaktivasi terencana
+- [x] Search/browse Test Suite Template berdasarkan kategori — sudah ada browse/ownership
+      filter di `TestSuitesPage` (milik sendiri vs semua, visibility) — tinggal "kategori"
+      yang belum, lihat item metadata di bawah
+- [x] Ganti filter `TestSuitesPage` dari "All Visible Templates" → "Browse Templates"
+      (hanya public milik orang lain, exclude milik sendiri) — sudah diimplementasikan
+      (ownership filter `mine`/`all` + visibility)
+- [ ] Brainstorm: metadata Test Suite Template (category/difficulty/est. time/app type/
+      coverage tags) — masih butuh diskusi taxonomy sebelum di-scope
+- [ ] Open question: apakah `TestPlanCase` butuh snapshot Test Case + mekanisme sync (edit
+      test case setelah masuk plan tapi sebelum run dimulai saat ini silently ikut versi
+      terbaru) — Testing Domain, bukan V2, belum condong ke arah manapun
+- [x] Repository adapter/port pattern — **SELESAI (2026-08-01)**: semua 19 repository
+      (`projectRepository` + 18 lainnya) sudah dimigrasi ke pattern ports & adapters.
+      Struktur per domain: `interfaces/<domain>Repository.ts` (kontrak) +
+      `adapters/supabase/` (implementasi asli, dipindah verbatim) +
+      `adapters/mock/` (factory `createMock<Domain>Repository(seed?)`, stateful in-memory)
+      + `adapters/<domain>Resolver.ts` (pilih adapter via `VITE_DATA_SOURCE`).
+      TIDAK ada adapter `rest/` selain Project (backend Go belum siap domain lain).
+      Semua file publik `repositories/*.ts` sekarang pure delegation, zero `supabase.from()`
+      di luar folder `adapters/`. Barrel: `repositories/adapters/index.ts` +
+      `repositories/index.ts`
 
 **Platform Evolution V2 — Phase 8 (Collaboration & Workflow), baru ditambahkan
 2026-07-30** — lihat `docs/ROADMAP_V2.md` bagian "Phase 8" untuk detail lengkap +
@@ -283,15 +296,17 @@ Polish susulan (2026-07-30, di luar penomoran task Phase 8):
 
 Item lama (non-V2), tetap terbuka tapi bukan prioritas saat ini:
 
-- [ ] E03-T06 — Filter test case by priority/status di list
+- [x] E03-T06 — Filter test case by priority/status di list — sudah ada di
+      `TestCaseTab.tsx` (project detail, `FilterToolbar` + filter Priority/Status
+      multi-select + bulk edit). `TestCasesPage` global tetap polos (cuma sortable
+      kolom) tapi itu halaman seleksi-project sederhana, filter penuh ada di tab
+      project — dianggap selesai
 - [ ] Cek ulang: apakah role user lain (selain admin pertama) sudah login ulang & di-set sesuai `backups/restore_roles.sql`? Dibuat saat reset database 2026-07-22, kemungkinan sudah selesai tapi belum dikonfirmasi
 - [ ] Reporting (Dashboard/PDF/HTML/execution mode mobile) — belum diprioritaskan, lihat `docs/PRD.md` §7 Roadmap
 
 ## Sedang Dikerjakan
 
-- [ ] Dogfooding — susun Test Suite/Test Plan/Test Case untuk Testify sendiri di dalam
-      Testify, jalankan Test Run untuk detail testing (menggantikan checklist walkthrough
-      manual T01/T02 yang formal) — lihat item di "Siap Dikerjakan" di atas
+_(kosong)_
 
 ## Diblokir
 
@@ -365,3 +380,24 @@ _(kosong)_
       seberapa baik Service layer yang memang ditest sudah dicover. Reporter `text`+`html`,
       `frontend/coverage/` ditambah ke `.gitignore` (hasil tidak pernah dikomit). Detail di
       `docs/ARCHITECTURE.md` §7.2
+- [x] **Repository adapter/port pattern — Selesai (2026-08-01)**: migrasi semua 19
+      repository frontend (`projectRepository` + 18 lainnya) ke ports & adapters.
+      Struktur per domain: `interfaces/<domain>Repository.ts` (kontrak) +
+      `adapters/supabase/` (implementasi Supabase, dipindah verbatim) +
+      `adapters/mock/` (factory `createMock<Domain>Repository(seed?)`, stateful
+      in-memory + test round-trip) + `adapters/<domain>Resolver.ts` (pilih adapter
+      via `VITE_DATA_SOURCE`, generic `createDataSourceResolver`). Tanpa adapter
+      `rest/` selain Project (backend Go belum siap domain lain). File publik
+      `repositories/*.ts` jadi pure delegation, zero `supabase.from/rpc` di luar
+      `adapters/`. Catatan fix: `dashboardRepository.ts` publik sempat tertinggal
+      (masih panggil supabase langsung) — sudah diperbaiki jadi delegation juga.
+      Barrel exports di `repositories/adapters/index.ts` + `repositories/index.ts`.
+      `tsc -b` bersih (hanya ~9 error pre-existing di `*.test.ts` file), seluruh
+      suite 652 test hijau
+- [x] **Repository-level test — Selesai (2026-08-01)**: 18 file
+      `repositories/<domain>Repository.test.ts` menguji wiring public repository →
+      resolver → mock adapter (`VITE_DATA_SOURCE=mock` via `vi.stubEnv` + dynamic
+      import). Complementer ke `adapters/mock/*.test.ts` yang menguji mock factory
+      langsung. Suite sekarang 69 file / 731 test, semua hijau. Ini item yang
+      sebelumnya diblokir di TASKS_UNIT_TEST_SERVICES.md §"Di luar scope" karena
+      repository belum punya adapter boundary

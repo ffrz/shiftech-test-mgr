@@ -21,7 +21,7 @@ TestResult→Issue) tidak berubah oleh redesign ini.
 - **Routing**: react-router-dom
 - **Data fetching cache**: @tanstack/react-query (tersedia, dipakai bertahap)
 - **Form & validation**: react-hook-form + zod (tersedia, dipakai bertahap)
-- **Testing**: belum ada — tambahkan Vitest + Testing Library jika diperlukan
+- **Testing**: Vitest + @testing-library/react + jsdom + user-event — Service/Repository/Hook/Component test co-located (`*.test.ts(x)`); jsdom test ditandai `// @vitest-environment jsdom` per file, setup umum di `src/test/setup.ts`
 
 ## Directory Structure
 

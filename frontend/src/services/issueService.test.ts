@@ -182,6 +182,16 @@ describe('issueService.create', () => {
     expect(issueRepository.create).toHaveBeenCalledWith(expect.objectContaining({ status: 'backlog' }));
   });
 
+  it('persists assignedTo when provided (and null otherwise)', async () => {
+    vi.mocked(issueRepository.create).mockResolvedValue(makeIssue());
+
+    await issueService.create({ projectId: 'proj-1', title: 'Assigned', assignedTo: 'user-2' });
+    expect(issueRepository.create).toHaveBeenCalledWith(expect.objectContaining({ assignedTo: 'user-2' }));
+
+    await issueService.create({ projectId: 'proj-1', title: 'Unassigned' });
+    expect(issueRepository.create).toHaveBeenCalledWith(expect.objectContaining({ assignedTo: null }));
+  });
+
   it('trims title and optional fields before delegating to the repository', async () => {
     vi.mocked(issueRepository.create).mockResolvedValue(makeIssue());
 

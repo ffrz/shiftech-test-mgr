@@ -1411,6 +1411,15 @@ html.dark .p-toast .p-toast-message .p-toast-icon-close:hover {
   padding: 0.7rem 0.75rem;
 }
 
+/* Truncate long option labels (e.g. "username - Full Name" in user selects) with
+   ellipsis instead of letting them push the panel wide. */
+.p-dropdown-panel .p-dropdown-item,
+.p-multiselect-panel .p-multiselect-item {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 /* MenuItem.template renders a plain <button>, which doesn't inherit the
    theme's flex/full-width layout that <a>.p-menuitem-link gets by default —
    needed so the active-sort checkmark (ColumnHeaderMenu) lands flush right. */

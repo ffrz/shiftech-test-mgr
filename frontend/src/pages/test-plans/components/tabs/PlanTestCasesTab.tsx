@@ -193,7 +193,6 @@ export function PlanTestCasesTab({
         paginatorTemplate={dataTablePaginatorProps.paginatorTemplate}
         scrollable={dataTablePaginatorProps.scrollable}
         scrollHeight={dataTablePaginatorProps.scrollHeight}
-        virtualScrollerOptions={isMobile ? undefined : { itemSize: 36 }}
         rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="No test cases in this plan yet"
         size="small"
@@ -221,12 +220,7 @@ export function PlanTestCasesTab({
             )}
           />
         )}
-        <Column
-          field="testCase.title"
-          header="Test Case"
-          body={isMobile ? mobileCaseTitleBody : undefined}
-          style={{ maxWidth: '18rem', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
-        />
+        <Column field="testCase.title" header="Test Case" body={isMobile ? mobileCaseTitleBody : undefined} />
         {!isMobile && <Column field="testCase.module.name" header="Module" body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
         {!isMobile && (
           <Column
@@ -239,9 +233,8 @@ export function PlanTestCasesTab({
         {!isMobile && (
           <Column
             header="Tag"
-            style={{ overflow: 'hidden' }}
             body={(row: TestPlanCaseWithDetails) => (
-              <div className="flex flex-nowrap gap-1 overflow-hidden">
+              <div className="flex flex-wrap gap-1">
                 {row.testCase.tags.map((t) => (
                   <Tag key={t.id} value={t.name} severity="info" />
                 ))}

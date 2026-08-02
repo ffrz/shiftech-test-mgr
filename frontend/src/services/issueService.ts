@@ -58,6 +58,7 @@ export const issueService = {
     targetRoleId?: string | null;
     externalLinks?: ExternalLink[];
     tagNames?: string[];
+    assignedTo?: string | null;
     // If given, the created issue is immediately linked to this test result — used by the
     // "create new inline" flow in the Test Run Link Issue dialog.
     linkToTestResultId?: string;
@@ -76,7 +77,7 @@ export const issueService = {
       expectedResult: input.expectedResult?.trim() || null,
       priority: input.priority ?? 'medium',
       status: input.status ?? 'open',
-      assignedTo: null,
+      assignedTo: input.assignedTo ?? null,
       targetRoleId: input.targetRoleId ?? null,
       externalLinks: input.externalLinks ?? [],
       createdBy: input.createdBy ?? null,
