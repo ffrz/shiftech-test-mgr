@@ -667,17 +667,17 @@ func (t *WriteTools) updateIssueStatus(ctx context.Context, req mcp.CallToolRequ
 		return mcp.NewToolResultError("status must be one of: backlog, open, in_progress, resolved, verified, closed, rejected, duplicate"), nil
 	}
 
-	iss, err := t.reg.Services.Issue.Get(ctx, issueID)
+	actorID := session.Identity.CreatedBy
+	iss, err := t.reg.Services.Issue.UpdateStatus(ctx, issueID, core.IssueStatus(status), actorID, session.ProjectID)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	if iss.ProjectID != session.ProjectID {
 		return mcp.NewToolResultError("issue not found in the scoped project"), nil
 	}
-	if err := t.reg.Services.Issue.UpdateStatus(ctx, issueID, core.IssueStatus(status)); err != nil {
-		return mcp.NewToolResultError(err.Error()), nil
-	}
-	return mcp.NewToolResultStructured(iss, "issue status updated"), nil
+	return mcp.NewToolResultStructured(iss,
+		fmt.Sprintf("issue %s (%s): status changed to %s (actor: %s)",
+			iss.Code, iss.Title, iss.Status, actorID)), nil
 }
 
 // ---------------------------------------------------------------------------
@@ -714,6 +714,30 @@ func requireUUIDSlice(raw any, name string) ([]string, error) {
 		s, ok := item.(string)
 		if !ok || !isUUID(s) {
 			return nil, fmt.Errorf("%s[%d] must be a valid UUID", name, i)
+		}
+		out = append(out, s)
+	}
+	return out, nil
+}
+
+// requireStringSlice extracts a []string from an array argument, enforcing
+// per-item length bounds and a maximum item count.
+func requireStringSlice(raw any, name string, itemMin, itemMax, maxItems int) ([]string, error) {
+	arr, ok := raw.([]any)
+	if !ok {
+		return nil, fmt.Errorf("%s must be an array of strings", name)
+	}
+	if len(arr) > maxItems {
+		return nil, fmt.Errorf("%s exceeds the maximum of %d items (got %d)", name, maxItems, len(arr))
+	}
+	out := make([]string, 0, len(arr))
+	for i, item := range arr {
+		s, ok := item.(string)
+		if !ok {
+			return nil, fmt.Errorf("%s[%d] must be a string", name, i)
+		}
+		if len(s) < itemMin || len(s) > itemMax {
+			return nil, fmt.Errorf("%s[%d] length must be between %d and %d", name, i, itemMin, itemMax)
 		}
 		out = append(out, s)
 	}

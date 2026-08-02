@@ -141,19 +141,67 @@ gagal) + `TestApproveTestPlan_WithExplicitApproval` di `write_tools_test.go`.
 
 ## Fase 5 — Automation, Analysis, Repo Tools (P1/P2)
 
-- [ ] T5.1 — Migration `automation_scripts`/`automation_jobs`/`automation_runners`
-- [ ] T5.2 — 5 automation tool (BACKLOG Epic 5)
-- [ ] T5.3 — 3 analysis tool (BACKLOG Epic 5)
-- [ ] T5.4 — Migration `project_repositories`
-- [ ] T5.5 — 4 repo tool (BACKLOG Epic 7) — **butuh riset dulu** cara Node
-      mengakses source code (git checkout lokal vs API eksternal) sebelum
-      desain Go-nya, jangan asumsikan
+- [x] T5.1 — Migration `automation_scripts`/`automation_jobs`/`automation_runners`
+- [x] T5.2 — 5 automation tool (BACKLOG Epic 5)
+- [x] T5.3 — 3 analysis tool (BACKLOG Epic 5)
+- [x] T5.4 — Migration `project_repositories`
+- [x] T5.5 — 4 repo tool (BACKLOG Epic 7)
 
 **Dependency:** Fase 4 (governance middleware harus sudah membungkus semua
 tool, termasuk yang baru).
 
 **Boleh paralel:** T5.1+T5.2+T5.3 (automation+analysis) independen dari
 T5.4+T5.5 (repo tools) — dua sub-tim bisa jalan bersamaan.
+
+---
+
+## Fase 5.5 — MCP Agent-Experience Hardening (✅ done — 2026-08-02)
+
+**Pemicu:** laporan pemakaian nyata oleh AI Agent (OpenCode) — diminta
+"cek issue 0072 dan 0073, kalau sudah clear update status jadi Closed",
+agent kehilangan kepercayaan ke MCP sebagai source of truth: `issue.get()`
+dianggap terlalu minim → coba `issue.search()` → masih kurang → coba cari
+config Supabase → coba `psql` langsung. Ini pelanggaran arsitektur inti
+(`AI → MCP → Domain Service → Repository → DB`, bukan `AI → MCP → DB`).
+
+**Perbaikan:**
+- `core.IssueInspect`/`core.CanCloseResult`/`core.RunDetail` (`core/domain.go`)
+  — agregat domain baru, bukan sekadar row DB.
+- `IssueService.Inspect` (`service/issue_service.go`) — satu pemanggilan
+  mengembalikan issue + assignee/reporter ter-resolve + tags + linked test
+  result (dengan run/case context) + activity timeline + attachment +
+  keputusan `canClose` terhitung. `IssueService.Resolve` menerima UUID
+  **atau** code manusia (`ISS-0072`/`0072`) — agent tidak perlu tahu bentuk
+  ID internal.
+- `IssueService.CanClose` — business rule "kapan issue boleh ditutup"
+  (status resolved/verified + tidak ada linked result fail/blocked) dipindah
+  ke domain layer, bukan agent menebak dari data mentah.
+- `TestRunService.GetWithDetail` (`service/testrun_service.go`) — run +
+  summary on-the-fly + result rows dalam satu call.
+- Tool baru di `mcp-server/internal/tools/read_tools.go`: `testify.issue.inspect`,
+  `testify.issue.can_close`, `testify.testrun.summary`. `testify.issue.get`
+  diperkaya jadi alias `Inspect` (bukan lagi row tipis) dan menerima
+  `issue_id` **atau** `code`.
+- `IssueContextSources` (bundel `ProfileRepository`/`ActivityRepository`/
+  `AttachmentRepository`) di-inject ke `NewIssueService`; `NewTestRunService`
+  sekarang butuh `core.TestResultRepository` tambahan. Semua call site
+  (`cmd/main.go`, `cmd-http/main.go`, test mocks) sudah disesuaikan.
+
+**Yang sengaja belum digarap (lanjutan kalau ada laporan agent baru):**
+- Parameter `detail=summary|normal|full` / `includeActivity` dkk pada
+  `testcase.get` — belum ada bukti agent kesulitan di situ, jangan
+  over-engineer sebelum ada sinyal nyata (lihat CLAUDE.md-global: jangan
+  desain untuk kebutuhan hipotetis).
+- `testcase.execution_context`/`issue.related_context` dari daftar usulan
+  awal — `issue.inspect` sudah mencakup kebutuhan yang dilaporkan; tool
+  terpisah lain ditunda sampai ada kasus pemakaian nyata yang tidak
+  tercakup `inspect`/`can_close`/`testrun.summary`.
+
+**Exit criteria:** `go build ./...` dan `go test ./...` bersih (termasuk
+`service/service_test.go` dan `mcp-server/internal/tools/write_tools_test.go`
+yang sempat pecah karena signature `NewIssueService`/`NewTestRunService`
+berubah — sudah diperbaiki dengan mock `ProfileRepository`/`ActivityRepository`/
+`AttachmentRepository`/`TestResultRepository` baru).
 
 ---
 

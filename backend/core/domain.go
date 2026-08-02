@@ -305,6 +305,116 @@ type Issue struct {
 }
 
 // ---------------------------------------------------------------------------
+// Profiles (public identity)
+// ---------------------------------------------------------------------------
+
+// Profile is the minimal public display identity used to render people in MCP
+// responses. It mirrors the frontend profiles table — email/role intentionally
+// stay out (they live in the private users table), so tool responses only
+// ever expose the same public identity the app itself shows.
+type Profile struct {
+	ID          string  `json:"id"`
+	Username    string  `json:"username"`
+	DisplayName *string `json:"displayName"`
+}
+
+// ---------------------------------------------------------------------------
+// Issue workflow context (issue.inspect / issue.can_close)
+// ---------------------------------------------------------------------------
+
+// IssueLink is one TestResult linked to an Issue via issue_test_results,
+// resolved with its run and test-case context so a reader can judge the
+// issue's current state without extra round-trips. TesterID is carried
+// internally for actor resolution and is omitted from serialized output.
+type IssueLink struct {
+	TestResultID  string           `json:"testResultId"`
+	Status        TestResultStatus `json:"status"`
+	ExecutedAt    *time.Time       `json:"executedAt"`
+	Notes         *string          `json:"notes"`
+	TesterID      *string          `json:"-"`
+	Tester        *Profile         `json:"tester,omitempty"`
+	TestRunID     string           `json:"testRunId"`
+	TestRunCode   string           `json:"testRunCode"`
+	TestRunName   string           `json:"testRunName"`
+	TestRunStatus TestRunStatus    `json:"testRunStatus"`
+	TestCaseID    string           `json:"testCaseId"`
+	TestCaseCode  string           `json:"testCaseCode"`
+	TestCaseTitle string           `json:"testCaseTitle"`
+}
+
+// ActivityEntry is one row of entity_activity (a comment or a system event)
+// for an entity, with its actor resolved for display. ActorID is carried
+// internally for actor resolution and is omitted from serialized output.
+type ActivityEntry struct {
+	ID        string         `json:"id"`
+	EventType string         `json:"eventType"`
+	ActorID   string         `json:"-"`
+	Actor     *Profile       `json:"actor,omitempty"`
+	Payload   map[string]any `json:"payload"`
+	CreatedAt time.Time      `json:"createdAt"`
+}
+
+// CreateActivityInput carries the fields needed to insert one row into
+// entity_activity (a system event like a status transition). Comments use
+// a separate path through the frontend's security-definer RPC.
+type CreateActivityInput struct {
+	ProjectID  string
+	EntityType string
+	EntityID   string
+	ActorID    string
+	EventType  string
+	Payload    map[string]any
+}
+
+// AttachmentInfo is one entity_attachments row — metadata only, file bytes
+// stay in storage and never travel through an MCP response.
+type AttachmentInfo struct {
+	ID          string    `json:"id"`
+	FileName    string    `json:"fileName"`
+	URL         string    `json:"url"`
+	ContentType *string   `json:"contentType,omitempty"`
+	FileSize    *int      `json:"fileSize,omitempty"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+// CanCloseResult is the domain answer to "may this issue be closed now?". It
+// is computed by IssueService (status rules + linked result health), never
+// inferred by the client — the AI is expected to trust and echo it.
+type CanCloseResult struct {
+	CanClose      bool        `json:"canClose"`
+	CurrentStatus IssueStatus `json:"currentStatus"`
+	Reasons       []string    `json:"reasons"`
+	Blockers      []string    `json:"blockers"`
+}
+
+// IssueInspect is the full context a QA agent needs to make a decision about
+// one issue. testify.issue.inspect returns the whole aggregate in a single
+// response so the agent never has to chain several CRUD calls.
+type IssueInspect struct {
+	Issue       Issue            `json:"issue"`
+	Assignee    *Profile         `json:"assignee,omitempty"`
+	Reporter    *Profile         `json:"reporter,omitempty"`
+	Module      *Module          `json:"module,omitempty"`
+	Tags        []string         `json:"tags"`
+	Links       []IssueLink      `json:"links"`
+	Activity    []ActivityEntry  `json:"activity"`
+	Attachments []AttachmentInfo `json:"attachments"`
+	CanClose    CanCloseResult   `json:"canClose"`
+}
+
+// ---------------------------------------------------------------------------
+// Test run detail (testrun.summary)
+// ---------------------------------------------------------------------------
+
+// RunDetail is a test run with its on-the-fly summary and the individual
+// result rows, returned by testify.testrun.summary.
+type RunDetail struct {
+	Run     TestRun      `json:"run"`
+	Summary RunSummary   `json:"summary"`
+	Results []TestResult `json:"results"`
+}
+
+// ---------------------------------------------------------------------------
 // API Token
 // ---------------------------------------------------------------------------
 
@@ -328,6 +438,10 @@ type APITokenIdentity struct {
 	TokenID   string       `json:"tokenId"`
 	ProjectID string       `json:"projectId"`
 	Scopes    []TokenScope `json:"scopes"`
+	// CreatedBy is the profile UUID of the token's creator — the human actor
+	// behind automation-driven writes (map_script, enqueue, rerun_failed).
+	// Populated by TokenRepo.Authenticate.
+	CreatedBy string `json:"createdBy"`
 }
 
 // ---------------------------------------------------------------------------
@@ -339,4 +453,210 @@ type PageResult[T any] struct {
 	NextCursor string `json:"nextCursor"`
 	HasMore    bool   `json:"hasMore"`
 	Total      int    `json:"total"`
+}
+
+// ---------------------------------------------------------------------------
+// Automation (Playwright local runner orchestration)
+// ---------------------------------------------------------------------------
+
+// AutomationRunner is a registered local runner that pulls jobs outbound and
+// executes them against the app under test. Token hashes are never exposed in
+// domain payloads — only the prefix is shown.
+type AutomationRunner struct {
+	ID          string     `json:"id"`
+	ProjectID   string     `json:"projectId"`
+	Name        string     `json:"name"`
+	Labels      []string   `json:"labels"`
+	TokenPrefix string     `json:"tokenPrefix"`
+	Active      bool       `json:"active"`
+	// LastSeenAt is updated by every heartbeat/poll/report call.
+	LastSeenAt *time.Time `json:"lastSeenAt"`
+	// Status is computed on read: "online" when active and last_seen_at is
+	// within 90 seconds, otherwise "offline".
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// AutomationScript maps one Test Case to a local script reference (path/spec
+// id). The executable script body never leaves the runner.
+type AutomationScript struct {
+	ID           string    `json:"id"`
+	ProjectID    string    `json:"projectId"`
+	TestCaseID   string    `json:"testCaseId"`
+	ScriptRef    string    `json:"scriptRef"`
+	RunnerLabels []string  `json:"runnerLabels"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+type AutomationJobStatus string
+
+const (
+	JobQueued   AutomationJobStatus = "queued"
+	JobRunning  AutomationJobStatus = "running"
+	JobPassed   AutomationJobStatus = "passed"
+	JobFailed   AutomationJobStatus = "failed"
+	JobCanceled AutomationJobStatus = "canceled"
+)
+
+// AutomationJob is the unit of execution pulled by a runner. Its result lands
+// in the corresponding test_results row.
+type AutomationJob struct {
+	ID             string             `json:"id"`
+	ProjectID      string             `json:"projectId"`
+	TestRunID      string             `json:"testRunId"`
+	TestCaseID     string             `json:"testCaseId"`
+	ScriptRef      string             `json:"scriptRef"`
+	RequiredLabels []string           `json:"requiredLabels"`
+	Status         AutomationJobStatus `json:"status"`
+	Attempt        int                `json:"attempt"`
+	MaxAttempts    int                `json:"maxAttempts"`
+	RunnerID       *string            `json:"runnerId"`
+	ErrorMessage   *string            `json:"errorMessage"`
+	QueuedAt       time.Time          `json:"queuedAt"`
+	StartedAt      *time.Time         `json:"startedAt"`
+	FinishedAt     *time.Time         `json:"finishedAt"`
+	CreatedAt      time.Time          `json:"createdAt"`
+	UpdatedAt      time.Time          `json:"updatedAt"`
+}
+
+// AutomationEnqueueResult is returned by automation.enqueue.
+type AutomationEnqueueResult struct {
+	RunID    string `json:"runId"`
+	RunCode  string `json:"runCode"`
+	JobCount int    `json:"jobCount"`
+}
+
+// RerunFailedResult is returned by automation.rerun_failed. When the selected
+// scope exceeds the safety limit and no explicit human confirmation was given,
+// ConfirmationRequired is true and only the scope metadata is populated.
+type RerunFailedResult struct {
+	RunID                string `json:"runId"`
+	RunCode              string `json:"runCode"`
+	JobCount             int    `json:"jobCount"`
+	SelectedCount        int    `json:"selectedCount"`
+	SourceTestCaseID     string `json:"sourceTestCaseId"`
+	ConfirmationRequired bool   `json:"confirmationRequired"`
+	SelectionLimit       int    `json:"selectionLimit"`
+}
+
+// ---------------------------------------------------------------------------
+// Analysis (on-demand metrics)
+// ---------------------------------------------------------------------------
+
+type AnalysisProblematicResult struct {
+	TestResultID string            `json:"testResultId"`
+	TestCaseID   string            `json:"testCaseId"`
+	Code         *string           `json:"code"`
+	Title        *string           `json:"title"`
+	Priority     *TestCasePriority `json:"priority"`
+	Status       TestResultStatus  `json:"status"`
+}
+
+// AnalysisRunSummary summarizes one regression run. All metrics are computed
+// on demand — never cached.
+type AnalysisRunSummary struct {
+	Run                TestRun                       `json:"run"`
+	PassRate           float64                       `json:"passRate"`
+	FailureRate        float64                       `json:"failureRate"`
+	ProblematicResults []AnalysisProblematicResult   `json:"problematicResults"`
+}
+
+type FlakyCandidate struct {
+	TestCaseID      string           `json:"testCaseId"`
+	Code            string           `json:"code"`
+	Title           string           `json:"title"`
+	Priority        TestCasePriority `json:"priority"`
+	Executions      int64            `json:"executions"`
+	PassCount       int64            `json:"passCount"`
+	FailCount       int64            `json:"failCount"`
+	Transitions     int64            `json:"transitions"`
+	FlakinessScore  float64          `json:"flakinessScore"`
+	LatestStatus    string           `json:"latestStatus"`
+	LatestExecutedAt time.Time       `json:"latestExecutedAt"`
+}
+
+type RetestSuggestion struct {
+	TestCaseID     string           `json:"testCaseId"`
+	Code           string           `json:"code"`
+	Title          string           `json:"title"`
+	Priority       TestCasePriority `json:"priority"`
+	LatestStatus   TestResultStatus `json:"latestStatus"`
+	Score          float64          `json:"score"`
+	Reasons        []string         `json:"reasons"`
+	OpenIssueCount int64            `json:"openIssueCount"`
+	FlakinessScore float64          `json:"flakinessScore"`
+}
+
+// ---------------------------------------------------------------------------
+// Project Repository (source-code context for regression selection)
+// ---------------------------------------------------------------------------
+
+type RepositorySourceType string
+
+const (
+	RepoSourceLocalPath      RepositorySourceType = "local_path"
+	RepoSourceGithubPublic   RepositorySourceType = "github_public"
+	RepoSourceGithubPrivate  RepositorySourceType = "github_private"
+	RepoSourceGitURL         RepositorySourceType = "git_url"
+)
+
+// ProjectRepositoryConfig is the scoped configuration of one project
+// repository, including the decrypted Vault credential (never persisted or
+// logged by consumers). The credential is used only to clone/fetch over
+// HTTP(S) via a Basic auth git extra-header.
+type ProjectRepositoryConfig struct {
+	ID            string               `json:"id"`
+	Name          string               `json:"name"`
+	SourceType    RepositorySourceType `json:"sourceType"`
+	URLOrPath     string               `json:"urlOrPath"`
+	DefaultBranch *string              `json:"defaultBranch"`
+	Subdirectory  *string              `json:"subdirectory"`
+	Credential    *string              `json:"credential"`
+}
+
+// RepoFileChange is one entry of a repo.diff --name-status result.
+type RepoFileChange struct {
+	Status       string  `json:"status"`
+	Path         string  `json:"path"`
+	PreviousPath *string `json:"previousPath,omitempty"`
+}
+
+// RepoDiff is returned by repo.diff for regression selection.
+type RepoDiff struct {
+	Base      string          `json:"base"`
+	Head      string          `json:"head"`
+	Files     []RepoFileChange `json:"files"`
+	Patch     string          `json:"patch"`
+	Truncated bool            `json:"truncated"`
+}
+
+// RepoListFilesResult is returned by repo.list_files.
+type RepoListFilesResult struct {
+	RepositoryID string   `json:"repositoryId"`
+	Files        []string `json:"files"`
+	Truncated    bool     `json:"truncated"`
+}
+
+// RepoReadFileResult is returned by repo.read_file.
+type RepoReadFileResult struct {
+	RepositoryID string `json:"repositoryId"`
+	Path         string `json:"path"`
+	Content      string `json:"content"`
+	Bytes        int    `json:"bytes"`
+}
+
+// RepoMatch is one repo.search hit.
+type RepoMatch struct {
+	Path string `json:"path"`
+	Line int    `json:"line"`
+	Text string `json:"text"`
+}
+
+// RepoSearchResult is returned by repo.search.
+type RepoSearchResult struct {
+	RepositoryID string      `json:"repositoryId"`
+	Matches      []RepoMatch `json:"matches"`
+	Truncated    bool        `json:"truncated"`
 }

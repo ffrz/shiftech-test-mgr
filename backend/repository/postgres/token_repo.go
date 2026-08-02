@@ -56,6 +56,7 @@ func (r *TokenRepo) Authenticate(ctx context.Context, rawToken string) (*core.AP
 		TokenID:   row.ID,
 		ProjectID: row.ProjectID,
 		Scopes:    toScopes(row.Scopes),
+		CreatedBy: row.CreatedBy,
 	}, nil
 }
 

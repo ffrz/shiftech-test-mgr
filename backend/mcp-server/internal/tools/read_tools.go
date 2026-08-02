@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/shiftech/testify-platform/core"
@@ -89,6 +90,12 @@ func (t *ReadTools) Register(s ToolAdder) error {
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithString("testrun_id", mcp.Description("Test run UUID"), mcp.Required()),
 	), t.getTestRun)
+	s.AddTool(mcp.NewTool("testify.testrun.summary",
+		mcp.WithDescription("Get one test run with its on-the-fly result summary and the individual result rows — everything needed to review a run in a single call."),
+		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithString("testrun_id", mcp.Description("Test run UUID"), mcp.Required()),
+	), t.getTestRunSummary)
 
 	// test result
 	s.AddTool(mcp.NewTool("testify.testresult.list",
@@ -117,11 +124,26 @@ func (t *ReadTools) Register(s ToolAdder) error {
 		mcp.WithNumber("limit", mcp.Description("Page size, default 50 and maximum 100"), mcp.Min(1), mcp.Max(100)),
 	), t.searchIssues)
 	s.AddTool(mcp.NewTool("testify.issue.get",
-		mcp.WithDescription("Get issue detail."),
+		mcp.WithDescription("Get full issue detail including resolved assignee/reporter, tags, linked test results (with run/case context), activity, and attachments. Pass either issue_id (UUID) or code (e.g. ISS-0072)."),
 		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
-		mcp.WithString("issue_id", mcp.Description("Issue UUID"), mcp.Required()),
+		mcp.WithString("issue_id", mcp.Description("Issue UUID (exactly one of issue_id/code is required)")),
+		mcp.WithString("code", mcp.Description("Issue code, e.g. ISS-0072 or 0072 (exactly one of issue_id/code is required)")),
 	), t.getIssue)
+	s.AddTool(mcp.NewTool("testify.issue.inspect",
+		mcp.WithDescription("Get the complete workflow context for one issue in a single response: the issue, resolved assignee/reporter, tags, linked test results, activity, attachments, and the computed can-close decision. This is the recommended tool to judge an issue before changing its status. Pass either issue_id (UUID) or code (e.g. ISS-0072)."),
+		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithString("issue_id", mcp.Description("Issue UUID (exactly one of issue_id/code is required)")),
+		mcp.WithString("code", mcp.Description("Issue code, e.g. ISS-0072 or 0072 (exactly one of issue_id/code is required)")),
+	), t.getIssue)
+	s.AddTool(mcp.NewTool("testify.issue.can_close",
+		mcp.WithDescription("Ask the domain whether an issue may be closed right now. Returns the decision (canClose) plus reasons/blockers based on the issue status and its linked test-result health. Use this before testify.issue.updateStatus. Pass either issue_id (UUID) or code (e.g. ISS-0072)."),
+		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithString("issue_id", mcp.Description("Issue UUID (exactly one of issue_id/code is required)")),
+		mcp.WithString("code", mcp.Description("Issue code, e.g. ISS-0072 or 0072 (exactly one of issue_id/code is required)")),
+	), t.canCloseIssue)
 
 	return nil
 }
@@ -240,7 +262,8 @@ func (t *ReadTools) getTestCase(ctx context.Context, req mcp.CallToolRequest) (*
 	if tc.ProjectID != session.ProjectID {
 		return mcp.NewToolResultError("test case not found in the scoped project"), nil
 	}
-	return mcp.NewToolResultStructured(tc, "test case found"), nil
+	return mcp.NewToolResultStructured(tc, fmt.Sprintf("test case %s (%s): priority=%s, status=%s",
+		tc.Code, tc.Title, tc.Priority, tc.Status)), nil
 }
 
 // ---------------------------------------------------------------------------
@@ -341,7 +364,30 @@ func (t *ReadTools) getTestRun(ctx context.Context, req mcp.CallToolRequest) (*m
 	if tr.ProjectID != session.ProjectID {
 		return mcp.NewToolResultError("test run not found in the scoped project"), nil
 	}
-	return mcp.NewToolResultStructured(tr, "test run found"), nil
+	return mcp.NewToolResultStructured(tr, fmt.Sprintf("test run %s (%s): status=%s, started %s",
+		tr.Code, tr.Name, tr.Status, tr.StartedAt.Format("2006-01-02 15:04"))), nil
+}
+
+func (t *ReadTools) getTestRunSummary(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, err := t.reg.SessionFor(ctx)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+
+	testRunID, err := req.RequireString("testrun_id")
+	if err != nil || !isUUID(testRunID) {
+		return mcp.NewToolResultError("testrun_id must be a valid UUID"), nil
+	}
+
+	detail, err := t.reg.Services.TestRun.GetWithDetail(ctx, session.ProjectID, testRunID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	s := detail.Summary
+	return mcp.NewToolResultStructured(detail,
+		fmt.Sprintf("test run %s (%s): status=%s — pass=%d fail=%d skip=%d blocked=%d not_run=%d total=%d",
+			detail.Run.Code, detail.Run.Name, detail.Run.Status,
+			s.Pass, s.Fail, s.Skip, s.Blocked, s.NotRun, s.Total)), nil
 }
 
 // ---------------------------------------------------------------------------
@@ -450,19 +496,70 @@ func (t *ReadTools) getIssue(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	issueID, err := req.RequireString("issue_id")
-	if err != nil || !isUUID(issueID) {
-		return mcp.NewToolResultError("issue_id must be a valid UUID"), nil
-	}
-
-	iss, err := t.reg.Services.Issue.Get(ctx, issueID)
+	ref, err := issueRef(req)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
-	if iss.ProjectID != session.ProjectID {
-		return mcp.NewToolResultError("issue not found in the scoped project"), nil
+
+	inspect, err := t.reg.Services.Issue.Inspect(ctx, session.ProjectID, ref)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
 	}
-	return mcp.NewToolResultStructured(iss, "issue found"), nil
+
+	summary := fmt.Sprintf("issue %s (%s): status=%s, priority=%s", inspect.Issue.Code, inspect.Issue.Title, inspect.Issue.Status, inspect.Issue.Priority)
+	if len(inspect.Links) > 0 {
+		summary += fmt.Sprintf(", %d linked result(s)", len(inspect.Links))
+	}
+	if !inspect.CanClose.CanClose {
+		summary += " — not closable"
+	}
+	return mcp.NewToolResultStructured(inspect, summary), nil
+}
+
+func (t *ReadTools) canCloseIssue(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, err := t.reg.SessionFor(ctx)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+
+	ref, err := issueRef(req)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+
+	res, err := t.reg.Services.Issue.CanClose(ctx, session.ProjectID, ref)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+
+	text := fmt.Sprintf("issue can be closed: %v (current status: %s)", res.CanClose, res.CurrentStatus)
+	if res.CanClose && len(res.Reasons) > 0 {
+		text += " — " + strings.Join(res.Reasons, "; ")
+	}
+	if !res.CanClose && len(res.Blockers) > 0 {
+		text += " — blocked: " + strings.Join(res.Blockers, "; ")
+	}
+	return mcp.NewToolResultStructured(res, text), nil
+}
+
+// issueRef extracts the issue identifier from a tool call that accepts either
+// issue_id (UUID) or code. Exactly one must be present.
+func issueRef(req mcp.CallToolRequest) (string, error) {
+	id := req.GetString("issue_id", "")
+	code := req.GetString("code", "")
+	if id == "" && code == "" {
+		return "", fmt.Errorf("exactly one of issue_id (UUID) or code (e.g. ISS-0072) is required")
+	}
+	if id != "" && code != "" {
+		return "", fmt.Errorf("pass exactly one of issue_id or code, not both")
+	}
+	if id != "" {
+		if !isUUID(id) {
+			return "", fmt.Errorf("issue_id must be a valid UUID")
+		}
+		return id, nil
+	}
+	return code, nil
 }
 
 // ---------------------------------------------------------------------------

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/shiftech/testify-platform/core"
@@ -113,6 +114,9 @@ type mockIssueRepo struct {
 	get          func(ctx context.Context, id string) (*core.Issue, error)
 	create       func(ctx context.Context, input core.CreateIssueInput) (*core.Issue, error)
 	updateStatus func(ctx context.Context, id string, status core.IssueStatus) error
+	getByCode    func(ctx context.Context, projectID, code string) (*core.Issue, error)
+	listLinks    func(ctx context.Context, issueID string) ([]core.IssueLink, error)
+	listTagNames func(ctx context.Context, issueID string) ([]string, error)
 }
 
 func (m *mockIssueRepo) List(ctx context.Context, filter core.IssueFilter) (*core.PageResult[core.Issue], error) {
@@ -126,6 +130,73 @@ func (m *mockIssueRepo) Create(ctx context.Context, input core.CreateIssueInput)
 }
 func (m *mockIssueRepo) UpdateStatus(ctx context.Context, id string, status core.IssueStatus) error {
 	return m.updateStatus(ctx, id, status)
+}
+func (m *mockIssueRepo) GetByCode(ctx context.Context, projectID, code string) (*core.Issue, error) {
+	if m.getByCode != nil {
+		return m.getByCode(ctx, projectID, code)
+	}
+	return nil, fmt.Errorf("GetByCode not implemented")
+}
+func (m *mockIssueRepo) ListLinks(ctx context.Context, issueID string) ([]core.IssueLink, error) {
+	if m.listLinks != nil {
+		return m.listLinks(ctx, issueID)
+	}
+	return nil, nil
+}
+func (m *mockIssueRepo) ListTagNames(ctx context.Context, issueID string) ([]string, error) {
+	if m.listTagNames != nil {
+		return m.listTagNames(ctx, issueID)
+	}
+	return nil, nil
+}
+
+type mockProfileRepo struct {
+	getMany func(ctx context.Context, ids []string) (map[string]core.Profile, error)
+}
+
+func (m *mockProfileRepo) GetMany(ctx context.Context, ids []string) (map[string]core.Profile, error) {
+	if m.getMany != nil {
+		return m.getMany(ctx, ids)
+	}
+	return map[string]core.Profile{}, nil
+}
+
+type mockActivityRepo struct {
+	listForEntity func(ctx context.Context, projectID, entityType, entityID string, limit int) ([]core.ActivityEntry, error)
+	create        func(ctx context.Context, input core.CreateActivityInput) error
+}
+
+func (m *mockActivityRepo) ListForEntity(ctx context.Context, projectID, entityType, entityID string, limit int) ([]core.ActivityEntry, error) {
+	if m.listForEntity != nil {
+		return m.listForEntity(ctx, projectID, entityType, entityID, limit)
+	}
+	return nil, nil
+}
+
+func (m *mockActivityRepo) Create(ctx context.Context, input core.CreateActivityInput) error {
+	if m.create != nil {
+		return m.create(ctx, input)
+	}
+	return nil
+}
+
+type mockAttachmentRepo struct {
+	listForEntity func(ctx context.Context, projectID, entityType, entityID string) ([]core.AttachmentInfo, error)
+}
+
+func (m *mockAttachmentRepo) ListForEntity(ctx context.Context, projectID, entityType, entityID string) ([]core.AttachmentInfo, error) {
+	if m.listForEntity != nil {
+		return m.listForEntity(ctx, projectID, entityType, entityID)
+	}
+	return nil, nil
+}
+
+func newTestIssueContextSources() IssueContextSources {
+	return IssueContextSources{
+		Profiles:    &mockProfileRepo{},
+		Activity:    &mockActivityRepo{},
+		Attachments: &mockAttachmentRepo{},
+	}
 }
 
 type mockModuleRepo struct {
@@ -412,7 +483,7 @@ func TestTestRunServiceListGetSummary(t *testing.T) {
 			return summary, nil
 		},
 	}
-	s := NewTestRunService(m)
+	s := NewTestRunService(m, &mockTestResultRepo{})
 
 	if _, err := s.List(context.Background(), core.TestRunFilter{ProjectID: "p1"}); err != nil {
 		t.Fatalf("List: %v", err)
@@ -452,7 +523,7 @@ func TestTestRunServiceCreateRecordComplete(t *testing.T) {
 			return nil
 		},
 	}
-	s := NewTestRunService(m)
+	s := NewTestRunService(m, &mockTestResultRepo{})
 
 	run, err := s.Create(context.Background(), core.CreateTestRunInput{ProjectID: "p1", Name: "Run 1"})
 	if err != nil {
@@ -500,7 +571,7 @@ func TestIssueServicePassthrough(t *testing.T) {
 			return nil
 		},
 	}
-	s := NewIssueService(m)
+	s := NewIssueService(m, newTestIssueContextSources())
 
 	if _, err := s.List(context.Background(), core.IssueFilter{ProjectID: "p1"}); err != nil {
 		t.Fatalf("List: %v", err)
@@ -514,7 +585,7 @@ func TestIssueServicePassthrough(t *testing.T) {
 	if createdInput.Title != "Bug" {
 		t.Errorf("Create input Title = %q", createdInput.Title)
 	}
-	if err := s.UpdateStatus(context.Background(), "iss1", core.IssueInProgress); err != nil {
+	if _, err := s.UpdateStatus(context.Background(), "iss1", core.IssueInProgress, "actor1", "p1"); err != nil {
 		t.Fatalf("UpdateStatus: %v", err)
 	}
 	if updatedStatus != core.IssueInProgress {

@@ -388,19 +388,33 @@ ini juga).
 
 **Referensi:** `../../NvlFr-testify/supabase/schema_029_project_repositories.sql`
 
-### T5.5 — Repo tools (4 tool) — **riset dulu sebelum desain**
+### T5.5 — Repo tools (4 tool) — ✅ selesai
 
-**File baru:** `mcp-server/internal/tools/repo_tools.go`
+**Riset:** dibaca lengkap `../../NvlFr-testify/mcp/src/repositories/repoRepository.ts`,
+`services/repoService.ts`, `tools/repoTools.ts`, dan
+`schema_057_mcp_repo_tools.sql`. **Keputusan:** git CLI via `os/exec` (tanpa
+dependency Go baru — pola minimal-dep proyek), checkout lokal di cache dir
+(`TM_REPOSITORY_CACHE_DIR`, default `os.TempDir()/testify-repos`), URL remote
+dipaksa credential-free (SSH URL ditolak), credential Vault dikirim sebagai
+`http.extraHeader` Basic auth. Kredensial didekripsi server-side di SQL via
+`vault.decrypted_secrets`, tidak pernah keluar dari Postgres.
 
-**WAJIB riset dulu:** baca
-`../../NvlFr-testify/mcp/src/repositories/repoRepository.ts` dan
-`services/repoService.ts` lengkap untuk memahami **bagaimana** file source
-code diakses (git clone lokal di server MCP? API eksternal seperti GitHub
-API? filesystem mount?) — jangan mulai coding Go sebelum ini jelas, karena
-strategi akses ini menentukan apakah perlu dependency Go tambahan (mis.
-`go-git`) atau cukup HTTP client biasa.
+**File baru:** `mcp-server/internal/tools/repo_tools.go` (+`repo_tools_test.go`),
+`service/repo_service.go`, `repository/postgres/repo_repo.go`, port
+`core.RepoRepository` di `core/ports.go`, tipe domain
+`ProjectRepositoryConfig`/`RepoFileChange`/`RepoDiff`/`RepoListFilesResult`/
+`RepoReadFileResult`/`RepoMatch`/`RepoSearchResult` di `core/domain.go`.
 
-**Referensi tool shape:** `../../NvlFr-testify/mcp/src/tools/repoTools.ts`.
+**Tool:** `testify.repo.list_files` / `read_file` / `search` / `diff` (read-only,
+idempotent). Batas dipertahankan dari Node: path ≤1000, limit 1–100 (list 100,
+search 50), read ≤128 KiB, patch diff dipotong 192 KiB, search literal via
+`git grep -F` (exit code 1 = 0 hasil, bukan error), scope dibatasi ke
+`subdirectory` terkonfigurasi dengan containment realpath (path escape
+ditolak).
+
+**Test:** real git repo di `t.TempDir()` (`local_path` mode) — valid/truncated/
+no-match/diff; validasi UUID, limit, path-escape, unsafe URL & revision;
+registrasi 4 tool.
 
 ---
 

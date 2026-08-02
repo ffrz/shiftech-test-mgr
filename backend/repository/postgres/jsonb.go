@@ -38,6 +38,35 @@ func (s externalLinks) Value() (driver.Value, error) {
 	return json.Marshal(s)
 }
 
+// jsonbMap maps the entity_activity.payload jsonb column (a free-form object,
+// e.g. {body: "..."} for comments) onto a domain map. Same Scanner/Valuer
+// treatment as externalLinks above.
+type jsonbMap map[string]any
+
+func (m *jsonbMap) Scan(value any) error {
+	if value == nil {
+		*m = nil
+		return nil
+	}
+	var b []byte
+	switch v := value.(type) {
+	case []byte:
+		b = v
+	case string:
+		b = []byte(v)
+	default:
+		return fmt.Errorf("jsonb payload: cannot scan %T", value)
+	}
+	return json.Unmarshal(b, m)
+}
+
+func (m jsonbMap) Value() (driver.Value, error) {
+	if m == nil {
+		return "{}", nil
+	}
+	return json.Marshal(m)
+}
+
 // strOrEmpty dereferences an optional text pointer, mapping NULL/absent to "".
 func strOrEmpty(s *string) string {
 	if s == nil {

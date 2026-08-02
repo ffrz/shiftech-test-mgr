@@ -52,6 +52,9 @@ type Services struct {
 	Module     *service.ModuleService
 	Tag        *service.TagService
 	TestRole   *service.TestRoleService
+	Automation *service.AutomationService
+	Analysis   *service.AnalysisService
+	Repo       *service.RepoService
 	Token      core.TokenRepository // auth check, not a business-logic repo — no service wrapper needed
 }
 
@@ -62,13 +65,14 @@ func (r *Registry) ReadOnly() []ToolRegistrar {
 	}
 }
 
-// Full returns all registrars (read + write).
+// Full returns all registrars (read + write + automation + analysis + repo).
 func (r *Registry) Full() []ToolRegistrar {
 	return []ToolRegistrar{
 		&ReadTools{r},
 		&WriteTools{r},
-		// &AutomationTools{r},
-		// &AnalysisTools{r},
+		&AutomationTools{r},
+		&AnalysisTools{r},
+		&RepoTools{r},
 	}
 }
 

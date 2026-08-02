@@ -101,6 +101,9 @@ type writeMockIssueRepo struct {
 	get          func(ctx context.Context, id string) (*core.Issue, error)
 	create       func(ctx context.Context, input core.CreateIssueInput) (*core.Issue, error)
 	updateStatus func(ctx context.Context, id string, status core.IssueStatus) error
+	getByCode    func(ctx context.Context, projectID, code string) (*core.Issue, error)
+	listLinks    func(ctx context.Context, issueID string) ([]core.IssueLink, error)
+	listTagNames func(ctx context.Context, issueID string) ([]string, error)
 }
 
 func (m *writeMockIssueRepo) List(ctx context.Context, filter core.IssueFilter) (*core.PageResult[core.Issue], error) {
@@ -114,6 +117,55 @@ func (m *writeMockIssueRepo) Create(ctx context.Context, input core.CreateIssueI
 }
 func (m *writeMockIssueRepo) UpdateStatus(ctx context.Context, id string, status core.IssueStatus) error {
 	return m.updateStatus(ctx, id, status)
+}
+func (m *writeMockIssueRepo) GetByCode(ctx context.Context, projectID, code string) (*core.Issue, error) {
+	if m.getByCode != nil {
+		return m.getByCode(ctx, projectID, code)
+	}
+	return nil, errors.New("not used")
+}
+func (m *writeMockIssueRepo) ListLinks(ctx context.Context, issueID string) ([]core.IssueLink, error) {
+	if m.listLinks != nil {
+		return m.listLinks(ctx, issueID)
+	}
+	return nil, nil
+}
+func (m *writeMockIssueRepo) ListTagNames(ctx context.Context, issueID string) ([]string, error) {
+	if m.listTagNames != nil {
+		return m.listTagNames(ctx, issueID)
+	}
+	return nil, nil
+}
+
+type writeMockTestResultRepo struct{}
+
+func (m *writeMockTestResultRepo) List(ctx context.Context, filter core.TestResultFilter) (*core.PageResult[core.TestResult], error) {
+	return nil, errors.New("not used")
+}
+func (m *writeMockTestResultRepo) Get(ctx context.Context, id string) (*core.TestResult, error) {
+	return nil, errors.New("not used")
+}
+
+type writeMockProfileRepo struct{}
+
+func (m *writeMockProfileRepo) GetMany(ctx context.Context, ids []string) (map[string]core.Profile, error) {
+	return map[string]core.Profile{}, nil
+}
+
+type writeMockActivityRepo struct{}
+
+func (m *writeMockActivityRepo) ListForEntity(ctx context.Context, projectID, entityType, entityID string, limit int) ([]core.ActivityEntry, error) {
+	return nil, nil
+}
+
+func (m *writeMockActivityRepo) Create(ctx context.Context, input core.CreateActivityInput) error {
+	return nil
+}
+
+type writeMockAttachmentRepo struct{}
+
+func (m *writeMockAttachmentRepo) ListForEntity(ctx context.Context, projectID, entityType, entityID string) ([]core.AttachmentInfo, error) {
+	return nil, nil
 }
 
 // ---------------------------------------------------------------------------
@@ -136,6 +188,7 @@ func writeSession(scopes ...core.TokenScope) *auth.Session {
 			TokenID:   "tok-1",
 			ProjectID: testProjectID,
 			Scopes:    scopes,
+			CreatedBy: testApprover,
 		},
 		ProjectID: testProjectID,
 	}
@@ -158,10 +211,14 @@ func writeReg(session *auth.Session, tc *writeMockTestCaseRepo, tp *writeMockTes
 		reg.Services.TestPlan = service.NewTestPlanService(tp)
 	}
 	if tr != nil {
-		reg.Services.TestRun = service.NewTestRunService(tr)
+		reg.Services.TestRun = service.NewTestRunService(tr, &writeMockTestResultRepo{})
 	}
 	if iss != nil {
-		reg.Services.Issue = service.NewIssueService(iss)
+		reg.Services.Issue = service.NewIssueService(iss, service.IssueContextSources{
+			Profiles:    &writeMockProfileRepo{},
+			Activity:    &writeMockActivityRepo{},
+			Attachments: &writeMockAttachmentRepo{},
+		})
 	}
 	return reg
 }

@@ -32,16 +32,25 @@ func main() {
 	// 2. Wire repositories (postgres implements core ports), then wrap each
 	// in its service — tool handlers only ever see Services, never Repos.
 	tokenRepo := postgres.NewTokenRepo(db)
+	issueRepo := postgres.NewIssueRepo(db)
+	testResultRepo := postgres.NewTestResultRepo(db)
 	services := tools.Services{
 		Project:    service.NewProjectService(postgres.NewProjectRepo(db)),
 		TestCase:   service.NewTestCaseService(postgres.NewTestCaseRepo(db)),
 		TestPlan:   service.NewTestPlanService(postgres.NewTestPlanRepo(db)),
-		TestRun:    service.NewTestRunService(postgres.NewTestRunRepo(db)),
-		TestResult: service.NewTestResultService(postgres.NewTestResultRepo(db)),
-		Issue:      service.NewIssueService(postgres.NewIssueRepo(db)),
+		TestRun:    service.NewTestRunService(postgres.NewTestRunRepo(db), testResultRepo),
+		TestResult: service.NewTestResultService(testResultRepo),
+		Issue: service.NewIssueService(issueRepo, service.IssueContextSources{
+			Profiles:    postgres.NewProfileRepo(db),
+			Activity:    postgres.NewActivityRepo(db),
+			Attachments: postgres.NewAttachmentRepo(db),
+		}),
 		Module:     service.NewModuleService(postgres.NewModuleRepo(db)),
 		Tag:        service.NewTagService(postgres.NewTagRepo(db)),
 		TestRole:   service.NewTestRoleService(postgres.NewTestRoleRepo(db)),
+		Automation: service.NewAutomationService(postgres.NewAutomationRepo(db)),
+		Analysis:   service.NewAnalysisService(postgres.NewAnalysisRepo(db)),
+		Repo:       service.NewRepoService(postgres.NewRepoRepo(db)),
 		Token:      tokenRepo,
 	}
 

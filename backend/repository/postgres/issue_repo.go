@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -150,6 +151,72 @@ func (r *IssueRepo) UpdateStatus(ctx context.Context, id string, status core.Iss
 	}).Error
 }
 
+// GetByCode resolves an issue by its human code (e.g. "ISS-0072") within a
+// project. The caller is expected to pass the code already normalized to the
+// canonical "ISS-0001" form (see service.IssueService.GetByCode).
+func (r *IssueRepo) GetByCode(ctx context.Context, projectID, code string) (*core.Issue, error) {
+	var row issueRow
+	err := r.db.WithContext(ctx).Where("project_id = ? AND lower(code) = lower(?)", projectID, code).First(&row).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("issue not found by code %s", code)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("issue get by code: %w", err)
+	}
+	iss := row.toDomain()
+	return &iss, nil
+}
+
+func (r *IssueRepo) ListLinks(ctx context.Context, issueID string) ([]core.IssueLink, error) {
+	var rows []issueLinkRow
+	if err := r.db.WithContext(ctx).Raw(`
+		select
+			res.id as test_result_id,
+			res.status,
+			res.executed_at,
+			res.notes,
+			res.tester_id,
+			run.id as test_run_id,
+			run.code as test_run_code,
+			run.name as test_run_name,
+			run.status as test_run_status,
+			tc.id as test_case_id,
+			coalesce(res.test_case_code, tc.code) as test_case_code,
+			coalesce(res.test_case_title, tc.title) as test_case_title
+		from issue_test_results itr
+		join test_results res on res.id = itr.test_result_id
+		join test_runs run on run.id = res.test_run_id
+		left join test_cases tc on tc.id = res.test_case_id
+		where itr.issue_id = ?
+		order by res.executed_at desc nulls last, res.created_at desc, res.id
+	`, issueID).Scan(&rows).Error; err != nil {
+		return nil, fmt.Errorf("issue list links: %w", err)
+	}
+
+	out := make([]core.IssueLink, len(rows))
+	for i, row := range rows {
+		out[i] = row.toDomain()
+	}
+	return out, nil
+}
+
+func (r *IssueRepo) ListTagNames(ctx context.Context, issueID string) ([]string, error) {
+	var names []string
+	if err := r.db.WithContext(ctx).Raw(`
+		select t.name
+		from issue_tags it
+		join tags t on t.id = it.tag_id
+		where it.issue_id = ?
+		order by t.name
+	`, issueID).Scan(&names).Error; err != nil {
+		return nil, fmt.Errorf("issue list tags: %w", err)
+	}
+	if names == nil {
+		names = []string{}
+	}
+	return names, nil
+}
+
 // ---------------------------------------------------------------------------
 // DB row types
 // ---------------------------------------------------------------------------
@@ -206,3 +273,35 @@ type issueTestResultRow struct {
 }
 
 func (issueTestResultRow) TableName() string { return "issue_test_results" }
+
+type issueLinkRow struct {
+	TestResultID  string     `gorm:"column:test_result_id"`
+	Status        string     `gorm:"column:status"`
+	ExecutedAt    *time.Time `gorm:"column:executed_at"`
+	Notes         *string    `gorm:"column:notes"`
+	TesterID      *string    `gorm:"column:tester_id"`
+	TestRunID     string     `gorm:"column:test_run_id"`
+	TestRunCode   string     `gorm:"column:test_run_code"`
+	TestRunName   string     `gorm:"column:test_run_name"`
+	TestRunStatus string     `gorm:"column:test_run_status"`
+	TestCaseID    string     `gorm:"column:test_case_id"`
+	TestCaseCode  string     `gorm:"column:test_case_code"`
+	TestCaseTitle string     `gorm:"column:test_case_title"`
+}
+
+func (r issueLinkRow) toDomain() core.IssueLink {
+	return core.IssueLink{
+		TestResultID:  r.TestResultID,
+		Status:        core.TestResultStatus(r.Status),
+		ExecutedAt:    r.ExecutedAt,
+		Notes:         r.Notes,
+		TesterID:      r.TesterID,
+		TestRunID:     r.TestRunID,
+		TestRunCode:   r.TestRunCode,
+		TestRunName:   r.TestRunName,
+		TestRunStatus: core.TestRunStatus(r.TestRunStatus),
+		TestCaseID:    r.TestCaseID,
+		TestCaseCode:  r.TestCaseCode,
+		TestCaseTitle: r.TestCaseTitle,
+	}
+}
