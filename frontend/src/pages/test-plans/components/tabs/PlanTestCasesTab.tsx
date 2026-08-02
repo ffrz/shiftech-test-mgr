@@ -38,6 +38,9 @@ type PlanTestCasesTabProps = {
   onModuleFiltersChange: (value: string[]) => void;
   tagFilters: string[];
   onTagFiltersChange: (value: string[]) => void;
+  testRoleFilters: string[];
+  onTestRoleFiltersChange: (value: string[]) => void;
+  testRoleOptions: { label: string; value: string }[];
   onResetFilters: () => void;
   first: number;
   rows: number;
@@ -71,6 +74,9 @@ export function PlanTestCasesTab({
   onModuleFiltersChange,
   tagFilters,
   onTagFiltersChange,
+  testRoleFilters,
+  onTestRoleFiltersChange,
+  testRoleOptions,
   onResetFilters,
   first,
   rows,
@@ -99,7 +105,10 @@ export function PlanTestCasesTab({
           <Tag key={t.id} value={t.name} severity="info" />
         ))}
       </div>
-      <span><Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} /></span>
+      <div className="flex flex-wrap gap-1">
+        {row.testCase.targetRole && <Tag value={row.testCase.targetRole.name} severity="secondary" />}
+        <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
+      </div>
     </div>
   );
 
@@ -144,6 +153,18 @@ export function PlanTestCasesTab({
             className="w-full"
             display="chip"
             selectAllLabel="All"
+          />
+        </div>
+        <div className="col-12 md:col-2 p-1">
+          <MultiSelect
+            value={testRoleFilters}
+            options={testRoleOptions}
+            onChange={(e) => onTestRoleFiltersChange(e.value)}
+            placeholder="All Roles"
+            className="w-full"
+            display="chip"
+            selectAllLabel="All"
+            filter
           />
         </div>
         <div className="col-12 md:col p-1">
@@ -201,6 +222,14 @@ export function PlanTestCasesTab({
         )}
         <Column field="testCase.title" header="Test Case" body={isMobile ? mobileCaseTitleBody : undefined} />
         {!isMobile && <Column field="testCase.module.name" header="Module" body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
+        {!isMobile && (
+          <Column
+            header="Target Role"
+            body={(row: TestPlanCaseWithDetails) =>
+              row.testCase.targetRole ? <Tag value={row.testCase.targetRole.name} severity="secondary" /> : '-'
+            }
+          />
+        )}
         {!isMobile && (
           <Column
             header="Tag"

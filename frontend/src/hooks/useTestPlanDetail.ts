@@ -4,7 +4,7 @@ import { queryKeys } from './queryKeys';
 
 export function useTestPlanDetail(
   testPlanId: string | null,
-  options?: { search?: string; priorities?: string[]; moduleIds?: string[]; tagIds?: string[]; page?: number; rowsPerPage?: number },
+  options?: { search?: string; priorities?: string[]; moduleIds?: string[]; tagIds?: string[]; testRoleIds?: string[]; page?: number; rowsPerPage?: number },
 ) {
   const queryClient = useQueryClient();
   const page = options?.page ?? 1;

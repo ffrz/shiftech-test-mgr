@@ -85,8 +85,8 @@ describe('attachmentService.remove', () => {
     await attachmentService.remove('att-1', 'https://cdn/1.png');
 
     const order = [
-      storageAdapter.remove.mock.invocationCallOrder[0],
-      issueRepository.removeAttachment.mock.invocationCallOrder[0],
+      vi.mocked(storageAdapter.remove).mock.invocationCallOrder[0],
+      vi.mocked(issueRepository.removeAttachment).mock.invocationCallOrder[0],
     ];
     expect(order).toEqual([...order].sort((a, b) => a - b));
     expect(storageAdapter.remove).toHaveBeenCalledWith('https://cdn/1.png');

@@ -376,6 +376,22 @@ No REST API design is proposed yet — premature until the Go backend work resum
 
 ---
 
+## 8a. Backend Go (shared-core)
+
+The Go backend proposal above is superseded: backend work has resumed under a
+new shared-core architecture (`core/domain` + `core/ports` +
+`repository/postgres` + `mcp-server/`), starting with an MCP server (active)
+ahead of the REST API (still planned). **`backend/ARCHITECTURE.md` is the
+authority on backend architecture** — read it before touching any code under
+`backend/`, rather than relying on this document or the API Boundary
+Proposal above for backend decisions.
+
+The old Go backend (dual MySQL+Postgres, domain/repository/service/transport
+layers per §8 above) has been archived to `backend_archive/` and is no
+longer relevant — do not reference it for current backend work.
+
+---
+
 ## 9. MVP Scope After Redesign
 
 **In scope:**

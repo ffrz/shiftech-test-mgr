@@ -35,6 +35,7 @@ import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { TestRunResultDetailPageSkeleton } from './TestRunResultDetailPageSkeleton';
 import { formatDateTime } from '../../helpers/dateFormatter';
+import { memberSelectLabel } from '../../helpers/memberLabels';
 import { RelativeTime } from '../../components/ui/RelativeTime';
 import { queryKeys } from '../../hooks/queryKeys';
 import type {
@@ -389,6 +390,7 @@ export function TestRunResultDetailPage() {
       priority: data.priority,
       status: data.status,
       targetRoleId: data.targetRoleId,
+      assignedTo: data.assignedTo,
       createdBy: user?.id ?? null,
     });
     setIssueEditorOpen(false);
@@ -773,7 +775,7 @@ export function TestRunResultDetailPage() {
                           <Dropdown
                             id="result-tester"
                             value={resultTesterId}
-                            options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
+                            options={projectMembers.map((m) => ({ label: memberSelectLabel(m), value: m.userId }))}
                             onChange={(e) => {
                               setResultTesterId(e.value);
                               saveResult({ testerId: e.value });

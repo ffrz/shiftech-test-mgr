@@ -16,7 +16,8 @@ Tujuan utama repo ini adalah memvalidasi pola **clean architecture di sisi front
 landing/      → Landing page publik (HTML/CSS statis, di-serve di path "/")
 frontend/     → Aplikasi React + Vite (SPA, di-serve di path "/app") — lihat detail layering di bawah
 public-docs/  → Docs site publik (Astro Starlight, di-serve di path "/docs" — user guide + data model, sudah berisi konten asli bukan starter scaffold)
-backend/      → Backend Go (PENDING/paused) — dual MySQL/Postgres, layer domain/repository/service/transport lengkap, lihat backend/README.md
+backend/      → Shared-core Go platform: MCP server (aktif) + REST API (plan). Lihat backend/ARCHITECTURE.md (otoritas arsitektur backend) sebelum menyentuh kode di dalam backend/
+backend_archive/ → Go backend lama (eksperimental, tidak dipakai)
 supabase/     → Schema SQL + migrations (dikelola via Supabase CLI, lihat supabase/migrations/), dipakai frontend
 docs/         → PRD (v1), ARCHITECTURE (v1), ARCHITECTURE_V2 + ROADMAP_V2 (redesign platform), PRODUCT_CONSTITUTION, task breakdown
 deploy/       → deploy-vps.sh — rsync + atomic symlink swap: landing/ → "/", frontend/dist/ → "/app", public-docs/dist/ → "/docs"
@@ -230,6 +231,8 @@ signup **self-serve**, tidak ada lagi gate approval admin.
 7. Halaman di `frontend/src/pages/{module}/`
 8. Route di `frontend/src/App.tsx`
 9. Menu item di `frontend/src/components/layout/AppMenu.tsx` (jika perlu entri sidebar baru)
+
+Untuk modul **backend** (Go), jangan ikuti urutan di atas — baca `backend/ARCHITECTURE.md` sebagai gantinya, jangan membaca file satu per satu.
 
 ---
 

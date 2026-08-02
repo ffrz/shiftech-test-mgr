@@ -15,6 +15,7 @@ import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
 import { attachmentService } from '../../services/attachmentService';
 import { toastHelper } from '../../helpers/toast';
+import { memberSelectLabel } from '../../helpers/memberLabels';
 
 export interface IssueFormData {
   code: string;
@@ -43,7 +44,8 @@ interface IssueEditorProps {
   onStatusChange?: (status: IssueStatus) => Promise<void>;
   // Assignment is routed separately from onSave for the same reason as onStatusChange —
   // issueService.assign needs actor info (activity log + assignee notification) this
-  // component doesn't have. Omit in create mode — new issues always start unassigned.
+  // component doesn't have. Omit in edit mode when the parent can't handle assignment;
+  // in create mode the assignee is saved via onSave instead.
   onAssigneeChange?: (assignedTo: string | null) => Promise<void>;
   projectId: string;
   mode: 'create' | 'edit';
@@ -292,10 +294,11 @@ export function IssueEditor({
                 <Dropdown
                   id="issue-assigned"
                   value={assignedTo}
-                  options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
+                  options={projectMembers.map((m) => ({ label: memberSelectLabel(m), value: m.userId }))}
                   onChange={(e) => setAssignedTo(e.value ?? null)}
+                  filter
                   showClear
-                  disabled={mode === 'create' || !onAssigneeChange}
+                  disabled={mode === 'edit' && !onAssigneeChange}
                   className="w-full"
                 />
                 <label htmlFor="issue-assigned">Assigned To</label>
@@ -326,7 +329,7 @@ export function IssueEditor({
                   value={moduleId}
                   options={[...modules].sort((a, b) => a.name.localeCompare(b.name)).map((m) => ({ label: m.name, value: m.id }))}
                   onChange={(e) => setModuleId(e.value)}
-                  editable
+                  filter
                   showClear
                   className="w-full"
                   virtualScrollerOptions={{ itemSize: 40 }}
@@ -359,6 +362,7 @@ export function IssueEditor({
                   value={targetRoleId}
                   options={[...testRoles].sort((a, b) => a.name.localeCompare(b.name)).map((r) => ({ label: r.name, value: r.id }))}
                   onChange={(e) => setTargetRoleId(e.value)}
+                  filter
                   showClear
                   className="w-full"
                   virtualScrollerOptions={{ itemSize: 40 }}

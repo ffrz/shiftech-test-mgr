@@ -183,7 +183,7 @@ describe('activityService passthrough ops', () => {
   });
 
   it('delegates softDeleteComment', async () => {
-    vi.mocked(activityRepository.softDelete).mockResolvedValue(undefined);
+    vi.mocked(activityRepository.softDelete).mockResolvedValue({ id: 'e1' } as never);
     await activityService.softDeleteComment('entry-1');
     expect(activityRepository.softDelete).toHaveBeenCalledWith('entry-1');
   });

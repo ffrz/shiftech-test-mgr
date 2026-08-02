@@ -127,7 +127,7 @@ describe('userService.listPaginated', () => {
 
 describe('userService.deleteAccount', () => {
   it('calls the delete_account RPC and resolves when there is no error', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({ error: null });
+    vi.mocked(supabase.rpc).mockResolvedValue({ error: null } as never);
 
     await expect(userService.deleteAccount()).resolves.toBeUndefined();
 
@@ -135,7 +135,7 @@ describe('userService.deleteAccount', () => {
   });
 
   it('throws when the RPC returns an error', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({ error: new Error('rpc failed') });
+    vi.mocked(supabase.rpc).mockResolvedValue({ error: new Error('rpc failed') } as never);
 
     await expect(userService.deleteAccount()).rejects.toThrow('rpc failed');
   });

@@ -35,20 +35,10 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
   const mainItems: MenuItemModel[] = [
     { label: 'Home', icon: 'pi pi-home', url: '/', end: true },
     { label: 'Projects', icon: 'pi pi-folder', url: '/projects' },
+    { label: 'Test Suite', icon: 'pi pi-copy', url: '/test-suites' },
     { label: 'Settings', icon: 'pi pi-cog', url: '/settings' },
-    {
-      label: 'Library',
-      icon: 'pi pi-book',
-      items: [{ label: 'Test Suite', icon: 'pi pi-copy', url: '/test-suites' }],
-    },
     ...(isAdmin
-      ? [
-        {
-          label: 'Administration',
-          icon: 'pi pi-cog',
-          items: [{ label: 'Users', icon: 'pi pi-users', url: '/users' }],
-        },
-      ]
+      ? [{ label: 'Users', icon: 'pi pi-users', url: '/users' }]
       : []),
   ];
 

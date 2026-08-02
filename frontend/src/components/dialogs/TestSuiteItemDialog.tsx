@@ -197,7 +197,7 @@ export function TestSuiteItemDialog({ visible, mode, item, suiteId, nextOrderInd
 
         <div className="flex flex-column">
           <FloatLabel className="ifta-field">
-            <InputText id="item-objective" value={objective} onChange={(e) => setObjective(e.target.value)} className="w-full" />
+            <InputTextarea id="item-objective" value={objective} onChange={(e) => setObjective(e.target.value)} className="w-full" autoResize maxLength={1000} />
             <label htmlFor="item-objective">Objective (optional)</label>
           </FloatLabel>
         </div>

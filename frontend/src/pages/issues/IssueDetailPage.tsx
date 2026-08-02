@@ -30,6 +30,7 @@ import type { BreadcrumbItem } from '../../components/ui/Breadcrumb';
 import type { Attachment, IssueStatus } from '../../types/domain';
 import { RelativeTime } from '../../components/ui/RelativeTime';
 import { toastHelper } from '../../helpers/toast';
+import { memberSelectLabel } from '../../helpers/memberLabels';
 import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
@@ -451,7 +452,7 @@ export function IssueDetailPage() {
                 <Dropdown
                   id="issue-assigned"
                   value={issue.assignedTo}
-                  options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
+                  options={projectMembers.map((m) => ({ label: memberSelectLabel(m), value: m.userId }))}
                   onChange={(e) => handleAssign(e.value)}
                   showClear
                   disabled={!canEditIssue}

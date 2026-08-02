@@ -44,10 +44,10 @@ describe('projectMemberService passthrough ops', () => {
   });
 
   it('delegates getOwnRole', async () => {
-    vi.mocked(projectMemberRepository.findOwnRole).mockResolvedValue({ role: 'manager' } as never);
+    vi.mocked(projectMemberRepository.findOwnRole).mockResolvedValue('manager' as never);
     const result = await projectMemberService.getOwnRole('proj-1', 'u1');
     expect(projectMemberRepository.findOwnRole).toHaveBeenCalledWith('proj-1', 'u1');
-    expect(result?.role).toBe('manager');
+    expect(result).toBe('manager');
   });
 
   it('delegates listOwnPendingInvitations', async () => {
@@ -204,10 +204,10 @@ describe('projectMemberService.remove', () => {
     await projectMemberService.remove('member-1', 'proj-1', 'user-b');
 
     const order = [
-      notificationService.removeByReference.mock.invocationCallOrder[0],
-      projectMemberRepository.remove.mock.invocationCallOrder[0],
-      projectRepository.findById.mock.invocationCallOrder[0],
-      notificationService.create.mock.invocationCallOrder[0],
+      vi.mocked(notificationService.removeByReference).mock.invocationCallOrder[0],
+      vi.mocked(projectMemberRepository.remove).mock.invocationCallOrder[0],
+      vi.mocked(projectRepository.findById).mock.invocationCallOrder[0],
+      vi.mocked(notificationService.create).mock.invocationCallOrder[0],
     ];
     expect(order).toEqual([...order].sort((a, b) => a - b));
 

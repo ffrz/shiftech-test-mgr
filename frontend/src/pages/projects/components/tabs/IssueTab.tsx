@@ -18,10 +18,12 @@ import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import type { IssueWithDetails, IssueStatus, IssuePriority, IssueType, ProjectMemberWithProfile } from '../../../../types/domain';
 import { issueService } from '../../../../services/issueService';
+import { tagService } from '../../../../services/tagService';
 import { useAuthContext } from '../../../../hooks/useAuth';
+import { memberSelectLabel } from '../../../../helpers/memberLabels';
 
 const UNDO_TIMEOUT_MS = 9000;
-type EditableField = 'status' | 'assignedTo' | 'title' | 'type' | 'priority' | 'moduleId' | 'targetRoleId';
+type EditableField = 'status' | 'assignedTo' | 'title' | 'type' | 'priority' | 'moduleId' | 'targetRoleId' | 'tags';
 import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
@@ -136,7 +138,7 @@ export function IssueTab({
   const { user, profile } = useAuthContext();
   const actorName = profile?.displayName ?? profile?.username ?? null;
   const [editingCell, setEditingCell] = useState<{ issueId: string; field: string } | null>(null);
-  const [editValue, setEditValue] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string | string[] | null>(null);
   const editRef = useRef<HTMLDivElement>(null);
   const cancelledRef = useRef(false);
   const undoToast = useRef<Toast>(null);
@@ -167,7 +169,7 @@ export function IssueTab({
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
-  const startEdit = useCallback((issueId: string, field: string, currentValue: string | null) => {
+  const startEdit = useCallback((issueId: string, field: string, currentValue: string | string[] | null) => {
     cancelledRef.current = false;
     setEditingCell({ issueId, field });
     setEditValue(currentValue);
@@ -179,25 +181,27 @@ export function IssueTab({
     setEditValue(null);
   }, []);
 
-  const getFieldValue = useCallback((row: IssueWithDetails, field: EditableField): string | null => {
+  const getFieldValue = useCallback((row: IssueWithDetails, field: EditableField): string | string[] | null => {
     if (field === 'moduleId') return row.moduleId;
-    return row[field] as string | null;
+    if (field === 'tags') return row.tags.map((t) => t.name);
+    return (row as any)[field] as string | null;
   }, []);
 
   // Persists `value` for `field` on the issue and reflects it optimistically via onPatchIssue.
   // Shared by both the cell-edit confirm path and the undo action so they stay consistent.
-  const applyFieldChange = useCallback(async (issueId: string, projectId: string, field: EditableField, value: string | null) => {
+  const applyFieldChange = useCallback(async (issueId: string, projectId: string, field: EditableField, value: string | string[] | null) => {
     if (field === 'status') {
       if (!user) return;
       await issueService.changeStatus(issueId, value as IssueStatus, { projectId, actorId: user.id, actorName });
       onPatchIssue(issueId, { status: value as IssueStatus });
     } else if (field === 'assignedTo') {
       if (!user) return;
-      const assigneeName = value ? projectMembers.find((m) => m.userId === value)?.profile?.displayName ?? projectMembers.find((m) => m.userId === value)?.profile?.username : null;
-      await issueService.assign(issueId, value || null, { projectId, actorId: user.id, actorName, assigneeName });
-      onPatchIssue(issueId, { assignedTo: value || null });
+      const assigneeId = (value as string) || null;
+      const assigneeName = assigneeId ? projectMembers.find((m) => m.userId === assigneeId)?.profile?.displayName ?? projectMembers.find((m) => m.userId === assigneeId)?.profile?.username : null;
+      await issueService.assign(issueId, assigneeId, { projectId, actorId: user.id, actorName, assigneeName });
+      onPatchIssue(issueId, { assignedTo: assigneeId });
     } else if (field === 'title') {
-      const title = (value ?? '').trim();
+      const title = ((value as string) ?? '').trim();
       await issueService.patchField(issueId, { title });
       onPatchIssue(issueId, { title });
     } else if (field === 'type') {
@@ -207,19 +211,22 @@ export function IssueTab({
       await issueService.patchField(issueId, { priority: value as IssuePriority });
       onPatchIssue(issueId, { priority: value as IssuePriority });
     } else if (field === 'moduleId') {
-      const moduleId = value || null;
+      const moduleId = (value as string) || null;
       await issueService.patchField(issueId, { moduleId });
       const module = moduleId ? { id: moduleId, name: moduleOptions.find((m) => m.value === moduleId)?.label ?? '' } : null;
       onPatchIssue(issueId, { moduleId, module } as Partial<IssueWithDetails>);
     } else if (field === 'targetRoleId') {
-      const targetRoleId = value || null;
+      const targetRoleId = (value as string) || null;
       await issueService.patchField(issueId, { targetRoleId });
       const targetRole = targetRoleId ? { id: targetRoleId, name: testRoleOptions.find((r) => r.value === targetRoleId)?.label ?? '' } : null;
       onPatchIssue(issueId, { targetRoleId, targetRole } as any);
+    } else if (field === 'tags') {
+      await tagService.saveTagsForIssue(projectId, issueId, value as string[]);
+      onPatchIssue(issueId, { tags: value } as any);
     }
   }, [onPatchIssue, moduleOptions, testRoleOptions, user, actorName, projectMembers]);
 
-  const handleUndo = useCallback(async (issueId: string, projectId: string, field: EditableField, previousValue: string | null) => {
+  const handleUndo = useCallback(async (issueId: string, projectId: string, field: EditableField, previousValue: string | string[] | null) => {
     if (undoTimerRef.current) { clearTimeout(undoTimerRef.current); undoTimerRef.current = null; }
     undoToast.current?.clear();
     try {
@@ -227,7 +234,7 @@ export function IssueTab({
     } catch { /* parent will refetch */ }
   }, [applyFieldChange]);
 
-  const scheduleUndoToast = useCallback((issueId: string, projectId: string, field: EditableField, previousValue: string | null, fieldLabel: string) => {
+  const scheduleUndoToast = useCallback((issueId: string, projectId: string, field: EditableField, previousValue: string | string[] | null, fieldLabel: string) => {
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
     undoToast.current?.clear();
     undoToast.current?.show({
@@ -249,19 +256,19 @@ export function IssueTab({
   // Takes the new value explicitly (instead of reading state) because PrimeReact's Dropdown
   // fires onHide synchronously after onChange, in the same tick as the setEditValue update —
   // reading editValue from the closure would see the stale pre-selection value.
-  const confirmEdit = useCallback(async (row: IssueWithDetails, field: EditableField, value: string | null) => {
+  const confirmEdit = useCallback(async (row: IssueWithDetails, field: EditableField, value: string | string[] | null) => {
     if (cancelledRef.current) return;
     setEditingCell(null);
     setEditValue(null);
 
     const previousValue = getFieldValue(row, field);
-    const normalizedValue = field === 'title' ? (value ?? '').trim() : (value || null);
-    const normalizedPrevious = field === 'title' ? (previousValue ?? '').trim() : previousValue;
+    const normalizedValue = field === 'title' ? ((value as string) ?? '').trim() : (value || null);
+    const normalizedPrevious = field === 'title' ? ((previousValue as string) ?? '').trim() : previousValue;
     if (field === 'title' && !normalizedValue) return;
-    if (normalizedValue === normalizedPrevious) return;
+    if (JSON.stringify(normalizedValue) === JSON.stringify(normalizedPrevious)) return;
 
     const fieldLabel: Record<EditableField, string> = {
-      status: 'Status', assignedTo: 'Assignee', title: 'Title', type: 'Type', priority: 'Priority', moduleId: 'Module', targetRoleId: 'Target Role',
+      status: 'Status', assignedTo: 'Assignee', title: 'Title', type: 'Type', priority: 'Priority', moduleId: 'Module', targetRoleId: 'Target Role', tags: 'Tags',
     };
     try {
       await applyFieldChange(row.id, row.projectId, field, value);
@@ -269,10 +276,14 @@ export function IssueTab({
     } catch { /* parent will refetch */ }
   }, [getFieldValue, applyFieldChange, scheduleUndoToast]);
 
-  const handleCellKeyDown = useCallback((e: React.KeyboardEvent, row: IssueWithDetails, field: EditableField, value: string | null) => {
+  const handleCellKeyDown = useCallback((e: React.KeyboardEvent, row: IssueWithDetails, field: EditableField, value: string | string[] | null) => {
     if (e.key === 'Enter') { confirmEdit(row, field, value); }
     else if (e.key === 'Escape') { cancelEdit(); }
   }, [confirmEdit, cancelEdit]);
+
+  // tagOptions prop carries ids (used by the filter MultiSelect); the cell editor works with
+  // tag names because tagService.saveTagsForIssue accepts names (same as the create/update flow).
+  const tagNameOptions = tagOptions.map((t) => ({ label: t.label, value: t.label }));
 
   const mobileIssueBody = (row: IssueWithDetails) => (
     <div className="flex flex-column gap-1">
@@ -434,7 +445,7 @@ export function IssueTab({
               return (
                 <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'title', editValue)}>
                   <InputText
-                    value={editValue ?? ''}
+                    value={(editValue as string) ?? ''}
                     onChange={(e) => setEditValue(e.target.value)}
                     onBlur={() => confirmEdit(row, 'title', editValue)}
                     autoFocus
@@ -489,7 +500,7 @@ export function IssueTab({
                   <Dropdown value={editValue} options={moduleOptions}
                     onChange={(e) => confirmEdit(row, 'moduleId', e.value ?? null)}
                     onHide={cancelEdit}
-                    placeholder="No module" showClear autoFocus className="w-10rem" virtualScrollerOptions={{ itemSize: 40 }} />
+                    placeholder="No module" showClear autoFocus className="w-10rem" filter virtualScrollerOptions={{ itemSize: 40 }} />
                 </div>
               );
             }
@@ -514,7 +525,7 @@ export function IssueTab({
                   <Dropdown value={editValue} options={testRoleOptions}
                     onChange={(e) => confirmEdit(row, 'targetRoleId', e.value ?? null)}
                     onHide={cancelEdit}
-                    placeholder="None" showClear autoFocus className="w-10rem" />
+                    placeholder="None" showClear autoFocus className="w-10rem" filter virtualScrollerOptions={{ itemSize: 40 }} />
                 </div>
               );
             }
@@ -525,15 +536,27 @@ export function IssueTab({
             );
           }}
         />
-        <Column
-          header="Tag"
-          hidden={isMobile}
-          body={(row: IssueWithDetails) => (
-            <div className="flex flex-wrap gap-1">
-              {row.tags.length > 0 ? row.tags.map((t) => <Tag key={t.id} value={t.name} severity="info" />) : '-'}
+        <Column field="tags" header="Tag" hidden={isMobile} body={(row: IssueWithDetails) => {
+          const canEdit = canManageIssues && row.status !== 'closed';
+          const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'tags';
+          if (isEditing && canEdit) {
+            return (
+              <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'tags', editValue)}>
+                <MultiSelect value={(editValue as string[]) ?? []} options={tagNameOptions}
+                  onChange={(e) => confirmEdit(row, 'tags', e.value)}
+                  onHide={cancelEdit}
+                  autoFocus className="w-10rem" display="chip" filter virtualScrollerOptions={{ itemSize: 40 }} />
+              </div>
+            );
+          }
+          return (
+            <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'tags', row.tags.map((t) => t.name)); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
+              <div className="flex flex-wrap gap-1">
+                {row.tags.length > 0 ? row.tags.map((t) => <Tag key={t.id} value={t.name} severity="info" />) : '-'}
+              </div>
             </div>
-          )}
-        />
+          );
+        }} />
         <Column
           header="Linked"
           hidden={isMobile}
@@ -605,10 +628,10 @@ export function IssueTab({
             if (isEditing && canEdit) {
               return (
                 <div ref={editRef} onKeyDown={(e) => handleCellKeyDown(e, row, 'assignedTo', editValue)}>
-                  <Dropdown value={editValue} options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
+                  <Dropdown value={editValue} options={projectMembers.map((m) => ({ label: memberSelectLabel(m), value: m.userId }))}
                     onChange={(e) => confirmEdit(row, 'assignedTo', e.value ?? null)}
                     onHide={cancelEdit}
-                    placeholder="Unassigned" showClear autoFocus className="w-10rem" />
+                    placeholder="Unassigned" showClear autoFocus className="w-10rem" filter virtualScrollerOptions={{ itemSize: 40 }} />
                 </div>
               );
             }
@@ -706,7 +729,7 @@ export function IssueTab({
               <Dropdown
                 id="bulk-issue-assigned"
                 value={bulkAssignedTo === UNSET ? null : bulkAssignedTo}
-                options={projectMembers.map((m) => ({ label: m.profile?.displayName ?? m.profile?.username ?? m.email, value: m.userId }))}
+                options={projectMembers.map((m) => ({ label: memberSelectLabel(m), value: m.userId }))}
                 onChange={(e) => setBulkAssignedTo(e.value)}
                 showClear
                 className="w-full"

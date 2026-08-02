@@ -1,20 +1,12 @@
-import { supabase } from '../config/supabaseClient';
-import { mapActivityEntryRow } from '../helpers/mappers';
+import { activityRepositoryAdapter } from './adapters/activityResolver';
 import type { ActivityEntityType, ActivityEntry } from '../types/domain';
 
 export const activityRepository = {
-  async findForEntity(entityType: ActivityEntityType, entityId: string): Promise<ActivityEntry[]> {
-    const { data, error } = await supabase
-      .from('entity_activity')
-      .select('*')
-      .eq('entity_type', entityType)
-      .eq('entity_id', entityId)
-      .order('created_at', { ascending: true });
-    if (error) throw error;
-    return (data ?? []).map(mapActivityEntryRow);
+  findForEntity(entityType: ActivityEntityType, entityId: string): Promise<ActivityEntry[]> {
+    return activityRepositoryAdapter.findForEntity(entityType, entityId);
   },
 
-  async create(input: {
+  create(input: {
     projectId: string;
     entityType: ActivityEntityType;
     entityId: string;
@@ -23,42 +15,14 @@ export const activityRepository = {
     payload?: Record<string, unknown>;
     parentCommentId?: string | null;
   }): Promise<ActivityEntry> {
-    const { data, error } = await supabase
-      .from('entity_activity')
-      .insert({
-        project_id: input.projectId,
-        entity_type: input.entityType,
-        entity_id: input.entityId,
-        actor_id: input.actorId,
-        event_type: input.eventType,
-        payload: input.payload ?? {},
-        parent_comment_id: input.parentCommentId ?? null,
-      })
-      .select('*')
-      .single();
-    if (error) throw error;
-    return mapActivityEntryRow(data);
+    return activityRepositoryAdapter.create(input);
   },
 
-  async updateComment(id: string, body: string): Promise<ActivityEntry> {
-    const { data, error } = await supabase
-      .from('entity_activity')
-      .update({ payload: { body }, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select('*')
-      .single();
-    if (error) throw error;
-    return mapActivityEntryRow(data);
+  updateComment(id: string, body: string): Promise<ActivityEntry> {
+    return activityRepositoryAdapter.updateComment(id, body);
   },
 
-  async softDelete(id: string): Promise<ActivityEntry> {
-    const { data, error } = await supabase
-      .from('entity_activity')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id)
-      .select('*')
-      .single();
-    if (error) throw error;
-    return mapActivityEntryRow(data);
+  softDelete(id: string): Promise<ActivityEntry> {
+    return activityRepositoryAdapter.softDelete(id);
   },
 };

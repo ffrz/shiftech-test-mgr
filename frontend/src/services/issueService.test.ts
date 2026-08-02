@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import type { Issue } from '../types/domain';
+import type { Issue, IssueWithDetails } from '../types/domain';
 
 vi.mock('../repositories/issueRepository', () => ({
   issueRepository: {
@@ -39,7 +39,7 @@ const { activityService } = await import('./activityService');
 const { notificationService } = await import('./notificationService');
 const { issueService } = await import('./issueService');
 
-function makeIssue(overrides: Partial<Issue> = {}): Issue {
+function makeIssue(overrides: Partial<Issue> = {}): IssueWithDetails {
   return {
     id: 'issue-1',
     code: 'ISS-1',
@@ -58,8 +58,13 @@ function makeIssue(overrides: Partial<Issue> = {}): Issue {
     createdBy: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
+    assignee: null,
+    module: null,
+    targetRole: null,
+    tags: [],
+    linkedTestResults: [],
     ...overrides,
-  } as Issue;
+  } as IssueWithDetails;
 }
 
 describe('issueService passthrough reads', () => {
@@ -175,6 +180,16 @@ describe('issueService.create', () => {
     await issueService.create({ projectId: 'proj-1', title: 'Backlog item', status: 'backlog' });
 
     expect(issueRepository.create).toHaveBeenCalledWith(expect.objectContaining({ status: 'backlog' }));
+  });
+
+  it('persists assignedTo when provided (and null otherwise)', async () => {
+    vi.mocked(issueRepository.create).mockResolvedValue(makeIssue());
+
+    await issueService.create({ projectId: 'proj-1', title: 'Assigned', assignedTo: 'user-2' });
+    expect(issueRepository.create).toHaveBeenCalledWith(expect.objectContaining({ assignedTo: 'user-2' }));
+
+    await issueService.create({ projectId: 'proj-1', title: 'Unassigned' });
+    expect(issueRepository.create).toHaveBeenCalledWith(expect.objectContaining({ assignedTo: null }));
   });
 
   it('trims title and optional fields before delegating to the repository', async () => {
