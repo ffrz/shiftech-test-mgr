@@ -38,3 +38,6 @@ backups/
 /graphify-out/cache
 graphify-out/cache/last_query_stamp
 backend/cmd.exe
+
+# Local MCP client config — contains live bearer tokens
+/opencode.json

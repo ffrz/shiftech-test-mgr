@@ -3,3 +3,4 @@
 # run on Linux (e.g. deploy/deploy-vps.sh from WSL). Force LF on checkout
 # regardless of a contributor's local core.autocrlf setting.
 *.sh text eol=lf
+graphify-out/graph.json merge=graphify
