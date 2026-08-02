@@ -52,8 +52,10 @@ func (moduleRow) TableName() string { return "modules" }
 func (r moduleRow) toDomain() core.Module {
 	return core.Module{
 		ID:        r.ID,
-		Name:      r.Name,
 		ProjectID: r.ProjectID,
+		Code:      r.Code,
+		Name:      r.Name,
 		CreatedAt: r.CreatedAt,
+		UpdatedAt: r.UpdatedAt,
 	}
 }

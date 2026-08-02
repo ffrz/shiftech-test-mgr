@@ -102,16 +102,21 @@ func (r *IssueRepo) Create(ctx context.Context, input core.CreateIssueInput) (*c
 	issueID := newUUID()
 	now := time.Now()
 	row := issueRow{
-		ID:          issueID,
-		ProjectID:   input.ProjectID,
-		Title:       input.Title,
-		Description: input.Description,
-		Type:        string(input.Type),
-		Priority:    string(input.Priority),
-		Status:      string(core.IssueOpen),
-		ModuleID:    input.ModuleID,
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		ID:             issueID,
+		ProjectID:      input.ProjectID,
+		Title:          input.Title,
+		Description:    strOrEmpty(input.Description),
+		Type:           string(input.Type),
+		Priority:       string(input.Priority),
+		Status:         string(core.IssueOpen),
+		ModuleID:       input.ModuleID,
+		ActualResult:   input.ActualResult,
+		ExpectedResult: input.ExpectedResult,
+		TargetRoleID:   input.TargetRoleID,
+		AssignedTo:     input.AssignedTo,
+		ExternalLinks:  externalLinks(input.ExternalLinks),
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}
 
 	if err := r.db.WithContext(ctx).Create(&row).Error; err != nil {
@@ -150,41 +155,47 @@ func (r *IssueRepo) UpdateStatus(ctx context.Context, id string, status core.Iss
 // ---------------------------------------------------------------------------
 
 type issueRow struct {
-	ID             string    `gorm:"column:id"`
-	ProjectID      string    `gorm:"column:project_id"`
-	Code           string    `gorm:"column:code"`
-	Title          string    `gorm:"column:title"`
-	Description    string    `gorm:"column:description"`
-	ActualResult   *string   `gorm:"column:actual_result"`
-	ExpectedResult *string   `gorm:"column:expected_result"`
-	Type           string    `gorm:"column:type"`
-	Status         string    `gorm:"column:status"`
-	Priority       string    `gorm:"column:priority"`
-	ModuleID       *string   `gorm:"column:module_id"`
-	AssignedTo     *string   `gorm:"column:assigned_to"`
-	CreatedBy      *string   `gorm:"column:created_by"`
-	CreatedAt      time.Time `gorm:"column:created_at"`
-	UpdatedAt      time.Time `gorm:"column:updated_at"`
+	ID             string        `gorm:"column:id"`
+	ProjectID      string        `gorm:"column:project_id"`
+	Code           string        `gorm:"column:code"`
+	Title          string        `gorm:"column:title"`
+	Description    string        `gorm:"column:description"`
+	ActualResult   *string       `gorm:"column:actual_result"`
+	ExpectedResult *string       `gorm:"column:expected_result"`
+	Type           string        `gorm:"column:type"`
+	Status         string        `gorm:"column:status"`
+	Priority       string        `gorm:"column:priority"`
+	ModuleID       *string       `gorm:"column:module_id"`
+	AssignedTo     *string       `gorm:"column:assigned_to"`
+	TargetRoleID   *string       `gorm:"column:target_role_id"`
+	ExternalLinks  externalLinks `gorm:"column:external_links"`
+	CreatedBy      *string       `gorm:"column:created_by"`
+	CreatedAt      time.Time     `gorm:"column:created_at"`
+	UpdatedAt      time.Time     `gorm:"column:updated_at"`
 }
 
 func (issueRow) TableName() string { return "issues" }
 
 func (r issueRow) toDomain() core.Issue {
-	iss := core.Issue{
-		ID:          r.ID,
-		Code:        r.Code,
-		Title:       r.Title,
-		Description: r.Description,
-		Type:        core.IssueType(r.Type),
-		Status:      core.IssueStatus(r.Status),
-		Priority:    core.TestCasePriority(r.Priority),
-		ModuleID:    r.ModuleID,
-		ProjectID:   r.ProjectID,
-		AssigneeID:  r.AssignedTo,
-		CreatedAt:   r.CreatedAt,
-		UpdatedAt:   r.UpdatedAt,
+	return core.Issue{
+		ID:             r.ID,
+		Code:           r.Code,
+		ProjectID:      r.ProjectID,
+		ModuleID:       r.ModuleID,
+		Type:           core.IssueType(r.Type),
+		Title:          r.Title,
+		Description:    emptyToNil(r.Description),
+		ActualResult:   r.ActualResult,
+		ExpectedResult: r.ExpectedResult,
+		Priority:       core.IssuePriority(r.Priority),
+		Status:         core.IssueStatus(r.Status),
+		AssignedTo:     r.AssignedTo,
+		TargetRoleID:   r.TargetRoleID,
+		ExternalLinks:  []core.ExternalLink(r.ExternalLinks),
+		CreatedBy:      r.CreatedBy,
+		CreatedAt:      r.CreatedAt,
+		UpdatedAt:      r.UpdatedAt,
 	}
-	return iss
 }
 
 type issueTestResultRow struct {

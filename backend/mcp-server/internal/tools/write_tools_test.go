@@ -527,7 +527,7 @@ func TestCreateIssue_ValidInput(t *testing.T) {
 	if got.ProjectID != testProjectID || got.TestResultID != testResultID {
 		t.Errorf("input = %+v", got)
 	}
-	if got.Type != core.IssueBug || got.Priority != core.PriorityCritical {
+	if got.Type != core.IssueBug || got.Priority != core.IssuePriorityCritical {
 		t.Errorf("type/priority = %q/%q", got.Type, got.Priority)
 	}
 }
@@ -770,7 +770,7 @@ func TestCreateTestRun_WithPlan(t *testing.T) {
 	if res == nil || res.IsError {
 		t.Fatalf("expected success, got %+v", res)
 	}
-	if got.ProjectID != testProjectID || got.Name != "Run A" || got.PlanID == nil || *got.PlanID != testPlanID {
+	if got.ProjectID != testProjectID || got.Name != "Run A" || got.TestPlanID == nil || *got.TestPlanID != testPlanID {
 		t.Errorf("input = %+v", got)
 	}
 }
@@ -792,7 +792,7 @@ func TestCreateTestRun_WithCases(t *testing.T) {
 	if res == nil || res.IsError {
 		t.Fatalf("expected success, got %+v", res)
 	}
-	if got.PlanID != nil || len(got.CaseIDs) != 1 || got.CaseIDs[0] != testCaseID {
+	if got.TestPlanID != nil || len(got.CaseIDs) != 1 || got.CaseIDs[0] != testCaseID {
 		t.Errorf("input = %+v", got)
 	}
 }

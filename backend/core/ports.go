@@ -98,28 +98,43 @@ type TestCaseFilter struct {
 	Tag       *string // case-insensitive exact tag name
 	Priority  *TestCasePriority
 	Status    *TestCaseStatus
+	StepType  *StepType
 	Search    *string
 	Cursor    *string
 	Limit     int
 }
 
 type CreateTestCaseInput struct {
-	ProjectID    string
-	Title        string
-	Objective    string
-	Precondition string
-	Priority     TestCasePriority
-	ModuleID     string
-	Tags         []string
+	ProjectID      string
+	Title          string
+	ModuleID       *string
+	Objective      *string
+	Preconditions  *string
+	Steps          string
+	ExpectedResult *string
+	Priority       TestCasePriority
+	Status         TestCaseStatus
+	StepType       StepType
+	Notes          *string
+	TargetRoleID   *string
+	AssignedTo     *string
+	ExternalLinks  []ExternalLink
+	Tags           []string
 }
 
 type UpdateTestCaseInput struct {
-	Title        *string
-	Objective    *string
-	Precondition *string
-	Priority     *TestCasePriority
-	ModuleID     *string
-	Tags         *[]string
+	Title          *string
+	Objective      *string
+	Preconditions  *string
+	Steps          *string
+	ExpectedResult *string
+	Priority       *TestCasePriority
+	ModuleID       *string
+	StepType       *StepType
+	Notes          *string
+	TargetRoleID   *string
+	AssignedTo     *string
+	Tags           *[]string
 }
 
 type TestPlanFilter struct {
@@ -133,8 +148,9 @@ type TestPlanFilter struct {
 type CreateTestPlanInput struct {
 	ProjectID   string
 	Name        string
-	Description string
+	Description *string
 	Status      TestPlanStatus
+	CreatedBy   *string
 }
 
 type TestRunFilter struct {
@@ -147,10 +163,11 @@ type TestRunFilter struct {
 }
 
 type CreateTestRunInput struct {
-	ProjectID string
-	Name      string
-	PlanID    *string
-	CaseIDs   []string  // for unplanned runs
+	ProjectID  string
+	Name       string
+	TestPlanID *string
+	StartedBy  *string
+	CaseIDs    []string // for unplanned runs
 }
 
 type RecordResultInput struct {
@@ -163,7 +180,7 @@ type IssueFilter struct {
 	ProjectID  string
 	Type       *IssueType
 	Status     *IssueStatus
-	Priority   *TestCasePriority
+	Priority   *IssuePriority
 	AssigneeID *string
 	RunID      *string
 	CaseID     *string
@@ -173,11 +190,16 @@ type IssueFilter struct {
 }
 
 type CreateIssueInput struct {
-	ProjectID    string
-	TestResultID string
-	Title        string
-	Description  string
-	Type         IssueType
-	Priority     TestCasePriority
-	ModuleID     *string
+	ProjectID      string
+	TestResultID   string
+	Title          string
+	Description    *string
+	Type           IssueType
+	Priority       IssuePriority
+	ModuleID       *string
+	ActualResult   *string
+	ExpectedResult *string
+	TargetRoleID   *string
+	AssignedTo     *string
+	ExternalLinks  []ExternalLink
 }

@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+func strPtr(s string) *string { return &s }
+
 func TestProjectStatusConstants(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -211,10 +213,11 @@ func TestProjectJSON(t *testing.T) {
 	p := Project{
 		ID:          "proj-1",
 		Name:        "Test Project",
-		Description: "A test project",
+		Description: strPtr("A test project"),
 		Status:      ProjectStatusActive,
 		Visibility:  VisibilityPrivate,
 		OwnerID:     "user-1",
+		OwnerType:   OwnerTypeUser,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -257,10 +260,11 @@ func TestProjectJSONRoundtrip(t *testing.T) {
 	p := Project{
 		ID:          "proj-1",
 		Name:        "Roundtrip Project",
-		Description: "Roundtrip",
+		Description: strPtr("Roundtrip"),
 		Status:      ProjectStatusActive,
 		Visibility:  VisibilityPublic,
 		OwnerID:     "owner-1",
+		OwnerType:   OwnerTypeUser,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -298,17 +302,18 @@ func TestTestCaseJSONRoundtrip(t *testing.T) {
 		ID:           "tc-1",
 		Code:         "TC-001",
 		Title:        "Login Test",
-		Objective:    "Verify login flow",
-		Precondition: "User exists",
-		Steps: []TestCaseStep{
-			{ID: "s-1", TestCasedID: "tc-1", Order: 1, Action: "Open login page", Expectation: "Page loads"},
-			{ID: "s-2", TestCasedID: "tc-1", Order: 2, Action: "Enter credentials", Expectation: "Fields accepted"},
+		Objective:    strPtr("Verify login flow"),
+		Preconditions: strPtr("User exists"),
+		Steps:        "1. Open login page\n2. Enter credentials",
+		DetailedSteps: []TestCaseStep{
+			{ID: "s-1", TestCaseID: "tc-1", StepNumber: 1, Action: "Open login page", ExpectedResult: strPtr("Page loads")},
+			{ID: "s-2", TestCaseID: "tc-1", StepNumber: 2, Action: "Enter credentials", ExpectedResult: strPtr("Fields accepted")},
 		},
 		ExpectedResult: "User is logged in",
 		Priority:       PriorityHigh,
 		Status:         TestCaseStatusActive,
 		StepType:       StepDetailed,
-		ModuleID:       "mod-1",
+		ModuleID:       strPtr("mod-1"),
 		ProjectID:      "proj-1",
 		Tags:           []string{"smoke", "regression"},
 		CreatedAt:      now,
@@ -331,11 +336,11 @@ func TestTestCaseJSONRoundtrip(t *testing.T) {
 	if tc2.Priority != tc.Priority {
 		t.Errorf("Priority = %q, want %q", tc2.Priority, tc.Priority)
 	}
-	if len(tc2.Steps) != 2 {
-		t.Errorf("Steps len = %d, want 2", len(tc2.Steps))
+	if len(tc2.DetailedSteps) != 2 {
+		t.Errorf("DetailedSteps len = %d, want 2", len(tc2.DetailedSteps))
 	}
-	if tc2.Steps[0].Action != "Open login page" {
-		t.Errorf("Steps[0].Action = %q", tc2.Steps[0].Action)
+	if tc2.DetailedSteps[0].Action != "Open login page" {
+		t.Errorf("DetailedSteps[0].Action = %q", tc2.DetailedSteps[0].Action)
 	}
 	if len(tc2.Tags) != 2 {
 		t.Errorf("Tags len = %d, want 2", len(tc2.Tags))
@@ -347,7 +352,7 @@ func TestTestCaseJSONUsesCamelCase(t *testing.T) {
 		ID:             "tc-1",
 		ExpectedResult: "should pass",
 		StepType:       StepSimple,
-		ModuleID:       "mod-1",
+		ModuleID:       strPtr("mod-1"),
 		ProjectID:      "proj-1",
 	}
 
@@ -386,7 +391,7 @@ func TestTestRunJSONRoundtrip(t *testing.T) {
 		Code:      "TR-001",
 		Name:      "Sprint 1 Regression",
 		Status:    RunInProgress,
-		PlanID:    &planID,
+		TestPlanID: &planID,
 		ProjectID: "proj-1",
 		StartedAt: now,
 	}
@@ -404,18 +409,18 @@ func TestTestRunJSONRoundtrip(t *testing.T) {
 	if tr2.Status != tr.Status {
 		t.Errorf("Status = %q, want %q", tr2.Status, tr.Status)
 	}
-	if *tr2.PlanID != planID {
-		t.Errorf("PlanID = %q, want %q", *tr2.PlanID, planID)
+	if *tr2.TestPlanID != planID {
+		t.Errorf("TestPlanID = %q, want %q", *tr2.TestPlanID, planID)
 	}
 }
 
 func TestTestRunNullableFields(t *testing.T) {
 	tr := TestRun{
-		ID:        "run-1",
-		Name:      "Ad-hoc Run",
-		Status:    RunInProgress,
-		PlanID:    nil,
-		ProjectID: "proj-1",
+		ID:         "run-1",
+		Name:       "Ad-hoc Run",
+		Status:     RunInProgress,
+		TestPlanID: nil,
+		ProjectID:  "proj-1",
 	}
 
 	data, err := json.Marshal(tr)
@@ -428,8 +433,8 @@ func TestTestRunNullableFields(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	if tr2.PlanID != nil {
-		t.Errorf("PlanID should be nil, got %v", *tr2.PlanID)
+	if tr2.TestPlanID != nil {
+		t.Errorf("TestPlanID should be nil, got %v", tr2.TestPlanID)
 	}
 	if tr2.CompletedAt != nil {
 		t.Errorf("CompletedAt should be nil, got %v", *tr2.CompletedAt)
@@ -441,13 +446,13 @@ func TestTestResultJSONRoundtrip(t *testing.T) {
 	notes := "test passed successfully"
 	now := time.Date(2025, 7, 2, 14, 0, 0, 0, time.UTC)
 	tr := TestResult{
-		ID:        "result-1",
-		RunID:     "run-1",
-		CaseID:    "tc-1",
-		Status:    ResultPass,
-		TesterID:  &testerID,
-		Notes:     &notes,
-		UpdatedAt: now,
+		ID:         "result-1",
+		TestRunID:  "run-1",
+		TestCaseID: "tc-1",
+		Status:     ResultPass,
+		TesterID:   &testerID,
+		Notes:      &notes,
+		UpdatedAt:  now,
 	}
 
 	data, err := json.Marshal(tr)
@@ -479,13 +484,13 @@ func TestIssueJSONRoundtrip(t *testing.T) {
 		ID:          "iss-1",
 		Code:        "BUG-001",
 		Title:       "Login fails on Firefox",
-		Description: "User cannot log in",
+		Description: strPtr("User cannot log in"),
 		Type:        IssueBug,
 		Status:      IssueOpen,
-		Priority:    PriorityHigh,
+		Priority:    IssuePriorityHigh,
 		ModuleID:    &modID,
 		ProjectID:   "proj-1",
-		AssigneeID:  &assigneeID,
+		AssignedTo:  &assigneeID,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -506,7 +511,7 @@ func TestIssueJSONRoundtrip(t *testing.T) {
 	if issue2.Status != IssueOpen {
 		t.Errorf("Status = %q, want open", issue2.Status)
 	}
-	if issue2.Priority != PriorityHigh {
+	if issue2.Priority != IssuePriorityHigh {
 		t.Errorf("Priority = %q, want high", issue2.Priority)
 	}
 }

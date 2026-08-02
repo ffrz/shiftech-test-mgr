@@ -103,8 +103,9 @@ func (r *TestPlanRepo) Create(ctx context.Context, input core.CreateTestPlanInpu
 		ID:          newUUID(),
 		ProjectID:   input.ProjectID,
 		Name:        input.Name,
-		Description: input.Description,
+		Description: strOrEmpty(input.Description),
 		Status:      status,
+		CreatedBy:   input.CreatedBy,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -224,6 +225,7 @@ type testPlanRow struct {
 	Name        string    `gorm:"column:name"`
 	Description string    `gorm:"column:description"`
 	Status      string    `gorm:"column:status"`
+	CreatedBy   *string   `gorm:"column:created_by"`
 	CreatedAt   time.Time `gorm:"column:created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at"`
 }
@@ -235,9 +237,10 @@ func (r testPlanRow) toDomain() core.TestPlan {
 		ID:          r.ID,
 		Code:        r.Code,
 		Name:        r.Name,
-		Description: r.Description,
+		Description: emptyToNil(r.Description),
 		Status:      core.TestPlanStatus(r.Status),
 		ProjectID:   r.ProjectID,
+		CreatedBy:   r.CreatedBy,
 		CreatedAt:   r.CreatedAt,
 		UpdatedAt:   r.UpdatedAt,
 	}

@@ -63,6 +63,7 @@ type projectRow struct {
 	Status      string    `gorm:"column:status"`
 	Visibility  string    `gorm:"column:visibility"`
 	OwnerID     string    `gorm:"column:owner_id"`
+	OwnerType   string    `gorm:"column:owner_type"`
 	CreatedAt   time.Time `gorm:"column:created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at"`
 }
@@ -73,10 +74,11 @@ func (r projectRow) toDomain() core.Project {
 	return core.Project{
 		ID:          r.ID,
 		Name:        r.Name,
-		Description: r.Description,
+		Description: emptyToNil(r.Description),
 		Status:      core.ProjectStatus(r.Status),
 		Visibility:  core.ProjectVisibility(r.Visibility),
 		OwnerID:     r.OwnerID,
+		OwnerType:   core.ProjectOwnerType(r.OwnerType),
 		CreatedAt:   r.CreatedAt,
 		UpdatedAt:   r.UpdatedAt,
 	}

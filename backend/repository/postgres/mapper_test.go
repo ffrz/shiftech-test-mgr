@@ -16,6 +16,7 @@ func TestProjectRowToDomain(t *testing.T) {
 		Status:      "active",
 		Visibility:  "private",
 		OwnerID:     "user-1",
+		OwnerType:   "user",
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -24,14 +25,19 @@ func TestProjectRowToDomain(t *testing.T) {
 	want := core.Project{
 		ID:          "p1",
 		Name:        "Amanah POS",
-		Description: "Mini ERP",
+		Description: emptyToNil("Mini ERP"),
 		Status:      core.ProjectStatusActive,
 		Visibility:  core.VisibilityPrivate,
 		OwnerID:     "user-1",
+		OwnerType:   core.OwnerTypeUser,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
-	if got != want {
+	if got.ID != want.ID || got.Name != want.Name ||
+		got.Status != want.Status || got.Visibility != want.Visibility ||
+		got.OwnerID != want.OwnerID || got.OwnerType != want.OwnerType ||
+		strOrEmpty(got.Description) != strOrEmpty(want.Description) ||
+		!got.CreatedAt.Equal(want.CreatedAt) || !got.UpdatedAt.Equal(want.UpdatedAt) {
 		t.Errorf("toDomain() mismatch:\n got: %+v\nwant: %+v", got, want)
 	}
 }
@@ -135,8 +141,8 @@ func TestTestCaseRowToDomain(t *testing.T) {
 		ProjectID:      "p1",
 		Code:           "TC-001",
 		Title:          "Login test",
-		Objective:      "Verify login",
-		Preconditions:  "User exists",
+		Objective:      emptyToNil("Verify login"),
+		Preconditions:  emptyToNil("User exists"),
 		Steps:          "simple",
 		ExpectedResult: "Logged in",
 		Priority:       "high",
@@ -152,22 +158,25 @@ func TestTestCaseRowToDomain(t *testing.T) {
 		ID:             "tc1",
 		Code:           "TC-001",
 		Title:          "Login test",
-		Objective:      "Verify login",
-		Precondition:   "User exists",
+		Objective:      emptyToNil("Verify login"),
+		Preconditions:  emptyToNil("User exists"),
 		ExpectedResult: "Logged in",
 		Priority:       core.PriorityHigh,
 		Status:         core.TestCaseStatusActive,
 		StepType:       core.StepSimple,
 		ProjectID:      "p1",
-		ModuleID:       "m1",
+		ModuleID:       &moduleID,
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}
 	if got.ID != want.ID || got.Code != want.Code || got.Title != want.Title ||
-		got.Objective != want.Objective || got.Precondition != want.Precondition ||
+		strOrEmpty(got.Objective) != strOrEmpty(want.Objective) ||
+		strOrEmpty(got.Preconditions) != strOrEmpty(want.Preconditions) ||
 		got.ExpectedResult != want.ExpectedResult || got.Priority != want.Priority ||
 		got.Status != want.Status || got.StepType != want.StepType ||
-		got.ProjectID != want.ProjectID || got.ModuleID != want.ModuleID ||
+		got.ProjectID != want.ProjectID ||
+		(got.ModuleID == nil) != (want.ModuleID == nil) ||
+		(got.ModuleID != nil && want.ModuleID != nil && *got.ModuleID != *want.ModuleID) ||
 		!got.CreatedAt.Equal(want.CreatedAt) || !got.UpdatedAt.Equal(want.UpdatedAt) {
 		t.Errorf("toDomain() mismatch:\n got: %+v\nwant: %+v", got, want)
 	}
@@ -184,8 +193,8 @@ func TestTestCaseRowToDomainNilModule(t *testing.T) {
 		Status:    "archived",
 	}
 	got := row.toDomain()
-	if got.ModuleID != "" {
-		t.Errorf("ModuleID = %q, want empty string for nil module", got.ModuleID)
+	if got.ModuleID != nil {
+		t.Errorf("ModuleID = %v, want nil for nil module", got.ModuleID)
 	}
 	if got.StepType != core.StepDetailed {
 		t.Errorf("StepType = %q, want detailed", got.StepType)
@@ -210,17 +219,17 @@ func TestTestCaseStepRowToDomain(t *testing.T) {
 	if got.ID != "s1" {
 		t.Errorf("ID = %q, want s1", got.ID)
 	}
-	if got.TestCasedID != "tc1" {
-		t.Errorf("TestCasedID = %q, want tc1", got.TestCasedID)
+	if got.TestCaseID != "tc1" {
+		t.Errorf("TestCaseID = %q, want tc1", got.TestCaseID)
 	}
-	if got.Order != 2 {
-		t.Errorf("Order = %d, want 2", got.Order)
+	if got.StepNumber != 2 {
+		t.Errorf("StepNumber = %d, want 2", got.StepNumber)
 	}
 	if got.Action != "Open login page" {
 		t.Errorf("Action = %q", got.Action)
 	}
-	if got.Expectation != expected {
-		t.Errorf("Expectation = %q, want %q", got.Expectation, expected)
+	if got.ExpectedResult == nil || *got.ExpectedResult != expected {
+		t.Errorf("ExpectedResult = %v, want %q", got.ExpectedResult, expected)
 	}
 }
 
@@ -233,8 +242,8 @@ func TestTestCaseStepRowToDomainNilExpected(t *testing.T) {
 		ExpectedResult: nil,
 	}
 	got := row.toDomain()
-	if got.Expectation != "" {
-		t.Errorf("Expectation = %q, want empty string for nil expected result", got.Expectation)
+	if got.ExpectedResult != nil {
+		t.Errorf("ExpectedResult = %v, want nil for nil expected result", got.ExpectedResult)
 	}
 }
 
@@ -256,14 +265,14 @@ func TestTestPlanRowToDomain(t *testing.T) {
 		ID:          "plan1",
 		Code:        "PLAN-001",
 		Name:        "Sprint 1",
-		Description: "Regression",
+		Description: emptyToNil("Regression"),
 		Status:      core.PlanActive,
 		ProjectID:   "p1",
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
 	if got.ID != want.ID || got.Code != want.Code || got.Name != want.Name ||
-		got.Description != want.Description || got.Status != want.Status ||
+		strOrEmpty(got.Description) != strOrEmpty(want.Description) || got.Status != want.Status ||
 		got.ProjectID != want.ProjectID ||
 		!got.CreatedAt.Equal(want.CreatedAt) || !got.UpdatedAt.Equal(want.UpdatedAt) {
 		t.Errorf("toDomain() mismatch:\n got: %+v\nwant: %+v", got, want)
@@ -310,12 +319,20 @@ func TestTestRunRowToDomain(t *testing.T) {
 		Code:        "TR-001",
 		Name:        "Sprint 1 Run",
 		Status:      core.RunInProgress,
-		PlanID:      &planID,
+		TestPlanID:  &planID,
 		ProjectID:   "p1",
 		StartedAt:   started,
 		CompletedAt: nil,
+		CreatedAt:   started,
+		UpdatedAt:   started,
 	}
-	if got != want {
+	if got.ID != want.ID || got.Code != want.Code || got.Name != want.Name ||
+		got.Status != want.Status || got.ProjectID != want.ProjectID ||
+		(got.TestPlanID == nil) != (want.TestPlanID == nil) ||
+		(got.TestPlanID != nil && *got.TestPlanID != *want.TestPlanID) ||
+		!got.StartedAt.Equal(want.StartedAt) ||
+		(got.CompletedAt == nil) != (want.CompletedAt == nil) ||
+		!got.CreatedAt.Equal(want.CreatedAt) || !got.UpdatedAt.Equal(want.UpdatedAt) {
 		t.Errorf("toDomain() mismatch:\n got: %+v\nwant: %+v", got, want)
 	}
 }
@@ -335,8 +352,8 @@ func TestTestRunRowToDomainNilPlanAndCompleted(t *testing.T) {
 	}
 	got := row.toDomain()
 
-	if got.PlanID != nil {
-		t.Errorf("PlanID = %v, want nil", *got.PlanID)
+	if got.TestPlanID != nil {
+		t.Errorf("TestPlanID = %v, want nil", got.TestPlanID)
 	}
 	if got.CompletedAt == nil || !got.CompletedAt.Equal(completed) {
 		t.Errorf("CompletedAt = %v, want %v", got.CompletedAt, completed)
@@ -363,8 +380,8 @@ func TestTestResultRowToDomain(t *testing.T) {
 	}
 	got := row.toDomain()
 
-	if got.ID != "res1" || got.RunID != "run1" || got.CaseID != "tc1" {
-		t.Errorf("ID/RunID/CaseID mismatch: %+v", got)
+	if got.ID != "res1" || got.TestRunID != "run1" || got.TestCaseID != "tc1" {
+		t.Errorf("ID/TestRunID/TestCaseID mismatch: %+v", got)
 	}
 	if got.Status != core.ResultPass {
 		t.Errorf("Status = %q, want pass", got.Status)
@@ -425,17 +442,25 @@ func TestIssueRowToDomain(t *testing.T) {
 		ID:          "iss1",
 		Code:        "ISS-0009",
 		Title:       "Icon issue",
-		Description: "",
+		Description: nil,
 		Type:        core.IssueImprovement,
 		Status:      core.IssueOpen,
-		Priority:    core.PriorityMedium,
+		Priority:    core.IssuePriorityMedium,
 		ModuleID:    &moduleID,
 		ProjectID:   "p1",
-		AssigneeID:  &assignee,
+		AssignedTo:  &assignee,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
-	if got != want {
+	if got.ID != want.ID || got.Code != want.Code || got.Title != want.Title ||
+		got.Description != nil || got.Type != want.Type || got.Status != want.Status ||
+		got.Priority != want.Priority || got.ProjectID != want.ProjectID ||
+		(got.ModuleID == nil) != (want.ModuleID == nil) ||
+		(got.ModuleID != nil && *got.ModuleID != *want.ModuleID) ||
+		(got.AssignedTo == nil) != (want.AssignedTo == nil) ||
+		(got.AssignedTo != nil && *got.AssignedTo != *want.AssignedTo) ||
+		len(got.ExternalLinks) != len(want.ExternalLinks) ||
+		!got.CreatedAt.Equal(want.CreatedAt) || !got.UpdatedAt.Equal(want.UpdatedAt) {
 		t.Errorf("toDomain() mismatch:\n got: %+v\nwant: %+v", got, want)
 	}
 }
@@ -456,8 +481,8 @@ func TestIssueRowToDomainNilPointers(t *testing.T) {
 	if got.ModuleID != nil {
 		t.Errorf("ModuleID = %v, want nil", got.ModuleID)
 	}
-	if got.AssigneeID != nil {
-		t.Errorf("AssigneeID = %v, want nil", got.AssigneeID)
+	if got.AssignedTo != nil {
+		t.Errorf("AssignedTo = %v, want nil", got.AssignedTo)
 	}
 	if got.Type != core.IssueBug {
 		t.Errorf("Type = %q, want bug", got.Type)

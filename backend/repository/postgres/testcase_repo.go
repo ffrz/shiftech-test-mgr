@@ -49,6 +49,9 @@ func (r *TestCaseRepo) List(ctx context.Context, filter core.TestCaseFilter) (*c
 	if filter.Status != nil {
 		q = q.Where("status = ?", *filter.Status)
 	}
+	if filter.StepType != nil {
+		q = q.Where("step_type = ?", *filter.StepType)
+	}
 	if filter.Search != nil {
 		search := "%" + strings.ToLower(strings.TrimSpace(*filter.Search)) + "%"
 		q = q.Where("lower(concat_ws(' ', code, title, objective, preconditions, steps, expected_result)) like ?", search)
@@ -120,25 +123,45 @@ func (r *TestCaseRepo) Get(ctx context.Context, id string) (*core.TestCase, erro
 	if err != nil {
 		return nil, err
 	}
-	tc.Steps = steps
+	tc.DetailedSteps = steps
 
 	return &tc, nil
 }
 
 func (r *TestCaseRepo) Create(ctx context.Context, input core.CreateTestCaseInput) (*core.TestCase, error) {
 	now := time.Now()
+
+	priority := input.Priority
+	if priority == "" {
+		priority = core.PriorityMedium
+	}
+	status := input.Status
+	if status == "" {
+		status = core.TestCaseStatusActive
+	}
+	stepType := input.StepType
+	if stepType == "" {
+		stepType = core.StepSimple
+	}
+
 	row := testCaseRow{
-		ID:            newUUID(),
-		ProjectID:     input.ProjectID,
-		Title:         input.Title,
-		Objective:     input.Objective,
-		Preconditions: input.Precondition,
-		Priority:      string(input.Priority),
-		Status:        string(core.TestCaseStatusActive),
-		ModuleID:      &input.ModuleID,
-		StepType:      string(core.StepSimple),
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		ID:             newUUID(),
+		ProjectID:      input.ProjectID,
+		Title:          input.Title,
+		Objective:      input.Objective,
+		Preconditions:  input.Preconditions,
+		Steps:          input.Steps,
+		ExpectedResult: strOrEmpty(input.ExpectedResult),
+		Priority:       string(priority),
+		Status:         string(status),
+		ModuleID:       input.ModuleID,
+		Notes:          input.Notes,
+		StepType:       string(stepType),
+		TargetRoleID:   input.TargetRoleID,
+		AssignedTo:     input.AssignedTo,
+		ExternalLinks:  externalLinks(input.ExternalLinks),
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}
 
 	if err := r.db.WithContext(ctx).Create(&row).Error; err != nil {
@@ -164,14 +187,32 @@ func (r *TestCaseRepo) Update(ctx context.Context, id string, input core.UpdateT
 	if input.Objective != nil {
 		updates["objective"] = *input.Objective
 	}
-	if input.Precondition != nil {
-		updates["preconditions"] = *input.Precondition
+	if input.Preconditions != nil {
+		updates["preconditions"] = *input.Preconditions
+	}
+	if input.Steps != nil {
+		updates["steps"] = *input.Steps
+	}
+	if input.ExpectedResult != nil {
+		updates["expected_result"] = *input.ExpectedResult
 	}
 	if input.Priority != nil {
 		updates["priority"] = *input.Priority
 	}
 	if input.ModuleID != nil {
 		updates["module_id"] = *input.ModuleID
+	}
+	if input.StepType != nil {
+		updates["step_type"] = *input.StepType
+	}
+	if input.Notes != nil {
+		updates["notes"] = *input.Notes
+	}
+	if input.TargetRoleID != nil {
+		updates["target_role_id"] = *input.TargetRoleID
+	}
+	if input.AssignedTo != nil {
+		updates["assigned_to"] = *input.AssignedTo
 	}
 	if len(updates) == 0 && input.Tags == nil {
 		return r.Get(ctx, id)
@@ -212,17 +253,19 @@ func (r *TestCaseRepo) Duplicate(ctx context.Context, id string, newTitle string
 		ProjectID:      original.ProjectID,
 		Title:          newTitle,
 		Objective:      original.Objective,
-		Preconditions:  original.Precondition,
+		Preconditions:  original.Preconditions,
+		Steps:          original.Steps,
 		ExpectedResult: original.ExpectedResult,
 		Priority:       string(original.Priority),
 		Status:         string(core.TestCaseStatusActive),
-		ModuleID:       &original.ModuleID,
+		ModuleID:       original.ModuleID,
+		Notes:          original.Notes,
 		StepType:       string(original.StepType),
+		TargetRoleID:   original.TargetRoleID,
+		AssignedTo:     original.AssignedTo,
+		ExternalLinks:  externalLinks(original.ExternalLinks),
 		CreatedAt:      now,
 		UpdatedAt:      now,
-	}
-	if original.ModuleID == "" {
-		row.ModuleID = nil
 	}
 
 	if err := r.db.WithContext(ctx).Create(&row).Error; err != nil {
@@ -233,14 +276,14 @@ func (r *TestCaseRepo) Duplicate(ctx context.Context, id string, newTitle string
 		r.linkTags(ctx, row.ID, original.ProjectID, original.Tags)
 	}
 
-	if original.StepType == core.StepDetailed && len(original.Steps) > 0 {
-		for _, step := range original.Steps {
+	if original.StepType == core.StepDetailed && len(original.DetailedSteps) > 0 {
+		for _, step := range original.DetailedSteps {
 			stepRow := testCaseStepRow{
 				ID:             newUUID(),
 				TestCaseID:     row.ID,
-				StepNumber:     step.Order,
+				StepNumber:     step.StepNumber,
 				Action:         step.Action,
-				ExpectedResult: &step.Expectation,
+				ExpectedResult: step.ExpectedResult,
 				CreatedAt:      now,
 				UpdatedAt:      now,
 			}
@@ -353,20 +396,25 @@ func (r *TestCaseRepo) linkTags(ctx context.Context, testCaseID, projectID strin
 // ---------------------------------------------------------------------------
 
 type testCaseRow struct {
-	ID             string    `gorm:"column:id"`
-	ProjectID      string    `gorm:"column:project_id"`
-	Code           string    `gorm:"column:code"`
-	Title          string    `gorm:"column:title"`
-	Objective      string    `gorm:"column:objective"`
-	Preconditions  string    `gorm:"column:preconditions"`
-	Steps          string    `gorm:"column:steps"`
-	ExpectedResult string    `gorm:"column:expected_result"`
-	Priority       string    `gorm:"column:priority"`
-	Status         string    `gorm:"column:status"`
-	ModuleID       *string   `gorm:"column:module_id"`
-	StepType       string    `gorm:"column:step_type"`
-	CreatedAt      time.Time `gorm:"column:created_at"`
-	UpdatedAt      time.Time `gorm:"column:updated_at"`
+	ID             string         `gorm:"column:id"`
+	ProjectID      string         `gorm:"column:project_id"`
+	Code           string         `gorm:"column:code"`
+	Title          string         `gorm:"column:title"`
+	Objective      *string        `gorm:"column:objective"`
+	Preconditions  *string        `gorm:"column:preconditions"`
+	Steps          string         `gorm:"column:steps"`
+	ExpectedResult string         `gorm:"column:expected_result"`
+	Priority       string         `gorm:"column:priority"`
+	Status         string         `gorm:"column:status"`
+	ModuleID       *string        `gorm:"column:module_id"`
+	Notes          *string        `gorm:"column:notes"`
+	StepType       string         `gorm:"column:step_type"`
+	TargetRoleID   *string        `gorm:"column:target_role_id"`
+	AssignedTo     *string        `gorm:"column:assigned_to"`
+	ExternalLinks  externalLinks  `gorm:"column:external_links"`
+	CreatedBy      *string        `gorm:"column:created_by"`
+	CreatedAt      time.Time      `gorm:"column:created_at"`
+	UpdatedAt      time.Time      `gorm:"column:updated_at"`
 }
 
 func (testCaseRow) TableName() string { return "test_cases" }
@@ -374,20 +422,24 @@ func (testCaseRow) TableName() string { return "test_cases" }
 func (r testCaseRow) toDomain() core.TestCase {
 	tc := core.TestCase{
 		ID:             r.ID,
+		ProjectID:      r.ProjectID,
+		ModuleID:       r.ModuleID,
 		Code:           r.Code,
 		Title:          r.Title,
 		Objective:      r.Objective,
-		Precondition:   r.Preconditions,
+		Preconditions:  r.Preconditions,
+		Steps:          r.Steps,
 		ExpectedResult: r.ExpectedResult,
 		Priority:       core.TestCasePriority(r.Priority),
 		Status:         core.TestCaseStatus(r.Status),
+		Notes:          r.Notes,
 		StepType:       core.StepType(r.StepType),
-		ProjectID:      r.ProjectID,
+		TargetRoleID:   r.TargetRoleID,
+		AssignedTo:     r.AssignedTo,
+		ExternalLinks:  []core.ExternalLink(r.ExternalLinks),
+		CreatedBy:      r.CreatedBy,
 		CreatedAt:      r.CreatedAt,
 		UpdatedAt:      r.UpdatedAt,
-	}
-	if r.ModuleID != nil {
-		tc.ModuleID = *r.ModuleID
 	}
 	return tc
 }
@@ -405,16 +457,15 @@ type testCaseStepRow struct {
 func (testCaseStepRow) TableName() string { return "test_case_steps" }
 
 func (r testCaseStepRow) toDomain() core.TestCaseStep {
-	step := core.TestCaseStep{
-		ID:          r.ID,
-		TestCasedID: r.TestCaseID,
-		Order:       r.StepNumber,
-		Action:      r.Action,
+	return core.TestCaseStep{
+		ID:             r.ID,
+		TestCaseID:     r.TestCaseID,
+		StepNumber:     r.StepNumber,
+		Action:         r.Action,
+		ExpectedResult: r.ExpectedResult,
+		CreatedAt:      r.CreatedAt,
+		UpdatedAt:      r.UpdatedAt,
 	}
-	if r.ExpectedResult != nil {
-		step.Expectation = *r.ExpectedResult
-	}
-	return step
 }
 
 type testCaseTagRow struct {
@@ -432,7 +483,3 @@ type tagRow struct {
 }
 
 func (tagRow) TableName() string { return "tags" }
-
-// ---------------------------------------------------------------------------
-// DB row types
-// ---------------------------------------------------------------------------

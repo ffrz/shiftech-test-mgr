@@ -92,11 +92,12 @@ func (r *TestRunRepo) Create(ctx context.Context, input core.CreateTestRunInput)
 		Name:      input.Name,
 		Status:    string(core.RunInProgress),
 		StartedAt: now,
+		StartedBy: input.StartedBy,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
-	if input.PlanID != nil && *input.PlanID != "" {
-		row.PlanID = input.PlanID
+	if input.TestPlanID != nil && *input.TestPlanID != "" {
+		row.PlanID = input.TestPlanID
 	}
 
 	if err := r.db.WithContext(ctx).Create(&row).Error; err != nil {
@@ -108,9 +109,9 @@ func (r *TestRunRepo) Create(ctx context.Context, input core.CreateTestRunInput)
 	}
 
 	var caseIDs []string
-	if input.PlanID != nil && *input.PlanID != "" {
+	if input.TestPlanID != nil && *input.TestPlanID != "" {
 		var links []testPlanCaseRow
-		r.db.WithContext(ctx).Where("test_plan_id = ?", *input.PlanID).Find(&links)
+		r.db.WithContext(ctx).Where("test_plan_id = ?", *input.TestPlanID).Find(&links)
 		for _, l := range links {
 			caseIDs = append(caseIDs, l.TestCaseID)
 		}
@@ -193,11 +194,12 @@ func (r *TestRunRepo) seedResults(ctx context.Context, runID string, caseIDs []s
 			Status:                 string(core.ResultNotRun),
 			TestCaseCode:           tc.Code,
 			TestCaseTitle:          tc.Title,
-			TestCaseObjective:      tc.Objective,
-			TestCasePreconditions:  tc.Preconditions,
+			TestCaseObjective:      strOrEmpty(tc.Objective),
+			TestCasePreconditions:  strOrEmpty(tc.Preconditions),
 			TestCaseSteps:          tc.Steps,
 			TestCaseExpectedResult: tc.ExpectedResult,
-			TestCasePriority:       tc.Priority,
+			TestCasePriority:       string(tc.Priority),
+			TestCaseNotes:          tc.Notes,
 			CreatedAt:              now,
 			UpdatedAt:              now,
 		}
@@ -221,6 +223,7 @@ type testRunRow struct {
 	Status      string     `gorm:"column:status"`
 	StartedAt   time.Time  `gorm:"column:started_at"`
 	CompletedAt *time.Time `gorm:"column:completed_at"`
+	Notes       *string    `gorm:"column:notes"`
 	StartedBy   *string    `gorm:"column:started_by"`
 	CreatedAt   time.Time  `gorm:"column:created_at"`
 	UpdatedAt   time.Time  `gorm:"column:updated_at"`
@@ -234,10 +237,14 @@ func (r testRunRow) toDomain() core.TestRun {
 		Code:        r.Code,
 		Name:        r.Name,
 		Status:      core.TestRunStatus(r.Status),
-		PlanID:      r.PlanID,
+		TestPlanID:  r.PlanID,
 		ProjectID:   r.ProjectID,
 		StartedAt:   r.StartedAt,
 		CompletedAt: r.CompletedAt,
+		Notes:       r.Notes,
+		StartedBy:   r.StartedBy,
+		CreatedAt:   r.CreatedAt,
+		UpdatedAt:   r.UpdatedAt,
 	}
 }
 
@@ -257,6 +264,7 @@ type testResultRow struct {
 	TestCaseExpectedResult string     `gorm:"column:test_case_expected_result"`
 	TestCasePriority       string     `gorm:"column:test_case_priority"`
 	TestCaseNotes          *string    `gorm:"column:test_case_notes"`
+	Order                  int        `gorm:"column:order"`
 	CreatedAt              time.Time  `gorm:"column:created_at"`
 	UpdatedAt              time.Time  `gorm:"column:updated_at"`
 }
@@ -265,12 +273,23 @@ func (testResultRow) TableName() string { return "test_results" }
 
 func (r testResultRow) toDomain() core.TestResult {
 	return core.TestResult{
-		ID:        r.ID,
-		RunID:     r.TestRunID,
-		CaseID:    r.TestCaseID,
-		Status:    core.TestResultStatus(r.Status),
-		TesterID:  r.TesterID,
-		Notes:     r.Notes,
-		UpdatedAt: r.UpdatedAt,
+		ID:                     r.ID,
+		TestRunID:              r.TestRunID,
+		TestCaseID:             r.TestCaseID,
+		TesterID:               r.TesterID,
+		Status:                 core.TestResultStatus(r.Status),
+		ExecutedAt:             r.ExecutedAt,
+		Notes:                  r.Notes,
+		TestCaseCode:           r.TestCaseCode,
+		TestCaseTitle:          r.TestCaseTitle,
+		TestCaseObjective:      emptyToNil(r.TestCaseObjective),
+		TestCasePreconditions:  emptyToNil(r.TestCasePreconditions),
+		TestCaseSteps:          r.TestCaseSteps,
+		TestCaseExpectedResult: r.TestCaseExpectedResult,
+		TestCasePriority:       core.TestCasePriority(r.TestCasePriority),
+		TestCaseNotes:          r.TestCaseNotes,
+		Order:                  r.Order,
+		CreatedAt:              r.CreatedAt,
+		UpdatedAt:              r.UpdatedAt,
 	}
 }

@@ -194,12 +194,17 @@ func (t *WriteTools) beginWrite(ctx context.Context, req mcp.CallToolRequest, sc
 
 // createCaseArg mirrors one item of the cases array for createBulk.
 type createCaseArg struct {
-	Title        string `json:"title"`
-	ModuleID     string `json:"module_id"`
-	Objective    string `json:"objective"`
-	Precondition string `json:"preconditions"`
-	Priority     string `json:"priority"`
-	Notes        string `json:"notes"`
+	Title          string `json:"title"`
+	ModuleID       string `json:"module_id"`
+	Objective      string `json:"objective"`
+	Precondition   string `json:"preconditions"`
+	Steps          string `json:"steps"`
+	ExpectedResult string `json:"expected_result"`
+	StepType       string `json:"step_type"`
+	Priority       string `json:"priority"`
+	Notes          string `json:"notes"`
+	TargetRoleID   string `json:"target_role_id"`
+	AssignedTo     string `json:"assigned_to"`
 }
 
 func (t *WriteTools) createTestCases(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -232,13 +237,40 @@ func (t *WriteTools) createTestCases(ctx context.Context, req mcp.CallToolReques
 			}
 			priority = core.TestCasePriority(arg.Priority)
 		}
+		stepType := core.StepSimple
+		if arg.StepType != "" {
+			if !validStepType(arg.StepType) {
+				return mcp.NewToolResultErrorf("cases[%d].step_type must be one of: simple, detailed", i), nil
+			}
+			stepType = core.StepType(arg.StepType)
+		}
+		var moduleID *string
+		if arg.ModuleID != "" {
+			if !isUUID(arg.ModuleID) {
+				return mcp.NewToolResultErrorf("cases[%d].module_id must be a valid UUID", i), nil
+			}
+			moduleID = &arg.ModuleID
+		}
+		var targetRoleID *string
+		if arg.TargetRoleID != "" {
+			if !isUUID(arg.TargetRoleID) {
+				return mcp.NewToolResultErrorf("cases[%d].target_role_id must be a valid UUID", i), nil
+			}
+			targetRoleID = &arg.TargetRoleID
+		}
 		tc, err := t.reg.Services.TestCase.Create(ctx, core.CreateTestCaseInput{
-			ProjectID:    session.ProjectID,
-			Title:        arg.Title,
-			Objective:    arg.Objective,
-			Precondition: arg.Precondition,
-			Priority:     priority,
-			ModuleID:     arg.ModuleID,
+			ProjectID:      session.ProjectID,
+			Title:          arg.Title,
+			Objective:      strPtrIfNonEmpty(arg.Objective),
+			Preconditions:  strPtrIfNonEmpty(arg.Precondition),
+			Steps:          arg.Steps,
+			ExpectedResult: strPtrIfNonEmpty(arg.ExpectedResult),
+			Priority:       priority,
+			StepType:       stepType,
+			ModuleID:       moduleID,
+			Notes:          strPtrIfNonEmpty(arg.Notes),
+			TargetRoleID:   targetRoleID,
+			AssignedTo:     strPtrIfNonEmpty(arg.AssignedTo),
 		})
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
@@ -268,7 +300,7 @@ func (t *WriteTools) updateTestCase(ctx context.Context, req mcp.CallToolRequest
 		input.Objective = &raw
 	}
 	if raw := req.GetString("preconditions", ""); raw != "" {
-		input.Precondition = &raw
+		input.Preconditions = &raw
 	}
 	if raw := req.GetString("priority", ""); raw != "" {
 		if !validPriority(raw) {
@@ -357,7 +389,7 @@ func (t *WriteTools) createTestPlan(ctx context.Context, req mcp.CallToolRequest
 	tp, err := t.reg.Services.TestPlan.Create(ctx, core.CreateTestPlanInput{
 		ProjectID:   session.ProjectID,
 		Name:        name,
-		Description: req.GetString("description", ""),
+		Description: strPtrIfNonEmpty(req.GetString("description", "")),
 		Status:      core.PlanDraft,
 	})
 	if err != nil {
@@ -486,7 +518,7 @@ func (t *WriteTools) createTestRun(ctx context.Context, req mcp.CallToolRequest)
 		if !isUUID(raw) {
 			return mcp.NewToolResultError("testplan_id must be a valid UUID"), nil
 		}
-		input.PlanID = &raw
+		input.TestPlanID = &raw
 	}
 	if raw, ok := req.GetArguments()["testcase_ids"]; ok && raw != nil {
 		ids, err := requireUUIDSlice(raw, "testcase_ids")
@@ -590,12 +622,12 @@ func (t *WriteTools) createIssue(ctx context.Context, req mcp.CallToolRequest) (
 		}
 		issueType = core.IssueType(raw)
 	}
-	priority := core.PriorityMedium
+	priority := core.IssuePriorityMedium
 	if raw := req.GetString("priority", ""); raw != "" {
-		if !validPriority(raw) {
+		if !validIssuePriority(raw) {
 			return mcp.NewToolResultError("priority must be one of: low, medium, high, critical"), nil
 		}
-		priority = core.TestCasePriority(raw)
+		priority = core.IssuePriority(raw)
 	}
 	var moduleID *string
 	if raw := req.GetString("module_id", ""); raw != "" {
@@ -609,7 +641,7 @@ func (t *WriteTools) createIssue(ctx context.Context, req mcp.CallToolRequest) (
 		ProjectID:    session.ProjectID,
 		TestResultID: testResultID,
 		Title:        title,
-		Description:  req.GetString("description", ""),
+		Description:  strPtrIfNonEmpty(req.GetString("description", "")),
 		Type:         issueType,
 		Priority:     priority,
 		ModuleID:     moduleID,

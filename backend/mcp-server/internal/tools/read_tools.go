@@ -405,10 +405,10 @@ func (t *ReadTools) searchIssues(ctx context.Context, req mcp.CallToolRequest) (
 		filter.Status = &s
 	}
 	if raw := req.GetString("priority", ""); raw != "" {
-		if !validPriority(raw) {
+		if !validIssuePriority(raw) {
 			return mcp.NewToolResultErrorf("priority must be one of: low, medium, high, critical"), nil
 		}
-		p := core.TestCasePriority(raw)
+		p := core.IssuePriority(raw)
 		filter.Priority = &p
 	}
 	if raw := req.GetString("assignee_id", ""); raw != "" {
@@ -494,6 +494,31 @@ func validPriority(s string) bool {
 		return true
 	}
 	return false
+}
+
+func validIssuePriority(s string) bool {
+	switch core.IssuePriority(s) {
+	case core.IssuePriorityLow, core.IssuePriorityMedium, core.IssuePriorityHigh, core.IssuePriorityCritical:
+		return true
+	}
+	return false
+}
+
+func validStepType(s string) bool {
+	switch core.StepType(s) {
+	case core.StepSimple, core.StepDetailed:
+		return true
+	}
+	return false
+}
+
+// strPtrIfNonEmpty returns a pointer to s when non-empty, nil otherwise —
+// used to keep optional string inputs null (not "") in the domain payload.
+func strPtrIfNonEmpty(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
 
 func validTestCaseStatus(s string) bool {
