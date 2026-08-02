@@ -712,6 +712,13 @@ html.dark .p-tag.p-tag-danger {
 .p-tabview .p-tabview-nav li .p-tabview-nav-link {
   padding: 0.6rem 1rem;
   font-size: 0.925rem;
+  font-weight: 400;
+}
+
+.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  font-weight: 700;
+  color: var(--text-color);
+  border-color: var(--text-color);
 }
 
 /* Icon-field inputs need their built-in left/right padding preserved, or the

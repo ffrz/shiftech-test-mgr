@@ -466,6 +466,7 @@ export function IssueTab({
           header="Type"
           sortable
           hidden={isMobile}
+          style={{ width: '8rem' }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'type';
@@ -475,7 +476,7 @@ export function IssueTab({
                   <Dropdown value={editValue as IssueType} options={(['bug', 'feature', 'improvement', 'task'] as const).map((v) => ({ label: ISSUE_TYPE_LABEL[v], value: v }))}
                     onChange={(e) => confirmEdit(row, 'type', e.value)}
                     onHide={cancelEdit}
-                    autoFocus className="w-10rem" />
+                    autoFocus className="w-full" />
                 </div>
               );
             }
@@ -491,6 +492,7 @@ export function IssueTab({
           header="Module"
           sortable
           hidden={isMobile}
+          style={{ width: '10rem' }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'moduleId';
@@ -500,7 +502,7 @@ export function IssueTab({
                   <Dropdown value={editValue} options={moduleOptions}
                     onChange={(e) => confirmEdit(row, 'moduleId', e.value ?? null)}
                     onHide={cancelEdit}
-                    placeholder="No module" showClear autoFocus className="w-10rem" filter virtualScrollerOptions={{ itemSize: 40 }} />
+                    placeholder="No module" showClear autoFocus className="w-full" filter virtualScrollerOptions={{ itemSize: 40 }} />
                 </div>
               );
             }
@@ -516,6 +518,7 @@ export function IssueTab({
           header="Target Role"
           sortable
           hidden={isMobile}
+          style={{ width: '10rem' }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'targetRoleId';
@@ -525,7 +528,7 @@ export function IssueTab({
                   <Dropdown value={editValue} options={testRoleOptions}
                     onChange={(e) => confirmEdit(row, 'targetRoleId', e.value ?? null)}
                     onHide={cancelEdit}
-                    placeholder="None" showClear autoFocus className="w-10rem" filter virtualScrollerOptions={{ itemSize: 40 }} />
+                    placeholder="None" showClear autoFocus className="w-full" filter virtualScrollerOptions={{ itemSize: 40 }} />
                 </div>
               );
             }
@@ -536,7 +539,7 @@ export function IssueTab({
             );
           }}
         />
-        <Column field="tags" header="Tag" hidden={isMobile} body={(row: IssueWithDetails) => {
+        <Column field="tags" header="Tag" hidden={isMobile} style={{ width: '11rem' }} body={(row: IssueWithDetails) => {
           const canEdit = canManageIssues && row.status !== 'closed';
           const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'tags';
           if (isEditing && canEdit) {
@@ -545,7 +548,7 @@ export function IssueTab({
                 <MultiSelect value={(editValue as string[]) ?? []} options={tagNameOptions}
                   onChange={(e) => confirmEdit(row, 'tags', e.value)}
                   onHide={cancelEdit}
-                  autoFocus className="w-10rem" display="chip" filter virtualScrollerOptions={{ itemSize: 40 }} />
+                  autoFocus className="w-full" display="chip" filter virtualScrollerOptions={{ itemSize: 40 }} />
               </div>
             );
           }
@@ -560,6 +563,7 @@ export function IssueTab({
         <Column
           header="Linked"
           hidden={isMobile}
+          style={{ width: '7rem' }}
           body={(row: IssueWithDetails) =>
             row.linkedTestResults.length > 0 ? (
               <span className="text-sm">{row.linkedTestResults.length} Test Result</span>
@@ -573,6 +577,7 @@ export function IssueTab({
           header="Priority"
           sortable
           hidden={isMobile}
+          style={{ width: '7rem' }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'priority';
@@ -582,7 +587,7 @@ export function IssueTab({
                   <Dropdown value={editValue as IssuePriority} options={ISSUE_PRIORITY_OPTIONS}
                     onChange={(e) => confirmEdit(row, 'priority', e.value)}
                     onHide={cancelEdit}
-                    autoFocus className="w-10rem" />
+                    autoFocus className="w-full" />
                 </div>
               );
             }
@@ -598,6 +603,7 @@ export function IssueTab({
           header="Status"
           sortable
           hidden={isMobile}
+          style={{ width: '9rem' }}
           body={(row: IssueWithDetails) => {
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'status';
             if (isEditing && canManageIssues) {
@@ -606,7 +612,7 @@ export function IssueTab({
                   <Dropdown value={editValue as IssueStatus} options={ISSUE_STATUS_OPTIONS}
                     onChange={(e) => confirmEdit(row, 'status', e.value)}
                     onHide={cancelEdit}
-                    autoFocus className="w-10rem" />
+                    autoFocus className="w-full" />
                 </div>
               );
             }
@@ -622,6 +628,7 @@ export function IssueTab({
           header="Assigned To"
           sortable
           hidden={isMobile}
+          style={{ width: '10rem' }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'assignedTo';
@@ -631,7 +638,7 @@ export function IssueTab({
                   <Dropdown value={editValue} options={projectMembers.map((m) => ({ label: memberSelectLabel(m), value: m.userId }))}
                     onChange={(e) => confirmEdit(row, 'assignedTo', e.value ?? null)}
                     onHide={cancelEdit}
-                    placeholder="Unassigned" showClear autoFocus className="w-10rem" filter virtualScrollerOptions={{ itemSize: 40 }} />
+                    placeholder="Unassigned" showClear autoFocus className="w-full" filter virtualScrollerOptions={{ itemSize: 40 }} />
                 </div>
               );
             }

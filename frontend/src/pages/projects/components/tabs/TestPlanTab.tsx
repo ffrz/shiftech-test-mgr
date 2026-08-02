@@ -265,7 +265,7 @@ export function TestPlanTab({
           }
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'name', row.name); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>{row.name}</div>;
         }} />
-        <Column field="status" header="Status" sortable hidden={isMobile} body={(row: TestPlan) => {
+        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: '9rem' }} body={(row: TestPlan) => {
           const isEditing = editingCell?.planId === row.id && editingCell?.field === 'status';
           if (isEditing && canEditContent) {
             return (
@@ -273,7 +273,7 @@ export function TestPlanTab({
                 <Dropdown value={editValue as TestPlanStatus} options={TEST_PLAN_STATUS_OPTIONS}
                   onChange={(e) => confirmEdit(row, 'status', e.value)}
                   onHide={cancelEdit}
-                  autoFocus className="w-10rem" />
+                  autoFocus className="w-full" />
               </div>
             );
           }
@@ -281,7 +281,7 @@ export function TestPlanTab({
             <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />
           </div>;
         }} />
-        <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
+        <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: '11rem' }} body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
         <Column
           header=""
           style={{ width: '3.5rem' }}

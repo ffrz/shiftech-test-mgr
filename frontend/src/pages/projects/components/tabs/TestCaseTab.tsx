@@ -408,7 +408,7 @@ export function TestCaseTab({
           }
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'title', row.title); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>{row.title}</div>;
         }} />
-        <Column field="moduleName" header="Module" sortable hidden={isMobile} body={(row: TestCaseWithDetails) => {
+        <Column field="moduleName" header="Module" sortable hidden={isMobile} style={{ width: '10rem' }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'moduleId';
           if (isEditing && canEditContent) {
             return (
@@ -416,13 +416,13 @@ export function TestCaseTab({
                 <Dropdown value={editValue} options={moduleOptions}
                   onChange={(e) => confirmEdit(row, 'moduleId', e.value ?? null)}
                   onHide={cancelEdit}
-                  placeholder="None" showClear autoFocus className="w-10rem" virtualScrollerOptions={{ itemSize: 40 }} />
+                  placeholder="None" showClear autoFocus filter className="w-full" virtualScrollerOptions={{ itemSize: 40 }} />
               </div>
             );
           }
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'moduleId', row.moduleId); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>{row.module?.name ?? '-'}</div>;
         }} />
-        <Column field="priority" header="Priority" sortable hidden={isMobile} body={(row: TestCaseWithDetails) => {
+        <Column field="priority" header="Priority" sortable hidden={isMobile} style={{ width: '7rem' }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'priority';
           if (isEditing && canEditContent) {
             return (
@@ -430,7 +430,7 @@ export function TestCaseTab({
                 <Dropdown value={editValue as TestCasePriority} options={PRIORITY_OPTIONS}
                   onChange={(e) => confirmEdit(row, 'priority', e.value)}
                   onHide={cancelEdit}
-                  autoFocus className="w-10rem" />
+                  autoFocus className="w-full" />
               </div>
             );
           }
@@ -438,7 +438,7 @@ export function TestCaseTab({
             <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
           </div>;
         }} />
-        <Column field="status" header="Status" sortable hidden={isMobile} body={(row: TestCaseWithDetails) => {
+        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: '7rem' }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'status';
           if (isEditing && canEditContent) {
             return (
@@ -446,7 +446,7 @@ export function TestCaseTab({
                 <Dropdown value={editValue as TestCaseStatus} options={TEST_CASE_STATUS_OPTIONS}
                   onChange={(e) => confirmEdit(row, 'status', e.value)}
                   onHide={cancelEdit}
-                  autoFocus className="w-10rem" />
+                  autoFocus className="w-full" />
               </div>
             );
           }
@@ -454,7 +454,7 @@ export function TestCaseTab({
             <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />
           </div>;
         }} />
-        <Column field="targetRoleName" header="Target Role" sortable hidden={isMobile} body={(row: TestCaseWithDetails) => {
+        <Column field="targetRoleName" header="Target Role" sortable hidden={isMobile} style={{ width: '10rem' }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'targetRoleId';
           if (isEditing && canEditContent) {
             return (
@@ -462,7 +462,7 @@ export function TestCaseTab({
                 <Dropdown value={editValue} options={testRoleOptions}
                   onChange={(e) => confirmEdit(row, 'targetRoleId', e.value ?? null)}
                   onHide={cancelEdit}
-                  placeholder="None" showClear autoFocus className="w-10rem" />
+                  placeholder="None" showClear autoFocus filter className="w-full" />
               </div>
             );
           }
@@ -470,7 +470,7 @@ export function TestCaseTab({
             {row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-'}
           </div>;
         }} />
-        <Column field="tags" header="Tag" hidden={isMobile} body={(row: TestCaseWithDetails) => {
+        <Column field="tags" header="Tag" hidden={isMobile} style={{ width: '11rem' }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'tags';
           if (isEditing && canEditContent) {
             return (
@@ -478,7 +478,7 @@ export function TestCaseTab({
                 <MultiSelect value={editValue ?? []} options={tagOptions}
                   onChange={(e) => confirmEdit(row, 'tags', e.value)}
                   onHide={cancelEdit}
-                  autoFocus className="w-10rem" display="chip" virtualScrollerOptions={{ itemSize: 40 }} />
+                  autoFocus filter className="w-full" display="chip" virtualScrollerOptions={{ itemSize: 40 }} />
               </div>
             );
           }

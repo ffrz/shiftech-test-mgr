@@ -195,6 +195,7 @@ export function TestRunTab({
           field="testPlanName"
           sortable
           hidden={isMobile}
+          style={{ width: '12rem' }}
           body={(row: TestRunWithSummary) =>
             row.testPlanId ? (
               <a
@@ -211,10 +212,11 @@ export function TestRunTab({
             )
           }
         />
-        <Column field="status" header="Status" sortable hidden={isMobile} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
+        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: '7rem' }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
         <Column
           header="Result"
           hidden={isMobile}
+          style={{ width: '8rem' }}
           body={(row: TestRunWithSummary) => (
             <div className="flex gap-1 align-items-center">
               <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
@@ -226,9 +228,10 @@ export function TestRunTab({
         <Column
           header="Tester"
           hidden={isMobile}
+          style={{ width: '11rem' }}
           body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
         />
-        <Column field="completedAt" header="Completed" sortable hidden={isMobile} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
+        <Column field="completedAt" header="Completed" sortable hidden={isMobile} style={{ width: '11rem' }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
         <Column
           header=""
           style={{ width: '3.5rem' }}
