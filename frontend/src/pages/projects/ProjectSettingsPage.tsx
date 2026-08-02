@@ -23,13 +23,18 @@ import { ProjectSettingsPageSkeleton } from './components/ProjectSettingsPageSke
 import { TagsTab } from './components/tabs/TagsTab';
 import { TestRolesTab } from './components/tabs/TestRolesTab';
 import { MembersTab } from './components/tabs/MembersTab';
+import { AgentTokensTab } from './components/tabs/AgentTokensTab';
 import { DangerZoneTab } from './components/tabs/DangerZoneTab';
 import { ModuleDialog } from './components/dialogs/ModuleDialog';
 import { TagDialog } from './components/dialogs/TagDialog';
 import { TestRoleDialog } from './components/dialogs/TestRoleDialog';
 import { InviteMemberDialog } from './components/dialogs/InviteMemberDialog';
+import { MintAgentTokenDialog } from './components/dialogs/MintAgentTokenDialog';
 import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
+import { useApiTokens } from '../../hooks/useApiTokens';
+import type { TokenAccessLevel } from '../../services/apiTokenService';
+import type { ApiToken } from '../../types/domain';
 
 export function ProjectSettingsPage() {
   const { id } = useParams<{ id: string }>();
@@ -48,7 +53,7 @@ export function ProjectSettingsPage() {
     'modules',
     'tags',
     'testRoles',
-    ...(isOwner ? ['members', 'dangerZone'] : []),
+    ...(isOwner ? ['members', 'agentTokens', 'dangerZone'] : []),
   ] as const;
   const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(settingsTabNames, 0);
 
@@ -454,6 +459,34 @@ export function ProjectSettingsPage() {
     });
   }
 
+  // --- Agent Tokens ---
+  // Reachable only by managers (this whole page requires canManageSettings), so the
+  // caller's role is always 'manager' — the SQL/service-side role cap still applies as
+  // defense-in-depth, it just never restricts anyone from here in practice.
+  const { tokens, mint: mintToken, revoke: revokeToken } = useApiTokens(id ?? '');
+  const [mintTokenDialogOpen, setMintTokenDialogOpen] = useState(false);
+
+  async function handleMintToken(name: string, level: TokenAccessLevel) {
+    const result = await mintToken(name, level, 'manager');
+    if (result) toastHelper.success('Agent token generated');
+    return result;
+  }
+
+  function handleRevokeToken(row: ApiToken) {
+    confirmDialog({
+      header: 'Revoke Agent Token',
+      message: `"${row.name}" will stop working immediately. Continue?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Revoke',
+      rejectLabel: 'Cancel',
+      acceptClassName: 'p-button-danger',
+      accept: async () => {
+        const ok = await revokeToken(row.id);
+        if (ok) toastHelper.success('Token revoked');
+      },
+    });
+  }
+
   async function handleChangeVisibility(value: ProjectVisibility) {
     if (!project) return;
     setProjectVisibility(value);
@@ -635,6 +668,17 @@ export function ProjectSettingsPage() {
           )}
 
           {isOwner && (
+            <TabPanel header="Agent Tokens">
+              <AgentTokensTab
+                tokens={tokens}
+                isMobile={isMobile}
+                onMint={() => setMintTokenDialogOpen(true)}
+                onRevoke={handleRevokeToken}
+              />
+            </TabPanel>
+          )}
+
+          {isOwner && (
             <TabPanel header="Danger Zone">
               <DangerZoneTab
                 project={project}
@@ -693,6 +737,14 @@ export function ProjectSettingsPage() {
         error={memberError}
         onHide={() => setMemberDialogOpen(false)}
         onInvite={handleAddMember}
+      />
+
+      <MintAgentTokenDialog
+        visible={mintTokenDialogOpen}
+        projectId={id ?? ''}
+        projectName={project?.name ?? ''}
+        onHide={() => setMintTokenDialogOpen(false)}
+        onMint={handleMintToken}
       />
 
       <CreateProjectDialog

@@ -88,34 +88,38 @@ Tidak ada `TM_API_TOKEN`/`TM_PROJECT_ID` di mode HTTP — itu dikirim **oleh
 tiap client** lewat header per-request (lihat §Konek lewat HTTP di bawah),
 karena satu proses server HTTP melayani banyak token/project sekaligus.
 
-### Membuat token dulu (belum ada UI untuk ini)
+### Membuat token dulu
 
-Belum ada endpoint/tool untuk generate token sendiri (itu bagian dari
-`TASKS.md` fase mendatang). Untuk sekarang, insert manual lewat SQL:
+Ada dua cara:
+
+**Cara normal (lewat UI, disarankan)** — buka project di Testify → Project
+Settings → tab **Agent Tokens** (manager-only) → "Generate Agent Token",
+isi nama lalu pilih **Access Level**: "Read Only" (semua `read:*`) atau
+"Read & Write" (`read:*` + semua `write:*` yang diizinkan role kamu). Tidak
+ada pilihan scope satu-satu — agen otomatis mewarisi akses project user
+yang generate, tidak pernah lebih. Salin raw token yang muncul sekali —
+tidak bisa dilihat lagi setelahnya. Di baliknya ini memanggil RPC
+`mint_api_token` (security definer, `supabase/migrations/20260802170708_api_tokens_mint_rpc.sql`)
+yang membatasi scope sesuai role member yang mint (lihat
+`allowed_token_scopes()` di migration yang sama; pemetaan access-level →
+scope ada di `frontend/src/services/apiTokenService.ts`
+`scopesForAccessLevel()`).
+
+**Cara manual (SQL langsung, kalau tidak lewat browser)** — panggil RPC
+yang sama lewat `psql`/Supabase SQL editor, login sebagai user target
+(atau lewat service role dengan `auth.uid()` di-set manual):
 
 ```sql
-insert into api_tokens (project_id, name, token_prefix, token_hash, scopes, created_by)
-values (
+select * from mint_api_token(
   '<uuid-project-target>',
   'local-dev',
-  'tm_xxxxxxxxxx',              -- 12 karakter pertama dari raw token di bawah, cuma buat label
-  '<sha256-hex-dari-raw-token>', -- lihat cara generate di bawah
-  array['read:project'],
-  '<uuid-profil-pembuat>'        -- profiles(id), bukan users(id)
-)
-returning id;
+  array['read:project', 'read:issues', 'write:issues']
+);
 ```
 
-Raw token harus cocok pola `tm_[0-9a-f]{64}` dan `token_hash` adalah
-SHA-256 hex dari raw token itu (bukan raw token itu sendiri yang disimpan
-— raw token cuma dipegang klien, tidak pernah masuk database). Contoh
-generate raw token + hash-nya pakai `openssl`:
-
-```bash
-RAW="tm_$(openssl rand -hex 32)"
-echo "raw token (simpan ini): $RAW"
-echo "token_hash (masukkan ke kolom token_hash): $(printf '%s' "$RAW" | openssl dgst -sha256 -hex | awk '{print $2}')"
-```
+Hasilnya satu baris `(token, id)` — `token` adalah raw token
+(`tm_[0-9a-f]{64}`), disimpan cuma sebagai SHA-256 hash di DB, tidak
+pernah bisa diambil ulang setelah response ini.
 
 ### Jalankan server
 
@@ -195,6 +199,47 @@ di-resolve (`Registry.SessionFor` — lihat komentar di
 Tanpa header `Authorization`/`X-Testify-Project-Id` yang valid, tool call
 menolak dengan `"no session available for this call"` (`isError: true`) —
 bukan error HTTP generik, supaya client tahu persis alasannya.
+
+### Skenario: agen AI menarik & mengerjakan Issue suatu project
+
+Ini alur konkret untuk "agen login, tarik daftar Issue project yang dia
+akses, lalu kerjakan" — yang jadi motivasi tab Agent Tokens di atas.
+
+1. **Mint token** lewat UI (Project Settings → Agent Tokens), pilih
+   **Read & Write** (supaya agen bisa panggil `testify.issue.updateStatus`
+   di langkah 5) — kalau cuma mau agen membaca daftar Issue tanpa update
+   status, pilih **Read Only**. Token ini scoped ke satu project saja
+   (`X-Testify-Project-Id` harus cocok).
+2. **Konfigurasi MCP client agen** — cara termudah: klik **"Copy Setup
+   Prompt"** di dialog yang muncul setelah generate token, lalu paste
+   langsung ke chat agen (Claude Code, Claude Desktop, atau agen apa pun
+   yang bisa HTTP request). Prompt itu berisi instruksi lengkap + endpoint
+   + token + kedua opsi setup (register lewat `claude mcp add
+   --transport http --header ...`, atau fallback curl JSON-RPC manual
+   kalau agennya tidak punya command itu) — agen yang mengeksekusi
+   sendiri, user tidak perlu paham MCP sama sekali (lihat
+   `frontend/src/helpers/mcpSetupPrompt.ts` untuk isi persisnya). URL
+   endpoint di prompt itu diambil dari env `VITE_MCP_SERVER_URL` —
+   **wajib diisi setelah `cmd-http` di-deploy**, kalau kosong prompt
+   berisi placeholder yang harus diedit manual.
+   Setup manual (tanpa prompt) juga tetap bisa: connect ke `cmd-http`
+   (`https://<host>/mcp` kalau sudah di-deploy, atau
+   `http://localhost:8082/mcp` untuk test lokal) dengan header
+   `Authorization: Bearer <token>` dan `X-Testify-Project-Id: <uuid>` di
+   setiap request (lihat §Test manual dengan curl untuk detail dua-langkah
+   `initialize` → `Mcp-Session-Id` → `tools/call`).
+3. **Agen memanggil `testify.issue.search`** (opsional filter
+   `status`/`priority`/`assignee`) untuk dapat daftar Issue yang perlu
+   dikerjakan, scoped otomatis ke project token itu — tidak bisa lihat
+   Issue project lain.
+4. **Agen mengerjakan perbaikannya di luar MCP** — MCP di sini adalah
+   *sumber data Issue*, bukan task runner. Fix kode tetap lewat tool
+   development biasa agen (baca/edit file, jalankan test, dst) terhadap
+   repo aplikasi yang relevan, bukan lewat MCP tool apa pun.
+5. **Agen memanggil `testify.issue.updateStatus`** setelah selesai untuk
+   menandai Issue itu resolved/closed — ini satu-satunya tulis balik ke
+   Testify yang diizinkan scope di atas (test case/plan/run tetap
+   read-only untuk token dengan scope minimal ini).
 
 ### Deploy ke VPS (garis besar)
 

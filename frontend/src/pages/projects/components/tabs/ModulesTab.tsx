@@ -47,6 +47,9 @@ export function ModulesTab({
 
   return (
     <>
+      <p className="text-color-secondary text-sm mb-3">
+        Modules group test cases by feature or component area (e.g. Login, Checkout, Dashboard). Manage modules here.
+      </p>
       <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." />
         <Button label="New Module" icon="pi pi-plus" size="small" onClick={onCreate} />

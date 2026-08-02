@@ -83,6 +83,40 @@ export interface ProjectMemberInvitation extends ProjectMember {
   inviterDisplayName: string | null;
 }
 
+// MCP agent tokens — see supabase/migrations/20260802170708_api_tokens_mint_rpc.sql.
+// Grantable scopes are capped by the issuing member's own ProjectMemberRole
+// (allowed_token_scopes() SQL function is the source of truth; ROLE_TOKEN_SCOPES in
+// apiTokenService.ts mirrors it client-side for UI/validation only).
+export type TokenScope =
+  | 'read:project'
+  | 'read:test-cases'
+  | 'read:test-plans'
+  | 'read:test-runs'
+  | 'read:issues'
+  | 'read:automation'
+  | 'write:test-cases'
+  | 'write:test-plans'
+  | 'write:test-runs'
+  | 'write:issues'
+  | 'write:automation';
+
+export interface ApiToken {
+  id: string;
+  projectId: string;
+  name: string;
+  tokenPrefix: string;
+  scopes: TokenScope[];
+  createdBy: string;
+  createdAt: string;
+  revokedAt: string | null;
+}
+
+// Returned once by mint_api_token() — the raw token is never persisted or retrievable again.
+export interface MintedApiToken {
+  id: string;
+  token: string;
+}
+
 export interface Module {
   id: string;
   projectId: string;

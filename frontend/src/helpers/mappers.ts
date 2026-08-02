@@ -23,6 +23,7 @@ import type {
   ProjectMember,
   ProjectMemberWithProfile,
   ProjectMemberInvitation,
+  ApiToken,
 } from '../types/domain';
 
 // Supabase columns are snake_case; domain types are camelCase.
@@ -80,6 +81,19 @@ export function mapProjectMemberInvitationRow(row: any, userId: string): Project
     project: row.project_name ? { id: row.project_id, name: row.project_name } : null,
     inviterUsername: row.inviter_username ?? null,
     inviterDisplayName: row.inviter_display_name ?? null,
+  };
+}
+
+export function mapApiTokenRow(row: any): ApiToken {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    name: row.name,
+    tokenPrefix: row.token_prefix,
+    scopes: row.scopes ?? [],
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+    revokedAt: row.revoked_at,
   };
 }
 
