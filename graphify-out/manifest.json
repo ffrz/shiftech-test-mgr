@@ -140,8 +140,8 @@
     "semantic_hash": ""
   },
   "frontend/src/helpers/mappers.ts": {
-    "mtime": 1785560914.18697,
-    "ast_hash": "1a112c05c3acdeea35b699074af99d86",
+    "mtime": 1785666098.325871,
+    "ast_hash": "6f9de4da5dad5e02805596d8aab846f3",
     "semantic_hash": ""
   },
   "frontend/src/helpers/statusLabels.ts": {
@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "frontend/src/hooks/queryKeys.ts": {
-    "mtime": 1785555433.536396,
-    "ast_hash": "d15d6d27e8b10e31f2fc846d2c8db83d",
+    "mtime": 1785666129.3705475,
+    "ast_hash": "ede9410bb2f6e38364db314e03ef9687",
     "semantic_hash": ""
   },
   "frontend/src/hooks/useAuth.tsx": {
@@ -285,8 +285,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/ProjectSettingsPage.tsx": {
-    "mtime": 1785560914.1974938,
-    "ast_hash": "8a2d259a888ce1fb77e6d7a49b284fe4",
+    "mtime": 1785667927.8109548,
+    "ast_hash": "f752019d574e2a67bf64768af9fb089c",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/ProjectsPage.tsx": {
@@ -575,8 +575,8 @@
     "semantic_hash": ""
   },
   "frontend/src/types/domain.ts": {
-    "mtime": 1785560914.2280738,
-    "ast_hash": "2083e602e9f3e4477f01e90e0281e339",
+    "mtime": 1785666082.6600852,
+    "ast_hash": "e685863d862f3abb2555ffae03d3f4a6",
     "semantic_hash": ""
   },
   "frontend/tsconfig.app.json": {
@@ -880,8 +880,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1785654914.0663526,
-    "ast_hash": "aa52b24a599d27077b6672700063d35e",
+    "mtime": 1785664405.1434462,
+    "ast_hash": "85671cbcdd39b632180eb84a14629d10",
     "semantic_hash": ""
   },
   "FEATURES.md": {
@@ -1330,8 +1330,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/ModulesTab.tsx": {
-    "mtime": 1785226621.3043447,
-    "ast_hash": "98577a288f345a3782c63fe142681069",
+    "mtime": 1785678314.9185326,
+    "ast_hash": "090cd43041b2435124174953d7abfb53",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/TagsTab.tsx": {
@@ -1720,8 +1720,8 @@
     "semantic_hash": ""
   },
   "backend/core/domain.go": {
-    "mtime": 1785663271.3911922,
-    "ast_hash": "49ff8d2f42f6f550bf04816901158014",
+    "mtime": 1785678814.630451,
+    "ast_hash": "7789a5b3bf455ae8138dc07d4da48b5b",
     "semantic_hash": ""
   },
   "backend/core/domain_test.go": {
@@ -1730,18 +1730,18 @@
     "semantic_hash": ""
   },
   "backend/core/ports.go": {
-    "mtime": 1785663539.4376054,
-    "ast_hash": "9131080e2a2fb1146b96e99b82cd10be",
+    "mtime": 1785678805.027789,
+    "ast_hash": "c91f2d8c00ecd30f10211ff34bc69ed1",
     "semantic_hash": ""
   },
   "backend/mcp-server/cmd-http/main.go": {
-    "mtime": 1785654914.4028337,
-    "ast_hash": "a278412caffe0fe6bc03948b7ab44eb7",
+    "mtime": 1785675740.1899655,
+    "ast_hash": "0f5c33ed701ad8635647087646e26eff",
     "semantic_hash": ""
   },
   "backend/mcp-server/cmd/main.go": {
-    "mtime": 1785654914.4028337,
-    "ast_hash": "a44cc3667b7bfd45ead0b3e0cfc0dde8",
+    "mtime": 1785675727.923384,
+    "ast_hash": "d040f19fb26a66e365316eb5ac70c3b0",
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/auth/session.go": {
@@ -1755,8 +1755,8 @@
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/read_tools.go": {
-    "mtime": 1785663512.7817056,
-    "ast_hash": "a9d78739b5192afa3ef400a92b0f977b",
+    "mtime": 1785675793.3570352,
+    "ast_hash": "36fe15cc0e9fb91cc25dc74aab070778",
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/read_tools_test.go": {
@@ -1765,18 +1765,18 @@
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/registry.go": {
-    "mtime": 1785654914.464717,
-    "ast_hash": "8858b6d681b7c514649e78ca4bbd381c",
+    "mtime": 1785665688.0337708,
+    "ast_hash": "1b4ad7beaa15524cc3f8402b0b762c07",
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/write_tools.go": {
-    "mtime": 1785663492.588143,
-    "ast_hash": "55ffbe5aa0009f296fcc65ed3c256392",
+    "mtime": 1785678869.3261871,
+    "ast_hash": "a1588e5532ff133ffc26ffeebffcec5c",
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/write_tools_test.go": {
-    "mtime": 1785663619.5596426,
-    "ast_hash": "9e458a7dffcd91e83758dca6c7eb09eb",
+    "mtime": 1785678949.1729,
+    "ast_hash": "4e00a7a2d75115fc019caacd6cb072e8",
     "semantic_hash": ""
   },
   "backend/repository/postgres/cursor.go": {
@@ -1790,8 +1790,8 @@
     "semantic_hash": ""
   },
   "backend/repository/postgres/issue_repo.go": {
-    "mtime": 1785663430.8081036,
-    "ast_hash": "5595415f5c4a99812188d3783ca76f2d",
+    "mtime": 1785675656.4680707,
+    "ast_hash": "aceddc278663ee94965f782ed56da646",
     "semantic_hash": ""
   },
   "backend/repository/postgres/mapper_test.go": {
@@ -1840,8 +1840,8 @@
     "semantic_hash": ""
   },
   "backend/repository/postgres/token_repo.go": {
-    "mtime": 1785654914.620874,
-    "ast_hash": "c24bc8ffc106cd3fa32b19b8812de43e",
+    "mtime": 1785664533.1797726,
+    "ast_hash": "06c871259a9af51dd1b76fca027826ec",
     "semantic_hash": ""
   },
   "backend/repository/postgres/token_repo_test.go": {
@@ -1875,8 +1875,8 @@
     "semantic_hash": ""
   },
   "backend/service/issue_service.go": {
-    "mtime": 1785654914.8208835,
-    "ast_hash": "3c1935179d643fbc1bb46432dc067ac3",
+    "mtime": 1785678856.3852408,
+    "ast_hash": "900ab99d54926014839643cb0ad74450",
     "semantic_hash": ""
   },
   "backend/service/module_service.go": {
@@ -1890,8 +1890,8 @@
     "semantic_hash": ""
   },
   "backend/service/service_test.go": {
-    "mtime": 1785654914.9944625,
-    "ast_hash": "6de3532bfc3040d033237e027160cf97",
+    "mtime": 1785678957.544933,
+    "ast_hash": "0fd9fb689c53d473b550499f6c53b470",
     "semantic_hash": ""
   },
   "backend/service/tag_service.go": {
@@ -1920,8 +1920,8 @@
     "semantic_hash": ""
   },
   "backend/service/testrun_service.go": {
-    "mtime": 1785654915.0909908,
-    "ast_hash": "89b3cd83e6bf2ad6908a512be3494a7f",
+    "mtime": 1785675718.920489,
+    "ast_hash": "14cb58d2192b02c2906193c42a864a68",
     "semantic_hash": ""
   },
   "backend_archive/cmd/api/main.go": {
@@ -3215,18 +3215,18 @@
     "semantic_hash": ""
   },
   "backend/ROADMAP.md": {
-    "mtime": 1785654914.19867,
-    "ast_hash": "ca232b3c14b0f53e17dbbf2c935b7a6f",
+    "mtime": 1785677931.6741009,
+    "ast_hash": "e598841fb01b98c6f00d92aa43c829cd",
     "semantic_hash": ""
   },
   "backend/RUNNING.md": {
-    "mtime": 1785654914.210708,
-    "ast_hash": "0f72c705fda8234d702454449e6ecbf1",
+    "mtime": 1785667974.5087647,
+    "ast_hash": "ececd70c1989f1a0ff8e6032b6d4ac39",
     "semantic_hash": ""
   },
   "backend/TASKS.md": {
-    "mtime": 1785654914.211792,
-    "ast_hash": "7e457a3b800324cd1fc675cc5147d9d1",
+    "mtime": 1785665923.8283005,
+    "ast_hash": "52b48ae3eedbc6e3dca9964a093d1cc0",
     "semantic_hash": ""
   },
   "backend/VALIDATION.md": {
@@ -3365,8 +3365,8 @@
     "semantic_hash": ""
   },
   "backend/repository/postgres/jsonb.go": {
-    "mtime": 1785663356.9227176,
-    "ast_hash": "117d2f2e854115b6eb80de5867a7cd42",
+    "mtime": 1785675602.5611916,
+    "ast_hash": "af70a16176c9f43cdd475757bdd79276",
     "semantic_hash": ""
   },
   "frontend/src/components/dialogs/TestPlanDialog.test.tsx": {
@@ -3387,6 +3387,171 @@
   "frontend/src/components/profile/ProfileView.test.tsx": {
     "mtime": 1785654917.265615,
     "ast_hash": "2e05e515bda259ed58fdf30e436c6189",
+    "semantic_hash": ""
+  },
+  "backend/mcp-server/internal/tools/analysis_tools.go": {
+    "mtime": 1785665167.1801963,
+    "ast_hash": "257899fe6773d5ae889eefb9ab9938d0",
+    "semantic_hash": ""
+  },
+  "backend/mcp-server/internal/tools/analysis_tools_test.go": {
+    "mtime": 1785665306.2504048,
+    "ast_hash": "a4b7ed58e6d235b48fb0a279b80e91a2",
+    "semantic_hash": ""
+  },
+  "backend/mcp-server/internal/tools/automation_tools.go": {
+    "mtime": 1785665148.9101477,
+    "ast_hash": "0eeb88546662c84bb1642d0d4ab57bbd",
+    "semantic_hash": ""
+  },
+  "backend/mcp-server/internal/tools/automation_tools_test.go": {
+    "mtime": 1785665384.4214668,
+    "ast_hash": "4ea22892b66b58ad263abe9396097bf6",
+    "semantic_hash": ""
+  },
+  "backend/mcp-server/internal/tools/repo_tools.go": {
+    "mtime": 1785665717.1486585,
+    "ast_hash": "f35bd33958ab397dcec45c1915b034c5",
+    "semantic_hash": ""
+  },
+  "backend/mcp-server/internal/tools/repo_tools_test.go": {
+    "mtime": 1785665863.1759143,
+    "ast_hash": "0dbcb0f8a3daa7b66c395d7e1aeb6d0e",
+    "semantic_hash": ""
+  },
+  "backend/repository/postgres/analysis_repo.go": {
+    "mtime": 1785675663.911539,
+    "ast_hash": "06d9bf3a695b569bf7d2fb28609c0db8",
+    "semantic_hash": ""
+  },
+  "backend/repository/postgres/automation_repo.go": {
+    "mtime": 1785664971.7411163,
+    "ast_hash": "f645f099ae51213758532a5ec1c6c0de",
+    "semantic_hash": ""
+  },
+  "backend/repository/postgres/repo_repo.go": {
+    "mtime": 1785665496.6934745,
+    "ast_hash": "71c4116cc9489bf92b9cad29d448d8ed",
+    "semantic_hash": ""
+  },
+  "backend/service/analysis_service.go": {
+    "mtime": 1785665059.078089,
+    "ast_hash": "dc6bf1a26ad5f0891f04983b1ff516bd",
+    "semantic_hash": ""
+  },
+  "backend/service/automation_service.go": {
+    "mtime": 1785665048.1529996,
+    "ast_hash": "19404068e08ed0cfdde70767f7eab13b",
+    "semantic_hash": ""
+  },
+  "backend/service/repo_service.go": {
+    "mtime": 1785665874.2974668,
+    "ast_hash": "c98b03fea7a2a4c326ecbc3ed6748e24",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260802000001_backend_automation.sql": {
+    "mtime": 1785664453.391644,
+    "ast_hash": "639bb758044cfa8861670e2343a19333",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260802000002_backend_project_repositories.sql": {
+    "mtime": 1785664461.6355102,
+    "ast_hash": "33ee6e2a5f30faf6bf36221c20874913",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260802170708_api_tokens_mint_rpc.sql": {
+    "mtime": 1785665258.3111165,
+    "ast_hash": "f9493f80ab7e08da56de8a000d30f772",
+    "semantic_hash": ""
+  },
+  "backend/repository/postgres/activity_repo.go": {
+    "mtime": 1785678845.8265543,
+    "ast_hash": "29761d489898f8c6dbf263483fb60514",
+    "semantic_hash": ""
+  },
+  "backend/repository/postgres/attachment_repo.go": {
+    "mtime": 1785675632.2500446,
+    "ast_hash": "59716581977d249f1dff47175317ed13",
+    "semantic_hash": ""
+  },
+  "backend/repository/postgres/profile_repo.go": {
+    "mtime": 1785675610.2738123,
+    "ast_hash": "1045cf2a58ccd4f467c3628390722ad5",
+    "semantic_hash": ""
+  },
+  "backend/service/activity_service.go": {
+    "mtime": 1785675676.0519936,
+    "ast_hash": "b1ff17f6d67e75162b1e90f545f49643",
+    "semantic_hash": ""
+  },
+  "backend/service/attachment_service.go": {
+    "mtime": 1785675683.9603908,
+    "ast_hash": "326e68ffe22ceb405f67903c241e6fac",
+    "semantic_hash": ""
+  },
+  "backend/service/profile_service.go": {
+    "mtime": 1785675669.923548,
+    "ast_hash": "145267694c06432117ec1058057e7ed1",
+    "semantic_hash": ""
+  },
+  "frontend/src/helpers/mcpSetupPrompt.ts": {
+    "mtime": 1785669980.2674403,
+    "ast_hash": "6b3741e31a131d88973ef5333d83ebbc",
+    "semantic_hash": ""
+  },
+  "frontend/src/hooks/useApiTokens.ts": {
+    "mtime": 1785667518.202016,
+    "ast_hash": "dd0bb8f5cf1b6401d11ec7b5490e0a1c",
+    "semantic_hash": ""
+  },
+  "frontend/src/pages/projects/components/dialogs/MintAgentTokenDialog.tsx": {
+    "mtime": 1785670010.2346492,
+    "ast_hash": "aa11828fed224e846db85d834d51f789",
+    "semantic_hash": ""
+  },
+  "frontend/src/pages/projects/components/tabs/AgentTokensTab.tsx": {
+    "mtime": 1785668496.746272,
+    "ast_hash": "cf5f6c7f4aee72a7d066b6dbcb8c202b",
+    "semantic_hash": ""
+  },
+  "frontend/src/repositories/adapters/apiTokenResolver.ts": {
+    "mtime": 1785666112.034442,
+    "ast_hash": "d583c2e127d5ca85b737e5b868eb4048",
+    "semantic_hash": ""
+  },
+  "frontend/src/repositories/adapters/mock/apiTokenRepository.ts": {
+    "mtime": 1785666110.2221072,
+    "ast_hash": "dee0bff8d744b62e472dfb8d0527b318",
+    "semantic_hash": ""
+  },
+  "frontend/src/repositories/adapters/supabase/apiTokenRepository.ts": {
+    "mtime": 1785666106.2260613,
+    "ast_hash": "51dff7201f32bcab27222e38ef1b24f7",
+    "semantic_hash": ""
+  },
+  "frontend/src/repositories/apiTokenRepository.ts": {
+    "mtime": 1785666113.9314246,
+    "ast_hash": "cbba95d9a785e387a7b69c72a5c24178",
+    "semantic_hash": ""
+  },
+  "frontend/src/repositories/interfaces/apiTokenRepository.ts": {
+    "mtime": 1785666102.9685411,
+    "ast_hash": "5d8506dac8e8b932619f53683f3a7dc1",
+    "semantic_hash": ""
+  },
+  "frontend/src/services/apiTokenService.ts": {
+    "mtime": 1785668484.4165914,
+    "ast_hash": "86f253892d2955eab765388e1f6773a7",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260802171500_fix_mint_api_token_ambiguous_id.sql": {
+    "mtime": 1785668219.061541,
+    "ast_hash": "15eb8f786f926846d3196210e941788f",
+    "semantic_hash": ""
+  },
+  "docs/ROADMAP_V3.md": {
+    "mtime": 1785679008.5726342,
+    "ast_hash": "8e590b7ad197f30ebe2d7aeb42ad8a6f",
     "semantic_hash": ""
   }
 }
