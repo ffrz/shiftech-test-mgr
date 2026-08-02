@@ -94,7 +94,7 @@ export const testPlanService = {
 
   listCasesPaginated(
     testPlanId: string,
-    options: { search?: string; priorities?: string[]; moduleIds?: string[]; tagIds?: string[]; page: number; rowsPerPage: number },
+    options: { search?: string; priorities?: string[]; moduleIds?: string[]; tagIds?: string[]; testRoleIds?: string[]; page: number; rowsPerPage: number },
   ) {
     return testCaseRepository.findCasesForPlanPaginated(testPlanId, options);
   },

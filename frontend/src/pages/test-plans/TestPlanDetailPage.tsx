@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
@@ -14,7 +14,8 @@ import { testCaseService } from '../../services/testCaseService';
 import { testRunService } from '../../services/testRunService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
-import type { TestCase, TestCasePriority, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
+import { testRoleService } from '../../services/testRoleService';
+import type { TestCasePriority, TestCaseWithDetails, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
@@ -109,6 +110,11 @@ export function TestPlanDetailPage() {
     queryFn: () => tagService.listByProject(testPlan!.projectId),
     enabled: !!testPlan?.projectId,
   });
+  const { data: testRoles = [] } = useQuery({
+    queryKey: queryKeys.testRoles(testPlan?.projectId ?? ''),
+    queryFn: () => testRoleService.listByProject(testPlan!.projectId),
+    enabled: !!testPlan?.projectId,
+  });
 
   // --- Test Runs: search / multi-select filter / server-side pagination ---
   const [runFilterVisible, setRunFilterVisible] = useState(true);
@@ -132,13 +138,14 @@ export function TestPlanDetailPage() {
   const [casePriorityFilters, setCasePriorityFilters] = useState<TestCasePriority[]>([]);
   const [caseModuleFilters, setCaseModuleFilters] = useState<string[]>([]);
   const [caseTagFilters, setCaseTagFilters] = useState<string[]>([]);
+  const [caseRoleFilters, setCaseRoleFilters] = useState<string[]>([]);
   const [caseFirst, setCaseFirst] = useState(0);
   const [caseRows, setCaseRows] = useState(10);
   const [selectedCases, setSelectedCases] = useState<TestPlanCaseWithDetails[]>([]);
 
   const casePage = Math.floor(caseFirst / caseRows) + 1;
   const isCaseFilterActive = Boolean(
-    caseSearch.trim() || casePriorityFilters.length > 0 || caseModuleFilters.length > 0 || caseTagFilters.length > 0,
+    caseSearch.trim() || casePriorityFilters.length > 0 || caseModuleFilters.length > 0 || caseTagFilters.length > 0 || caseRoleFilters.length > 0,
   );
 
   const { cases, total: totalCases, loading: casesLoading, reload: reloadCases } = useTestPlanDetail(id ?? null, {
@@ -146,6 +153,7 @@ export function TestPlanDetailPage() {
     priorities: casePriorityFilters.length > 0 ? casePriorityFilters : undefined,
     moduleIds: caseModuleFilters.length > 0 ? caseModuleFilters : undefined,
     tagIds: caseTagFilters.length > 0 ? caseTagFilters : undefined,
+    testRoleIds: caseRoleFilters.length > 0 ? caseRoleFilters : undefined,
     page: casePage,
     rowsPerPage: caseRows,
   });
@@ -159,20 +167,21 @@ export function TestPlanDetailPage() {
     setCasePriorityFilters([]);
     setCaseModuleFilters([]);
     setCaseTagFilters([]);
+    setCaseRoleFilters([]);
     resetCasePage();
     setSelectedCases([]);
   }
 
   // --- Add test case to plan ---
   const [addCaseDialogOpen, setAddCaseDialogOpen] = useState(false);
-  const [availableCases, setAvailableCases] = useState<TestCase[]>([]);
+  const [availableCases, setAvailableCases] = useState<TestCaseWithDetails[]>([]);
   const [selectedCaseIds, setSelectedCaseIds] = useState<string[]>([]);
 
   async function openAddCaseDialog() {
     if (!testPlan) return;
-    const allCases = await testCaseService.listByProject(testPlan.projectId);
+    const allCases = await testCaseService.listByProjectWithDetails(testPlan.projectId, { statuses: ['active'] });
     const alreadyInPlan = new Set(cases.map((c) => c.testCaseId));
-    setAvailableCases(allCases.filter((c) => c.status === 'active' && !alreadyInPlan.has(c.id)));
+    setAvailableCases(allCases.filter((c) => !alreadyInPlan.has(c.id)));
     setSelectedCaseIds([]);
     setAddCaseDialogOpen(true);
   }
@@ -375,6 +384,20 @@ export function TestPlanDetailPage() {
                 Updated <RelativeTime value={testPlan.updatedAt} className="text-color" />
               </span>
             </div>
+
+            {project && (
+              <div className="project-stat-grid project-stat-grid-fixed2 mt-3">
+                <div className="project-stat-tile">
+                  <i className="pi pi-folder text-primary" />
+                  <div className="project-stat-tile-body">
+                    <Link to={`/projects/${project.id}`} className="project-stat-value-text text-color entity-link">
+                      {project.name}
+                    </Link>
+                    <span className="project-stat-label">Project</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </Card>
@@ -401,6 +424,9 @@ export function TestPlanDetailPage() {
             onModuleFiltersChange={(v) => { setCaseModuleFilters(v); resetCasePage(); }}
             tagFilters={caseTagFilters}
             onTagFiltersChange={(v) => { setCaseTagFilters(v); resetCasePage(); }}
+            testRoleFilters={caseRoleFilters}
+            onTestRoleFiltersChange={(v) => { setCaseRoleFilters(v); resetCasePage(); }}
+            testRoleOptions={testRoles.map((r) => ({ label: r.name, value: r.id }))}
             onResetFilters={resetCaseFilters}
             first={caseFirst}
             rows={caseRows}
@@ -445,6 +471,9 @@ export function TestPlanDetailPage() {
         visible={addCaseDialogOpen}
         onHide={() => setAddCaseDialogOpen(false)}
         availableCases={availableCases}
+        modules={modules}
+        tags={tags}
+        testRoles={testRoles}
         selectedCaseIds={selectedCaseIds}
         onSelectedCaseIdsChange={setSelectedCaseIds}
         onAdd={handleAddCases}
