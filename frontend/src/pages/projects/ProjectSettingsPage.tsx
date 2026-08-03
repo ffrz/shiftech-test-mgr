@@ -490,7 +490,7 @@ export function ProjectSettingsPage() {
   async function handleChangeVisibility(value: ProjectVisibility) {
     if (!project) return;
     setProjectVisibility(value);
-    await projectService.update(project.id, { name: project.name, visibility: value });
+    await projectService.update(project.id, { name: project.name, visibility: value }, currentUser?.id);
     setProject({ ...project, visibility: value });
     toastHelper.success('Visibility updated');
   }

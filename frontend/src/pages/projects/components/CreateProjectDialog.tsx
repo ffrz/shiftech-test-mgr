@@ -65,9 +65,9 @@ export function CreateProjectDialog({ visible, onHide, onSaved, editingProject, 
     setError(null);
     try {
       if (editingProject) {
-        await projectService.update(editingProject.id, { name, description, visibility });
+        await projectService.update(editingProject.id, { name, description, visibility }, user?.id);
       } else {
-        const created = await projectService.create({ name, description, visibility });
+        const created = await projectService.create({ name, description, visibility }, user?.id);
         if (templateId) {
           const items = await testSuiteService.listItems(templateId);
           await testSuiteService.cloneItemsToProject(created.id, items.map((i) => i.id));

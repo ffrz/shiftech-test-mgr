@@ -126,6 +126,24 @@ describe('issueService repository-bound helpers', () => {
     expect(issueRepository.remove).toHaveBeenCalledWith('issue-1');
   });
 
+  it('logs a deleted event when removing with an actor', async () => {
+    vi.mocked(issueRepository.findById).mockResolvedValue(makeIssue());
+    vi.mocked(issueRepository.remove).mockResolvedValue(undefined);
+
+    await issueService.remove('issue-1', { actorId: 'u-1' });
+
+    expect(issueRepository.findById).toHaveBeenCalledWith('issue-1');
+    expect(issueRepository.remove).toHaveBeenCalledWith('issue-1');
+    expect(activityService.logEvent).toHaveBeenCalledWith({
+      projectId: 'proj-1',
+      entityType: 'issue',
+      entityId: 'issue-1',
+      actorId: 'u-1',
+      eventType: 'deleted',
+      payload: { code: 'ISS-1', title: 'Login fails' },
+    });
+  });
+
   it('delegates linkToTestResult', async () => {
     vi.mocked(issueRepository.linkToTestResult).mockResolvedValue(undefined);
     await issueService.linkToTestResult('issue-1', 'result-1');
@@ -244,6 +262,29 @@ describe('issueService.create', () => {
     await issueService.create({ projectId: 'proj-1', title: 'Login fails', linkToTestResultId: 'result-9' });
     expect(issueRepository.linkToTestResult).toHaveBeenCalledWith('issue-1', 'result-9');
   });
+
+  it('logs a created activity event when createdBy is provided', async () => {
+    vi.mocked(issueRepository.create).mockResolvedValue(makeIssue({ id: 'issue-9', code: 'ISS-9' }));
+
+    await issueService.create({ projectId: 'proj-1', title: 'Login fails', createdBy: 'user-a' });
+
+    expect(activityService.logEvent).toHaveBeenCalledWith({
+      projectId: 'proj-1',
+      entityType: 'issue',
+      entityId: 'issue-9',
+      actorId: 'user-a',
+      eventType: 'created',
+      payload: { code: 'ISS-9', title: 'Login fails' },
+    });
+  });
+
+  it('does not log a created event when createdBy is not provided', async () => {
+    vi.mocked(issueRepository.create).mockResolvedValue(makeIssue());
+
+    await issueService.create({ projectId: 'proj-1', title: 'Login fails' });
+
+    expect(activityService.logEvent).not.toHaveBeenCalled();
+  });
 });
 
 describe('issueService.createMany', () => {
@@ -358,6 +399,27 @@ describe('issueService.update', () => {
       expect.objectContaining({ code: 'BUG-42', targetRoleId: 'r-1', moduleId: 'm-1' }),
     );
   });
+
+  it('logs an updated event when an actor is provided', async () => {
+    vi.mocked(issueRepository.update).mockResolvedValue(makeIssue());
+
+    await issueService.update(
+      'issue-1',
+      'proj-1',
+      { title: 'New title', priority: 'medium', type: 'bug', moduleId: null, externalLinks: [] },
+      undefined,
+      'u-1',
+    );
+
+    expect(activityService.logEvent).toHaveBeenCalledWith({
+      projectId: 'proj-1',
+      entityType: 'issue',
+      entityId: 'issue-1',
+      actorId: 'u-1',
+      eventType: 'updated',
+      payload: { code: 'ISS-1', title: 'Login fails' },
+    });
+  });
 });
 
 describe('issueService.patchField', () => {
@@ -384,6 +446,21 @@ describe('issueService.patchField', () => {
     await issueService.patchField('issue-1', { priority: 'critical' });
 
     expect(issueRepository.update).toHaveBeenCalledWith('issue-1', { priority: 'critical' });
+  });
+
+  it('logs an updated event when a project context with actor is provided', async () => {
+    vi.mocked(issueRepository.update).mockResolvedValue(makeIssue());
+
+    await issueService.patchField('issue-1', { priority: 'critical' }, { projectId: 'proj-1', actorId: 'u-1' });
+
+    expect(activityService.logEvent).toHaveBeenCalledWith({
+      projectId: 'proj-1',
+      entityType: 'issue',
+      entityId: 'issue-1',
+      actorId: 'u-1',
+      eventType: 'updated',
+      payload: { code: 'ISS-1', title: 'Login fails' },
+    });
   });
 });
 

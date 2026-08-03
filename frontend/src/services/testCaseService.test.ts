@@ -149,6 +149,24 @@ describe('testCaseService passthrough reads', () => {
     await testCaseService.remove('tc-1');
     expect(testCaseRepository.remove).toHaveBeenCalledWith('tc-1');
   });
+
+  it('logs a deleted event when removing with an actor', async () => {
+    vi.mocked(testCaseRepository.findById).mockResolvedValue({ id: 'tc-1', projectId: 'proj-1', code: 'TC-1', title: 'Login works' } as never);
+    vi.mocked(testCaseRepository.remove).mockResolvedValue(undefined);
+
+    await testCaseService.remove('tc-1', { actorId: 'u-1' });
+
+    expect(testCaseRepository.findById).toHaveBeenCalledWith('tc-1');
+    expect(testCaseRepository.remove).toHaveBeenCalledWith('tc-1');
+    expect(activityService.logEvent).toHaveBeenCalledWith({
+      projectId: 'proj-1',
+      entityType: 'test_case',
+      entityId: 'tc-1',
+      actorId: 'u-1',
+      eventType: 'deleted',
+      payload: { code: 'TC-1', title: 'Login works' },
+    });
+  });
 });
 
 describe('testCaseService.create', () => {
@@ -317,7 +335,8 @@ describe('testCaseService.update', () => {
       entityType: 'test_case',
       entityId: 'tc-1',
       actorId: 'u-1',
-      eventType: 'field_update',
+      eventType: 'updated',
+      payload: { code: 'TC-1', title: 'Login works' },
     });
   });
 

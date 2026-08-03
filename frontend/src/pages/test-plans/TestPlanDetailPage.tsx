@@ -74,7 +74,7 @@ export function TestPlanDetailPage() {
     if (!testPlan) return;
     setPlanError(null);
     try {
-      const updated = await testPlanService.update(testPlan.id, { name: planName, description: planDescription, code: planCode, status: planStatus });
+      const updated = await testPlanService.update(testPlan.id, { name: planName, description: planDescription, code: planCode, status: planStatus }, { projectId: testPlan.projectId, actorId: user?.id });
       queryClient.setQueryData(queryKeys.testPlan(testPlan.id), updated);
       setPlanDialogOpen(false);
       toastHelper.success('Test plan updated');
@@ -311,7 +311,7 @@ export function TestPlanDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await testRunService.remove(row.id);
+        await testRunService.remove(row.id, { actorId: user?.id });
         await reloadRuns();
         if (testPlan) await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(testPlan.projectId) });
         toastHelper.success('Test run deleted');

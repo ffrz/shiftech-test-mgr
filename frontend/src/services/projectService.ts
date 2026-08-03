@@ -39,22 +39,44 @@ export const projectService = {
     return projectRepository.findById(id);
   },
 
-  async create(input: { name: string; description?: string; visibility?: ProjectVisibility }) {
+  async create(input: { name: string; description?: string; visibility?: ProjectVisibility }, actorId?: string) {
     if (!input.name.trim()) throw new Error('Project name cannot be empty');
-    return projectRepository.create({
+    const project = await projectRepository.create({
       name: input.name.trim(),
       description: input.description?.trim() || null,
       visibility: input.visibility ?? 'private',
     });
+    if (actorId) {
+      await activityService.logEvent({
+        projectId: project.id,
+        entityType: 'project',
+        entityId: project.id,
+        actorId,
+        eventType: 'created',
+        payload: { name: project.name },
+      });
+    }
+    return project;
   },
 
-  async update(id: string, input: { name: string; description?: string; visibility?: ProjectVisibility }) {
+  async update(id: string, input: { name: string; description?: string; visibility?: ProjectVisibility }, actorId?: string) {
     if (!input.name.trim()) throw new Error('Project name cannot be empty');
-    return projectRepository.update(id, {
+    const project = await projectRepository.update(id, {
       name: input.name.trim(),
       description: input.description?.trim() || null,
       ...(input.visibility ? { visibility: input.visibility } : {}),
     });
+    if (actorId) {
+      await activityService.logEvent({
+        projectId: id,
+        entityType: 'project',
+        entityId: id,
+        actorId,
+        eventType: 'updated',
+        payload: { name: project.name },
+      });
+    }
+    return project;
   },
 
   async changeStatus(id: string, status: ProjectStatus, actor?: { actorId: string }) {

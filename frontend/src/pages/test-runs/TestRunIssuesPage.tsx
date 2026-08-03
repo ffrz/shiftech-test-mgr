@@ -140,6 +140,7 @@ export function TestRunIssuesPage() {
         externalLinks: data.externalLinks,
       },
       data.tagNames,
+      user?.id ?? null,
     );
     closeEdit();
     await reload();
@@ -196,7 +197,7 @@ export function TestRunIssuesPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await issueService.remove(row.id);
+        await issueService.remove(row.id, { actorId: user?.id });
         await reload();
         await invalidateProjectIssues();
       },

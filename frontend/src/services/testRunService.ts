@@ -79,6 +79,16 @@ export const testRunService = {
       run.id,
       planCases.map((pc) => pc.testCaseId),
     );
+    if (startedBy) {
+      await activityService.logEvent({
+        projectId: plan.projectId,
+        entityType: 'test_run',
+        entityId: run.id,
+        actorId: startedBy,
+        eventType: 'created',
+        payload: { code: run.code, name: run.name },
+      });
+    }
     return run;
   },
 
@@ -95,13 +105,34 @@ export const testRunService = {
       startedBy: startedBy ?? null,
     });
     await testResultRepository.seedForRun(run.id, testCaseIds);
+    if (startedBy) {
+      await activityService.logEvent({
+        projectId,
+        entityType: 'test_run',
+        entityId: run.id,
+        actorId: startedBy,
+        eventType: 'created',
+        payload: { code: run.code, name: run.name },
+      });
+    }
     return run;
   },
 
-  rename(id: string, input: { name: string; code: string }) {
+  async rename(id: string, input: { name: string; code: string }, context?: { projectId: string; actorId?: string }) {
     if (!input.name.trim()) throw new Error('Test run name cannot be empty');
     if (!input.code.trim()) throw new Error('Test run code cannot be empty');
-    return testRunRepository.update(id, { name: input.name.trim(), code: input.code.trim() });
+    const run = await testRunRepository.update(id, { name: input.name.trim(), code: input.code.trim() });
+    if (context?.actorId) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'test_run',
+        entityId: id,
+        actorId: context.actorId,
+        eventType: 'updated',
+        payload: { code: run.code, name: run.name },
+      });
+    }
+    return run;
   },
 
   // "Completed" is always a manual action (per product decision) — never inferred
@@ -132,7 +163,22 @@ export const testRunService = {
     return run;
   },
 
-  remove(id: string) {
+  async remove(id: string, context?: { actorId?: string }) {
+    if (context?.actorId) {
+      const run = await testRunRepository.findById(id);
+      await testRunRepository.remove(id);
+      if (run) {
+        await activityService.logEvent({
+          projectId: run.projectId,
+          entityType: 'test_run',
+          entityId: id,
+          actorId: context.actorId,
+          eventType: 'deleted',
+          payload: { code: run.code, name: run.name },
+        });
+      }
+      return;
+    }
     return testRunRepository.remove(id);
   },
 

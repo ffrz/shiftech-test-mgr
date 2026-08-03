@@ -12,6 +12,7 @@ import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { testRunService } from '../../../../services/testRunService';
+import { useAuthContext } from '../../../../hooks/useAuth';
 import type { TestRun, TestRunStatus } from '../../../../types/domain';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
 import { TEST_RUN_STATUS_LABEL, TEST_RUN_STATUS_SEVERITY, TEST_RESULT_STATUS_SEVERITY } from '../../../../helpers/statusLabels';
@@ -77,6 +78,7 @@ export function TestRunTab({
   onPlanLinkClick,
 }: TestRunTabProps) {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const editNameRef = useRef<HTMLInputElement>(null);
@@ -97,7 +99,7 @@ export function TestRunTab({
     if (!newName) { cancelEditName(); return; }
     if (newName === row.name) { cancelEditName(); return; }
     try {
-      await testRunService.rename(row.id, { name: newName, code: row.code });
+      await testRunService.rename(row.id, { name: newName, code: row.code }, { projectId: row.projectId, actorId: user?.id });
     } catch { /* ignore */ }
     cancelEditName();
   }

@@ -202,22 +202,22 @@ export function IssueTab({
       onPatchIssue(issueId, { assignedTo: assigneeId });
     } else if (field === 'title') {
       const title = ((value as string) ?? '').trim();
-      await issueService.patchField(issueId, { title });
+      await issueService.patchField(issueId, { title }, { projectId, actorId: user?.id });
       onPatchIssue(issueId, { title });
     } else if (field === 'type') {
-      await issueService.patchField(issueId, { type: value as IssueType });
+      await issueService.patchField(issueId, { type: value as IssueType }, { projectId, actorId: user?.id });
       onPatchIssue(issueId, { type: value as IssueType });
     } else if (field === 'priority') {
-      await issueService.patchField(issueId, { priority: value as IssuePriority });
+      await issueService.patchField(issueId, { priority: value as IssuePriority }, { projectId, actorId: user?.id });
       onPatchIssue(issueId, { priority: value as IssuePriority });
     } else if (field === 'moduleId') {
       const moduleId = (value as string) || null;
-      await issueService.patchField(issueId, { moduleId });
+      await issueService.patchField(issueId, { moduleId }, { projectId, actorId: user?.id });
       const module = moduleId ? { id: moduleId, name: moduleOptions.find((m) => m.value === moduleId)?.label ?? '' } : null;
       onPatchIssue(issueId, { moduleId, module } as Partial<IssueWithDetails>);
     } else if (field === 'targetRoleId') {
       const targetRoleId = (value as string) || null;
-      await issueService.patchField(issueId, { targetRoleId });
+      await issueService.patchField(issueId, { targetRoleId }, { projectId, actorId: user?.id });
       const targetRole = targetRoleId ? { id: targetRoleId, name: testRoleOptions.find((r) => r.value === targetRoleId)?.label ?? '' } : null;
       onPatchIssue(issueId, { targetRoleId, targetRole } as any);
     } else if (field === 'tags') {
@@ -701,7 +701,7 @@ export function IssueTab({
                           rejectLabel: 'Cancel',
                           acceptClassName: 'p-button-danger',
                           accept: async () => {
-                            await issueService.remove(row.id);
+                            await issueService.remove(row.id, { actorId: user?.id });
                             await onReload();
                             onToastSuccess('Issue deleted');
                           },

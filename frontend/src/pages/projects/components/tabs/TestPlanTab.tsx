@@ -107,7 +107,7 @@ export function TestPlanTab({
     if (field === 'name') {
       const name = String(value ?? '').trim();
       if (!name) return;
-      await testPlanService.rename(planId, name);
+      await testPlanService.rename(planId, name, { projectId, actorId: user?.id });
       onPatchPlan?.(planId, { name } as Partial<TestPlan>);
     } else if (field === 'status') {
       if (!user) return;

@@ -91,6 +91,21 @@ export const issueService = {
       await issueRepository.linkToTestResult(issue.id, input.linkToTestResultId);
     }
 
+    // A "created" activity row so a new issue shows up on the issue's own timeline and in
+    // the project Activity Log feed right away — same producer pattern as status_change /
+    // assignment (see ROADMAP_V2 Phase 8). Only when createdBy (the current user) is known:
+    // the entity_activity insert policy requires actor_id = auth.uid().
+    if (input.createdBy) {
+      await activityService.logEvent({
+        projectId: input.projectId,
+        entityType: 'issue',
+        entityId: issue.id,
+        actorId: input.createdBy,
+        eventType: 'created',
+        payload: { code: issue.code, title: issue.title },
+      });
+    }
+
     return issue;
   },
 
@@ -156,6 +171,7 @@ export const issueService = {
       externalLinks: ExternalLink[];
     },
     tagNames?: string[],
+    actorId?: string | null,
   ) {
     if (!input.title.trim()) throw new Error('Issue title cannot be empty');
     const issue = await issueRepository.update(id, {
@@ -173,17 +189,39 @@ export const issueService = {
     if (tagNames !== undefined) {
       await tagService.saveTagsForIssue(projectId, id, tagNames);
     }
+    if (actorId) {
+      await activityService.logEvent({
+        projectId,
+        entityType: 'issue',
+        entityId: id,
+        actorId,
+        eventType: 'updated',
+        payload: { code: issue.code, title: issue.title },
+      });
+    }
     return issue;
   },
 
   async patchField(
     id: string,
     changes: Partial<Pick<Issue, 'title' | 'priority' | 'type' | 'moduleId' | 'targetRoleId'>>,
+    context?: { projectId: string; actorId?: string },
   ) {
     if (changes.title !== undefined && !changes.title.trim()) {
       throw new Error('Issue title cannot be empty');
     }
-    return issueRepository.update(id, changes.title !== undefined ? { ...changes, title: changes.title.trim() } : changes);
+    const issue = await issueRepository.update(id, changes.title !== undefined ? { ...changes, title: changes.title.trim() } : changes);
+    if (context?.actorId) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'issue',
+        entityId: id,
+        actorId: context.actorId,
+        eventType: 'updated',
+        payload: { code: issue.code, title: issue.title },
+      });
+    }
+    return issue;
   },
 
   async changeStatus(id: string, status: IssueStatus, actor: { projectId: string; actorId: string; actorName?: string | null }) {
@@ -253,7 +291,24 @@ export const issueService = {
     }
   },
 
-  remove: issueRepository.remove,
+  async remove(id: string, context?: { actorId?: string }) {
+    if (context?.actorId) {
+      const issue = await issueRepository.findById(id);
+      await issueRepository.remove(id);
+      if (issue) {
+        await activityService.logEvent({
+          projectId: issue.projectId,
+          entityType: 'issue',
+          entityId: id,
+          actorId: context.actorId,
+          eventType: 'deleted',
+          payload: { code: issue.code, title: issue.title },
+        });
+      }
+      return;
+    }
+    return issueRepository.remove(id);
+  },
 
   linkToTestResult: issueRepository.linkToTestResult,
   unlinkFromTestResult: issueRepository.unlinkFromTestResult,

@@ -143,6 +143,7 @@ export function IssueDetailPage() {
         externalLinks: updatedLinks,
       },
       undefined,
+      user?.id ?? null,
     );
     resetExternalForm();
     await reload();
@@ -167,6 +168,7 @@ export function IssueDetailPage() {
         externalLinks: updatedLinks,
       },
       undefined,
+      user?.id ?? null,
     );
     await reload();
     toastHelper.success('Link removed');
@@ -197,6 +199,7 @@ export function IssueDetailPage() {
         externalLinks: data.externalLinks.filter((l) => l.url.trim()),
       },
       data.tagNames,
+      user?.id ?? null,
     );
   }
 
@@ -269,7 +272,7 @@ export function IssueDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await issueService.remove(issue.id);
+        await issueService.remove(issue.id, { actorId: user?.id });
         await queryClient.invalidateQueries({ queryKey: queryKeys.issuesByProject(issue.projectId) });
         toastHelper.success('Issue deleted');
         handleBack();

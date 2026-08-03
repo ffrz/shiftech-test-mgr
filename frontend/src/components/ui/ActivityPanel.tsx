@@ -399,6 +399,12 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
   // this to..."/"changed the status..." rows, which don't get their own card chrome.
   function timelineEventIcon(eventType: string): string {
     switch (eventType) {
+      case 'created':
+        return 'pi pi-plus';
+      case 'updated':
+        return 'pi pi-pencil';
+      case 'deleted':
+        return 'pi pi-trash';
       case 'status_change':
         return 'pi pi-refresh';
       case 'assignment':

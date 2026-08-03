@@ -117,7 +117,7 @@ export function TestCaseDetailPage() {
   async function handleAddExternalLink() {
     if (!testCase || !newExternalUrl.trim()) return;
     const updatedLinks = [...testCase.externalLinks, { url: newExternalUrl.trim(), label: newExternalLabel.trim() || undefined }];
-    await testCaseService.update(testCase.id, testCase.project.id, { externalLinks: updatedLinks });
+    await testCaseService.update(testCase.id, testCase.project.id, { externalLinks: updatedLinks }, undefined, undefined, user?.id ?? null);
     resetExternalForm();
     await reload();
     toastHelper.success('Link added');
@@ -126,7 +126,7 @@ export function TestCaseDetailPage() {
   async function handleRemoveExternalLink(index: number) {
     if (!testCase) return;
     const updatedLinks = testCase.externalLinks.filter((_, i) => i !== index);
-    await testCaseService.update(testCase.id, testCase.project.id, { externalLinks: updatedLinks });
+    await testCaseService.update(testCase.id, testCase.project.id, { externalLinks: updatedLinks }, undefined, undefined, user?.id ?? null);
     await reload();
     toastHelper.success('Link removed');
   }
@@ -294,7 +294,7 @@ export function TestCaseDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await testCaseService.remove(testCase.id);
+        await testCaseService.remove(testCase.id, { actorId: user?.id });
         await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
         toastHelper.success('Test case deleted');
         handleBack();

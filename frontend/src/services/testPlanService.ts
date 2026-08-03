@@ -19,28 +19,61 @@ export const testPlanService = {
     if (!input.name.trim()) {
       throw new Error('Test plan name cannot be empty');
     }
-    return testPlanRepository.create({
+    const plan = await testPlanRepository.create({
       projectId: input.projectId,
       name: input.name.trim(),
       description: input.description?.trim() || null,
       code: input.code?.trim() || null,
       createdBy: input.createdBy ?? null,
     });
+    if (input.createdBy) {
+      await activityService.logEvent({
+        projectId: input.projectId,
+        entityType: 'test_plan',
+        entityId: plan.id,
+        actorId: input.createdBy,
+        eventType: 'created',
+        payload: { code: plan.code, name: plan.name },
+      });
+    }
+    return plan;
   },
 
-  rename(id: string, name: string) {
+  async rename(id: string, name: string, context?: { projectId: string; actorId?: string }) {
     if (!name.trim()) throw new Error('Test plan name cannot be empty');
-    return testPlanRepository.update(id, { name: name.trim() });
+    const plan = await testPlanRepository.update(id, { name: name.trim() });
+    if (context?.actorId) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'test_plan',
+        entityId: id,
+        actorId: context.actorId,
+        eventType: 'updated',
+        payload: { code: plan.code, name: plan.name },
+      });
+    }
+    return plan;
   },
 
-  update(id: string, input: { name: string; description?: string; code?: string; status?: TestPlanStatus }) {
+  async update(id: string, input: { name: string; description?: string; code?: string; status?: TestPlanStatus }, context?: { projectId: string; actorId?: string }) {
     if (!input.name.trim()) throw new Error('Test plan name cannot be empty');
-    return testPlanRepository.update(id, {
+    const plan = await testPlanRepository.update(id, {
       name: input.name.trim(),
       description: input.description?.trim() || null,
       ...(input.code !== undefined ? { code: input.code.trim() } : {}),
       ...(input.status !== undefined ? { status: input.status } : {}),
     });
+    if (context?.actorId) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'test_plan',
+        entityId: id,
+        actorId: context.actorId,
+        eventType: 'updated',
+        payload: { code: plan.code, name: plan.name },
+      });
+    }
+    return plan;
   },
 
   async changeStatus(id: string, status: TestPlan['status'], actor: { projectId: string; actorId: string }) {
@@ -65,7 +98,22 @@ export const testPlanService = {
     }
   },
 
-  remove(id: string) {
+  async remove(id: string, context?: { actorId?: string }) {
+    if (context?.actorId) {
+      const plan = await testPlanRepository.findById(id);
+      await testPlanRepository.remove(id);
+      if (plan) {
+        await activityService.logEvent({
+          projectId: plan.projectId,
+          entityType: 'test_plan',
+          entityId: id,
+          actorId: context.actorId,
+          eventType: 'deleted',
+          payload: { code: plan.code, name: plan.name },
+        });
+      }
+      return;
+    }
     return testPlanRepository.remove(id);
   },
 

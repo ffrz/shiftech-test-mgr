@@ -1,4 +1,5 @@
 import { ISSUE_STATUS_LABEL, TEST_PLAN_STATUS_LABEL, TEST_CASE_STATUS_LABEL, TEST_RUN_STATUS_LABEL, PROJECT_STATUS_LABEL } from './statusLabels';
+import { ACTIVITY_ENTITY_LABEL } from './activityRoutes';
 import type { ActivityEntityType, ActivityEntry } from '../types/domain';
 
 // status_change payloads always store the raw DB value ('open', 'in_progress', ...) — see
@@ -27,6 +28,18 @@ function statusLabel(entityType: string, rawStatus: unknown): string {
 // change here to render something reasonable.
 export function describeSystemEvent(entry: ActivityEntry): string {
   switch (entry.eventType) {
+    case 'created': {
+      const code = typeof entry.payload.code === 'string' ? entry.payload.code : null;
+      return code ? `created ${code}` : `created this ${ACTIVITY_ENTITY_LABEL[entry.entityType].toLowerCase()}`;
+    }
+    case 'updated': {
+      const code = typeof entry.payload.code === 'string' ? entry.payload.code : null;
+      return code ? `updated ${code}` : `updated this ${ACTIVITY_ENTITY_LABEL[entry.entityType].toLowerCase()}`;
+    }
+    case 'deleted': {
+      const code = typeof entry.payload.code === 'string' ? entry.payload.code : null;
+      return code ? `deleted ${code}` : `deleted this ${ACTIVITY_ENTITY_LABEL[entry.entityType].toLowerCase()}`;
+    }
     case 'status_change':
       return `changed status from ${statusLabel(entry.entityType, entry.payload.from)} to ${statusLabel(entry.entityType, entry.payload.to)}`;
     case 'assignment':
@@ -48,6 +61,9 @@ export function describeSystemEvent(entry: ActivityEntry): string {
 // raw string so a new producer doesn't need a UI change to render something readable.
 const EVENT_TYPE_LABEL: Record<string, string> = {
   comment: 'Comment',
+  created: 'Created',
+  updated: 'Updated',
+  deleted: 'Deleted',
   status_change: 'Status Change',
   assignment: 'Assignment',
   attachment_added: 'Attachment Added',

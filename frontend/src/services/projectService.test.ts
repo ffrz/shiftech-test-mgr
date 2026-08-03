@@ -106,6 +106,21 @@ describe('projectService.create', () => {
       visibility: 'public',
     });
   });
+
+  it('logs a created event when an actor is provided', async () => {
+    vi.mocked(projectRepository.create).mockResolvedValue(makeProject() as never);
+
+    await projectService.create({ name: 'P' }, 'u-1');
+
+    expect(activityService.logEvent).toHaveBeenCalledWith({
+      projectId: 'proj-1',
+      entityType: 'project',
+      entityId: 'proj-1',
+      actorId: 'u-1',
+      eventType: 'created',
+      payload: { name: 'Project' },
+    });
+  });
 });
 
 describe('projectService.update', () => {
@@ -135,6 +150,21 @@ describe('projectService.update', () => {
       name: 'R',
       description: null,
       visibility: 'unlisted',
+    });
+  });
+
+  it('logs an updated event when an actor is provided', async () => {
+    vi.mocked(projectRepository.update).mockResolvedValue(makeProject() as never);
+
+    await projectService.update('proj-1', { name: 'R' }, 'u-1');
+
+    expect(activityService.logEvent).toHaveBeenCalledWith({
+      projectId: 'proj-1',
+      entityType: 'project',
+      entityId: 'proj-1',
+      actorId: 'u-1',
+      eventType: 'updated',
+      payload: { name: 'Project' },
     });
   });
 });

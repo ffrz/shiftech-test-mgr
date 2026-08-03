@@ -91,6 +91,17 @@ export const testCaseService = {
       await testCaseStepService.replaceForTestCase(testCase.id, input.detailedSteps);
     }
 
+    if (input.createdBy) {
+      await activityService.logEvent({
+        projectId: input.projectId,
+        entityType: 'test_case',
+        entityId: testCase.id,
+        actorId: input.createdBy,
+        eventType: 'created',
+        payload: { code: testCase.code, title: testCase.title },
+      });
+    }
+
     return testCase;
   },
 
@@ -115,7 +126,8 @@ export const testCaseService = {
         entityType: 'test_case',
         entityId: id,
         actorId,
-        eventType: 'field_update',
+        eventType: 'updated',
+        payload: { code: testCase.code, title: testCase.title },
       });
     }
     return testCase;
@@ -124,9 +136,19 @@ export const testCaseService = {
   // Bulk-edit dialog only ever sends the fields the user actually touched (undefined =
   // leave unchanged) — same partial-update semantics as `update` above, just applied to
   // many rows sequentially so Supabase isn't hit with a burst of concurrent writes.
-  async bulkUpdate(ids: string[], changes: Partial<Pick<TestCase, 'moduleId' | 'priority' | 'status' | 'targetRoleId'>>) {
+  async bulkUpdate(ids: string[], changes: Partial<Pick<TestCase, 'moduleId' | 'priority' | 'status' | 'targetRoleId'>>, context?: { projectId: string; actorId?: string }) {
     for (const id of ids) {
-      await testCaseRepository.update(id, changes);
+      const testCase = await testCaseRepository.update(id, changes);
+      if (context?.actorId) {
+        await activityService.logEvent({
+          projectId: context.projectId,
+          entityType: 'test_case',
+          entityId: id,
+          actorId: context.actorId,
+          eventType: 'updated',
+          payload: { code: testCase.code, title: testCase.title },
+        });
+      }
     }
   },
 
@@ -156,7 +178,22 @@ export const testCaseService = {
     return testCase;
   },
 
-  remove(id: string) {
+  async remove(id: string, context?: { actorId?: string }) {
+    if (context?.actorId) {
+      const testCase = await testCaseRepository.findById(id);
+      await testCaseRepository.remove(id);
+      if (testCase) {
+        await activityService.logEvent({
+          projectId: testCase.projectId,
+          entityType: 'test_case',
+          entityId: id,
+          actorId: context.actorId,
+          eventType: 'deleted',
+          payload: { code: testCase.code, title: testCase.title },
+        });
+      }
+      return;
+    }
     return testCaseRepository.remove(id);
   },
 

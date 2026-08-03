@@ -18,6 +18,7 @@ import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePagi
 import type { TestCase, TestCaseWithDetails, TestCasePriority, TestCaseStatus } from '../../../../types/domain';
 import { testCaseService } from '../../../../services/testCaseService';
 import { tagService } from '../../../../services/tagService';
+import { useAuthContext } from '../../../../hooks/useAuth';
 import {
   TEST_CASE_PRIORITY_LABEL,
   TEST_CASE_PRIORITY_SEVERITY,
@@ -122,6 +123,7 @@ export function TestCaseTab({
   onPatchCase,
 }: TestCaseTabProps) {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
   const [editingCell, setEditingCell] = useState<{ caseId: string; field: string } | null>(null);
 
   // Bulk-edit dialog: each field is UNSET (untouched, excluded from the update) until the
@@ -183,22 +185,22 @@ export function TestCaseTab({
     if (field === 'title') {
       const title = String(value ?? '').trim();
       if (!title) return;
-      await testCaseService.update(caseId, projectId, { title });
+      await testCaseService.update(caseId, projectId, { title }, undefined, undefined, user?.id ?? null);
       onPatchCase?.(caseId, { title } as any);
     } else if (field === 'moduleId') {
       const moduleId = value || null;
-      await testCaseService.update(caseId, projectId, { moduleId });
+      await testCaseService.update(caseId, projectId, { moduleId }, undefined, undefined, user?.id ?? null);
       const module = moduleId ? { id: moduleId, name: moduleOptions.find((m) => m.value === moduleId)?.label ?? '' } : null;
       onPatchCase?.(caseId, { moduleId, module } as any);
     } else if (field === 'priority') {
-      await testCaseService.update(caseId, projectId, { priority: value as TestCasePriority });
+      await testCaseService.update(caseId, projectId, { priority: value as TestCasePriority }, undefined, undefined, user?.id ?? null);
       onPatchCase?.(caseId, { priority: value as TestCasePriority } as any);
     } else if (field === 'status') {
-      await testCaseService.update(caseId, projectId, { status: value as TestCaseStatus });
+      await testCaseService.update(caseId, projectId, { status: value as TestCaseStatus }, undefined, undefined, user?.id ?? null);
       onPatchCase?.(caseId, { status: value as TestCaseStatus } as any);
     } else if (field === 'targetRoleId') {
       const targetRoleId = value || null;
-      await testCaseService.update(caseId, projectId, { targetRoleId });
+      await testCaseService.update(caseId, projectId, { targetRoleId }, undefined, undefined, user?.id ?? null);
       onPatchCase?.(caseId, { targetRoleId } as any);
     } else if (field === 'tags') {
       await tagService.saveTagsForTestCase(projectId, caseId, value as string[]);

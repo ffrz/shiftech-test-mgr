@@ -10,7 +10,6 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
-import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { ActivityLogTab } from './components/tabs/ActivityLogTab';
 import { ProjectDetailPageSkeleton } from './components/ProjectDetailPageSkeleton';
 import { TestPlanTab } from './components/tabs/TestPlanTab';
@@ -108,7 +107,6 @@ export function ProjectDetailPage() {
   });
   const project = projectQuery.data ?? null;
   const projectLoading = projectQuery.isLoading;
-  const isOwner = !!user && !!project && project.ownerId === user.id;
   const projectBreadcrumbItems = useProjectBreadcrumbItems(project?.name, project?.ownerId, `/projects/${id}`);
   // useProjectOwnerProfile deliberately returns null for your own project (it only
   // fetches to label projects someone else shared with you) — the "Owned by" line
@@ -364,9 +362,9 @@ export function ProjectDetailPage() {
     setPlanError(null);
     try {
       if (editingPlanId) {
-        await testPlanService.update(editingPlanId, { name: planName, description: planDescription, code: planCode, status: planStatus });
+        await testPlanService.update(editingPlanId, { name: planName, description: planDescription, code: planCode, status: planStatus }, { projectId: id, actorId: user?.id });
       } else {
-        await testPlanService.create({ projectId: id, name: planName, description: planDescription, code: planCode });
+        await testPlanService.create({ projectId: id, name: planName, description: planDescription, code: planCode, createdBy: user?.id ?? null });
       }
       setPlanDialogOpen(false);
       await loadAll();
@@ -385,7 +383,7 @@ export function ProjectDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await testPlanService.remove(row.id);
+        await testPlanService.remove(row.id, { actorId: user?.id });
         await loadAll();
         toastSuccess('Test plan deleted');
       },
@@ -401,7 +399,7 @@ export function ProjectDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await Promise.all(selectedPlans.map((p) => testPlanService.remove(p.id)));
+        await Promise.all(selectedPlans.map((p) => testPlanService.remove(p.id, { actorId: user?.id })));
         setSelectedPlans([]);
         await loadAll();
         toastSuccess('Selected test plans deleted');
@@ -627,6 +625,7 @@ export function ProjectDetailPage() {
           },
           caseTags,
           caseStepType === 'detailed' ? caseDetailedSteps : undefined,
+          user?.id ?? null,
         );
       } else {
         await testCaseService.create({
@@ -716,7 +715,7 @@ export function ProjectDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await testCaseService.remove(row.id);
+        await testCaseService.remove(row.id, { actorId: user?.id });
         await loadAll();
         toastSuccess('Test case deleted');
       },
@@ -732,7 +731,7 @@ export function ProjectDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await Promise.all(selectedCases.map((c) => testCaseService.remove(c.id)));
+        await Promise.all(selectedCases.map((c) => testCaseService.remove(c.id, { actorId: user?.id })));
         setSelectedCases([]);
         await loadAll();
         toastSuccess('Selected test cases deleted');
@@ -741,7 +740,7 @@ export function ProjectDetailPage() {
   }
 
   async function handleBulkEditCases(changes: { moduleId?: string | null; priority?: TestCasePriority; status?: TestCaseStatus; targetRoleId?: string | null }) {
-    await testCaseService.bulkUpdate(selectedCases.map((c) => c.id), changes);
+    await testCaseService.bulkUpdate(selectedCases.map((c) => c.id), changes, { projectId: id ?? '', actorId: user?.id });
     setSelectedCases([]);
     await loadAll();
     toastSuccess('Selected test cases updated');
@@ -801,9 +800,9 @@ export function ProjectDetailPage() {
         runMode === 'plan'
           ? await (async () => {
             if (!runFormPlanId) throw new Error('Select a test plan first');
-            return testRunService.start(runFormPlanId, runFormName);
+            return testRunService.start(runFormPlanId, runFormName, undefined, user?.id ?? null);
           })()
-          : await testRunService.startCustom(id, runFormName, runFormCaseIds);
+          : await testRunService.startCustom(id, runFormName, runFormCaseIds, undefined, user?.id ?? null);
       setRunDialogOpen(false);
       await loadAll();
       await queryClient.invalidateQueries({ queryKey: queryKeys.testRunsByProject(id) });
@@ -822,7 +821,7 @@ export function ProjectDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await testRunService.remove(row.id);
+        await testRunService.remove(row.id, { actorId: user?.id });
         await loadAll();
         toastSuccess('Test run deleted');
       },
@@ -838,7 +837,7 @@ export function ProjectDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await Promise.all(selectedRuns.map((r) => testRunService.remove(r.id)));
+        await Promise.all(selectedRuns.map((r) => testRunService.remove(r.id, { actorId: user?.id })));
         setSelectedRuns([]);
         await loadAll();
         toastSuccess('Selected test runs deleted');
@@ -914,7 +913,7 @@ export function ProjectDetailPage() {
         moduleId: data.moduleId,
         targetRoleId: data.targetRoleId,
         externalLinks: data.externalLinks,
-      }, data.tagNames);
+      }, data.tagNames, user?.id ?? null);
       toastSuccess('Issue updated');
     } else {
       await issueService.create({
@@ -967,7 +966,7 @@ export function ProjectDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await Promise.all(selectedIssues.map((i) => issueService.remove(i.id)));
+        await Promise.all(selectedIssues.map((i) => issueService.remove(i.id, { actorId: user?.id })));
         setSelectedIssues([]);
         await loadAll();
         toastSuccess('Selected issues deleted');
@@ -1266,15 +1265,9 @@ export function ProjectDetailPage() {
           />
         </TabPanel>
 
-        <TabPanel header="Activity">
-          <ActivityPanel projectId={id ?? ''} entityType="project" entityId={id ?? null} />
+        <TabPanel header="Activity Log">
+          {id && <ActivityLogTab projectId={id} />}
         </TabPanel>
-
-        {isOwner && (
-          <TabPanel header="Activity Log">
-            {id && <ActivityLogTab projectId={id} />}
-          </TabPanel>
-        )}
       </TabView>
 
       <TestPlanDialog

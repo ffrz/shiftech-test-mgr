@@ -73,6 +73,24 @@ describe('testRunService passthrough reads', () => {
     expect(testRunRepository.remove).toHaveBeenCalledWith('run-1');
   });
 
+  it('logs a deleted event when removing with an actor', async () => {
+    vi.mocked(testRunRepository.findById).mockResolvedValue({ id: 'run-1', projectId: 'proj-1', name: 'Run', code: 'RT-1' } as never);
+    vi.mocked(testRunRepository.remove).mockResolvedValue(undefined);
+
+    await testRunService.remove('run-1', { actorId: 'u-1' });
+
+    expect(testRunRepository.findById).toHaveBeenCalledWith('run-1');
+    expect(testRunRepository.remove).toHaveBeenCalledWith('run-1');
+    expect(activityService.logEvent).toHaveBeenCalledWith({
+      projectId: 'proj-1',
+      entityType: 'test_run',
+      entityId: 'run-1',
+      actorId: 'u-1',
+      eventType: 'deleted',
+      payload: { code: 'RT-1', name: 'Run' },
+    });
+  });
+
   it('delegates recordResult', async () => {
     vi.mocked(testResultRepository.recordResult).mockResolvedValue({ id: 'res-1' } as never);
     const result = await testRunService.recordResult('res-1', 'u-1', 'pass', 'note');
@@ -268,14 +286,14 @@ describe('testRunService.startCustom', () => {
 });
 
 describe('testRunService.rename', () => {
-  it('rejects an empty name', () => {
-    expect(() => testRunService.rename('run-1', { name: '  ', code: 'RT-1' })).toThrow(
+  it('rejects an empty name', async () => {
+    await expect(testRunService.rename('run-1', { name: '  ', code: 'RT-1' })).rejects.toThrow(
       'Test run name cannot be empty',
     );
   });
 
-  it('rejects an empty code', () => {
-    expect(() => testRunService.rename('run-1', { name: 'Run', code: '  ' })).toThrow(
+  it('rejects an empty code', async () => {
+    await expect(testRunService.rename('run-1', { name: 'Run', code: '  ' })).rejects.toThrow(
       'Test run code cannot be empty',
     );
   });

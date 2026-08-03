@@ -84,6 +84,18 @@ describe('describeSystemEvent', () => {
     });
   });
 
+  describe('created', () => {
+    it('describes with the entity code when present', () => {
+      expect(describeSystemEvent(makeEntry('created', 'issue', { code: 'ISS-123', title: 'Login fails' })))
+        .toBe('created ISS-123');
+    });
+
+    it('falls back to the entity label when code is missing', () => {
+      expect(describeSystemEvent(makeEntry('created', 'test_plan', {})))
+        .toBe('created this test plan');
+    });
+  });
+
   describe('field_update', () => {
     it('returns generic message', () => {
       expect(describeSystemEvent(makeEntry('field_update', 'issue', { field: 'priority' })))
@@ -102,6 +114,10 @@ describe('describeSystemEvent', () => {
 describe('eventTypeLabel', () => {
   it('returns label for comment', () => {
     expect(eventTypeLabel('comment')).toBe('Comment');
+  });
+
+  it('returns label for created', () => {
+    expect(eventTypeLabel('created')).toBe('Created');
   });
 
   it('returns label for status_change', () => {

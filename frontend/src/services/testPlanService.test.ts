@@ -55,6 +55,24 @@ describe('testPlanService passthrough reads and case-scope ops', () => {
     expect(testPlanRepository.remove).toHaveBeenCalledWith('plan-1');
   });
 
+  it('logs a deleted event when removing with an actor', async () => {
+    vi.mocked(testPlanRepository.findById).mockResolvedValue({ id: 'plan-1', projectId: 'proj-1', name: 'Plan', code: 'P-1' } as never);
+    vi.mocked(testPlanRepository.remove).mockResolvedValue(undefined);
+
+    await testPlanService.remove('plan-1', { actorId: 'u-1' });
+
+    expect(testPlanRepository.findById).toHaveBeenCalledWith('plan-1');
+    expect(testPlanRepository.remove).toHaveBeenCalledWith('plan-1');
+    expect(activityService.logEvent).toHaveBeenCalledWith({
+      projectId: 'proj-1',
+      entityType: 'test_plan',
+      entityId: 'plan-1',
+      actorId: 'u-1',
+      eventType: 'deleted',
+      payload: { code: 'P-1', name: 'Plan' },
+    });
+  });
+
   it('delegates listCases', async () => {
     vi.mocked(testCaseRepository.findCasesForPlan).mockResolvedValue([{ id: 'pc1' } as never]);
     const result = await testPlanService.listCases('plan-1');
@@ -106,8 +124,8 @@ describe('testPlanService passthrough reads and case-scope ops', () => {
 });
 
 describe('testPlanService.rename', () => {
-  it('rejects an empty name', () => {
-    expect(() => testPlanService.rename('plan-1', '   ')).toThrow('Test plan name cannot be empty');
+  it('rejects an empty name', async () => {
+    await expect(testPlanService.rename('plan-1', '   ')).rejects.toThrow('Test plan name cannot be empty');
   });
 
   it('trims and delegates to the repository', async () => {
@@ -119,8 +137,8 @@ describe('testPlanService.rename', () => {
 });
 
 describe('testPlanService.update', () => {
-  it('rejects an empty name', () => {
-    expect(() => testPlanService.update('plan-1', { name: '  ' })).toThrow('Test plan name cannot be empty');
+  it('rejects an empty name', async () => {
+    await expect(testPlanService.update('plan-1', { name: '  ' })).rejects.toThrow('Test plan name cannot be empty');
   });
 
   it('trims name/description and only includes code/status when provided', async () => {
