@@ -1,0 +1,32 @@
+{
+  "name": "@testmanager/runner",
+  "version": "0.1.0",
+  "description": "Playwright Local Runner for TestManager — pulls automation jobs from the central server, runs Playwright locally, and reports results back.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "tm-runner": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "start": "node dist/index.js",
+    "dev": "npm run build && node dist/index.js",
+    "release:self-hosted": "node ../scripts/release-runner.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@testmanager/agent-core": "file:../packages/agent-core",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

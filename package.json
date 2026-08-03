@@ -1,0 +1,7 @@
+{
+  "name": "shiftech-test-mgr",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "1.48.0"
+  }
+}

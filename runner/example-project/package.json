@@ -1,0 +1,9 @@
+{
+  "name": "tm-runner-example-project",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal Playwright project to smoke-test the TestManager Local Runner end-to-end.",
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
