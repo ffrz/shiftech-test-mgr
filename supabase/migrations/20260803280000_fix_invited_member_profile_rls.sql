@@ -3,8 +3,7 @@
 -- pm_target.status = 'accepted'. Invited users (status='invited') are filtered
 -- out, leaving member_user (and therefore profile) null.
 --
--- Expand the policy to also include status='invited' (and 'declined' since
--- they're also displayed in the member list with status filter).
+-- Expand the policy to also include status='invited'.
 drop policy if exists "project co-members read users" on users;
 
 create policy "project co-members read users" on users for select
