@@ -44,3 +44,5 @@ backend/cmd.exe
 
 # Local MCP client config — contains live bearer tokens
 /opencode.json
+e2e/test-results/.last-run.json
+test-results/.last-run.json
