@@ -15,12 +15,13 @@ func okHandler(c echo.Context) error {
 }
 
 func TestRequireAuth_MissingHeader(t *testing.T) {
+	keys, _, _ := testJWKS(t)
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	h := RequireAuth("secret")(okHandler)
+	h := RequireAuth(keys)(okHandler)
 	if err := h(c); err != nil {
 		t.Fatalf("handler: %v", err)
 	}
@@ -30,13 +31,14 @@ func TestRequireAuth_MissingHeader(t *testing.T) {
 }
 
 func TestRequireAuth_InvalidToken(t *testing.T) {
+	keys, _, _ := testJWKS(t)
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Authorization", "Bearer not-a-jwt")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	h := RequireAuth("secret")(okHandler)
+	h := RequireAuth(keys)(okHandler)
 	if err := h(c); err != nil {
 		t.Fatalf("handler: %v", err)
 	}
@@ -46,8 +48,8 @@ func TestRequireAuth_InvalidToken(t *testing.T) {
 }
 
 func TestRequireAuth_ValidToken_SetsUserID(t *testing.T) {
-	secret := "test-secret"
-	raw := signToken(t, secret, &Claims{RegisteredClaims: jwt.RegisteredClaims{
+	keys, priv, kid := testJWKS(t)
+	raw := signToken(t, priv, kid, &Claims{RegisteredClaims: jwt.RegisteredClaims{
 		Subject:   "user-123",
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 	}})
@@ -59,7 +61,7 @@ func TestRequireAuth_ValidToken_SetsUserID(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	var capturedUserID string
-	h := RequireAuth(secret)(func(c echo.Context) error {
+	h := RequireAuth(keys)(func(c echo.Context) error {
 		capturedUserID = UserID(c)
 		return c.String(http.StatusOK, "ok")
 	})

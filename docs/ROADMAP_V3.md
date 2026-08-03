@@ -331,11 +331,29 @@ PostgREST dari JWT) **tidak berlaku** di jalur ini. Solusi: replikasi cek
 akses secara eksplisit di Go (`rest-api/internal/auth/access.go`), bukan
 `SET LOCAL`/session trick untuk mengaktifkan RLS lewat koneksi biasa.
 
+**Koreksi mid-implementasi — HS256 ternyata salah asumsi:** draft awal fase
+ini (dan CLAUDE.md tidak menyebutkan sama sekali) mengasumsikan project ini
+pakai skema `SUPABASE_JWT_SECRET`/HS256 lama. Saat integration test pertama
+dijalankan dengan token Supabase Auth **asli** (bukan token yang ditandatangani
+sendiri di unit test), request ditolak: `signing method ES256 is invalid`.
+Ternyata project ini sudah pakai signing key baru (JWKS/ES256, asimetris) —
+`{SUPABASE_URL}/auth/v1/.well-known/jwks.json` publik dan aktif. Pelajaran:
+unit test yang menandatangani token sendiri (HS256, secret buatan sendiri)
+tidak pernah bisa menangkap kesalahan asumsi skema signing — baru ketahuan
+lewat `TestRequireAuth_RealSupabaseSession` (lihat testsupport di bawah).
+Diperbaiki sebelum fase ini ditutup; tidak sempat merembet ke R1/R2 karena
+belum ada kode yang bergantung pada `SUPABASE_JWT_SECRET`.
+
 **Implementasi** (`rest-api/internal/auth/`):
-- `jwt.go` — `VerifyToken()` verifikasi Supabase Auth access token (HS256,
-  `SUPABASE_JWT_SECRET` — skema shared-secret lama, didukung semua project
-  Supabase terlepas JWKS/RS256 aktif atau tidak). Reject eksplisit
-  `alg: none` (classic JWT bypass) dan signing method selain HS256.
+- `jwks.go` — `JWKSFetcher` fetch + cache (TTL 10 menit) public key EC
+  P-256 dari `{SUPABASE_URL}/auth/v1/.well-known/jwks.json`, resolve by
+  `kid` dari header token. Endpoint ini publik (tidak butuh secret untuk
+  fetch, cuma untuk sign yang tetap di sisi Supabase).
+- `jwt.go` — `VerifyToken()` verifikasi Supabase Auth access token (ES256
+  via `JWKSFetcher`). Reject eksplisit `alg: none` (classic JWT bypass),
+  HS256 (asymmetric-to-symmetric confusion attack — kalau attacker coba
+  tandatangani pakai public key bytes sebagai HMAC secret), dan signing
+  method selain ES256 (`jwt.WithValidMethods`).
 - `access.go` — `AccessRepository` query `project_members` (`RoleFor`/
   `HasAccess`/`CanEditContent`/`IsManager`), replika 1:1 dari
   `has_project_access()`/`can_edit_project_content()`/`is_project_manager()`
@@ -369,15 +387,30 @@ di belakang `auth.RequireAuth`; `GET /projects/:id` juga di belakang
 project) sengaja belum di-gate per-project — itu soal filtering by
 membership di level `ProjectFilter`, di luar scope R3.
 
-**Test:** 24 test baru di `rest-api/internal/auth/` — JWT (valid/wrong
-secret/expired/no-subject/alg-none-bypass), AccessRepository (accepted vs
-invited, scoped per-project, role hierarchy), middleware (401/403/200,
-fallback `:id`).
+**Test:** 25 test di `rest-api/internal/auth/` — JWT (valid/wrong-key/unknown-kid/
+expired/no-subject/alg-none-bypass/HS256-confusion-bypass), AccessRepository
+(accepted vs invited, scoped per-project, role hierarchy), middleware
+(401/403/200, fallback `:id`), **plus satu integration test end-to-end**
+(`TestRequireAuth_RealSupabaseSession`, di bawah) yang jadi satu-satunya
+test yang benar-benar memakai token Supabase Auth asli — inilah yang
+menangkap kesalahan HS256 di atas.
+
+**`rest-api/internal/testsupport`** (baru, dipicu kebutuhan test di atas —
+lihat juga README di folder itu): provisioning user Supabase Auth sekali-pakai
+lewat Admin API (`POST /auth/v1/admin/users`, `email_confirm: true`) +
+password-grant token exchange, supaya automated test dapat access token
+sungguhan **tanpa** perlu mengemulasikan layar consent Google OAuth. User
+yang dibuat lewat jalur ini memicu trigger `handle_new_user()` yang sama
+seperti signup Google asli, jadi baris `users`/`profiles`-nya tidak bisa
+dibedakan dari user asli — cukup untuk test REST API/RLS-equivalent. **Bukan**
+metode login baru untuk produk (CLAUDE.md tetap: Google OAuth only) — hanya
+dipakai test binary, tidak pernah di-import `cmd/main.go`, email
+`@example.invalid` yang tidak mungkin menerima callback OAuth asli.
+Butuh `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_ANON_KEY` (baru ditambah ke
+`.env.example`) — test yang memakainya `t.Skip` kalau env var tidak ada,
+supaya `go test ./...` tetap hijau tanpa kredensial ini di CI/clone baru.
 
 **Belum diselesaikan di fase ini (tetap todo, bagian dari R1/R2):**
-- Env var `SUPABASE_JWT_SECRET` didokumentasikan di `RUNNING.md`, belum
-  ditambah ke `.env.example` mana pun (tidak ada `.env.example` khusus
-  `rest-api/` saat ini)
 - Security review formal (exit criteria asli fase ini) — **belum dilakukan**
   secara terpisah; audit ini sebatas review inline saat implementasi. Sebelum
   endpoint write (R1) benar-benar dipakai user nyata, lakukan review

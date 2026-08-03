@@ -17,7 +17,7 @@ const contextUserIDKey = "auth.user_id"
 // request, everything downstream reads from context" shape — but verifies a
 // Supabase Auth session JWT (a logged-in human) instead of an api_tokens
 // bearer token (an agent).
-func RequireAuth(jwtSecret string) echo.MiddlewareFunc {
+func RequireAuth(keys *JWKSFetcher) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			header := c.Request().Header.Get("Authorization")
@@ -27,7 +27,7 @@ func RequireAuth(jwtSecret string) echo.MiddlewareFunc {
 			}
 			rawToken := strings.TrimPrefix(header, prefix)
 
-			userID, err := VerifyToken(rawToken, jwtSecret)
+			userID, err := VerifyToken(rawToken, keys)
 			if err != nil {
 				return c.JSON(http.StatusUnauthorized, echo.Map{"error": err.Error()})
 			}

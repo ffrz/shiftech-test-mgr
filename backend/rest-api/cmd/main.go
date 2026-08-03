@@ -28,10 +28,11 @@ func main() {
 		log.Fatalf("db connect: %v", err)
 	}
 
-	jwtSecret := os.Getenv("SUPABASE_JWT_SECRET")
-	if jwtSecret == "" {
-		log.Fatal("SUPABASE_JWT_SECRET is not set")
+	supabaseURL := os.Getenv("SUPABASE_URL")
+	if supabaseURL == "" {
+		log.Fatal("SUPABASE_URL is not set")
 	}
+	jwks := auth.NewJWKSFetcher(supabaseURL)
 	accessRepo := auth.NewAccessRepository(db)
 
 	projectService := service.NewProjectService(postgres.NewProjectRepo(db))
@@ -51,7 +52,7 @@ func main() {
 	e.GET("/health", healthHandler.Check)
 
 	// Every route below requires a valid Supabase session JWT.
-	authed := e.Group("", auth.RequireAuth(jwtSecret))
+	authed := e.Group("", auth.RequireAuth(jwks))
 	authed.GET("/projects", projectHandler.List)
 	authed.GET("/projects/:id", projectHandler.Get, auth.RequireProjectAccess(accessRepo, auth.RoleMember))
 

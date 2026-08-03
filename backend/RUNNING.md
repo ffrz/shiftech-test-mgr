@@ -38,13 +38,19 @@ membaca `DATABASE_URL` dari environment — pastikan sudah di-export atau
 pakai tool yang otomatis load `.env` (lihat catatan Windows/PowerShell di
 bawah).
 
-Butuh juga `SUPABASE_JWT_SECRET` di environment (Supabase Dashboard →
-Project Settings → API → JWT Secret — skema HS256/shared-secret lama,
-didukung semua project Supabase) — server menolak start tanpa itu sejak
-R3 (`docs/ROADMAP_V3.md`).
+Butuh juga `SUPABASE_URL` di environment (Supabase Dashboard → Project
+Settings → API → Project URL) — server menolak start tanpa itu sejak R3
+(`docs/ROADMAP_V3.md`). **Bukan** `SUPABASE_JWT_SECRET`/HS256 seperti
+diasumsikan awalnya di draft R3 — project ini ternyata sudah pakai skema
+signing key baru (JWKS/ES256, terverifikasi empiris: token asli ditolak
+dengan `signing method ES256 is invalid` saat masih pakai HS256). Server
+fetch public key langsung dari `{SUPABASE_URL}/auth/v1/.well-known/jwks.json`
+(endpoint publik, tidak butuh secret — lihat `rest-api/internal/auth/jwks.go`).
 
 Test (butuh access token Supabase Auth asli — login lewat frontend lalu
-ambil dari `supabase.auth.getSession()` di devtools, atau dari network tab):
+ambil dari `supabase.auth.getSession()` di devtools, atau dari network tab;
+atau pakai `rest-api/internal/testsupport` untuk generate test user tanpa
+Google OAuth — lihat README di folder itu):
 
 ```bash
 curl -H "Authorization: Bearer <supabase-access-token>" http://localhost:8081/projects
