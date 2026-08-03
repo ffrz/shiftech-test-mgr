@@ -600,7 +600,7 @@ export function TestRunResultDetailPage() {
                     severity={isFilterActive ? "warning" : "secondary"}
                     onClick={(e) => { e.stopPropagation(); setFilterDialogOpen(true); }}
                     tooltip={isFilterActive ? "Filters active" : "Filter"}
-                    tooltipOptions={{ position: 'left' }}
+                    tooltipOptions={{ position: 'bottom' }}
                   />
                 </div>
               }
@@ -1000,6 +1000,7 @@ export function TestRunResultDetailPage() {
               severity={isFilterActive ? "warning" : "secondary"}
               onClick={(e) => { e.stopPropagation(); setFilterDialogOpen(true); }}
               tooltip={isFilterActive ? "Filters active" : "Filter"}
+              tooltipOptions={{ position: 'bottom' }}
             />
           </div>
         }

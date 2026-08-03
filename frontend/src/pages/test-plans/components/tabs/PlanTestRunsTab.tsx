@@ -104,7 +104,7 @@ export function PlanTestRunsTab({
         <div className="col-12 md:col p-1">
           <div className="flex gap-2">
             <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/code..." className="flex-1" />
-            <Button icon="pi pi-refresh" outlined size="small" severity="secondary" onClick={onResetFilters} tooltip="Reset filters" />
+            <Button icon="pi pi-refresh" outlined size="small" severity="secondary" onClick={onResetFilters} tooltip="Reset filters" tooltipOptions={{ position: 'bottom' }} />
           </div>
         </div>
       </FilterToolbar>
