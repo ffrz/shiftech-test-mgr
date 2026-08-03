@@ -1720,8 +1720,8 @@
     "semantic_hash": ""
   },
   "backend/core/domain.go": {
-    "mtime": 1785717741.7218738,
-    "ast_hash": "59843a9c7f05377c3fd3aed7ca9cc39e",
+    "mtime": 1785678814.630451,
+    "ast_hash": "7789a5b3bf455ae8138dc07d4da48b5b",
     "semantic_hash": ""
   },
   "backend/core/domain_test.go": {
@@ -1730,18 +1730,18 @@
     "semantic_hash": ""
   },
   "backend/core/ports.go": {
-    "mtime": 1785717759.2166505,
-    "ast_hash": "8e0dee2b1ef40f2ee02a56252648ca2b",
+    "mtime": 1785678805.027789,
+    "ast_hash": "c91f2d8c00ecd30f10211ff34bc69ed1",
     "semantic_hash": ""
   },
   "backend/mcp-server/cmd-http/main.go": {
-    "mtime": 1785717847.453633,
-    "ast_hash": "0a940bd11c5fd664bbbd275c6bde3980",
+    "mtime": 1785675740.1899655,
+    "ast_hash": "0f5c33ed701ad8635647087646e26eff",
     "semantic_hash": ""
   },
   "backend/mcp-server/cmd/main.go": {
-    "mtime": 1785717839.824537,
-    "ast_hash": "0aec6ba87685e2ab9addeb49414d54ae",
+    "mtime": 1785675727.923384,
+    "ast_hash": "d040f19fb26a66e365316eb5ac70c3b0",
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/auth/session.go": {
@@ -1770,13 +1770,13 @@
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/write_tools.go": {
-    "mtime": 1785717865.5726995,
-    "ast_hash": "2b07113eb49f829c6a5891c9191e6b39",
+    "mtime": 1785678869.3261871,
+    "ast_hash": "a1588e5532ff133ffc26ffeebffcec5c",
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/write_tools_test.go": {
-    "mtime": 1785718002.2666051,
-    "ast_hash": "bc7363cfb9bf20088a3a7d04c3f99f77",
+    "mtime": 1785678949.1729,
+    "ast_hash": "4e00a7a2d75115fc019caacd6cb072e8",
     "semantic_hash": ""
   },
   "backend/repository/postgres/cursor.go": {
@@ -1790,8 +1790,8 @@
     "semantic_hash": ""
   },
   "backend/repository/postgres/issue_repo.go": {
-    "mtime": 1785717765.738915,
-    "ast_hash": "5177c17192a89d98ccbea64deb450799",
+    "mtime": 1785675656.4680707,
+    "ast_hash": "aceddc278663ee94965f782ed56da646",
     "semantic_hash": ""
   },
   "backend/repository/postgres/mapper_test.go": {
@@ -1875,8 +1875,8 @@
     "semantic_hash": ""
   },
   "backend/service/issue_service.go": {
-    "mtime": 1785717818.995031,
-    "ast_hash": "4039fcf85389cb2bb6c5c2b23bcc9f0e",
+    "mtime": 1785678856.3852408,
+    "ast_hash": "900ab99d54926014839643cb0ad74450",
     "semantic_hash": ""
   },
   "backend/service/module_service.go": {
@@ -1890,8 +1890,8 @@
     "semantic_hash": ""
   },
   "backend/service/service_test.go": {
-    "mtime": 1785718037.4951425,
-    "ast_hash": "079abf6cce163c14e503f675ce740c07",
+    "mtime": 1785678957.544933,
+    "ast_hash": "0fd9fb689c53d473b550499f6c53b470",
     "semantic_hash": ""
   },
   "backend/service/tag_service.go": {
@@ -3215,8 +3215,8 @@
     "semantic_hash": ""
   },
   "backend/ROADMAP.md": {
-    "mtime": 1785717648.917675,
-    "ast_hash": "863023f80dd6c888792527b24a63db99",
+    "mtime": 1785717319.59218,
+    "ast_hash": "8cca60a02ed49d2cf771cc99ee0cde22",
     "semantic_hash": ""
   },
   "backend/RUNNING.md": {
@@ -3550,18 +3550,8 @@
     "semantic_hash": ""
   },
   "docs/ROADMAP_V3.md": {
-    "mtime": 1785718126.9725568,
-    "ast_hash": "8454f968308011202effb9218179af76",
-    "semantic_hash": ""
-  },
-  "backend/repository/postgres/notification_repo.go": {
-    "mtime": 1785717748.2170072,
-    "ast_hash": "b8c186fffe9614e58745ba8214ce7d7a",
-    "semantic_hash": ""
-  },
-  "backend/service/notification_service.go": {
-    "mtime": 1785717753.4888642,
-    "ast_hash": "8bc394146098a773829e3884f93a8207",
+    "mtime": 1785679008.5726342,
+    "ast_hash": "8e590b7ad197f30ebe2d7aeb42ad8a6f",
     "semantic_hash": ""
   }
 }

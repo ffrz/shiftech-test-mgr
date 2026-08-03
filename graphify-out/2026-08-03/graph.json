@@ -192,21 +192,21 @@
       "norm_label": "fase 5.5 \u2014 mcp agent-experience hardening (\u2705 done \u2014 2026-08-02)"
     },
     {
-      "label": "Fase 6 \u2014 Requirement Tools + Artifact Storage (SKIPPED \u2014 2026-08-03)",
+      "label": "Fase 6 \u2014 Requirement Tools + Artifact Storage (P2)",
       "file_type": "document",
       "source_file": "backend/ROADMAP.md",
       "source_location": "L213",
       "_origin": "ast",
-      "id": "backend_roadmap_fase_6_requirement_tools_artifact_storage_skipped_2026_08_03",
+      "id": "backend_roadmap_fase_6_requirement_tools_artifact_storage_p2",
       "community": 171,
       "community_name": "Backend Go \u2014 Roadmap Eksekusi",
-      "norm_label": "fase 6 \u2014 requirement tools + artifact storage (skipped \u2014 2026-08-03)"
+      "norm_label": "fase 6 \u2014 requirement tools + artifact storage (p2)"
     },
     {
       "label": "Fase 7 \u2014 REST API Transport (P2, setelah MCP stabil)",
       "file_type": "document",
       "source_file": "backend/ROADMAP.md",
-      "source_location": "L237",
+      "source_location": "L224",
       "_origin": "ast",
       "id": "backend_roadmap_fase_7_rest_api_transport_p2_setelah_mcp_stabil",
       "community": 171,
@@ -217,7 +217,7 @@
       "label": "Fase 8 \u2014 AI Gateway Integration (P3, opsional/defer)",
       "file_type": "document",
       "source_file": "backend/ROADMAP.md",
-      "source_location": "L256",
+      "source_location": "L240",
       "_origin": "ast",
       "id": "backend_roadmap_fase_8_ai_gateway_integration_p3_opsional_defer",
       "community": 171,
@@ -228,7 +228,7 @@
       "label": "Ringkasan urutan wajib (dependency chain)",
       "file_type": "document",
       "source_file": "backend/ROADMAP.md",
-      "source_location": "L268",
+      "source_location": "L252",
       "_origin": "ast",
       "id": "backend_roadmap_ringkasan_urutan_wajib_dependency_chain",
       "community": 171,
@@ -241,10 +241,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L1",
       "_origin": "ast",
+      "id": "backend_tasks",
       "community": 195,
       "community_name": "BACKLOG.md",
-      "norm_label": "tasks.md",
-      "id": "backend_tasks"
+      "norm_label": "tasks.md"
     },
     {
       "label": "Backend Go \u2014 Task Breakdown (siap eksekusi per-agen)",
@@ -252,10 +252,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L1",
       "_origin": "ast",
+      "id": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "backend go \u2014 task breakdown (siap eksekusi per-agen)",
-      "id": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen"
+      "norm_label": "backend go \u2014 task breakdown (siap eksekusi per-agen)"
     },
     {
       "label": "Fase 1 \u2014 Database Prasyarat",
@@ -263,10 +263,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L20",
       "_origin": "ast",
+      "id": "backend_tasks_fase_1_database_prasyarat",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "fase 1 \u2014 database prasyarat",
-      "id": "backend_tasks_fase_1_database_prasyarat"
+      "norm_label": "fase 1 \u2014 database prasyarat"
     },
     {
       "label": "T1.1 \u2014 Migration `api_tokens` \u2705 DONE",
@@ -274,10 +274,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L22",
       "_origin": "ast",
+      "id": "backend_tasks_t1_1_migration_api_tokens_done",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "t1.1 \u2014 migration `api_tokens` \u2705 done",
-      "id": "backend_tasks_t1_1_migration_api_tokens_done"
+      "norm_label": "t1.1 \u2014 migration `api_tokens` \u2705 done"
     },
     {
       "label": "T1.2 \u2014 Migration `mcp_tool_rate_limits` + RPC governance \u2705 DONE",
@@ -285,10 +285,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L57",
       "_origin": "ast",
+      "id": "backend_tasks_t1_2_migration_mcp_tool_rate_limits_rpc_governance_done",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "t1.2 \u2014 migration `mcp_tool_rate_limits` + rpc governance \u2705 done",
-      "id": "backend_tasks_t1_2_migration_mcp_tool_rate_limits_rpc_governance_done"
+      "norm_label": "t1.2 \u2014 migration `mcp_tool_rate_limits` + rpc governance \u2705 done"
     },
     {
       "label": "Fase 2 \u2014 Repository Layer",
@@ -296,10 +296,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L83",
       "_origin": "ast",
+      "id": "backend_tasks_fase_2_repository_layer",
       "community": 194,
       "community_name": "Fase 2 \u2014 Repository Layer",
-      "norm_label": "fase 2 \u2014 repository layer",
-      "id": "backend_tasks_fase_2_repository_layer"
+      "norm_label": "fase 2 \u2014 repository layer"
     },
     {
       "label": "T2.1 \u2014 `TestCaseRepo`",
@@ -307,10 +307,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L85",
       "_origin": "ast",
+      "id": "backend_tasks_t2_1_testcaserepo",
       "community": 194,
       "community_name": "Fase 2 \u2014 Repository Layer",
-      "norm_label": "t2.1 \u2014 `testcaserepo`",
-      "id": "backend_tasks_t2_1_testcaserepo"
+      "norm_label": "t2.1 \u2014 `testcaserepo`"
     },
     {
       "label": "T2.2 \u2014 `TestPlanRepo`",
@@ -318,10 +318,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L112",
       "_origin": "ast",
+      "id": "backend_tasks_t2_2_testplanrepo",
       "community": 194,
       "community_name": "Fase 2 \u2014 Repository Layer",
-      "norm_label": "t2.2 \u2014 `testplanrepo`",
-      "id": "backend_tasks_t2_2_testplanrepo"
+      "norm_label": "t2.2 \u2014 `testplanrepo`"
     },
     {
       "label": "T2.3 \u2014 `TestRunRepo`",
@@ -329,10 +329,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L128",
       "_origin": "ast",
+      "id": "backend_tasks_t2_3_testrunrepo",
       "community": 194,
       "community_name": "Fase 2 \u2014 Repository Layer",
-      "norm_label": "t2.3 \u2014 `testrunrepo`",
-      "id": "backend_tasks_t2_3_testrunrepo"
+      "norm_label": "t2.3 \u2014 `testrunrepo`"
     },
     {
       "label": "T2.4 \u2014 `IssueRepo`",
@@ -340,10 +340,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L151",
       "_origin": "ast",
+      "id": "backend_tasks_t2_4_issuerepo",
       "community": 194,
       "community_name": "Fase 2 \u2014 Repository Layer",
-      "norm_label": "t2.4 \u2014 `issuerepo`",
-      "id": "backend_tasks_t2_4_issuerepo"
+      "norm_label": "t2.4 \u2014 `issuerepo`"
     },
     {
       "label": "T2.5 \u2014 Tambah port `Module`, `Tag`, `TestRole`",
@@ -351,10 +351,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L169",
       "_origin": "ast",
+      "id": "backend_tasks_t2_5_tambah_port_module_tag_testrole",
       "community": 194,
       "community_name": "Fase 2 \u2014 Repository Layer",
-      "norm_label": "t2.5 \u2014 tambah port `module`, `tag`, `testrole`",
-      "id": "backend_tasks_t2_5_tambah_port_module_tag_testrole"
+      "norm_label": "t2.5 \u2014 tambah port `module`, `tag`, `testrole`"
     },
     {
       "label": "Fase 3 \u2014 MCP Read Tools",
@@ -362,10 +362,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L189",
       "_origin": "ast",
+      "id": "backend_tasks_fase_3_mcp_read_tools",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "fase 3 \u2014 mcp read tools",
-      "id": "backend_tasks_fase_3_mcp_read_tools"
+      "norm_label": "fase 3 \u2014 mcp read tools"
     },
     {
       "label": "T3.1 \u2014 Wire `mark3labs/mcp-go` stdio server",
@@ -373,10 +373,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L191",
       "_origin": "ast",
+      "id": "backend_tasks_t3_1_wire_mark3labs_mcp_go_stdio_server",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "t3.1 \u2014 wire `mark3labs/mcp-go` stdio server",
-      "id": "backend_tasks_t3_1_wire_mark3labs_mcp_go_stdio_server"
+      "norm_label": "t3.1 \u2014 wire `mark3labs/mcp-go` stdio server"
     },
     {
       "label": "T3.2 \u2014 Implementasi 11 read tool inti",
@@ -384,10 +384,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L207",
       "_origin": "ast",
+      "id": "backend_tasks_t3_2_implementasi_11_read_tool_inti",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "t3.2 \u2014 implementasi 11 read tool inti",
-      "id": "backend_tasks_t3_2_implementasi_11_read_tool_inti"
+      "norm_label": "t3.2 \u2014 implementasi 11 read tool inti"
     },
     {
       "label": "T3.3 \u2014 Cursor pagination",
@@ -395,10 +395,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L243",
       "_origin": "ast",
+      "id": "backend_tasks_t3_3_cursor_pagination",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "t3.3 \u2014 cursor pagination",
-      "id": "backend_tasks_t3_3_cursor_pagination"
+      "norm_label": "t3.3 \u2014 cursor pagination"
     },
     {
       "label": "Fase 4 \u2014 Write Tools + Governance",
@@ -406,10 +406,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L261",
       "_origin": "ast",
+      "id": "backend_tasks_fase_4_write_tools_governance",
       "community": 271,
       "community_name": "Fase 4 \u2014 Write Tools + Governance",
-      "norm_label": "fase 4 \u2014 write tools + governance",
-      "id": "backend_tasks_fase_4_write_tools_governance"
+      "norm_label": "fase 4 \u2014 write tools + governance"
     },
     {
       "label": "T4.1 \u2014 File baru `write_tools.go` \u2014 \u2705 DONE (2026-08-01)",
@@ -417,10 +417,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L263",
       "_origin": "ast",
+      "id": "backend_tasks_t4_1_file_baru_write_tools_go_done_2026_08_01",
       "community": 271,
       "community_name": "Fase 4 \u2014 Write Tools + Governance",
-      "norm_label": "t4.1 \u2014 file baru `write_tools.go` \u2014 \u2705 done (2026-08-01)",
-      "id": "backend_tasks_t4_1_file_baru_write_tools_go_done_2026_08_01"
+      "norm_label": "t4.1 \u2014 file baru `write_tools.go` \u2014 \u2705 done (2026-08-01)"
     },
     {
       "label": "T4.2 \u2014 Governance middleware (rate-limit + audit) \u2014 \u2705 DONE",
@@ -428,10 +428,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L294",
       "_origin": "ast",
+      "id": "backend_tasks_t4_2_governance_middleware_rate_limit_audit_done",
       "community": 271,
       "community_name": "Fase 4 \u2014 Write Tools + Governance",
-      "norm_label": "t4.2 \u2014 governance middleware (rate-limit + audit) \u2014 \u2705 done",
-      "id": "backend_tasks_t4_2_governance_middleware_rate_limit_audit_done"
+      "norm_label": "t4.2 \u2014 governance middleware (rate-limit + audit) \u2014 \u2705 done"
     },
     {
       "label": "T4.3 \u2014 Project-scope recursive guard \u2014 \u2705 DONE (2026-08-01)",
@@ -439,10 +439,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L325",
       "_origin": "ast",
+      "id": "backend_tasks_t4_3_project_scope_recursive_guard_done_2026_08_01",
       "community": 271,
       "community_name": "Fase 4 \u2014 Write Tools + Governance",
-      "norm_label": "t4.3 \u2014 project-scope recursive guard \u2014 \u2705 done (2026-08-01)",
-      "id": "backend_tasks_t4_3_project_scope_recursive_guard_done_2026_08_01"
+      "norm_label": "t4.3 \u2014 project-scope recursive guard \u2014 \u2705 done (2026-08-01)"
     },
     {
       "label": "T4.4 \u2014 Aktifkan write tools di registry \u2014 \u2705 DONE (2026-08-01)",
@@ -450,10 +450,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L344",
       "_origin": "ast",
+      "id": "backend_tasks_t4_4_aktifkan_write_tools_di_registry_done_2026_08_01",
       "community": 271,
       "community_name": "Fase 4 \u2014 Write Tools + Governance",
-      "norm_label": "t4.4 \u2014 aktifkan write tools di registry \u2014 \u2705 done (2026-08-01)",
-      "id": "backend_tasks_t4_4_aktifkan_write_tools_di_registry_done_2026_08_01"
+      "norm_label": "t4.4 \u2014 aktifkan write tools di registry \u2014 \u2705 done (2026-08-01)"
     },
     {
       "label": "Fase 5 \u2014 Automation, Analysis, Repo Tools",
@@ -461,10 +461,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L359",
       "_origin": "ast",
+      "id": "backend_tasks_fase_5_automation_analysis_repo_tools",
       "community": 261,
       "community_name": "NotificationPanel.tsx",
-      "norm_label": "fase 5 \u2014 automation, analysis, repo tools",
-      "id": "backend_tasks_fase_5_automation_analysis_repo_tools"
+      "norm_label": "fase 5 \u2014 automation, analysis, repo tools"
     },
     {
       "label": "T5.1 \u2014 Migration automation tables",
@@ -472,10 +472,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L361",
       "_origin": "ast",
+      "id": "backend_tasks_t5_1_migration_automation_tables",
       "community": 261,
       "community_name": "NotificationPanel.tsx",
-      "norm_label": "t5.1 \u2014 migration automation tables",
-      "id": "backend_tasks_t5_1_migration_automation_tables"
+      "norm_label": "t5.1 \u2014 migration automation tables"
     },
     {
       "label": "T5.2 \u2014 Automation tools (5 tool)",
@@ -483,10 +483,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L370",
       "_origin": "ast",
+      "id": "backend_tasks_t5_2_automation_tools_5_tool",
       "community": 261,
       "community_name": "NotificationPanel.tsx",
-      "norm_label": "t5.2 \u2014 automation tools (5 tool)",
-      "id": "backend_tasks_t5_2_automation_tools_5_tool"
+      "norm_label": "t5.2 \u2014 automation tools (5 tool)"
     },
     {
       "label": "T5.3 \u2014 Analysis tools (3 tool)",
@@ -494,10 +494,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L382",
       "_origin": "ast",
+      "id": "backend_tasks_t5_3_analysis_tools_3_tool",
       "community": 261,
       "community_name": "NotificationPanel.tsx",
-      "norm_label": "t5.3 \u2014 analysis tools (3 tool)",
-      "id": "backend_tasks_t5_3_analysis_tools_3_tool"
+      "norm_label": "t5.3 \u2014 analysis tools (3 tool)"
     },
     {
       "label": "T5.4 \u2014 Migration `project_repositories`",
@@ -505,10 +505,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L391",
       "_origin": "ast",
+      "id": "backend_tasks_t5_4_migration_project_repositories",
       "community": 261,
       "community_name": "NotificationPanel.tsx",
-      "norm_label": "t5.4 \u2014 migration `project_repositories`",
-      "id": "backend_tasks_t5_4_migration_project_repositories"
+      "norm_label": "t5.4 \u2014 migration `project_repositories`"
     },
     {
       "label": "T5.5 \u2014 Repo tools (4 tool) \u2014 \u2705 selesai",
@@ -516,10 +516,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L397",
       "_origin": "ast",
+      "id": "backend_tasks_t5_5_repo_tools_4_tool_selesai",
       "community": 261,
       "community_name": "NotificationPanel.tsx",
-      "norm_label": "t5.5 \u2014 repo tools (4 tool) \u2014 \u2705 selesai",
-      "id": "backend_tasks_t5_5_repo_tools_4_tool_selesai"
+      "norm_label": "t5.5 \u2014 repo tools (4 tool) \u2014 \u2705 selesai"
     },
     {
       "label": "Fase 6 \u2014 Requirement Tools + Artifact Storage",
@@ -527,10 +527,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L427",
       "_origin": "ast",
+      "id": "backend_tasks_fase_6_requirement_tools_artifact_storage",
       "community": 199,
       "community_name": "Fase 6 \u2014 Requirement Tools + Artifact Storage",
-      "norm_label": "fase 6 \u2014 requirement tools + artifact storage",
-      "id": "backend_tasks_fase_6_requirement_tools_artifact_storage"
+      "norm_label": "fase 6 \u2014 requirement tools + artifact storage"
     },
     {
       "label": "T6.1 \u2014 Migration `requirements`/`requirement_links`",
@@ -538,10 +538,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L429",
       "_origin": "ast",
+      "id": "backend_tasks_t6_1_migration_requirements_requirement_links",
       "community": 199,
       "community_name": "Fase 6 \u2014 Requirement Tools + Artifact Storage",
-      "norm_label": "t6.1 \u2014 migration `requirements`/`requirement_links`",
-      "id": "backend_tasks_t6_1_migration_requirements_requirement_links"
+      "norm_label": "t6.1 \u2014 migration `requirements`/`requirement_links`"
     },
     {
       "label": "T6.2 \u2014 `RequirementRepo`",
@@ -549,10 +549,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L433",
       "_origin": "ast",
+      "id": "backend_tasks_t6_2_requirementrepo",
       "community": 199,
       "community_name": "Fase 6 \u2014 Requirement Tools + Artifact Storage",
-      "norm_label": "t6.2 \u2014 `requirementrepo`",
-      "id": "backend_tasks_t6_2_requirementrepo"
+      "norm_label": "t6.2 \u2014 `requirementrepo`"
     },
     {
       "label": "T6.3 \u2014 3 requirement tool",
@@ -560,10 +560,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L438",
       "_origin": "ast",
+      "id": "backend_tasks_t6_3_3_requirement_tool",
       "community": 199,
       "community_name": "Fase 6 \u2014 Requirement Tools + Artifact Storage",
-      "norm_label": "t6.3 \u2014 3 requirement tool",
-      "id": "backend_tasks_t6_3_3_requirement_tool"
+      "norm_label": "t6.3 \u2014 3 requirement tool"
     },
     {
       "label": "T6.4 \u2014 `testify.artifact.getUrl`",
@@ -571,10 +571,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L442",
       "_origin": "ast",
+      "id": "backend_tasks_t6_4_testify_artifact_geturl",
       "community": 199,
       "community_name": "Fase 6 \u2014 Requirement Tools + Artifact Storage",
-      "norm_label": "t6.4 \u2014 `testify.artifact.geturl`",
-      "id": "backend_tasks_t6_4_testify_artifact_geturl"
+      "norm_label": "t6.4 \u2014 `testify.artifact.geturl`"
     },
     {
       "label": "Fase 7 \u2014 REST API",
@@ -582,10 +582,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L449",
       "_origin": "ast",
+      "id": "backend_tasks_fase_7_rest_api",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "fase 7 \u2014 rest api",
-      "id": "backend_tasks_fase_7_rest_api"
+      "norm_label": "fase 7 \u2014 rest api"
     },
     {
       "label": "Fase 8 \u2014 AI Gateway (defer)",
@@ -593,10 +593,10 @@
       "source_file": "backend/TASKS.md",
       "source_location": "L458",
       "_origin": "ast",
+      "id": "backend_tasks_fase_8_ai_gateway_defer",
       "community": 133,
       "community_name": "primeicons",
-      "norm_label": "fase 8 \u2014 ai gateway (defer)",
-      "id": "backend_tasks_fase_8_ai_gateway_defer"
+      "norm_label": "fase 8 \u2014 ai gateway (defer)"
     },
     {
       "label": "ROADMAP_V3.md",
@@ -43997,9 +43997,9 @@
       "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks",
-      "target": "backend_roadmap"
+      "target": "backend_roadmap",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44086,14 +44086,14 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_roadmap_backend_go_roadmap_eksekusi",
-      "target": "backend_roadmap_fase_6_requirement_tools_artifact_storage_skipped_2026_08_03",
+      "target": "backend_roadmap_fase_6_requirement_tools_artifact_storage_p2",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/ROADMAP.md",
-      "source_location": "L237",
+      "source_location": "L224",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_roadmap_backend_go_roadmap_eksekusi",
@@ -44104,7 +44104,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/ROADMAP.md",
-      "source_location": "L256",
+      "source_location": "L240",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_roadmap_backend_go_roadmap_eksekusi",
@@ -44115,7 +44115,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/ROADMAP.md",
-      "source_location": "L268",
+      "source_location": "L252",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_roadmap_backend_go_roadmap_eksekusi",
@@ -44140,9 +44140,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks",
-      "target": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen"
+      "target": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44151,9 +44151,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
-      "target": "backend_tasks_fase_1_database_prasyarat"
+      "target": "backend_tasks_fase_1_database_prasyarat",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44162,9 +44162,9 @@
       "source_location": "L83",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
-      "target": "backend_tasks_fase_2_repository_layer"
+      "target": "backend_tasks_fase_2_repository_layer",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44173,9 +44173,9 @@
       "source_location": "L189",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
-      "target": "backend_tasks_fase_3_mcp_read_tools"
+      "target": "backend_tasks_fase_3_mcp_read_tools",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44184,9 +44184,9 @@
       "source_location": "L261",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
-      "target": "backend_tasks_fase_4_write_tools_governance"
+      "target": "backend_tasks_fase_4_write_tools_governance",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44195,9 +44195,9 @@
       "source_location": "L359",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
-      "target": "backend_tasks_fase_5_automation_analysis_repo_tools"
+      "target": "backend_tasks_fase_5_automation_analysis_repo_tools",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44206,9 +44206,9 @@
       "source_location": "L427",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
-      "target": "backend_tasks_fase_6_requirement_tools_artifact_storage"
+      "target": "backend_tasks_fase_6_requirement_tools_artifact_storage",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44217,9 +44217,9 @@
       "source_location": "L449",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
-      "target": "backend_tasks_fase_7_rest_api"
+      "target": "backend_tasks_fase_7_rest_api",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44228,9 +44228,9 @@
       "source_location": "L458",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_backend_go_task_breakdown_siap_eksekusi_per_agen",
-      "target": "backend_tasks_fase_8_ai_gateway_defer"
+      "target": "backend_tasks_fase_8_ai_gateway_defer",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44239,9 +44239,9 @@
       "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_1_database_prasyarat",
-      "target": "backend_tasks_t1_1_migration_api_tokens_done"
+      "target": "backend_tasks_t1_1_migration_api_tokens_done",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44250,9 +44250,9 @@
       "source_location": "L57",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_1_database_prasyarat",
-      "target": "backend_tasks_t1_2_migration_mcp_tool_rate_limits_rpc_governance_done"
+      "target": "backend_tasks_t1_2_migration_mcp_tool_rate_limits_rpc_governance_done",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44261,9 +44261,9 @@
       "source_location": "L85",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_2_repository_layer",
-      "target": "backend_tasks_t2_1_testcaserepo"
+      "target": "backend_tasks_t2_1_testcaserepo",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44272,9 +44272,9 @@
       "source_location": "L112",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_2_repository_layer",
-      "target": "backend_tasks_t2_2_testplanrepo"
+      "target": "backend_tasks_t2_2_testplanrepo",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44283,9 +44283,9 @@
       "source_location": "L128",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_2_repository_layer",
-      "target": "backend_tasks_t2_3_testrunrepo"
+      "target": "backend_tasks_t2_3_testrunrepo",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44294,9 +44294,9 @@
       "source_location": "L151",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_2_repository_layer",
-      "target": "backend_tasks_t2_4_issuerepo"
+      "target": "backend_tasks_t2_4_issuerepo",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44305,9 +44305,9 @@
       "source_location": "L169",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_2_repository_layer",
-      "target": "backend_tasks_t2_5_tambah_port_module_tag_testrole"
+      "target": "backend_tasks_t2_5_tambah_port_module_tag_testrole",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44316,9 +44316,9 @@
       "source_location": "L191",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_3_mcp_read_tools",
-      "target": "backend_tasks_t3_1_wire_mark3labs_mcp_go_stdio_server"
+      "target": "backend_tasks_t3_1_wire_mark3labs_mcp_go_stdio_server",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44327,9 +44327,9 @@
       "source_location": "L207",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_3_mcp_read_tools",
-      "target": "backend_tasks_t3_2_implementasi_11_read_tool_inti"
+      "target": "backend_tasks_t3_2_implementasi_11_read_tool_inti",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44338,9 +44338,9 @@
       "source_location": "L243",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_3_mcp_read_tools",
-      "target": "backend_tasks_t3_3_cursor_pagination"
+      "target": "backend_tasks_t3_3_cursor_pagination",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44349,9 +44349,9 @@
       "source_location": "L263",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_4_write_tools_governance",
-      "target": "backend_tasks_t4_1_file_baru_write_tools_go_done_2026_08_01"
+      "target": "backend_tasks_t4_1_file_baru_write_tools_go_done_2026_08_01",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44360,9 +44360,9 @@
       "source_location": "L294",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_4_write_tools_governance",
-      "target": "backend_tasks_t4_2_governance_middleware_rate_limit_audit_done"
+      "target": "backend_tasks_t4_2_governance_middleware_rate_limit_audit_done",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44371,9 +44371,9 @@
       "source_location": "L325",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_4_write_tools_governance",
-      "target": "backend_tasks_t4_3_project_scope_recursive_guard_done_2026_08_01"
+      "target": "backend_tasks_t4_3_project_scope_recursive_guard_done_2026_08_01",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44382,9 +44382,9 @@
       "source_location": "L344",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_4_write_tools_governance",
-      "target": "backend_tasks_t4_4_aktifkan_write_tools_di_registry_done_2026_08_01"
+      "target": "backend_tasks_t4_4_aktifkan_write_tools_di_registry_done_2026_08_01",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44393,9 +44393,9 @@
       "source_location": "L361",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_5_automation_analysis_repo_tools",
-      "target": "backend_tasks_t5_1_migration_automation_tables"
+      "target": "backend_tasks_t5_1_migration_automation_tables",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44404,9 +44404,9 @@
       "source_location": "L370",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_5_automation_analysis_repo_tools",
-      "target": "backend_tasks_t5_2_automation_tools_5_tool"
+      "target": "backend_tasks_t5_2_automation_tools_5_tool",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44415,9 +44415,9 @@
       "source_location": "L382",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_5_automation_analysis_repo_tools",
-      "target": "backend_tasks_t5_3_analysis_tools_3_tool"
+      "target": "backend_tasks_t5_3_analysis_tools_3_tool",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44426,9 +44426,9 @@
       "source_location": "L391",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_5_automation_analysis_repo_tools",
-      "target": "backend_tasks_t5_4_migration_project_repositories"
+      "target": "backend_tasks_t5_4_migration_project_repositories",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44437,9 +44437,9 @@
       "source_location": "L397",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_5_automation_analysis_repo_tools",
-      "target": "backend_tasks_t5_5_repo_tools_4_tool_selesai"
+      "target": "backend_tasks_t5_5_repo_tools_4_tool_selesai",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44448,9 +44448,9 @@
       "source_location": "L429",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_6_requirement_tools_artifact_storage",
-      "target": "backend_tasks_t6_1_migration_requirements_requirement_links"
+      "target": "backend_tasks_t6_1_migration_requirements_requirement_links",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44459,9 +44459,9 @@
       "source_location": "L433",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_6_requirement_tools_artifact_storage",
-      "target": "backend_tasks_t6_2_requirementrepo"
+      "target": "backend_tasks_t6_2_requirementrepo",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44470,9 +44470,9 @@
       "source_location": "L438",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_6_requirement_tools_artifact_storage",
-      "target": "backend_tasks_t6_3_3_requirement_tool"
+      "target": "backend_tasks_t6_3_3_requirement_tool",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44481,9 +44481,9 @@
       "source_location": "L442",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "backend_tasks_fase_6_requirement_tools_artifact_storage",
-      "target": "backend_tasks_t6_4_testify_artifact_geturl"
+      "target": "backend_tasks_t6_4_testify_artifact_geturl",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -158410,5 +158410,5 @@
       "source_file": "public-docs/README.md"
     }
   ],
-  "built_at_commit": "c09508f710fccabf83d25e44d435673adf6b6fac"
+  "built_at_commit": "f1596234f43e191d92a2f18478a61453c28b31cb"
 }
