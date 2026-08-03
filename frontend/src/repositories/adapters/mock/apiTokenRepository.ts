@@ -29,6 +29,7 @@ export function createMockApiTokenRepository(seed: ApiToken[] = []): ApiTokenRep
         createdBy: 'mock-user',
         createdAt: now,
         revokedAt: null,
+        lastUsedAt: null,
       };
       store.set(id, token);
       return { id, token: `tm_mock_${id}` };

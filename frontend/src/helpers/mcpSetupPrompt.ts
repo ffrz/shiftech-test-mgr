@@ -80,3 +80,38 @@ ${setupSteps(params)}
 
 Once connected, just confirm the connection works (e.g. list the available testify.* tools) and wait for further instructions — don't take any action in the project yet.`;
 }
+
+// Ready-to-paste usage prompts the user can hand to an already-connected agent,
+// so they get value right away instead of having to think about what to ask.
+// Each is a full standalone prompt — the project context is injected by the caller.
+type UsageStarterParams = {
+  projectName: string;
+  projectId: string;
+  accessLevel: TokenAccessLevel;
+};
+
+export interface UsagePromptStarter {
+  id: string;
+  label: string;
+  prompt: string;
+}
+
+export function buildUsagePromptStarters(params: UsageStarterParams): UsagePromptStarter[] {
+  const { projectName, projectId } = params;
+  const header = `Use the Testify MCP server for the project "${projectName}" (ID: ${projectId}).`;
+
+  return [
+    {
+      id: 'analyze-latest-run',
+      label: 'Analyze the latest test run',
+      prompt: `${header}
+Find the most recent Test Run in this project, summarize its results, then group the failures by module and likely root cause. Highlight missing evidence and retest candidates. Do not change the Test Run status.`,
+    },
+    {
+      id: 'triage-open-issues',
+      label: 'Triage open issues',
+      prompt: `${header}
+Review all currently open Issues. Group similar symptoms, assess impact and urgency, then recommend priority and next action for each. Reference related Test Results; confirm before changing any data.`,
+    },
+  ];
+}

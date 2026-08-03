@@ -4,6 +4,7 @@ import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { accessLevelForScopes } from '../../../../services/apiTokenService';
+import { formatDateTime, formatLastUsedRelative } from '../../../../helpers/dateFormatter';
 import type { ApiToken } from '../../../../types/domain';
 
 type AgentTokensTabProps = {
@@ -22,6 +23,11 @@ function AccessLevelTag({ row }: { row: ApiToken }) {
       title={row.scopes.join(', ')}
     />
   );
+}
+
+function LastUsedCell({ row }: { row: ApiToken }) {
+  if (!row.lastUsedAt) return <span className="text-color-secondary">Never used</span>;
+  return <span title={formatDateTime(row.lastUsedAt)}>{formatLastUsedRelative(row.lastUsedAt)}</span>;
 }
 
 export function AgentTokensTab({ tokens, isMobile, onMint, onRevoke }: AgentTokensTabProps) {
@@ -59,6 +65,7 @@ export function AgentTokensTab({ tokens, isMobile, onMint, onRevoke }: AgentToke
             body={(row: ApiToken) => new Date(row.createdAt).toLocaleDateString()}
           />
         )}
+        {!isMobile && <Column header="Last Used" body={(row: ApiToken) => <LastUsedCell row={row} />} />}
         {!isMobile && (
           <Column
             header=""

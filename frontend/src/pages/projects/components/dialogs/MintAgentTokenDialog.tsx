@@ -6,7 +6,7 @@ import { Button } from 'primereact/button';
 import { FloatLabel } from 'primereact/floatlabel';
 import { Message } from 'primereact/message';
 import { toastHelper } from '../../../../helpers/toast';
-import { buildMcpSetupPrompt, MCP_AGENT_TARGET_OPTIONS, type McpAgentTarget } from '../../../../helpers/mcpSetupPrompt';
+import { buildMcpSetupPrompt, buildUsagePromptStarters, MCP_AGENT_TARGET_OPTIONS, type McpAgentTarget } from '../../../../helpers/mcpSetupPrompt';
 import type { TokenAccessLevel } from '../../../../services/apiTokenService';
 
 const ACCESS_LEVEL_OPTIONS: { label: string; value: TokenAccessLevel }[] = [
@@ -83,6 +83,15 @@ export function MintAgentTokenDialog({ visible, projectId, projectName, onHide, 
     toastHelper.success('Setup prompt copied — paste it to your AI agent');
   }
 
+  function copyUsageStarter(starter: { id: string; label: string; prompt: string }) {
+    navigator.clipboard.writeText(starter.prompt);
+    toastHelper.success('Prompt copied — paste it into the agent chat');
+  }
+
+  const usageStarters = mintedToken
+    ? buildUsagePromptStarters({ projectName, projectId, accessLevel })
+    : [];
+
   return (
     <Dialog header="Generate Agent Token" visible={visible} onHide={handleHide} style={{ width: '32rem' }}>
       {mintedToken ? (
@@ -114,6 +123,18 @@ export function MintAgentTokenDialog({ visible, projectId, projectName, onHide, 
               </FloatLabel>
             </div>
             <Button label="Copy Setup Prompt" icon="pi pi-copy" size="small" outlined onClick={copySetupPrompt} />
+          </div>
+          <div className="flex flex-column gap-2">
+            <p className="text-color-secondary text-sm m-0">
+              <strong>Usage starters</strong> — after the connection works, paste one of these
+              into the agent chat to get started right away.
+            </p>
+            {usageStarters.map((starter) => (
+              <div key={starter.id} className="flex align-items-center justify-content-between gap-2">
+                <span className="text-sm">{starter.label}</span>
+                <Button icon="pi pi-copy" size="small" text tooltip="Copy prompt" onClick={() => copyUsageStarter(starter)} />
+              </div>
+            ))}
           </div>
           <Button label="Done" size="small" onClick={handleHide} />
         </div>

@@ -43,3 +43,27 @@ export function formatRelativeTime(isoString: string, now: Date = new Date()): s
   }
   return relativeTimeFormatter.format(Math.round(diffSeconds / 60), 'minute');
 }
+
+const MAX_RELATIVE_WEEK_SECONDS = 60 * 60 * 24 * 7;
+
+const relativeTimeIdFormatter = new Intl.RelativeTimeFormat('id', { numeric: 'auto' });
+
+// Relative time in Indonesian ("30 menit yang lalu"), bounded at 1 week —
+// anything older than a week falls back to a full date so the label never
+// drifts into "3 bulan lalu" in a place where that reads like noise. Use
+// formatDateTime(isoString) for the hover tooltip (exact time, to the minute).
+export function formatLastUsedRelative(isoString: string, now: Date = new Date()): string {
+  const diffSeconds = (new Date(isoString).getTime() - now.getTime()) / 1000;
+  const absSeconds = Math.abs(diffSeconds);
+
+  if (absSeconds < 60) return 'baru saja';
+  if (absSeconds > MAX_RELATIVE_WEEK_SECONDS) return formatDate(isoString);
+
+  for (const { unit, seconds } of RELATIVE_UNITS) {
+    if (absSeconds >= seconds) {
+      const value = Math.round(diffSeconds / seconds);
+      return relativeTimeIdFormatter.format(value, unit);
+    }
+  }
+  return relativeTimeIdFormatter.format(Math.round(diffSeconds / 60), 'minute');
+}
