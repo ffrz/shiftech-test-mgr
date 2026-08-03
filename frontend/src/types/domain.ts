@@ -109,11 +109,39 @@ export interface ApiToken {
   createdBy: string;
   createdAt: string;
   revokedAt: string | null;
+  lastUsedAt: string | null;
 }
 
 // Returned once by mint_api_token() — the raw token is never persisted or retrievable again.
 export interface MintedApiToken {
   id: string;
+  token: string;
+}
+
+// A registered Playwright Local Runner (see runner/ + packages/agent-core/ at repo root,
+// ported from nvLfr-testify). Token hash is never selected by the client repository —
+// only the prefix is shown. Status is computed client-side from lastSeenAt (see
+// automationRunnerService.ts), mirroring the "online within 90s" rule used server-side
+// by the Go MCP backend (backend/core/domain.go AutomationRunner.Status).
+export interface AutomationRunner {
+  id: string;
+  projectId: string;
+  name: string;
+  labels: string[];
+  tokenPrefix: string;
+  active: boolean;
+  lastSeenAt: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AutomationRunnerStatus = 'online' | 'offline';
+
+// Returned once by mint_automation_runner_token() — the raw token is never persisted or
+// retrievable again.
+export interface MintedAutomationRunner {
+  runner: AutomationRunner;
   token: string;
 }
 

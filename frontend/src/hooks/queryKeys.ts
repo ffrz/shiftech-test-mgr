@@ -43,6 +43,7 @@ export const queryKeys = {
   projectMembers: (projectId: string) => ['projectMembers', projectId] as const,
   ownPendingInvitations: (userId: string) => ['projectMembers', 'ownPendingInvitations', userId] as const,
   apiTokens: (projectId: string) => ['apiTokens', projectId] as const,
+  automationRunners: (projectId: string) => ['automationRunners', projectId] as const,
 
   dashboardCounts: (userId: string) => ['dashboard', 'counts', userId] as const,
   dashboardRecentProjects: () => ['dashboard', 'recentProjects'] as const,

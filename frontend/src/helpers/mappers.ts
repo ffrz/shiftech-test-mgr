@@ -24,6 +24,7 @@ import type {
   ProjectMemberWithProfile,
   ProjectMemberInvitation,
   ApiToken,
+  AutomationRunner,
 } from '../types/domain';
 
 // Supabase columns are snake_case; domain types are camelCase.
@@ -94,6 +95,22 @@ export function mapApiTokenRow(row: any): ApiToken {
     createdBy: row.created_by,
     createdAt: row.created_at,
     revokedAt: row.revoked_at,
+    lastUsedAt: row.last_used_at ?? null,
+  };
+}
+
+export function mapAutomationRunnerRow(row: any): AutomationRunner {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    name: row.name,
+    labels: row.labels ?? [],
+    tokenPrefix: row.token_prefix,
+    active: row.active,
+    lastSeenAt: row.last_seen_at,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 

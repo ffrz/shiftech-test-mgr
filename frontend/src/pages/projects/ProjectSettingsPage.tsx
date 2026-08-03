@@ -24,15 +24,18 @@ import { TagsTab } from './components/tabs/TagsTab';
 import { TestRolesTab } from './components/tabs/TestRolesTab';
 import { MembersTab } from './components/tabs/MembersTab';
 import { AgentTokensTab } from './components/tabs/AgentTokensTab';
+import { AutomationRunnersTab } from './components/tabs/AutomationRunnersTab';
 import { DangerZoneTab } from './components/tabs/DangerZoneTab';
 import { ModuleDialog } from './components/dialogs/ModuleDialog';
 import { TagDialog } from './components/dialogs/TagDialog';
 import { TestRoleDialog } from './components/dialogs/TestRoleDialog';
 import { InviteMemberDialog } from './components/dialogs/InviteMemberDialog';
 import { MintAgentTokenDialog } from './components/dialogs/MintAgentTokenDialog';
+import { MintRunnerTokenDialog } from './components/dialogs/MintRunnerTokenDialog';
 import { PROJECT_MEMBER_ROLE_LABEL } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
 import { useApiTokens } from '../../hooks/useApiTokens';
+import { useAutomationRunners } from '../../hooks/useAutomationRunners';
 import type { TokenAccessLevel } from '../../services/apiTokenService';
 import type { ApiToken } from '../../types/domain';
 
@@ -53,7 +56,7 @@ export function ProjectSettingsPage() {
     'modules',
     'tags',
     'testRoles',
-    ...(isOwner ? ['members', 'agentTokens', 'dangerZone'] : []),
+    ...(isOwner ? ['members', 'agentTokens', 'automationRunners', 'dangerZone'] : []),
   ] as const;
   const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(settingsTabNames, 0);
 
@@ -472,6 +475,16 @@ export function ProjectSettingsPage() {
     return result;
   }
 
+  // --- Automation Runners ---
+  const { runners, mint: mintRunner } = useAutomationRunners(id ?? '');
+  const [mintRunnerDialogOpen, setMintRunnerDialogOpen] = useState(false);
+
+  async function handleMintRunner(name: string, labels: string[]) {
+    const result = await mintRunner(name, labels);
+    if (result) toastHelper.success('Runner created');
+    return result;
+  }
+
   function handleRevokeToken(row: ApiToken) {
     confirmDialog({
       header: 'Revoke Agent Token',
@@ -679,6 +692,16 @@ export function ProjectSettingsPage() {
           )}
 
           {isOwner && (
+            <TabPanel header="Automation Runners">
+              <AutomationRunnersTab
+                runners={runners}
+                isMobile={isMobile}
+                onMint={() => setMintRunnerDialogOpen(true)}
+              />
+            </TabPanel>
+          )}
+
+          {isOwner && (
             <TabPanel header="Danger Zone">
               <DangerZoneTab
                 project={project}
@@ -745,6 +768,12 @@ export function ProjectSettingsPage() {
         projectName={project?.name ?? ''}
         onHide={() => setMintTokenDialogOpen(false)}
         onMint={handleMintToken}
+      />
+
+      <MintRunnerTokenDialog
+        visible={mintRunnerDialogOpen}
+        onHide={() => setMintRunnerDialogOpen(false)}
+        onMint={handleMintRunner}
       />
 
       <CreateProjectDialog
