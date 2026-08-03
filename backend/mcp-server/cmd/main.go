@@ -34,15 +34,16 @@ func main() {
 	tokenRepo := postgres.NewTokenRepo(db)
 	issueRepo := postgres.NewIssueRepo(db)
 	testResultRepo := postgres.NewTestResultRepo(db)
+	activityRepo := postgres.NewActivityRepo(db)
 	services := tools.Services{
 		Project:    service.NewProjectService(postgres.NewProjectRepo(db)),
-		TestCase:   service.NewTestCaseService(postgres.NewTestCaseRepo(db)),
-		TestPlan:   service.NewTestPlanService(postgres.NewTestPlanRepo(db)),
-		TestRun:    service.NewTestRunService(postgres.NewTestRunRepo(db), testResultRepo),
+		TestCase:   service.NewTestCaseService(postgres.NewTestCaseRepo(db), activityRepo),
+		TestPlan:   service.NewTestPlanService(postgres.NewTestPlanRepo(db), activityRepo),
+		TestRun:    service.NewTestRunService(postgres.NewTestRunRepo(db), testResultRepo, activityRepo),
 		TestResult: service.NewTestResultService(testResultRepo),
 		Issue: service.NewIssueService(issueRepo, service.IssueContextSources{
 			Profiles:      postgres.NewProfileRepo(db),
-			Activity:      postgres.NewActivityRepo(db),
+			Activity:      activityRepo,
 			Attachments:   postgres.NewAttachmentRepo(db),
 			Notifications: postgres.NewNotificationRepo(db),
 		}),

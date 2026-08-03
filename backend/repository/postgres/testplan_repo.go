@@ -177,6 +177,13 @@ func (r *TestPlanRepo) Approve(ctx context.Context, id string, approverID string
 	}).Error
 }
 
+func (r *TestPlanRepo) ChangeStatus(ctx context.Context, id string, status core.TestPlanStatus) error {
+	return r.db.WithContext(ctx).Model(&testPlanRow{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status":     string(status),
+		"updated_at": time.Now(),
+	}).Error
+}
+
 func (r *TestPlanRepo) loadCaseIDs(ctx context.Context, planID string) ([]string, error) {
 	var rows []testPlanCaseRow
 	if err := r.db.WithContext(ctx).Where("test_plan_id = ?", planID).Order("\"order\"").Find(&rows).Error; err != nil {

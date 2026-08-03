@@ -19,6 +19,8 @@ type TestCaseRepository interface {
 	Update(ctx context.Context, id string, input UpdateTestCaseInput) (*TestCase, error)
 	Duplicate(ctx context.Context, id string, newTitle string) (*TestCase, error)
 	Archive(ctx context.Context, id string) error
+	// Reactivate transitions an archived test case back to active.
+	Reactivate(ctx context.Context, id string) error
 }
 
 type TestPlanRepository interface {
@@ -28,6 +30,9 @@ type TestPlanRepository interface {
 	AddCases(ctx context.Context, planID string, caseIDs []string) error
 	RemoveCases(ctx context.Context, planID string, caseIDs []string) error
 	Approve(ctx context.Context, id string, approverID string) error
+	// ChangeStatus sets the plan's status directly (draft/active/completed/archived),
+	// for transitions that aren't the human-gated Approve action.
+	ChangeStatus(ctx context.Context, id string, status TestPlanStatus) error
 }
 
 type TestRunRepository interface {
@@ -36,6 +41,8 @@ type TestRunRepository interface {
 	Create(ctx context.Context, input CreateTestRunInput) (*TestRun, error)
 	RecordResult(ctx context.Context, resultID string, input RecordResultInput) error
 	Complete(ctx context.Context, id string) error
+	// Reopen transitions a completed run back to in_progress.
+	Reopen(ctx context.Context, id string) error
 	Summary(ctx context.Context, id string) (*RunSummary, error)
 }
 

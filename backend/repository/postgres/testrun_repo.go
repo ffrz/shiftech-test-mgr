@@ -151,6 +151,14 @@ func (r *TestRunRepo) Complete(ctx context.Context, id string) error {
 	}).Error
 }
 
+func (r *TestRunRepo) Reopen(ctx context.Context, id string) error {
+	return r.db.WithContext(ctx).Model(&testRunRow{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status":       string(core.RunInProgress),
+		"completed_at": nil,
+		"updated_at":   time.Now(),
+	}).Error
+}
+
 func (r *TestRunRepo) Summary(ctx context.Context, id string) (*core.RunSummary, error) {
 	var summary core.RunSummary
 	err := r.db.WithContext(ctx).Raw(`

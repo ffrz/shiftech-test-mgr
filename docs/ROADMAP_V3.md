@@ -49,7 +49,7 @@ bisa pindah dari Supabase langsung ke REST API tanpa kehilangan behavior apa pun
 | G1 | `ActivityRepository` dapat method tulis (`Record`) + Go port `activityService.logEvent` | `backend/ROADMAP.md` Fase 5.5 | ✅ done |
 | G2 | `NotificationRepository` baru di Go (belum ada sama sekali) + port `notificationService.create` | G1 (dipakai bareng activity di alur yang sama) | ✅ done |
 | G3 | `IssueService` full parity: `UpdateStatus`/`Assign` meniru `issueService.ts` persis (actor wajib, activity + notifikasi). `BulkChangeStatus` sengaja tidak diport (belum ada kebutuhan nyata) | G1, G2 | ✅ done |
-| G4 | `TestRunService`/`TestPlanService`/`TestCaseService` parity check — audit satu per satu apakah versi frontend punya business rule yang belum ada di Go | G1, G2 |
+| G4 | `TestRunService`/`TestPlanService`/`TestCaseService` parity check — audit satu per satu apakah versi frontend punya business rule yang belum ada di Go | G1, G2 | ✅ done |
 | G5 | `ActivityService.addComment` (dengan `@mention` parsing) — kalau MCP/REST butuh comment, bukan cuma system event | G1, G2 |
 | R1 | REST API: endpoint issue (list/get/create/update/updateStatus/assign) di atas service yang sudah full-parity | G3 |
 | R2 | REST API: endpoint test case/test plan/test run mengikuti pola yang sama | G4, R1 |
@@ -191,7 +191,49 @@ menghasilkan row activity baru (test integrasi, bukan cuma unit mock).
 
 ---
 
-## Fase G4 — Audit parity service lain (`todo`)
+## Fase G4 — Audit parity service lain (`done` — 2026-08-03)
+
+**Hasil audit** (Module/Tag/TestRole/TestCase/TestPlan/TestRun Go vs
+pasangan frontend-nya):
+
+- **Module/TestRole** — satu-satunya rule ("name cannot be empty") adalah
+  validasi form UI, sudah tercakup lewat `mcp.Required()`/validasi manual di
+  `write_tools.go` (pola T3.2). **Sengaja tidak diport** — bukan business
+  rule domain.
+- **TestCase.Archive** — gap nyata: frontend log `status_change` activity
+  saat archive/reactivate, Go `Archive` sebelumnya pure passthrough tanpa
+  activity, dan `Reactivate` belum ada portnya sama sekali di Go. **Diport**:
+  `core.TestCaseRepository.Reactivate` (port+repo), `TestCaseService.Archive`/
+  `Reactivate` sekarang menerima `actorID`/`projectID`, log activity
+  `status_change`, no-op kalau status sudah sama (idempotency check, pola
+  sama seperti `IssueService.UpdateStatus`).
+- **TestPlan** — gap nyata: tidak ada method setara `testPlanService.changeStatus`
+  (activity log saat status berubah) — Go hanya punya `Approve` (repo-level,
+  tanpa activity). **Diport**: `core.TestPlanRepository.ChangeStatus` (port+repo)
+  + `TestPlanService.ChangeStatus` (get→no-op-if-same→update→log activity).
+  `Approve` tetap terpisah (human-gate, tidak berubah).
+- **TestRun.Complete** — gap nyata: frontend log `status_change` activity
+  saat complete, Go `Complete` sebelumnya pure passthrough. `Reopen` belum
+  ada portnya di Go. **Diport**: `core.TestRunRepository.Reopen` (port+repo)
+  + `TestRunService.Complete`/`Reopen` sekarang menerima `actorID`/`projectID`,
+  log activity, idempotency check.
+- **Tag** (`saveTagsForTestCase`/`saveTagsForIssue` find-or-create + replace
+  junction), **TestCase.cloneToProject**, **TestPlan.duplicate** —
+  **sengaja tidak diport**: tidak ada tool MCP/REST yang butuh alur ini
+  sekarang (MCP write tools tidak expose tag assignment atau cross-project
+  cloning). Revisit kalau ada tool baru yang butuh.
+
+**MCP tools baru** (`write_tools.go`): `testify.testplan.changeStatus`,
+`testify.testrun.reopen` — pola sama seperti `updateIssueStatus`/`completeTestRun`
+(get → scope guard → service call dengan actor). `testify.testcase.archive`
+yang sudah ada otomatis dapat activity logging tanpa perubahan tool
+signature (hanya service call di baliknya yang berubah).
+
+**Test:** `service/service_test.go` —
+`TestTestCaseServiceArchive_NoopWhenAlreadyArchived`,
+`TestTestPlanService_ChangeStatus_LogsActivityOnlyWhenChanged`,
+`TestTestRunService_Reopen_LogsActivityOnlyWhenChanged` (plus existing
+Archive/Complete tests updated for the new actor-aware signatures).
 
 **Kenapa perlu audit, bukan langsung port:** belum tentu semua service frontend
 (`testCaseService.ts`, `testPlanService.ts`, `testRunService.ts`, `projectService.ts`,

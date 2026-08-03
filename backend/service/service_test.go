@@ -26,12 +26,13 @@ func (m *mockProjectRepo) Get(ctx context.Context, id string) (*core.Project, er
 }
 
 type mockTestCaseRepo struct {
-	list      func(ctx context.Context, filter core.TestCaseFilter) (*core.PageResult[core.TestCase], error)
-	get       func(ctx context.Context, id string) (*core.TestCase, error)
-	create    func(ctx context.Context, input core.CreateTestCaseInput) (*core.TestCase, error)
-	update    func(ctx context.Context, id string, input core.UpdateTestCaseInput) (*core.TestCase, error)
-	duplicate func(ctx context.Context, id, newTitle string) (*core.TestCase, error)
-	archive   func(ctx context.Context, id string) error
+	list       func(ctx context.Context, filter core.TestCaseFilter) (*core.PageResult[core.TestCase], error)
+	get        func(ctx context.Context, id string) (*core.TestCase, error)
+	create     func(ctx context.Context, input core.CreateTestCaseInput) (*core.TestCase, error)
+	update     func(ctx context.Context, id string, input core.UpdateTestCaseInput) (*core.TestCase, error)
+	duplicate  func(ctx context.Context, id, newTitle string) (*core.TestCase, error)
+	archive    func(ctx context.Context, id string) error
+	reactivate func(ctx context.Context, id string) error
 }
 
 func (m *mockTestCaseRepo) List(ctx context.Context, filter core.TestCaseFilter) (*core.PageResult[core.TestCase], error) {
@@ -52,14 +53,21 @@ func (m *mockTestCaseRepo) Duplicate(ctx context.Context, id, newTitle string) (
 func (m *mockTestCaseRepo) Archive(ctx context.Context, id string) error {
 	return m.archive(ctx, id)
 }
+func (m *mockTestCaseRepo) Reactivate(ctx context.Context, id string) error {
+	if m.reactivate != nil {
+		return m.reactivate(ctx, id)
+	}
+	return nil
+}
 
 type mockTestPlanRepo struct {
-	list        func(ctx context.Context, filter core.TestPlanFilter) (*core.PageResult[core.TestPlan], error)
-	get         func(ctx context.Context, id string) (*core.TestPlan, error)
-	create      func(ctx context.Context, input core.CreateTestPlanInput) (*core.TestPlan, error)
-	addCases    func(ctx context.Context, planID string, caseIDs []string) error
-	removeCases func(ctx context.Context, planID string, caseIDs []string) error
-	approve     func(ctx context.Context, id, approverID string) error
+	list         func(ctx context.Context, filter core.TestPlanFilter) (*core.PageResult[core.TestPlan], error)
+	get          func(ctx context.Context, id string) (*core.TestPlan, error)
+	create       func(ctx context.Context, input core.CreateTestPlanInput) (*core.TestPlan, error)
+	addCases     func(ctx context.Context, planID string, caseIDs []string) error
+	removeCases  func(ctx context.Context, planID string, caseIDs []string) error
+	approve      func(ctx context.Context, id, approverID string) error
+	changeStatus func(ctx context.Context, id string, status core.TestPlanStatus) error
 }
 
 func (m *mockTestPlanRepo) List(ctx context.Context, filter core.TestPlanFilter) (*core.PageResult[core.TestPlan], error) {
@@ -80,6 +88,12 @@ func (m *mockTestPlanRepo) RemoveCases(ctx context.Context, planID string, caseI
 func (m *mockTestPlanRepo) Approve(ctx context.Context, id, approverID string) error {
 	return m.approve(ctx, id, approverID)
 }
+func (m *mockTestPlanRepo) ChangeStatus(ctx context.Context, id string, status core.TestPlanStatus) error {
+	if m.changeStatus != nil {
+		return m.changeStatus(ctx, id, status)
+	}
+	return nil
+}
 
 type mockTestRunRepo struct {
 	list         func(ctx context.Context, filter core.TestRunFilter) (*core.PageResult[core.TestRun], error)
@@ -87,6 +101,7 @@ type mockTestRunRepo struct {
 	create       func(ctx context.Context, input core.CreateTestRunInput) (*core.TestRun, error)
 	recordResult func(ctx context.Context, resultID string, input core.RecordResultInput) error
 	complete     func(ctx context.Context, id string) error
+	reopen       func(ctx context.Context, id string) error
 	summary      func(ctx context.Context, id string) (*core.RunSummary, error)
 }
 
@@ -104,6 +119,12 @@ func (m *mockTestRunRepo) RecordResult(ctx context.Context, resultID string, inp
 }
 func (m *mockTestRunRepo) Complete(ctx context.Context, id string) error {
 	return m.complete(ctx, id)
+}
+func (m *mockTestRunRepo) Reopen(ctx context.Context, id string) error {
+	if m.reopen != nil {
+		return m.reopen(ctx, id)
+	}
+	return nil
 }
 func (m *mockTestRunRepo) Summary(ctx context.Context, id string) (*core.RunSummary, error) {
 	return m.summary(ctx, id)
@@ -325,7 +346,7 @@ func TestTestCaseServicePassthrough(t *testing.T) {
 		}
 		return want, nil
 	}}
-	s := NewTestCaseService(m)
+	s := NewTestCaseService(m, &mockActivityRepo{})
 	got, err := s.List(context.Background(), core.TestCaseFilter{ProjectID: "p1"})
 	if err != nil {
 		t.Fatalf("List: %v", err)
@@ -348,7 +369,7 @@ func TestTestCaseServiceGetAndCreate(t *testing.T) {
 			return tc, nil
 		},
 	}
-	s := NewTestCaseService(m)
+	s := NewTestCaseService(m, &mockActivityRepo{})
 
 	got, err := s.Get(context.Background(), "tc1")
 	if err != nil {
@@ -370,6 +391,9 @@ func TestTestCaseServiceGetAndCreate(t *testing.T) {
 func TestTestCaseServiceUpdateDuplicateArchive(t *testing.T) {
 	var updatedID, dupID, archivedID string
 	m := &mockTestCaseRepo{
+		get: func(ctx context.Context, id string) (*core.TestCase, error) {
+			return &core.TestCase{ID: id, Status: core.TestCaseStatusActive}, nil
+		},
 		update: func(ctx context.Context, id string, input core.UpdateTestCaseInput) (*core.TestCase, error) {
 			updatedID = id
 			return &core.TestCase{ID: id}, nil
@@ -383,7 +407,7 @@ func TestTestCaseServiceUpdateDuplicateArchive(t *testing.T) {
 			return nil
 		},
 	}
-	s := NewTestCaseService(m)
+	s := NewTestCaseService(m, &mockActivityRepo{})
 
 	if _, err := s.Update(context.Background(), "tc-1", core.UpdateTestCaseInput{}); err != nil {
 		t.Fatalf("Update: %v", err)
@@ -391,7 +415,7 @@ func TestTestCaseServiceUpdateDuplicateArchive(t *testing.T) {
 	if _, err := s.Duplicate(context.Background(), "tc-2", "Copy"); err != nil {
 		t.Fatalf("Duplicate: %v", err)
 	}
-	if err := s.Archive(context.Background(), "tc-3"); err != nil {
+	if err := s.Archive(context.Background(), "tc-3", "actor1", "p1"); err != nil {
 		t.Fatalf("Archive: %v", err)
 	}
 	if updatedID != "tc-1" || dupID != "tc-2" || archivedID != "tc-3" {
@@ -401,10 +425,35 @@ func TestTestCaseServiceUpdateDuplicateArchive(t *testing.T) {
 
 func TestTestCaseServiceArchivePropagatesError(t *testing.T) {
 	sentinel := errors.New("boom")
-	m := &mockTestCaseRepo{archive: func(ctx context.Context, id string) error { return sentinel }}
-	s := NewTestCaseService(m)
-	if err := s.Archive(context.Background(), "tc-1"); !errors.Is(err, sentinel) {
+	m := &mockTestCaseRepo{
+		get: func(ctx context.Context, id string) (*core.TestCase, error) {
+			return &core.TestCase{ID: id, Status: core.TestCaseStatusActive}, nil
+		},
+		archive: func(ctx context.Context, id string) error { return sentinel },
+	}
+	s := NewTestCaseService(m, &mockActivityRepo{})
+	if err := s.Archive(context.Background(), "tc-1", "actor1", "p1"); !errors.Is(err, sentinel) {
 		t.Errorf("Archive error = %v, want sentinel", err)
+	}
+}
+
+func TestTestCaseServiceArchive_NoopWhenAlreadyArchived(t *testing.T) {
+	archiveCalled := false
+	m := &mockTestCaseRepo{
+		get: func(ctx context.Context, id string) (*core.TestCase, error) {
+			return &core.TestCase{ID: id, Status: core.TestCaseStatusArchived}, nil
+		},
+		archive: func(ctx context.Context, id string) error {
+			archiveCalled = true
+			return nil
+		},
+	}
+	s := NewTestCaseService(m, &mockActivityRepo{})
+	if err := s.Archive(context.Background(), "tc-1", "actor1", "p1"); err != nil {
+		t.Fatalf("Archive: %v", err)
+	}
+	if archiveCalled {
+		t.Error("Archive repo call should not happen when already archived")
 	}
 }
 
@@ -422,7 +471,7 @@ func TestTestPlanServiceListGet(t *testing.T) {
 			return plan, nil
 		},
 	}
-	s := NewTestPlanService(m)
+	s := NewTestPlanService(m, &mockActivityRepo{})
 
 	res, err := s.List(context.Background(), core.TestPlanFilter{ProjectID: "p1"})
 	if err != nil {
@@ -461,7 +510,7 @@ func TestTestPlanServiceCreateAddRemoveApprove(t *testing.T) {
 			return nil
 		},
 	}
-	s := NewTestPlanService(m)
+	s := NewTestPlanService(m, &mockActivityRepo{})
 
 	created, err := s.Create(context.Background(), core.CreateTestPlanInput{ProjectID: "p1", Name: "Sprint 1"})
 	if err != nil {
@@ -485,6 +534,47 @@ func TestTestPlanServiceCreateAddRemoveApprove(t *testing.T) {
 	}
 }
 
+func TestTestPlanService_ChangeStatus_LogsActivityOnlyWhenChanged(t *testing.T) {
+	activityCalled := false
+	changeStatusCalled := false
+	m := &mockTestPlanRepo{
+		get: func(ctx context.Context, id string) (*core.TestPlan, error) {
+			return &core.TestPlan{ID: id, Status: core.PlanDraft}, nil
+		},
+		changeStatus: func(ctx context.Context, id string, status core.TestPlanStatus) error {
+			changeStatusCalled = true
+			return nil
+		},
+	}
+	activity := &mockActivityRepo{create: func(ctx context.Context, input core.CreateActivityInput) error {
+		activityCalled = true
+		if input.Payload["from"] != string(core.PlanDraft) || input.Payload["to"] != string(core.PlanActive) {
+			t.Errorf("activity payload = %+v", input.Payload)
+		}
+		return nil
+	}}
+	s := NewTestPlanService(m, activity)
+
+	if err := s.ChangeStatus(context.Background(), "plan1", core.PlanActive, "actor1", "p1"); err != nil {
+		t.Fatalf("ChangeStatus: %v", err)
+	}
+	if !changeStatusCalled || !activityCalled {
+		t.Error("expected both repo ChangeStatus and activity log to be called")
+	}
+
+	// No-op when the status is already the target status.
+	changeStatusCalled, activityCalled = false, false
+	m.get = func(ctx context.Context, id string) (*core.TestPlan, error) {
+		return &core.TestPlan{ID: id, Status: core.PlanActive}, nil
+	}
+	if err := s.ChangeStatus(context.Background(), "plan1", core.PlanActive, "actor1", "p1"); err != nil {
+		t.Fatalf("ChangeStatus (noop): %v", err)
+	}
+	if changeStatusCalled || activityCalled {
+		t.Error("ChangeStatus should be a no-op when status is unchanged")
+	}
+}
+
 // ---------------------------------------------------------------------------
 // TestRunService
 // ---------------------------------------------------------------------------
@@ -502,7 +592,7 @@ func TestTestRunServiceListGetSummary(t *testing.T) {
 			return summary, nil
 		},
 	}
-	s := NewTestRunService(m, &mockTestResultRepo{})
+	s := NewTestRunService(m, &mockTestResultRepo{}, &mockActivityRepo{})
 
 	if _, err := s.List(context.Background(), core.TestRunFilter{ProjectID: "p1"}); err != nil {
 		t.Fatalf("List: %v", err)
@@ -529,6 +619,9 @@ func TestTestRunServiceCreateRecordComplete(t *testing.T) {
 	var recordedInput core.RecordResultInput
 	var completedID string
 	m := &mockTestRunRepo{
+		get: func(ctx context.Context, id string) (*core.TestRun, error) {
+			return &core.TestRun{ID: id, Status: core.RunInProgress}, nil
+		},
 		create: func(ctx context.Context, input core.CreateTestRunInput) (*core.TestRun, error) {
 			return &core.TestRun{ID: "run1", Name: input.Name}, nil
 		},
@@ -542,7 +635,7 @@ func TestTestRunServiceCreateRecordComplete(t *testing.T) {
 			return nil
 		},
 	}
-	s := NewTestRunService(m, &mockTestResultRepo{})
+	s := NewTestRunService(m, &mockTestResultRepo{}, &mockActivityRepo{})
 
 	run, err := s.Create(context.Background(), core.CreateTestRunInput{ProjectID: "p1", Name: "Run 1"})
 	if err != nil {
@@ -559,11 +652,52 @@ func TestTestRunServiceCreateRecordComplete(t *testing.T) {
 		t.Errorf("RecordResult forwarded %q/%+v", recordedResult, recordedInput)
 	}
 
-	if err := s.Complete(context.Background(), "run1"); err != nil {
+	if err := s.Complete(context.Background(), "run1", "actor1", "p1"); err != nil {
 		t.Fatalf("Complete: %v", err)
 	}
 	if completedID != "run1" {
 		t.Errorf("Complete id = %q", completedID)
+	}
+}
+
+func TestTestRunService_Reopen_LogsActivityOnlyWhenChanged(t *testing.T) {
+	reopenCalled := false
+	activityCalled := false
+	m := &mockTestRunRepo{
+		get: func(ctx context.Context, id string) (*core.TestRun, error) {
+			return &core.TestRun{ID: id, Status: core.RunCompleted}, nil
+		},
+		reopen: func(ctx context.Context, id string) error {
+			reopenCalled = true
+			return nil
+		},
+	}
+	activity := &mockActivityRepo{create: func(ctx context.Context, input core.CreateActivityInput) error {
+		activityCalled = true
+		if input.Payload["from"] != string(core.RunCompleted) || input.Payload["to"] != string(core.RunInProgress) {
+			t.Errorf("activity payload = %+v", input.Payload)
+		}
+		return nil
+	}}
+	s := NewTestRunService(m, &mockTestResultRepo{}, activity)
+
+	if err := s.Reopen(context.Background(), "run1", "actor1", "p1"); err != nil {
+		t.Fatalf("Reopen: %v", err)
+	}
+	if !reopenCalled || !activityCalled {
+		t.Error("expected both repo Reopen and activity log to be called")
+	}
+
+	// No-op when already in_progress.
+	reopenCalled, activityCalled = false, false
+	m.get = func(ctx context.Context, id string) (*core.TestRun, error) {
+		return &core.TestRun{ID: id, Status: core.RunInProgress}, nil
+	}
+	if err := s.Reopen(context.Background(), "run1", "actor1", "p1"); err != nil {
+		t.Fatalf("Reopen (noop): %v", err)
+	}
+	if reopenCalled || activityCalled {
+		t.Error("Reopen should be a no-op when already in_progress")
 	}
 }
 

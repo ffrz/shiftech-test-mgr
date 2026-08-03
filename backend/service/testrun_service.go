@@ -12,12 +12,17 @@ import (
 // Complete must be a manual, explicit action; summary is always computed
 // on-the-fly rather than stored) belong here.
 type TestRunService struct {
-	repo    core.TestRunRepository
-	results core.TestResultRepository
+	repo     core.TestRunRepository
+	results  core.TestResultRepository
+	activity core.ActivityRepository
 }
 
-func NewTestRunService(repo core.TestRunRepository, results core.TestResultRepository) *TestRunService {
-	return &TestRunService{repo: repo, results: results}
+// NewTestRunService wires the repository, the result repository (for
+// testify.testrun.summary), and the activity repository needed to log
+// status_change events on Complete/Reopen (mirrors
+// frontend/src/services/testRunService.ts complete/reopen).
+func NewTestRunService(repo core.TestRunRepository, results core.TestResultRepository, activity core.ActivityRepository) *TestRunService {
+	return &TestRunService{repo: repo, results: results, activity: activity}
 }
 
 func (s *TestRunService) List(ctx context.Context, filter core.TestRunFilter) (*core.PageResult[core.TestRun], error) {
@@ -36,8 +41,42 @@ func (s *TestRunService) RecordResult(ctx context.Context, resultID string, inpu
 	return s.repo.RecordResult(ctx, resultID, input)
 }
 
-func (s *TestRunService) Complete(ctx context.Context, id string) error {
-	return s.repo.Complete(ctx, id)
+// Complete manually transitions a run to completed and logs a status_change
+// activity entry (mirrors frontend testRunService.complete). Completion is
+// never inferred from all results being filled — this is the only path in.
+func (s *TestRunService) Complete(ctx context.Context, id, actorID, projectID string) error {
+	return s.changeTestRunStatus(ctx, id, actorID, projectID, core.RunCompleted, s.repo.Complete)
+}
+
+// Reopen transitions a completed run back to in_progress, mirroring frontend
+// testRunService.reopen.
+func (s *TestRunService) Reopen(ctx context.Context, id, actorID, projectID string) error {
+	return s.changeTestRunStatus(ctx, id, actorID, projectID, core.RunInProgress, s.repo.Reopen)
+}
+
+func (s *TestRunService) changeTestRunStatus(ctx context.Context, id, actorID, projectID string, to core.TestRunStatus, apply func(context.Context, string) error) error {
+	current, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	from := current.Status
+	if from == to {
+		return nil
+	}
+	if err := apply(ctx, id); err != nil {
+		return err
+	}
+	if err := s.activity.Create(ctx, core.CreateActivityInput{
+		ProjectID:  projectID,
+		EntityType: "test_run",
+		EntityID:   id,
+		ActorID:    actorID,
+		EventType:  "status_change",
+		Payload:    map[string]any{"from": string(from), "to": string(to)},
+	}); err != nil {
+		return fmt.Errorf("log activity: %w", err)
+	}
+	return nil
 }
 
 func (s *TestRunService) Summary(ctx context.Context, id string) (*core.RunSummary, error) {

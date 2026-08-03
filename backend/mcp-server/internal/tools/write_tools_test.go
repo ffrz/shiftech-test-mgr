@@ -18,11 +18,12 @@ import (
 // ---------------------------------------------------------------------------
 
 type writeMockTestCaseRepo struct {
-	get       func(ctx context.Context, id string) (*core.TestCase, error)
-	create    func(ctx context.Context, input core.CreateTestCaseInput) (*core.TestCase, error)
-	update    func(ctx context.Context, id string, input core.UpdateTestCaseInput) (*core.TestCase, error)
-	duplicate func(ctx context.Context, id, newTitle string) (*core.TestCase, error)
-	archive   func(ctx context.Context, id string) error
+	get        func(ctx context.Context, id string) (*core.TestCase, error)
+	create     func(ctx context.Context, input core.CreateTestCaseInput) (*core.TestCase, error)
+	update     func(ctx context.Context, id string, input core.UpdateTestCaseInput) (*core.TestCase, error)
+	duplicate  func(ctx context.Context, id, newTitle string) (*core.TestCase, error)
+	archive    func(ctx context.Context, id string) error
+	reactivate func(ctx context.Context, id string) error
 }
 
 func (m *writeMockTestCaseRepo) List(ctx context.Context, filter core.TestCaseFilter) (*core.PageResult[core.TestCase], error) {
@@ -43,13 +44,20 @@ func (m *writeMockTestCaseRepo) Duplicate(ctx context.Context, id, newTitle stri
 func (m *writeMockTestCaseRepo) Archive(ctx context.Context, id string) error {
 	return m.archive(ctx, id)
 }
+func (m *writeMockTestCaseRepo) Reactivate(ctx context.Context, id string) error {
+	if m.reactivate != nil {
+		return m.reactivate(ctx, id)
+	}
+	return errors.New("not used")
+}
 
 type writeMockTestPlanRepo struct {
-	get         func(ctx context.Context, id string) (*core.TestPlan, error)
-	create      func(ctx context.Context, input core.CreateTestPlanInput) (*core.TestPlan, error)
-	addCases    func(ctx context.Context, planID string, caseIDs []string) error
-	removeCases func(ctx context.Context, planID string, caseIDs []string) error
-	approve     func(ctx context.Context, id, approverID string) error
+	get          func(ctx context.Context, id string) (*core.TestPlan, error)
+	create       func(ctx context.Context, input core.CreateTestPlanInput) (*core.TestPlan, error)
+	addCases     func(ctx context.Context, planID string, caseIDs []string) error
+	removeCases  func(ctx context.Context, planID string, caseIDs []string) error
+	approve      func(ctx context.Context, id, approverID string) error
+	changeStatus func(ctx context.Context, id string, status core.TestPlanStatus) error
 }
 
 func (m *writeMockTestPlanRepo) List(ctx context.Context, filter core.TestPlanFilter) (*core.PageResult[core.TestPlan], error) {
@@ -70,12 +78,19 @@ func (m *writeMockTestPlanRepo) RemoveCases(ctx context.Context, planID string, 
 func (m *writeMockTestPlanRepo) Approve(ctx context.Context, id, approverID string) error {
 	return m.approve(ctx, id, approverID)
 }
+func (m *writeMockTestPlanRepo) ChangeStatus(ctx context.Context, id string, status core.TestPlanStatus) error {
+	if m.changeStatus != nil {
+		return m.changeStatus(ctx, id, status)
+	}
+	return errors.New("not used")
+}
 
 type writeMockTestRunRepo struct {
 	get          func(ctx context.Context, id string) (*core.TestRun, error)
 	create       func(ctx context.Context, input core.CreateTestRunInput) (*core.TestRun, error)
 	recordResult func(ctx context.Context, resultID string, input core.RecordResultInput) error
 	complete     func(ctx context.Context, id string) error
+	reopen       func(ctx context.Context, id string) error
 }
 
 func (m *writeMockTestRunRepo) List(ctx context.Context, filter core.TestRunFilter) (*core.PageResult[core.TestRun], error) {
@@ -92,6 +107,12 @@ func (m *writeMockTestRunRepo) RecordResult(ctx context.Context, resultID string
 }
 func (m *writeMockTestRunRepo) Complete(ctx context.Context, id string) error {
 	return m.complete(ctx, id)
+}
+func (m *writeMockTestRunRepo) Reopen(ctx context.Context, id string) error {
+	if m.reopen != nil {
+		return m.reopen(ctx, id)
+	}
+	return errors.New("not used")
 }
 func (m *writeMockTestRunRepo) Summary(ctx context.Context, id string) (*core.RunSummary, error) {
 	return nil, errors.New("not used")
@@ -218,13 +239,13 @@ func allWriteScopes() []core.TokenScope {
 func writeReg(session *auth.Session, tc *writeMockTestCaseRepo, tp *writeMockTestPlanRepo, tr *writeMockTestRunRepo, iss *writeMockIssueRepo) *Registry {
 	reg := &Registry{Session: session}
 	if tc != nil {
-		reg.Services.TestCase = service.NewTestCaseService(tc)
+		reg.Services.TestCase = service.NewTestCaseService(tc, &writeMockActivityRepo{})
 	}
 	if tp != nil {
-		reg.Services.TestPlan = service.NewTestPlanService(tp)
+		reg.Services.TestPlan = service.NewTestPlanService(tp, &writeMockActivityRepo{})
 	}
 	if tr != nil {
-		reg.Services.TestRun = service.NewTestRunService(tr, &writeMockTestResultRepo{})
+		reg.Services.TestRun = service.NewTestRunService(tr, &writeMockTestResultRepo{}, &writeMockActivityRepo{})
 	}
 	if iss != nil {
 		reg.Services.Issue = service.NewIssueService(iss, service.IssueContextSources{
@@ -972,7 +993,7 @@ func TestUpdateIssueStatus_RejectsInvalidStatus(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// Register — all 14 write tools registered
+// Register — all 16 write tools registered
 // ---------------------------------------------------------------------------
 
 func TestWriteToolsRegister(t *testing.T) {
@@ -986,8 +1007,8 @@ func TestWriteToolsRegister(t *testing.T) {
 		t.Fatalf("Register: %v", err)
 	}
 	got := svr.ListTools()
-	if len(got) != 14 {
-		t.Fatalf("registered %d tools, want 14", len(got))
+	if len(got) != 16 {
+		t.Fatalf("registered %d tools, want 16", len(got))
 	}
 	for _, name := range writeToolNames(w) {
 		if _, ok := got[name]; !ok {
@@ -1006,9 +1027,11 @@ func writeToolNames(w *WriteTools) []string {
 		"testify.testplan.addCases",
 		"testify.testplan.removeCases",
 		"testify.testplan.approve",
+		"testify.testplan.changeStatus",
 		"testify.testrun.create",
 		"testify.testrun.recordResult",
 		"testify.testrun.complete",
+		"testify.testrun.reopen",
 		"testify.issue.create",
 		"testify.issue.updateStatus",
 		"testify.issue.assign",

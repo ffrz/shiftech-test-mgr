@@ -301,6 +301,13 @@ func (r *TestCaseRepo) Archive(ctx context.Context, id string) error {
 	}).Error
 }
 
+func (r *TestCaseRepo) Reactivate(ctx context.Context, id string) error {
+	return r.db.WithContext(ctx).Model(&testCaseRow{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status":     string(core.TestCaseStatusActive),
+		"updated_at": time.Now(),
+	}).Error
+}
+
 func (r *TestCaseRepo) loadSteps(ctx context.Context, testCaseID string) ([]core.TestCaseStep, error) {
 	var rows []testCaseStepRow
 	if err := r.db.WithContext(ctx).Where("test_case_id = ?", testCaseID).Order("step_number").Find(&rows).Error; err != nil {

@@ -650,3 +650,11 @@ func validIssueStatus(s string) bool {
 	}
 	return false
 }
+
+func validTestPlanStatus(s string) bool {
+	switch core.TestPlanStatus(s) {
+	case core.PlanDraft, core.PlanActive, core.PlanCompleted, core.PlanArchived:
+		return true
+	}
+	return false
+}

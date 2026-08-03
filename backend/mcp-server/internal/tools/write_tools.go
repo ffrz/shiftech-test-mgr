@@ -106,6 +106,14 @@ func (t *WriteTools) Register(s ToolAdder) error {
 		mcp.WithString("approver_id", mcp.Description("Profile UUID of the human approver"), mcp.Required()),
 		mcp.WithBoolean("explicit_approval", mcp.Description("Must be the literal value true; anything else is rejected"), mcp.Required()),
 	), t.approveTestPlan)
+	s.AddTool(mcp.NewTool("testify.testplan.changeStatus",
+		mcp.WithDescription("Change a test plan's status directly (draft/active/completed/archived). Use testify.testplan.approve instead for the human-gated draft->active transition."),
+		mcp.WithReadOnlyHintAnnotation(false), mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithString("project_id", mcp.Description("Optional project ID; must match the scoped session")),
+		mcp.WithString("testplan_id", mcp.Description("Test plan UUID"), mcp.Required()),
+		mcp.WithString("status", mcp.Enum("draft", "active", "completed", "archived"), mcp.Required()),
+	), t.changeTestPlanStatus)
 
 	// test run
 	s.AddTool(mcp.NewTool("testify.testrun.create",
@@ -134,6 +142,13 @@ func (t *WriteTools) Register(s ToolAdder) error {
 		mcp.WithString("project_id", mcp.Description("Optional project ID; must match the scoped session")),
 		mcp.WithString("testrun_id", mcp.Description("Test run UUID to complete"), mcp.Required()),
 	), t.completeTestRun)
+	s.AddTool(mcp.NewTool("testify.testrun.reopen",
+		mcp.WithDescription("Reopen a completed test run back to in_progress."),
+		mcp.WithReadOnlyHintAnnotation(false), mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithString("project_id", mcp.Description("Optional project ID; must match the scoped session")),
+		mcp.WithString("testrun_id", mcp.Description("Test run UUID to reopen"), mcp.Required()),
+	), t.reopenTestRun)
 
 	// issue
 	s.AddTool(mcp.NewTool("testify.issue.create",
@@ -373,7 +388,7 @@ func (t *WriteTools) archiveTestCase(ctx context.Context, req mcp.CallToolReques
 	if tc.ProjectID != session.ProjectID {
 		return mcp.NewToolResultError("test case not found in the scoped project"), nil
 	}
-	if err := t.reg.Services.TestCase.Archive(ctx, testCaseID); err != nil {
+	if err := t.reg.Services.TestCase.Archive(ctx, testCaseID, session.Identity.CreatedBy, session.ProjectID); err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	return mcp.NewToolResultStructured(reviewOnly(map[string]string{"id": testCaseID, "status": string(core.TestCaseStatusArchived)}), "test case archive staged as draft"), nil
@@ -506,6 +521,35 @@ func (t *WriteTools) approveTestPlan(ctx context.Context, req mcp.CallToolReques
 	return mcp.NewToolResultStructured(tp, "test plan approved"), nil
 }
 
+func (t *WriteTools) changeTestPlanStatus(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, errResult := t.beginWrite(ctx, req, core.ScopeWriteTestPlan)
+	if errResult != nil {
+		return errResult, nil
+	}
+
+	testPlanID, err := req.RequireString("testplan_id")
+	if err != nil || !isUUID(testPlanID) {
+		return mcp.NewToolResultError("testplan_id must be a valid UUID"), nil
+	}
+	status, err := req.RequireString("status")
+	if err != nil || !validTestPlanStatus(status) {
+		return mcp.NewToolResultError("status must be one of: draft, active, completed, archived"), nil
+	}
+
+	tp, err := t.reg.Services.TestPlan.Get(ctx, testPlanID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	if tp.ProjectID != session.ProjectID {
+		return mcp.NewToolResultError("test plan not found in the scoped project"), nil
+	}
+	actorID := session.Identity.CreatedBy
+	if err := t.reg.Services.TestPlan.ChangeStatus(ctx, testPlanID, core.TestPlanStatus(status), actorID, session.ProjectID); err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultStructured(reviewOnly(map[string]string{"id": testPlanID, "status": status}), "test plan status changed"), nil
+}
+
 // ---------------------------------------------------------------------------
 // test run
 // ---------------------------------------------------------------------------
@@ -598,10 +642,34 @@ func (t *WriteTools) completeTestRun(ctx context.Context, req mcp.CallToolReques
 	if tr.ProjectID != session.ProjectID {
 		return mcp.NewToolResultError("test run not found in the scoped project"), nil
 	}
-	if err := t.reg.Services.TestRun.Complete(ctx, testRunID); err != nil {
+	if err := t.reg.Services.TestRun.Complete(ctx, testRunID, session.Identity.CreatedBy, session.ProjectID); err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	return mcp.NewToolResultStructured(tr, "test run completed"), nil
+}
+
+func (t *WriteTools) reopenTestRun(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, errResult := t.beginWrite(ctx, req, core.ScopeWriteTestRun)
+	if errResult != nil {
+		return errResult, nil
+	}
+
+	testRunID, err := req.RequireString("testrun_id")
+	if err != nil || !isUUID(testRunID) {
+		return mcp.NewToolResultError("testrun_id must be a valid UUID"), nil
+	}
+
+	tr, err := t.reg.Services.TestRun.Get(ctx, testRunID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	if tr.ProjectID != session.ProjectID {
+		return mcp.NewToolResultError("test run not found in the scoped project"), nil
+	}
+	if err := t.reg.Services.TestRun.Reopen(ctx, testRunID, session.Identity.CreatedBy, session.ProjectID); err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultStructured(tr, "test run reopened"), nil
 }
 
 // ---------------------------------------------------------------------------
