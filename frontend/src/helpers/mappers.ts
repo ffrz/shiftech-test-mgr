@@ -58,11 +58,26 @@ export function mapProjectMemberRow(row: any): ProjectMember {
   };
 }
 
-export function mapProjectMemberWithProfileRow(row: any): ProjectMemberWithProfile {
+export function mapProjectMemberWithProfileRow(row: any, prefetchedProfile?: Profile | null, prefetchedEmail?: string): ProjectMemberWithProfile {
+  if (prefetchedProfile !== undefined || prefetchedEmail !== undefined) {
+    return {
+      ...mapProjectMemberRow(row),
+      profile: prefetchedProfile ?? null,
+      email: prefetchedEmail ?? '',
+    };
+  }
+  const mu = row.member_user;
+  // V1 (profiles table directly): member_user has { id, email, full_name, avatar_url }
+  // V2 (users -> profiles embed): member_user has { email, profile: { username, displayName, ... } }
+  const profile = mu?.profile
+    ? mapProfileRow(mu.profile)
+      : mu
+      ? { id: mu.id, username: mu.email, displayName: mu.full_name ?? null, avatarUrl: mu.avatar_url ?? null, bio: null, usernameChanged: false, createdAt: mu.created_at ?? '', updatedAt: mu.updated_at ?? '' }
+      : null;
   return {
     ...mapProjectMemberRow(row),
-    profile: row.member_user?.profile ? mapProfileRow(row.member_user.profile) : null,
-    email: row.member_user?.email ?? '',
+    profile,
+    email: mu?.email ?? '',
   };
 }
 

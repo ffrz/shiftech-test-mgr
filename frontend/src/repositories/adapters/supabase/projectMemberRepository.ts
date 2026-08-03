@@ -1,19 +1,39 @@
 import { supabase } from '../../../config/supabaseClient';
-import { mapProjectMemberWithProfileRow, mapProjectMemberInvitationRow } from '../../../helpers/mappers';
-import type { ProjectMemberRole, ProjectMemberWithProfile, ProjectMemberInvitation } from '../../../types/domain';
+import { mapProjectMemberRow, mapProjectMemberInvitationRow, mapProfileRow } from '../../../helpers/mappers';
+import type { ProjectMemberRole, ProjectMemberWithProfile, ProjectMemberInvitation, Profile } from '../../../types/domain';
 import type { ProjectMemberRepository } from '../../interfaces/projectMemberRepository';
 
-const MEMBER_WITH_PROFILE_SELECT = '*, member_user:users!project_members_user_id_fkey(email, profile:profiles(*))';
+async function resolveProfiles(userIds: string[]): Promise<Map<string, Profile>> {
+  const map = new Map<string, Profile>();
+  if (userIds.length === 0) return map;
+  const { data } = await supabase.from('profiles').select('*').in('id', userIds);
+  for (const row of (data ?? [])) {
+    map.set(row.id, mapProfileRow(row));
+  }
+  return map;
+}
+
+function buildMemberWithProfile(row: any, profiles?: Map<string, Profile>): ProjectMemberWithProfile {
+  const profile = profiles?.get(row.user_id) ?? null;
+  const email = row.member?.email ?? '';
+  return {
+    ...mapProjectMemberRow(row),
+    profile: profile ?? (email ? { id: row.user_id, username: email, displayName: email, avatarUrl: null, bio: null, usernameChanged: false, createdAt: '', updatedAt: '' } : null),
+    email,
+  };
+}
 
 export const projectMemberRepositoryAdapter: ProjectMemberRepository = {
   async findAllByProject(projectId: string): Promise<ProjectMemberWithProfile[]> {
     const { data, error } = await supabase
       .from('project_members')
-      .select(MEMBER_WITH_PROFILE_SELECT)
+      .select('*, member:users!project_members_user_id_fkey(email)')
       .eq('project_id', projectId)
       .order('created_at');
     if (error) throw error;
-    return (data ?? []).map(mapProjectMemberWithProfileRow);
+    const rows = data ?? [];
+    const profiles = await resolveProfiles(rows.map((r: any) => r.user_id));
+    return rows.map((r: any) => buildMemberWithProfile(r, profiles));
   },
 
   async findOwnRole(projectId: string, userId: string): Promise<ProjectMemberRole | null> {
@@ -32,10 +52,11 @@ export const projectMemberRepositoryAdapter: ProjectMemberRepository = {
     const { data, error } = await supabase
       .from('project_members')
       .insert({ project_id: projectId, user_id: userId, role, status: 'invited', invited_by: invitedBy })
-      .select(MEMBER_WITH_PROFILE_SELECT)
+      .select('*, member:users!project_members_user_id_fkey(email)')
       .single();
     if (error) throw error;
-    return mapProjectMemberWithProfileRow(data);
+    const profiles = await resolveProfiles([data.user_id]);
+    return buildMemberWithProfile(data, profiles);
   },
 
   async listPendingInvitationsForUser(userId: string): Promise<ProjectMemberInvitation[]> {
@@ -65,10 +86,11 @@ export const projectMemberRepositoryAdapter: ProjectMemberRepository = {
         responded_at: null,
       })
       .eq('id', id)
-      .select(MEMBER_WITH_PROFILE_SELECT)
+      .select('*, member:users!project_members_user_id_fkey(email)')
       .single();
     if (error) throw error;
-    return mapProjectMemberWithProfileRow(data);
+    const profiles = await resolveProfiles([data.user_id]);
+    return buildMemberWithProfile(data, profiles);
   },
 
   async remove(id: string): Promise<void> {
