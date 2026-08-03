@@ -196,6 +196,4 @@ If more than two answers are "No", reject the feature.
 
 ## Product Motto
 
-Simple enough for every developer.
-
-Powerful enough for every growing team.
+Simple QA &amp; Test Management Platform. Open source. Cloud or self-hosted. Built for modern testing.

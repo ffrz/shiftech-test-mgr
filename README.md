@@ -1,5 +1,8 @@
 # Testify (shiftech-test-mgr)
 
+**Simple QA & Test Management Platform. Open source. Cloud or self-hosted.
+Built for modern testing.**
+
 Aplikasi (sedang bertransisi dari internal tool menjadi produk self-serve)
 untuk manajemen **Test Plan** dan **Test Case** suatu project — nama produk
 **Testify**, nama repo tetap `shiftech-test-mgr`. Lihat

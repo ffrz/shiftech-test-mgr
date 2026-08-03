@@ -1,8 +1,9 @@
 # Testify Vision
 
-Testify adalah platform Open Source Test Management & QA Collaboration yang
-dirancang untuk menggantikan workflow berbasis Excel dengan solusi modern yang
-sederhana, fleksibel, dan dapat berkembang sesuai kebutuhan pengguna.
+Testify adalah Simple QA &amp; Test Management Platform — open source, cloud atau
+self-hosted, dibangun untuk modern testing. Menggantikan workflow berbasis Excel
+dengan solusi modern yang sederhana, fleksibel, dan dapat berkembang sesuai
+kebutuhan pengguna.
 
 Filosofi utama Testify adalah **Human-first, AI-accelerated**: manual testing
 menjadi fondasi utama, kemudian automation dan AI digunakan untuk mengurangi

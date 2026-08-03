@@ -11,7 +11,7 @@ export default defineConfig({
 		starlight({
 			title: 'Testify Docs',
 			description:
-				'User guide and data model reference for Testify — simple manual test management.',
+				'Simple QA & Test Management Platform. Open source. Cloud or self-hosted. Built for modern testing.',
 			sidebar: [
 				{
 					label: 'Getting Started',
