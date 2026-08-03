@@ -158,8 +158,7 @@ func (r *TestCaseRepo) Create(ctx context.Context, input core.CreateTestCaseInpu
 		Notes:          input.Notes,
 		StepType:       string(stepType),
 		TargetRoleID:   input.TargetRoleID,
-		AssignedTo:     input.AssignedTo,
-		ExternalLinks:  externalLinks(input.ExternalLinks),
+		ExternalLinks:  nonNilLinks(externalLinks(input.ExternalLinks)),
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}
@@ -211,9 +210,6 @@ func (r *TestCaseRepo) Update(ctx context.Context, id string, input core.UpdateT
 	if input.TargetRoleID != nil {
 		updates["target_role_id"] = *input.TargetRoleID
 	}
-	if input.AssignedTo != nil {
-		updates["assigned_to"] = *input.AssignedTo
-	}
 	if len(updates) == 0 && input.Tags == nil {
 		return r.Get(ctx, id)
 	}
@@ -262,8 +258,7 @@ func (r *TestCaseRepo) Duplicate(ctx context.Context, id string, newTitle string
 		Notes:          original.Notes,
 		StepType:       string(original.StepType),
 		TargetRoleID:   original.TargetRoleID,
-		AssignedTo:     original.AssignedTo,
-		ExternalLinks:  externalLinks(original.ExternalLinks),
+		ExternalLinks:  nonNilLinks(externalLinks(original.ExternalLinks)),
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}
@@ -417,7 +412,6 @@ type testCaseRow struct {
 	Notes          *string        `gorm:"column:notes"`
 	StepType       string         `gorm:"column:step_type"`
 	TargetRoleID   *string        `gorm:"column:target_role_id"`
-	AssignedTo     *string        `gorm:"column:assigned_to"`
 	ExternalLinks  externalLinks  `gorm:"column:external_links"`
 	CreatedBy      *string        `gorm:"column:created_by"`
 	CreatedAt      time.Time      `gorm:"column:created_at"`
@@ -442,7 +436,6 @@ func (r testCaseRow) toDomain() core.TestCase {
 		Notes:          r.Notes,
 		StepType:       core.StepType(r.StepType),
 		TargetRoleID:   r.TargetRoleID,
-		AssignedTo:     r.AssignedTo,
 		ExternalLinks:  []core.ExternalLink(r.ExternalLinks),
 		CreatedBy:      r.CreatedBy,
 		CreatedAt:      r.CreatedAt,

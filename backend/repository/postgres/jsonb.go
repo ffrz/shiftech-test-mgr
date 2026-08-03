@@ -38,6 +38,17 @@ func (s externalLinks) Value() (driver.Value, error) {
 	return json.Marshal(s)
 }
 
+// nonNilLinks guarantees a non-nil slice so GORM emits '[]' (not NULL) for the
+// external_links jsonb column during Create. A nil slice is treated as a zero
+// value by GORM and is omitted from the insert, which violates the NOT NULL
+// constraint even though the column default is '[]'.
+func nonNilLinks(l externalLinks) externalLinks {
+	if l == nil {
+		return externalLinks{}
+	}
+	return l
+}
+
 // jsonbMap maps the entity_activity.payload jsonb column (a free-form object,
 // e.g. {body: "..."} for comments) onto a domain map. Same Scanner/Valuer
 // treatment as externalLinks above.

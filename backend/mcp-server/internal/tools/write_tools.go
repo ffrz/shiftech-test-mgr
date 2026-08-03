@@ -227,7 +227,6 @@ type createCaseArg struct {
 	Priority       string `json:"priority"`
 	Notes          string `json:"notes"`
 	TargetRoleID   string `json:"target_role_id"`
-	AssignedTo     string `json:"assigned_to"`
 }
 
 func (t *WriteTools) createTestCases(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -293,7 +292,6 @@ func (t *WriteTools) createTestCases(ctx context.Context, req mcp.CallToolReques
 			ModuleID:       moduleID,
 			Notes:          strPtrIfNonEmpty(arg.Notes),
 			TargetRoleID:   targetRoleID,
-			AssignedTo:     strPtrIfNonEmpty(arg.AssignedTo),
 		})
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

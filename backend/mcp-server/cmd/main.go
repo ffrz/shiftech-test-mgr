@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/joho/godotenv"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/shiftech/testify-platform/mcp-server/internal/auth"
 	"github.com/shiftech/testify-platform/mcp-server/internal/governance"
@@ -17,6 +18,7 @@ import (
 )
 
 func main() {
+	_ = godotenv.Load()
 	ctx := context.Background()
 
 	// 1. Connect to Supabase Postgres

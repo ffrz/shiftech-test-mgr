@@ -115,7 +115,7 @@ func (r *IssueRepo) Create(ctx context.Context, input core.CreateIssueInput) (*c
 		ExpectedResult: input.ExpectedResult,
 		TargetRoleID:   input.TargetRoleID,
 		AssignedTo:     input.AssignedTo,
-		ExternalLinks:  externalLinks(input.ExternalLinks),
+		ExternalLinks:  nonNilLinks(externalLinks(input.ExternalLinks)),
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}

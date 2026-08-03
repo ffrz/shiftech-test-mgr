@@ -127,7 +127,6 @@ func (r *TestPlanRepo) AddCases(ctx context.Context, planID string, caseIDs []st
 	if len(caseIDs) == 0 {
 		return nil
 	}
-	now := time.Now()
 	rows := make([]testPlanCaseRow, 0, len(caseIDs))
 	for _, cid := range caseIDs {
 		rows = append(rows, testPlanCaseRow{
@@ -135,7 +134,6 @@ func (r *TestPlanRepo) AddCases(ctx context.Context, planID string, caseIDs []st
 			TestPlanID: planID,
 			TestCaseID: cid,
 			Order:      0,
-			CreatedAt:  now,
 		})
 	}
 
@@ -153,7 +151,6 @@ func (r *TestPlanRepo) AddCases(ctx context.Context, planID string, caseIDs []st
 				TestPlanID: planID,
 				TestCaseID: row.TestCaseID,
 				Order:      0,
-				CreatedAt:  now,
 			}).Error; err != nil {
 				return fmt.Errorf("testplan add case: %w", err)
 			}
@@ -254,11 +251,10 @@ func (r testPlanRow) toDomain() core.TestPlan {
 }
 
 type testPlanCaseRow struct {
-	ID         string    `gorm:"column:id"`
-	TestPlanID string    `gorm:"column:test_plan_id"`
-	TestCaseID string    `gorm:"column:test_case_id"`
-	Order      int       `gorm:"column:order"`
-	CreatedAt  time.Time `gorm:"column:created_at"`
+	ID         string `gorm:"column:id"`
+	TestPlanID string `gorm:"column:test_plan_id"`
+	TestCaseID string `gorm:"column:test_case_id"`
+	Order      int    `gorm:"column:order"`
 }
 
 func (testPlanCaseRow) TableName() string { return "test_plan_cases" }

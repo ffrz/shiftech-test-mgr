@@ -116,7 +116,6 @@ type TestCase struct {
 	Notes          *string          `json:"notes"`
 	StepType       StepType         `json:"stepType"`
 	TargetRoleID   *string          `json:"targetRoleId"`
-	AssignedTo     *string          `json:"assignedTo"`
 	ExternalLinks  []ExternalLink   `json:"externalLinks"`
 	CreatedBy      *string          `json:"createdBy"`
 	// DetailedSteps carries the structured test_case_steps rows for a

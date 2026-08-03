@@ -197,7 +197,6 @@ type CreateTestCaseInput struct {
 	StepType       StepType
 	Notes          *string
 	TargetRoleID   *string
-	AssignedTo     *string
 	ExternalLinks  []ExternalLink
 	Tags           []string
 }
@@ -213,7 +212,6 @@ type UpdateTestCaseInput struct {
 	StepType       *StepType
 	Notes          *string
 	TargetRoleID   *string
-	AssignedTo     *string
 	Tags           *[]string
 }
 

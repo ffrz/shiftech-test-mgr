@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/shiftech/testify-platform/repository/postgres"
@@ -19,6 +20,7 @@ import (
 // real Supabase Auth JWT verification + project-membership gating (ROADMAP_V3
 // R3) ahead of the Issue endpoints (R1) built on top of it.
 func main() {
+	_ = godotenv.Load()
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		log.Fatal("DATABASE_URL is not set")
