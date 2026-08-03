@@ -74,7 +74,7 @@ export function MembersTab({
   const mobileBody = (row: ProjectMemberWithProfile) => (
     <div className="flex align-items-start justify-content-between gap-2 py-1">
       <div className="flex flex-column gap-2">
-        <div className="font-medium">{row.profile?.displayName ?? row.email || '-'}</div>
+        <div className="font-medium">{row.profile?.displayName ?? (row.email || '-')}</div>
         <div className="text-sm">
           {row.profile?.username ? (
             <UserHoverCard userId={row.userId}>
@@ -168,7 +168,7 @@ export function MembersTab({
             <span className="username-link">{row.profile.username}</span>
           </UserHoverCard>
         ) : (row.email || '-')} />}
-        {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => <span>{row.profile?.displayName ?? row.email || '-'}</span>} />}
+        {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => <span>{row.profile?.displayName ?? (row.email || '-')}</span>} />}
         {!isMobile && (
           <Column
             header="Status"
