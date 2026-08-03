@@ -1325,8 +1325,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/MembersTab.tsx": {
-    "mtime": 1785562278.1694424,
-    "ast_hash": "0541a05cc7c7eebf4735fcafb7326211",
+    "mtime": 1785766527.1959143,
+    "ast_hash": "e21d24d3043f6ddadd14837c47581125",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/ModulesTab.tsx": {
@@ -4157,6 +4157,11 @@
   "runner/README.md": {
     "mtime": 1785735346.640878,
     "ast_hash": "e5830d47df438bc33ed9d1785ed021f8",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260803280000_fix_invited_member_profile_rls.sql": {
+    "mtime": 1785766613.209924,
+    "ast_hash": "f3197f6db2463a0bb4ea0d6a937cbcdf",
     "semantic_hash": ""
   }
 }

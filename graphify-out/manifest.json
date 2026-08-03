@@ -140,8 +140,8 @@
     "semantic_hash": ""
   },
   "frontend/src/helpers/mappers.ts": {
-    "mtime": 1785764832.6847417,
-    "ast_hash": "1c4c196581c0d3d1ca25cb2afe11be72",
+    "mtime": 1785767722.6145303,
+    "ast_hash": "fd57fe4b4d8ca440aa0c7c0fd5bbc6ac",
     "semantic_hash": ""
   },
   "frontend/src/helpers/statusLabels.ts": {
@@ -1325,8 +1325,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/MembersTab.tsx": {
-    "mtime": 1785562278.1694424,
-    "ast_hash": "0541a05cc7c7eebf4735fcafb7326211",
+    "mtime": 1785766527.1959143,
+    "ast_hash": "e21d24d3043f6ddadd14837c47581125",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/ModulesTab.tsx": {
@@ -2900,8 +2900,8 @@
     "semantic_hash": ""
   },
   "frontend/src/repositories/adapters/supabase/projectMemberRepository.ts": {
-    "mtime": 1785654918.5146945,
-    "ast_hash": "cc5a66c81a5b704dfbdbef604e3043fa",
+    "mtime": 1785767699.484994,
+    "ast_hash": "6d4d0f9baa92b9512858a5914bbef659",
     "semantic_hash": ""
   },
   "frontend/src/repositories/adapters/supabase/projectRepository.ts": {
@@ -4157,6 +4157,11 @@
   "runner/README.md": {
     "mtime": 1785735346.640878,
     "ast_hash": "e5830d47df438bc33ed9d1785ed021f8",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260803280000_fix_invited_member_profile_rls.sql": {
+    "mtime": 1785767391.699405,
+    "ast_hash": "f346a2f79bbcb230874efd109a34d395",
     "semantic_hash": ""
   }
 }
