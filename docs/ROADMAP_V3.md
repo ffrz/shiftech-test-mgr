@@ -44,11 +44,11 @@ bisa pindah dari Supabase langsung ke REST API tanpa kehilangan behavior apa pun
 
 ## Phase Overview
 
-| Fase | Tujuan | Depends on |
-|---|---|---|
-| G1 | `ActivityRepository` dapat method tulis (`Record`) + Go port `activityService.logEvent` | `backend/ROADMAP.md` Fase 5.5 |
-| G2 | `NotificationRepository` baru di Go (belum ada sama sekali) + port `notificationService.create` | G1 (dipakai bareng activity di alur yang sama) |
-| G3 | `IssueService` full parity: `UpdateStatus`/`Assign`/`BulkChangeStatus` meniru `issueService.ts` persis (actor wajib, activity + notifikasi) | G1, G2 |
+| Fase | Tujuan | Depends on | Status |
+|---|---|---|---|
+| G1 | `ActivityRepository` dapat method tulis (`Record`) + Go port `activityService.logEvent` | `backend/ROADMAP.md` Fase 5.5 | ✅ done |
+| G2 | `NotificationRepository` baru di Go (belum ada sama sekali) + port `notificationService.create` | G1 (dipakai bareng activity di alur yang sama) | ✅ done |
+| G3 | `IssueService` full parity: `UpdateStatus`/`Assign` meniru `issueService.ts` persis (actor wajib, activity + notifikasi). `BulkChangeStatus` sengaja tidak diport (belum ada kebutuhan nyata) | G1, G2 | ✅ done |
 | G4 | `TestRunService`/`TestPlanService`/`TestCaseService` parity check — audit satu per satu apakah versi frontend punya business rule yang belum ada di Go | G1, G2 |
 | G5 | `ActivityService.addComment` (dengan `@mention` parsing) — kalau MCP/REST butuh comment, bukan cuma system event | G1, G2 |
 | R1 | REST API: endpoint issue (list/get/create/update/updateStatus/assign) di atas service yang sudah full-parity | G3 |
@@ -66,7 +66,12 @@ test-nya ikut diperbarui (lihat `backend/ROADMAP.md` Fase 5.5).
 
 ---
 
-## Fase G1 — Activity write path (`todo`)
+## Fase G1 — Activity write path (`done` — 2026-08-03)
+
+**Catatan:** ternyata sudah ada sebelum roadmap ini ditulis —
+`core.ActivityRepository.Create` + `repository/postgres/activity_repo.go`
+sudah insert ke `entity_activity`, dan `IssueService.UpdateStatus` sudah
+memanggilnya. Detail asli di bawah ini dipertahankan sebagai referensi.
 
 **Kenapa duluan:** ini akar masalah spesifik yang dilaporkan (MCP `issue.updateStatus`
 berhasil ubah status tapi tidak tercatat di activity).
@@ -89,7 +94,14 @@ membuktikan `Record` menulis row baru dan bisa dibaca kembali lewat `ListForEnti
 
 ---
 
-## Fase G2 — Notification write path (`todo`)
+## Fase G2 — Notification write path (`done` — 2026-08-03)
+
+**Implementasi:** `core.NotificationRepository`/`core.CreateNotificationInput`
+(`core/ports.go`, `core/domain.go`) + `repository/postgres/notification_repo.go`
+(panggil RPC `create_notification` yang sudah ada di Supabase, sama seperti
+frontend — tidak reimplementasi insert-nya di Go) + `service/notification_service.go`
+tipis. Wired ke `IssueContextSources.Notifications` di `cmd/main.go` dan
+`cmd-http/main.go`.
 
 **Kenapa perlu:** `issueService.changeStatus`/`assign` di frontend selalu mengirim
 notifikasi ke assignee (kalau beda dari aktor) — kalau Go tidak port ini, agent AI yang
@@ -118,7 +130,28 @@ membuktikan pemanggilan insert row baru dengan field yang benar.
 
 ---
 
-## Fase G3 — `IssueService` full parity (`todo`)
+## Fase G3 — `IssueService` full parity (`done` — 2026-08-03)
+
+**Implementasi:**
+- `IssueService.UpdateStatus` — sudah punya activity log (dari sebelum roadmap
+  ini), ditambah notifikasi ke assignee lama (kalau ada dan beda dari actor),
+  meniru `issueService.changeStatus` persis.
+- `IssueService.Assign` (baru) — `core.IssueRepository.Assign` port + repo
+  (`issue_repo.go`) + service method: log activity `eventType: "assignment"`
+  + notifikasi ke assignee baru (skip kalau unassign/nil atau assign ke diri
+  sendiri).
+- MCP tool baru `testify.issue.assign` (`write_tools.go`) — pola sama seperti
+  `updateIssueStatus`.
+- `BulkChangeStatus` **sengaja tidak diport** — belum ada tool MCP/REST yang
+  butuh bulk, sesuai catatan asli di bawah (jangan bangun untuk kebutuhan
+  hipotetis).
+
+**Test:** `service/service_test.go` — `TestIssueService_UpdateStatus_NoopWhenUnchanged`
+(activity/notifikasi tidak terpicu kalau status sama), 
+`TestIssueService_UpdateStatus_NotifiesPreviousAssignee` (notifikasi terkirim,
+tidak ada self-notify), `TestIssueService_Assign_LogsActivityAndNotifiesNewAssignee`
+(activity + notifikasi ke assignee baru, tidak notify saat unassign). Detail
+asli di bawah ini dipertahankan sebagai referensi desain.
 
 **Kenapa ini fase terpisah dari G1/G2:** G1/G2 menyediakan primitif (tulis activity,
 tulis notifikasi). G3 merangkainya persis seperti frontend, termasuk keputusan

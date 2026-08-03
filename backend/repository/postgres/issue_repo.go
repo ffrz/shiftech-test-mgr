@@ -151,6 +151,13 @@ func (r *IssueRepo) UpdateStatus(ctx context.Context, id string, status core.Iss
 	}).Error
 }
 
+func (r *IssueRepo) Assign(ctx context.Context, id string, assignedTo *string) error {
+	return r.db.WithContext(ctx).Model(&issueRow{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"assigned_to": assignedTo,
+		"updated_at":  time.Now(),
+	}).Error
+}
+
 // GetByCode resolves an issue by its human code (e.g. "ISS-0072") within a
 // project. The caller is expected to pass the code already normalized to the
 // canonical "ISS-0001" form (see service.IssueService.GetByCode).

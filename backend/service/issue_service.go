@@ -13,31 +13,75 @@ import (
 var issueUUIDPattern = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
 // IssueService wraps core.IssueRepository plus the auxiliary repositories
-// needed to assemble workflow-level context (issue.inspect / issue.can_close).
-// Business rules for Issue (e.g. an Issue may only be created from a TestResult
-// with status FAIL; an Issue is only closable in certain states) belong here.
+// needed to assemble workflow-level context (issue.inspect / issue.can_close)
+// and to mirror the frontend's status-change/assignment side effects
+// (activity log + targeted notification — see frontend/src/services/issueService.ts
+// changeStatus/assign). Business rules for Issue (e.g. an Issue may only be
+// created from a TestResult with status FAIL; an Issue is only closable in
+// certain states) belong here.
 type IssueService struct {
-	repo     core.IssueRepository
-	profiles core.ProfileRepository
-	activity core.ActivityRepository
-	attach   core.AttachmentRepository
+	repo          core.IssueRepository
+	profiles      core.ProfileRepository
+	activity      core.ActivityRepository
+	attach        core.AttachmentRepository
+	notifications core.NotificationRepository
 }
 
 // IssueContextSources bundles the auxiliary repositories IssueService needs to
-// resolve actors and load activity/attachments for inspect-style reads.
+// resolve actors, load activity/attachments for inspect-style reads, and emit
+// notifications for status changes/assignment.
 type IssueContextSources struct {
-	Profiles    core.ProfileRepository
-	Activity    core.ActivityRepository
-	Attachments core.AttachmentRepository
+	Profiles      core.ProfileRepository
+	Activity      core.ActivityRepository
+	Attachments   core.AttachmentRepository
+	Notifications core.NotificationRepository
 }
 
 func NewIssueService(repo core.IssueRepository, aux IssueContextSources) *IssueService {
 	return &IssueService{
-		repo:     repo,
-		profiles: aux.Profiles,
-		activity: aux.Activity,
-		attach:   aux.Attachments,
+		repo:          repo,
+		profiles:      aux.Profiles,
+		activity:      aux.Activity,
+		attach:        aux.Attachments,
+		notifications: aux.Notifications,
 	}
+}
+
+// issueStatusLabel mirrors frontend/src/helpers/statusLabels.ts ISSUE_STATUS_LABEL
+// for the notification body text — keep in sync if the frontend labels change.
+var issueStatusLabel = map[core.IssueStatus]string{
+	core.IssueBacklog:    "Backlog",
+	core.IssueOpen:       "Open",
+	core.IssueInProgress: "In Progress",
+	core.IssueResolved:   "Resolved",
+	core.IssueVerified:   "Verified",
+	core.IssueClosed:     "Closed",
+	core.IssueRejected:   "Rejected",
+	core.IssueDuplicate:  "Duplicate",
+}
+
+func statusLabel(s core.IssueStatus) string {
+	if label, ok := issueStatusLabel[s]; ok {
+		return label
+	}
+	return string(s)
+}
+
+// actorDisplayName resolves an actor's display name for notification text,
+// falling back to "Someone" (matching the frontend's `actor.actorName ?? 'Someone'`)
+// when the profile can't be resolved.
+func (s *IssueService) actorDisplayName(ctx context.Context, actorID string) string {
+	profiles, err := s.profiles.GetMany(ctx, []string{actorID})
+	if err != nil {
+		return "Someone"
+	}
+	if p, ok := profiles[actorID]; ok {
+		if p.DisplayName != nil && *p.DisplayName != "" {
+			return *p.DisplayName
+		}
+		return p.Username
+	}
+	return "Someone"
 }
 
 func (s *IssueService) List(ctx context.Context, filter core.IssueFilter) (*core.PageResult[core.Issue], error) {
@@ -64,6 +108,7 @@ func (s *IssueService) UpdateStatus(ctx context.Context, id string, status core.
 		return nil, err
 	}
 	previousStatus := current.Status
+	previousAssignee := current.AssignedTo
 	if previousStatus == status {
 		return current, nil
 	}
@@ -84,8 +129,72 @@ func (s *IssueService) UpdateStatus(ctx context.Context, id string, status core.
 		return nil, fmt.Errorf("log activity: %w", err)
 	}
 
+	// Only the assignee has a direct stake in an issue's status — no broadcast
+	// to the whole project (mirrors frontend issueService.changeStatus).
+	if previousAssignee != nil && *previousAssignee != actorID {
+		actorName := s.actorDisplayName(ctx, actorID)
+		body := fmt.Sprintf("%s changed \"%s\" to %s", actorName, current.Title, statusLabel(status))
+		if err := s.notifications.Create(ctx, core.CreateNotificationInput{
+			UserID:        *previousAssignee,
+			Type:          "status_change",
+			Title:         body,
+			ReferenceType: strPtr("issue"),
+			ReferenceID:   &id,
+		}); err != nil {
+			return nil, fmt.Errorf("notify status change: %w", err)
+		}
+	}
+
 	return current, nil
 }
+
+// Assign sets (or clears, when assignedTo is nil) an issue's assignee,
+// logging an "assignment" activity entry and notifying the new assignee
+// (mirrors frontend issueService.assign).
+func (s *IssueService) Assign(ctx context.Context, id string, assignedTo *string, actorID, projectID string) (*core.Issue, error) {
+	current, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.Assign(ctx, id, assignedTo); err != nil {
+		return nil, err
+	}
+	current.AssignedTo = assignedTo
+
+	var assigneeName *string
+	if assignedTo != nil {
+		name := s.actorDisplayName(ctx, *assignedTo)
+		assigneeName = &name
+	}
+	if err := s.activity.Create(ctx, core.CreateActivityInput{
+		ProjectID:  projectID,
+		EntityType: "issue",
+		EntityID:   id,
+		ActorID:    actorID,
+		EventType:  "assignment",
+		Payload:    map[string]any{"assigneeName": assigneeName},
+	}); err != nil {
+		return nil, fmt.Errorf("log activity: %w", err)
+	}
+
+	if assignedTo != nil && *assignedTo != actorID {
+		actorName := s.actorDisplayName(ctx, actorID)
+		body := fmt.Sprintf("%s assigned you to \"%s\"", actorName, current.Title)
+		if err := s.notifications.Create(ctx, core.CreateNotificationInput{
+			UserID:        *assignedTo,
+			Type:          "assignment",
+			Title:         body,
+			ReferenceType: strPtr("issue"),
+			ReferenceID:   &id,
+		}); err != nil {
+			return nil, fmt.Errorf("notify assignment: %w", err)
+		}
+	}
+
+	return current, nil
+}
+
+func strPtr(s string) *string { return &s }
 
 // Resolve returns the issue for a project-scoped reference that is either a
 // UUID or a human code ("ISS-0072"/"0072"), enforcing the session's project

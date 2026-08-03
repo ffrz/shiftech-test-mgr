@@ -101,6 +101,7 @@ type writeMockIssueRepo struct {
 	get          func(ctx context.Context, id string) (*core.Issue, error)
 	create       func(ctx context.Context, input core.CreateIssueInput) (*core.Issue, error)
 	updateStatus func(ctx context.Context, id string, status core.IssueStatus) error
+	assign       func(ctx context.Context, id string, assignedTo *string) error
 	getByCode    func(ctx context.Context, projectID, code string) (*core.Issue, error)
 	listLinks    func(ctx context.Context, issueID string) ([]core.IssueLink, error)
 	listTagNames func(ctx context.Context, issueID string) ([]string, error)
@@ -117,6 +118,12 @@ func (m *writeMockIssueRepo) Create(ctx context.Context, input core.CreateIssueI
 }
 func (m *writeMockIssueRepo) UpdateStatus(ctx context.Context, id string, status core.IssueStatus) error {
 	return m.updateStatus(ctx, id, status)
+}
+func (m *writeMockIssueRepo) Assign(ctx context.Context, id string, assignedTo *string) error {
+	if m.assign != nil {
+		return m.assign(ctx, id, assignedTo)
+	}
+	return errors.New("not used")
 }
 func (m *writeMockIssueRepo) GetByCode(ctx context.Context, projectID, code string) (*core.Issue, error) {
 	if m.getByCode != nil {
@@ -159,6 +166,12 @@ func (m *writeMockActivityRepo) ListForEntity(ctx context.Context, projectID, en
 }
 
 func (m *writeMockActivityRepo) Create(ctx context.Context, input core.CreateActivityInput) error {
+	return nil
+}
+
+type writeMockNotificationRepo struct{}
+
+func (m *writeMockNotificationRepo) Create(ctx context.Context, input core.CreateNotificationInput) error {
 	return nil
 }
 
@@ -215,9 +228,10 @@ func writeReg(session *auth.Session, tc *writeMockTestCaseRepo, tp *writeMockTes
 	}
 	if iss != nil {
 		reg.Services.Issue = service.NewIssueService(iss, service.IssueContextSources{
-			Profiles:    &writeMockProfileRepo{},
-			Activity:    &writeMockActivityRepo{},
-			Attachments: &writeMockAttachmentRepo{},
+			Profiles:      &writeMockProfileRepo{},
+			Activity:      &writeMockActivityRepo{},
+			Attachments:   &writeMockAttachmentRepo{},
+			Notifications: &writeMockNotificationRepo{},
 		})
 	}
 	return reg
@@ -958,7 +972,7 @@ func TestUpdateIssueStatus_RejectsInvalidStatus(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// Register — all 13 write tools registered
+// Register — all 14 write tools registered
 // ---------------------------------------------------------------------------
 
 func TestWriteToolsRegister(t *testing.T) {
@@ -972,8 +986,8 @@ func TestWriteToolsRegister(t *testing.T) {
 		t.Fatalf("Register: %v", err)
 	}
 	got := svr.ListTools()
-	if len(got) != 13 {
-		t.Fatalf("registered %d tools, want 13", len(got))
+	if len(got) != 14 {
+		t.Fatalf("registered %d tools, want 14", len(got))
 	}
 	for _, name := range writeToolNames(w) {
 		if _, ok := got[name]; !ok {
@@ -997,6 +1011,7 @@ func writeToolNames(w *WriteTools) []string {
 		"testify.testrun.complete",
 		"testify.issue.create",
 		"testify.issue.updateStatus",
+		"testify.issue.assign",
 	}
 }
 

@@ -114,6 +114,7 @@ type mockIssueRepo struct {
 	get          func(ctx context.Context, id string) (*core.Issue, error)
 	create       func(ctx context.Context, input core.CreateIssueInput) (*core.Issue, error)
 	updateStatus func(ctx context.Context, id string, status core.IssueStatus) error
+	assign       func(ctx context.Context, id string, assignedTo *string) error
 	getByCode    func(ctx context.Context, projectID, code string) (*core.Issue, error)
 	listLinks    func(ctx context.Context, issueID string) ([]core.IssueLink, error)
 	listTagNames func(ctx context.Context, issueID string) ([]string, error)
@@ -130,6 +131,12 @@ func (m *mockIssueRepo) Create(ctx context.Context, input core.CreateIssueInput)
 }
 func (m *mockIssueRepo) UpdateStatus(ctx context.Context, id string, status core.IssueStatus) error {
 	return m.updateStatus(ctx, id, status)
+}
+func (m *mockIssueRepo) Assign(ctx context.Context, id string, assignedTo *string) error {
+	if m.assign != nil {
+		return m.assign(ctx, id, assignedTo)
+	}
+	return nil
 }
 func (m *mockIssueRepo) GetByCode(ctx context.Context, projectID, code string) (*core.Issue, error) {
 	if m.getByCode != nil {
@@ -191,11 +198,23 @@ func (m *mockAttachmentRepo) ListForEntity(ctx context.Context, projectID, entit
 	return nil, nil
 }
 
+type mockNotificationRepo struct {
+	create func(ctx context.Context, input core.CreateNotificationInput) error
+}
+
+func (m *mockNotificationRepo) Create(ctx context.Context, input core.CreateNotificationInput) error {
+	if m.create != nil {
+		return m.create(ctx, input)
+	}
+	return nil
+}
+
 func newTestIssueContextSources() IssueContextSources {
 	return IssueContextSources{
-		Profiles:    &mockProfileRepo{},
-		Activity:    &mockActivityRepo{},
-		Attachments: &mockAttachmentRepo{},
+		Profiles:      &mockProfileRepo{},
+		Activity:      &mockActivityRepo{},
+		Attachments:   &mockAttachmentRepo{},
+		Notifications: &mockNotificationRepo{},
 	}
 }
 
@@ -590,6 +609,142 @@ func TestIssueServicePassthrough(t *testing.T) {
 	}
 	if updatedStatus != core.IssueInProgress {
 		t.Errorf("UpdateStatus = %q, want in_progress", updatedStatus)
+	}
+}
+
+func TestIssueService_UpdateStatus_NoopWhenUnchanged(t *testing.T) {
+	assignee := "assignee1"
+	activityCalled := false
+	notifyCalled := false
+	m := &mockIssueRepo{
+		get: func(ctx context.Context, id string) (*core.Issue, error) {
+			return &core.Issue{ID: id, Status: core.IssueOpen, AssignedTo: &assignee, Title: "Bug"}, nil
+		},
+		updateStatus: func(ctx context.Context, id string, status core.IssueStatus) error {
+			t.Fatalf("UpdateStatus repo call should not happen when status is unchanged")
+			return nil
+		},
+	}
+	aux := IssueContextSources{
+		Profiles: &mockProfileRepo{},
+		Activity: &mockActivityRepo{create: func(ctx context.Context, input core.CreateActivityInput) error {
+			activityCalled = true
+			return nil
+		}},
+		Attachments: &mockAttachmentRepo{},
+		Notifications: &mockNotificationRepo{create: func(ctx context.Context, input core.CreateNotificationInput) error {
+			notifyCalled = true
+			return nil
+		}},
+	}
+	s := NewIssueService(m, aux)
+
+	if _, err := s.UpdateStatus(context.Background(), "iss1", core.IssueOpen, "actor1", "p1"); err != nil {
+		t.Fatalf("UpdateStatus: %v", err)
+	}
+	if activityCalled {
+		t.Error("activity should not be logged when status does not change")
+	}
+	if notifyCalled {
+		t.Error("notification should not be sent when status does not change")
+	}
+}
+
+func TestIssueService_UpdateStatus_NotifiesPreviousAssignee(t *testing.T) {
+	assignee := "assignee1"
+	var notified core.CreateNotificationInput
+	notifyCount := 0
+	m := &mockIssueRepo{
+		get: func(ctx context.Context, id string) (*core.Issue, error) {
+			return &core.Issue{ID: id, Status: core.IssueOpen, AssignedTo: &assignee, Title: "Bug"}, nil
+		},
+		updateStatus: func(ctx context.Context, id string, status core.IssueStatus) error { return nil },
+	}
+	aux := IssueContextSources{
+		Profiles: &mockProfileRepo{},
+		Activity: &mockActivityRepo{},
+		Attachments: &mockAttachmentRepo{},
+		Notifications: &mockNotificationRepo{create: func(ctx context.Context, input core.CreateNotificationInput) error {
+			notifyCount++
+			notified = input
+			return nil
+		}},
+	}
+	s := NewIssueService(m, aux)
+
+	if _, err := s.UpdateStatus(context.Background(), "iss1", core.IssueResolved, "actor1", "p1"); err != nil {
+		t.Fatalf("UpdateStatus: %v", err)
+	}
+	if notifyCount != 1 {
+		t.Fatalf("notify count = %d, want 1", notifyCount)
+	}
+	if notified.UserID != assignee {
+		t.Errorf("notified UserID = %q, want %q", notified.UserID, assignee)
+	}
+	if notified.Type != "status_change" {
+		t.Errorf("notified Type = %q", notified.Type)
+	}
+
+	// No self-notification when the actor is also the assignee.
+	notifyCount = 0
+	if _, err := s.UpdateStatus(context.Background(), "iss1", core.IssueVerified, assignee, "p1"); err != nil {
+		t.Fatalf("UpdateStatus: %v", err)
+	}
+	if notifyCount != 0 {
+		t.Errorf("notify count = %d, want 0 (actor is the assignee)", notifyCount)
+	}
+}
+
+func TestIssueService_Assign_LogsActivityAndNotifiesNewAssignee(t *testing.T) {
+	var assignedTo *string
+	var loggedPayload map[string]any
+	var notified core.CreateNotificationInput
+	notifyCount := 0
+	m := &mockIssueRepo{
+		get: func(ctx context.Context, id string) (*core.Issue, error) {
+			return &core.Issue{ID: id, Title: "Bug"}, nil
+		},
+		assign: func(ctx context.Context, id string, newAssignee *string) error {
+			assignedTo = newAssignee
+			return nil
+		},
+	}
+	aux := IssueContextSources{
+		Profiles: &mockProfileRepo{},
+		Activity: &mockActivityRepo{create: func(ctx context.Context, input core.CreateActivityInput) error {
+			loggedPayload = input.Payload
+			return nil
+		}},
+		Attachments: &mockAttachmentRepo{},
+		Notifications: &mockNotificationRepo{create: func(ctx context.Context, input core.CreateNotificationInput) error {
+			notifyCount++
+			notified = input
+			return nil
+		}},
+	}
+	s := NewIssueService(m, aux)
+
+	newAssignee := "assignee2"
+	if _, err := s.Assign(context.Background(), "iss1", &newAssignee, "actor1", "p1"); err != nil {
+		t.Fatalf("Assign: %v", err)
+	}
+	if assignedTo == nil || *assignedTo != newAssignee {
+		t.Errorf("repo Assign got %v, want %q", assignedTo, newAssignee)
+	}
+	if loggedPayload == nil {
+		t.Fatal("expected assignment activity to be logged")
+	}
+	if notifyCount != 1 || notified.UserID != newAssignee || notified.Type != "assignment" {
+		t.Errorf("notification = %+v (count %d), want one 'assignment' notification to %q", notified, notifyCount, newAssignee)
+	}
+
+	// Unassigning (nil) must not notify anyone.
+	notifyCount = 0
+	if _, err := s.Assign(context.Background(), "iss1", nil, "actor1", "p1"); err != nil {
+		t.Fatalf("Assign(nil): %v", err)
+	}
+	if notifyCount != 0 {
+		t.Errorf("notify count = %d, want 0 when unassigning", notifyCount)
 	}
 }
 

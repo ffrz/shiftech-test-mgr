@@ -366,6 +366,17 @@ type CreateActivityInput struct {
 	Payload    map[string]any
 }
 
+// CreateNotificationInput mirrors the params of the create_notification
+// Postgres RPC (frontend/src/services/notificationService.ts create()).
+type CreateNotificationInput struct {
+	UserID        string
+	Type          string
+	Title         string
+	Body          *string
+	ReferenceType *string
+	ReferenceID   *string
+}
+
 // AttachmentInfo is one entity_attachments row — metadata only, file bytes
 // stay in storage and never travel through an MCP response.
 type AttachmentInfo struct {

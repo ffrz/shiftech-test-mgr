@@ -44,6 +44,8 @@ type IssueRepository interface {
 	Get(ctx context.Context, id string) (*Issue, error)
 	Create(ctx context.Context, input CreateIssueInput) (*Issue, error)
 	UpdateStatus(ctx context.Context, id string, status IssueStatus) error
+	// Assign sets (or clears, when assignedTo is nil) the issue's assignee.
+	Assign(ctx context.Context, id string, assignedTo *string) error
 	// GetByCode resolves an issue by its human code (e.g. "ISS-0072") within
 	// a project. Returns a not-found error when the code does not exist.
 	GetByCode(ctx context.Context, projectID, code string) (*Issue, error)
@@ -79,6 +81,14 @@ type ActivityRepository interface {
 type AttachmentRepository interface {
 	// ListForEntity returns attachment metadata for one entity, newest first.
 	ListForEntity(ctx context.Context, projectID, entityType, entityID string) ([]AttachmentInfo, error)
+}
+
+// NotificationRepository creates per-user notifications via the same
+// security-definer RPC the frontend calls (create_notification) — see
+// supabase/migrations/20260728000001_notifications.sql. Write-only: nothing
+// in the MCP/REST surface reads a user's notification inbox today.
+type NotificationRepository interface {
+	Create(ctx context.Context, input CreateNotificationInput) error
 }
 
 type ModuleRepository interface {

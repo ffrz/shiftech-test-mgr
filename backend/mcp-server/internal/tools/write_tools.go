@@ -156,6 +156,14 @@ func (t *WriteTools) Register(s ToolAdder) error {
 		mcp.WithString("issue_id", mcp.Description("Issue UUID"), mcp.Required()),
 		mcp.WithString("status", mcp.Enum("backlog", "open", "in_progress", "resolved", "verified", "closed", "rejected", "duplicate"), mcp.Required()),
 	), t.updateIssueStatus)
+	s.AddTool(mcp.NewTool("testify.issue.assign",
+		mcp.WithDescription("Assign (or unassign, by omitting assigned_to) an issue."),
+		mcp.WithReadOnlyHintAnnotation(false), mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithString("project_id", mcp.Description("Optional project ID; must match the scoped session")),
+		mcp.WithString("issue_id", mcp.Description("Issue UUID"), mcp.Required()),
+		mcp.WithString("assigned_to", mcp.Description("Profile UUID of the new assignee; omit or empty to unassign")),
+	), t.assignIssue)
 
 	return nil
 }
@@ -678,6 +686,33 @@ func (t *WriteTools) updateIssueStatus(ctx context.Context, req mcp.CallToolRequ
 	return mcp.NewToolResultStructured(iss,
 		fmt.Sprintf("issue %s (%s): status changed to %s (actor: %s)",
 			iss.Code, iss.Title, iss.Status, actorID)), nil
+}
+
+func (t *WriteTools) assignIssue(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, errResult := t.beginWrite(ctx, req, core.ScopeWriteIssue)
+	if errResult != nil {
+		return errResult, nil
+	}
+
+	issueID, err := req.RequireString("issue_id")
+	if err != nil || !isUUID(issueID) {
+		return mcp.NewToolResultError("issue_id must be a valid UUID"), nil
+	}
+	assignedTo := strPtrIfNonEmpty(req.GetString("assigned_to", ""))
+	if assignedTo != nil && !isUUID(*assignedTo) {
+		return mcp.NewToolResultError("assigned_to must be a valid UUID"), nil
+	}
+
+	actorID := session.Identity.CreatedBy
+	iss, err := t.reg.Services.Issue.Assign(ctx, issueID, assignedTo, actorID, session.ProjectID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	if iss.ProjectID != session.ProjectID {
+		return mcp.NewToolResultError("issue not found in the scoped project"), nil
+	}
+	return mcp.NewToolResultStructured(iss,
+		fmt.Sprintf("issue %s (%s): assignee changed (actor: %s)", iss.Code, iss.Title, actorID)), nil
 }
 
 // ---------------------------------------------------------------------------

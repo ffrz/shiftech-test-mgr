@@ -48,9 +48,10 @@ func main() {
 		TestRun:    service.NewTestRunService(postgres.NewTestRunRepo(db), testResultRepo),
 		TestResult: service.NewTestResultService(testResultRepo),
 		Issue: service.NewIssueService(issueRepo, service.IssueContextSources{
-			Profiles:    postgres.NewProfileRepo(db),
-			Activity:    postgres.NewActivityRepo(db),
-			Attachments: postgres.NewAttachmentRepo(db),
+			Profiles:      postgres.NewProfileRepo(db),
+			Activity:      postgres.NewActivityRepo(db),
+			Attachments:   postgres.NewAttachmentRepo(db),
+			Notifications: postgres.NewNotificationRepo(db),
 		}),
 		Module:     service.NewModuleService(postgres.NewModuleRepo(db)),
 		Tag:        service.NewTagService(postgres.NewTagRepo(db)),
