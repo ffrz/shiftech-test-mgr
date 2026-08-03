@@ -30,21 +30,26 @@ Bug kompilasi & mismatch tipe di scaffold awal sudah diperbaiki:
 
 ---
 
-## Fase 1 — Database Prasyarat (P0)
+## Fase 1 — Database Prasyarat (P0, ✅ done — 2026-08-02)
 
 **Blocker untuk semua fase lain.** Tanpa `api_tokens`, `auth.Load()` tidak
 bisa jalan sama sekali — tidak ada tool yang bisa dites end-to-end.
 
-- [ ] T1.1 — Migration `api_tokens` (BACKLOG Epic 6)
+- [x] T1.1 — Migration `api_tokens` (BACKLOG Epic 6) — `supabase/migrations/
+      20260801131633_backend_api_tokens.sql`. Sejak itu juga dapat RPC
+      `mint_api_token` (`20260802170708_api_tokens_mint_rpc.sql` +
+      `20260802171500_fix_mint_api_token_ambiguous_id.sql`) dan UI Agent
+      Tokens tab di frontend (`ProjectSettingsPage.tsx`) untuk generate
+      token tanpa SQL manual.
 - [x] T1.2 — Migration `mcp_tool_rate_limits` + RPC `mcp_begin_tool_call`/
       `mcp_complete_tool_call` (BACKLOG Epic 4/6) — `supabase/migrations/
       20260801140000_backend_mcp_governance.sql` (buat tabel + 2 RPC
-      security-definer + validasi format token/tool + grant anon; verifikasi
-      `supabase db push` masih pending)
+      security-definer + validasi format token/tool + grant anon)
 
-**Exit criteria:** `supabase db push` sukses, tabel `api_tokens` dan
-`mcp_tool_rate_limits` ada di database, minimal satu token dummy bisa
-di-insert manual untuk testing Fase 2.
+**Exit criteria:** ✅ terpenuhi — `supabase db push` sukses (`supabase
+migration list` menunjukkan semua migration Fase 1 sudah applied), tabel
+`api_tokens` dan `mcp_tool_rate_limits` ada di database, token bisa dibuat
+lewat UI (bukan cuma insert manual).
 
 **Boleh paralel dengan:** Fase 2 (repository layer tidak butuh tabel ini
 untuk *ditulis*, hanya untuk *dites* end-to-end) — tapi T1.1 sebaiknya
@@ -247,13 +252,14 @@ setelah keputusan produk ada, termasuk paralel dengan Fase 7.
 ## Ringkasan urutan wajib (dependency chain)
 
 ```
-Fase 0 (done) → Fase 1 ─┬─────────────► Fase 3 → Fase 4 → Fase 5 ─┐
-                Fase 2 ──┘                          │              ├─► Fase 7
-                                                     └──► Fase 6 ───┘
-                                                     Fase 8 (kapan saja, tidak memblokir)
+Fase 0 (done) → Fase 1 (done) ─┬───► Fase 3 (done) → Fase 4 (done) → Fase 5 (done) ─┐
+                Fase 2 (done) ──┘                                    │                ├─► Fase 7 (todo)
+                                                                      └──► Fase 6 (todo) ┘
+                                                                      Fase 8 (todo, tidak memblokir)
 ```
 
-Fase 1 dan Fase 2 boleh paralel. Fase 3 butuh keduanya selesai. Setelah
-Fase 3 hijau (milestone: 3 tool read end-to-end via MCP client), Fase 4–6
-sebagian besar independen satu sama lain dan bisa dibagi ke agen berbeda.
-Fase 7 menunggu semuanya. Fase 8 tidak menghalangi apa pun.
+Fase 0–5.5 semuanya **done** per 2026-08-02. Sisa kerja: Fase 6
+(requirement tools + artifact storage), Fase 7 (REST API, menunggu Fase
+2–6), Fase 8 (AI Gateway, opsional/defer). Lihat juga
+[`../docs/ROADMAP_V3.md`](../docs/ROADMAP_V3.md) — kelanjutan paralel yang
+porting business logic frontend ke Go service layer sebelum Fase 7 mulai.

@@ -19,7 +19,12 @@ terkait). Task ini tidak mengulang aturan umum di sana.
 
 ## Fase 1 — Database Prasyarat
 
-### T1.1 — Migration `api_tokens`
+### T1.1 — Migration `api_tokens` ✅ DONE
+
+**File:** `supabase/migrations/20260801131633_backend_api_tokens.sql`, plus
+follow-up RPC `mint_api_token` (`20260802170708_api_tokens_mint_rpc.sql`,
+`20260802171500_fix_mint_api_token_ambiguous_id.sql`) yang backing UI
+"Agent Tokens" tab di frontend — resolusi asli file baru di bawah ini.
 
 **File baru:** `supabase/migrations/<timestamp>_backend_api_tokens.sql`
 
@@ -69,8 +74,9 @@ baris 8–20 (hanya bagian `api_tokens`, bukan `webhooks` — belum dibutuhkan).
 - RPC `mcp_complete_tool_call(p_token, p_project_id, p_audit_id, p_status, p_latency_ms)`
   — hanya transisi `started` → `completed`/`failed`
 
-**Acceptance:** ✅ RPC ditulis mengikuti referensi. ⏳ Verifikasi
-`supabase db push` + panggil manual RPC masih pending (butuh akses DB).
+**Acceptance:** ✅ RPC ditulis mengikuti referensi, ✅ `supabase db push`
+terverifikasi (lihat `supabase migration list` — semua migration Fase 1-5.5
+applied).
 
 ---
 
