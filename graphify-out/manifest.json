@@ -65,8 +65,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/layout/AppTopbar.tsx": {
-    "mtime": 1785505834.9302166,
-    "ast_hash": "a9483f8cd1dd170a7493c84506ce82f6",
+    "mtime": 1785719250.642388,
+    "ast_hash": "63129002436da452afdf9996d5e5abbc",
     "semantic_hash": ""
   },
   "frontend/src/components/layout/BreadcrumbContext.tsx": {
@@ -85,8 +85,8 @@
     "semantic_hash": "bac31fce5c8ed1d9689fd911f8d41b57"
   },
   "frontend/src/components/ui/Breadcrumb.tsx": {
-    "mtime": 1785505415.9201458,
-    "ast_hash": "158f49a2e90ae9dcf2f2c1e00b15fa0c",
+    "mtime": 1785719316.4664354,
+    "ast_hash": "0022bb7be9d4803a84a1a58ef1578891",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/BulkActionsBar.tsx": {
@@ -375,8 +375,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/test-runs/TestRunResultDetailPage.tsx": {
-    "mtime": 1785654918.2505023,
-    "ast_hash": "3f6ca820110a13b2e40658d5520a797d",
+    "mtime": 1785721057.0302093,
+    "ast_hash": "6166ec06b27705c8cf3f5e5c5fb9cbce",
     "semantic_hash": ""
   },
   "frontend/src/pages/test-suites/TestSuiteDetailPage.tsx": {
@@ -1360,13 +1360,13 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/test-plans/components/tabs/PlanTestCasesTab.tsx": {
-    "mtime": 1785654918.1506226,
-    "ast_hash": "ca1fee9852dacc77295d3d138e0d6b65",
+    "mtime": 1785721007.4126544,
+    "ast_hash": "9b863c35b6eef2730ee27cf8b548782b",
     "semantic_hash": ""
   },
   "frontend/src/pages/test-plans/components/tabs/PlanTestRunsTab.tsx": {
-    "mtime": 1785394229.3672566,
-    "ast_hash": "aea95293de2e7a5a89b07ae92c48ff06",
+    "mtime": 1785721006.642672,
+    "ast_hash": "d6293595548489adedfa5650f279232d",
     "semantic_hash": ""
   },
   "frontend/src/repositories/activityRepository.ts": {
@@ -1730,18 +1730,18 @@
     "semantic_hash": ""
   },
   "backend/core/ports.go": {
-    "mtime": 1785717759.2166505,
-    "ast_hash": "8e0dee2b1ef40f2ee02a56252648ca2b",
+    "mtime": 1785718951.2868657,
+    "ast_hash": "6fbb0a460cc3c1b7447349784859121e",
     "semantic_hash": ""
   },
   "backend/mcp-server/cmd-http/main.go": {
-    "mtime": 1785717847.453633,
-    "ast_hash": "0a940bd11c5fd664bbbd275c6bde3980",
+    "mtime": 1785719091.9000945,
+    "ast_hash": "a249fed9c273abe5ba6fd80fb147f0b7",
     "semantic_hash": ""
   },
   "backend/mcp-server/cmd/main.go": {
-    "mtime": 1785717839.824537,
-    "ast_hash": "0aec6ba87685e2ab9addeb49414d54ae",
+    "mtime": 1785719080.028419,
+    "ast_hash": "fde00b539d5599539278be59d090f444",
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/auth/session.go": {
@@ -1755,8 +1755,8 @@
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/read_tools.go": {
-    "mtime": 1785675793.3570352,
-    "ast_hash": "36fe15cc0e9fb91cc25dc74aab070778",
+    "mtime": 1785722641.6671593,
+    "ast_hash": "22a93644b5331a80c237537d7184c3a2",
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/read_tools_test.go": {
@@ -1770,13 +1770,13 @@
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/write_tools.go": {
-    "mtime": 1785717865.5726995,
-    "ast_hash": "2b07113eb49f829c6a5891c9191e6b39",
+    "mtime": 1785722652.564252,
+    "ast_hash": "57693906b4ee04705d73ffc9068b5899",
     "semantic_hash": ""
   },
   "backend/mcp-server/internal/tools/write_tools_test.go": {
-    "mtime": 1785718002.2666051,
-    "ast_hash": "bc7363cfb9bf20088a3a7d04c3f99f77",
+    "mtime": 1785722665.166807,
+    "ast_hash": "4e56197b3c8532e45f4f068459eb3833",
     "semantic_hash": ""
   },
   "backend/repository/postgres/cursor.go": {
@@ -1815,13 +1815,13 @@
     "semantic_hash": ""
   },
   "backend/repository/postgres/testcase_repo.go": {
-    "mtime": 1785663335.1257205,
-    "ast_hash": "c5fd266b1f6417c74fc35de008777753",
+    "mtime": 1785718957.447546,
+    "ast_hash": "77e681163b25e074b13a8eb5eaf21184",
     "semantic_hash": ""
   },
   "backend/repository/postgres/testplan_repo.go": {
-    "mtime": 1785663350.1739068,
-    "ast_hash": "98e9aa7cd161b2786ba890272658a36f",
+    "mtime": 1785718970.0926957,
+    "ast_hash": "5df5246430d589cf75b9918ccae03c9b",
     "semantic_hash": ""
   },
   "backend/repository/postgres/testresult_repo.go": {
@@ -1835,8 +1835,8 @@
     "semantic_hash": ""
   },
   "backend/repository/postgres/testrun_repo.go": {
-    "mtime": 1785663411.205054,
-    "ast_hash": "4864e6f44ffea2f6685843b408fc1baa",
+    "mtime": 1785718964.0179684,
+    "ast_hash": "62d133ec4330827f519622a7ae570c53",
     "semantic_hash": ""
   },
   "backend/repository/postgres/token_repo.go": {
@@ -1890,8 +1890,8 @@
     "semantic_hash": ""
   },
   "backend/service/service_test.go": {
-    "mtime": 1785718037.4951425,
-    "ast_hash": "079abf6cce163c14e503f675ce740c07",
+    "mtime": 1785719374.2771893,
+    "ast_hash": "9cf792dd6335b4d7714215e0c456c206",
     "semantic_hash": ""
   },
   "backend/service/tag_service.go": {
@@ -1900,13 +1900,13 @@
     "semantic_hash": ""
   },
   "backend/service/testcase_service.go": {
-    "mtime": 1785654915.0251262,
-    "ast_hash": "fa5458fef72f38f68144b1dab2b1b0e4",
+    "mtime": 1785718987.1237965,
+    "ast_hash": "6fe5d2f6cc385d2d10c85f3984144c62",
     "semantic_hash": ""
   },
   "backend/service/testplan_service.go": {
-    "mtime": 1785654915.0444975,
-    "ast_hash": "04f189d78ae236429708a51bba61a901",
+    "mtime": 1785719007.790423,
+    "ast_hash": "30d89b22801a82ecbb2d6f51e890d6dd",
     "semantic_hash": ""
   },
   "backend/service/testresult_service.go": {
@@ -1920,8 +1920,8 @@
     "semantic_hash": ""
   },
   "backend/service/testrun_service.go": {
-    "mtime": 1785675718.920489,
-    "ast_hash": "14cb58d2192b02c2906193c42a864a68",
+    "mtime": 1785719027.5499704,
+    "ast_hash": "7f2c38cb1fd8159e890d8e612ada2c27",
     "semantic_hash": ""
   },
   "backend_archive/cmd/api/main.go": {
@@ -3550,8 +3550,8 @@
     "semantic_hash": ""
   },
   "docs/ROADMAP_V3.md": {
-    "mtime": 1785718126.9725568,
-    "ast_hash": "8454f968308011202effb9218179af76",
+    "mtime": 1785722710.9346545,
+    "ast_hash": "09ef52e423844dd92cead998c67c3ba6",
     "semantic_hash": ""
   },
   "backend/repository/postgres/notification_repo.go": {

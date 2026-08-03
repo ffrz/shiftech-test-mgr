@@ -1,16 +1,16 @@
 # Graph Report - shiftech-test-mgr  (2026-08-03)
 
 ## Corpus Check
-- 692 files · ~330,600 words
+- 692 files · ~332,513 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3973 nodes · 9814 edges · 323 communities (213 shown, 110 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 779 edges (avg confidence: 0.8)
+- 4031 nodes · 9902 edges · 309 communities (222 shown, 87 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 793 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `27605a5e`
+- Built from commit: `3b59d61d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -226,8 +226,10 @@
 - react-markdown
 - @testing-library/jest-dom
 - @types/react-dom
+- jwt.go
 - NewTestResultService
 - entityAttachmentResolver.ts
+- Profile
 - ports.go
 - repositories/testCaseStepRepository.ts
 - AutomationTools
@@ -237,34 +239,29 @@
 - AppLayout.tsx
 - .Update
 - AnalysisTools
+- main
 - read_tools_test.go
+- write_tools.go
 - NotificationPanel.tsx
+- Recover
 - ProjectMemberRepository
 - Service
+- .Register
 - testcase/entity.go
 - Notification
 - PostgresRepository
+- TestCaseStep
 - Fase 4 — Write Tools + Governance
+- TestCaseRepository
+- TestPlanRepository
 - ProtectedRoute.tsx
 - test-plans/components/dialogs/DuplicateTestPlanDialog.tsx
 - TestCasePriority
-- TestPlanStatus
-- ToolAdder
-- TokenScope
-- ToolAdder
 - ToolAdder
 - TokenScope
 - ToolAdder
 - TokenScope
-- ActivityEntry
-- Issue
-- IssueStatus
-- Profile
-- TestCase
-- TestPlan
-- TestResult
-- TestRun
-- TokenScope
+- ToolAdder
 - ActivityEntry
 - TestCasePriority
 - Issue
@@ -281,23 +278,11 @@
 - ProfileRepository
 - Profile
 - ProfileRepository
-- ActivityEntry
-- Issue
-- IssueStatus
 - Module
-- Profile
 - Tag
-- TestCase
-- TestPlan
-- TestResult
 - TestRole
 - TestRun
-- TestRun
-- ExternalLink
-- IssuePriority
 - IssueRepository
-- IssueType
-- ProjectStatus
 - TestCaseStatus
 - TestResultStatus
 - TestRunRepository
@@ -311,11 +296,11 @@
 3. `call()` - 73 edges
 4. `react` - 72 edges
 5. `useAuthContext()` - 66 edges
-6. `assertErrorResult()` - 43 edges
-7. `writeReg()` - 41 edges
+6. `writeReg()` - 43 edges
+7. `assertErrorResult()` - 43 edges
 8. `OK()` - 41 edges
-9. `Project` - 35 edges
-10. `Validation()` - 35 edges
+9. `isUUID()` - 37 edges
+10. `Project` - 35 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `System Architecture - Client-side SPA` --semantically_similar_to--> `Why No Controller/API Layer`  [INFERRED] [semantically similar]
@@ -340,7 +325,7 @@
 - **Identity and access model: User/Profile split with per-project roles** — entity_user, entity_profile, entity_projectmember, role_manager, role_supervisor, role_tester, role_member [EXTRACTED 0.85]
 - **Starlight docs site branding assets** — public_docs_public_favicon_svg, public_docs_src_assets_houston, astro_starlight_framework [INFERRED 0.75]
 
-## Communities (323 total, 110 thin omitted)
+## Communities (309 total, 87 thin omitted)
 
 ### Community 0 - "Test Run Repository (MySQL+Postgres)"
 Cohesion: 0.10
@@ -372,11 +357,11 @@ Nodes (23): devDependencies, jsdom, oxlint, sharp, @testing-library/react, @test
 
 ### Community 7 - "Frontend Issue Management UI"
 Cohesion: 0.06
-Nodes (43): App(), AdminRoute(), ProtectedRoute(), ProfileView(), ProfileViewSkeleton(), Breadcrumb(), memberSelectLabel(), toastHelper (+35 more)
+Nodes (59): App(), AdminRoute(), ProtectedRoute(), TestSuiteDialog(), TestSuiteDialogMode, TestSuiteDialogProps, VISIBILITY_OPTIONS, ProfileView() (+51 more)
 
 ### Community 8 - "Frontend Auth & User Settings"
-Cohesion: 0.11
-Nodes (17): ActivityPanel(), ActivityPanelProps, ActivityPanelSkeleton(), CommentEditor(), CommentEditorProps, MarkdownPreview(), MarkdownPreviewProps, MentionTextarea() (+9 more)
+Cohesion: 0.06
+Nodes (34): ActivityPanel(), ActivityPanelProps, ActivityPanelSkeleton(), CommentEditor(), MarkdownPreview(), MarkdownPreviewProps, MentionTextarea(), MentionTextareaProps (+26 more)
 
 ### Community 9 - "Frontend Test Case UI"
 Cohesion: 0.09
@@ -388,39 +373,39 @@ Nodes (27): Context, Context, DB, StringArray, Time, mergeLabels(), NewAutomatio
 
 ### Community 11 - "Frontend Test Run/Plan Detail UI"
 Cohesion: 0.07
-Nodes (48): TestSuiteDialog(), TestSuiteDialogMode, TestSuiteDialogProps, VISIBILITY_OPTIONS, BulkActionsBar(), BulkActionsBarProps, dataTablePaginatorProps, dataTablePaginatorTemplate (+40 more)
+Nodes (36): BulkActionsBar(), BulkActionsBarProps, FilterToolbar(), FilterToolbarProps, RowActionsMenu(), RowActionsMenuProps, SearchInput(), SearchInputProps (+28 more)
 
 ### Community 12 - "Backend Profile Repository"
-Cohesion: 0.19
-Nodes (11): Time, fromDomainProfile(), Context, DB, Profile, NewProfileRepository(), toDomainProfile(), ProfileRepository (+3 more)
+Cohesion: 0.39
+Nodes (7): fromDomainProfile(), Context, DB, Profile, NewProfileRepository(), toDomainProfile(), ProfileRepository
 
 ### Community 13 - "Backend Issue HTTP Layer"
 Cohesion: 0.13
-Nodes (18): FromIssue(), FromIssues(), Issue, Time, toDomainGithubLinks(), Context, Service, NewIssueHandler() (+10 more)
+Nodes (17): FromIssue(), FromIssues(), Issue, Time, toDomainGithubLinks(), Context, Service, NewIssueHandler() (+9 more)
 
 ### Community 14 - "Backend Test Plan HTTP Layer"
-Cohesion: 0.12
-Nodes (19): FromTestPlan(), FromTestPlanCase(), FromTestPlanCases(), FromTestPlans(), TestPlan, Time, Context, Service (+11 more)
+Cohesion: 0.10
+Nodes (24): FromTestPlan(), FromTestPlanCase(), FromTestPlanCases(), FromTestPlans(), TestPlan, Time, Context, Service (+16 more)
 
 ### Community 15 - "Backend Issue Domain & Service"
-Cohesion: 0.26
-Nodes (9): fromDomainIssue(), Context, DB, Issue, Status, NewIssueRepository(), toDomainIssue(), toDomainIssues() (+1 more)
+Cohesion: 0.17
+Nodes (15): Internal(), Context, DB, RefreshToken, NewRefreshTokenRepository(), fromDomainIssue(), Context, DB (+7 more)
 
 ### Community 16 - "Backend Test Case HTTP Layer"
-Cohesion: 0.12
-Nodes (28): useTestPlanDetail(), useTestRuns(), PRIORITY_OPTIONS, TestCaseDetail, TestCaseDetailPageSkeleton(), StartTestRunDialog(), StartTestRunDialogProps, PlanTestCasesTab() (+20 more)
+Cohesion: 0.10
+Nodes (33): useTestRuns(), DuplicateTestPlanDialog(), DuplicateTestPlanDialogProps, QuickAddDialog(), QuickAddDialogProps, ProjectDetailPageSkeleton(), EMPTY_ARRAY, PROJECT_TAB_NAMES (+25 more)
 
 ### Community 17 - "Backend Project HTTP Layer"
 Cohesion: 0.12
 Nodes (20): Time, BindAndValidate(), Context, FromProject(), FromProjects(), Project, Time, Context (+12 more)
 
 ### Community 18 - "Backend Test Run Service"
-Cohesion: 0.19
-Nodes (11): Validation(), computeSummary(), Context, Repository, Summary, TestCaseRepository, TestRun, NewService() (+3 more)
+Cohesion: 0.16
+Nodes (13): Validation(), computeSummary(), Context, Repository, Summary, TestCaseRepository, TestRun, NewService() (+5 more)
 
 ### Community 19 - "Frontend Project Management UI"
-Cohesion: 0.07
-Nodes (31): BreadcrumbItem, BreadcrumbProps, useProjectAccessGuard(), ownerProfile, renderItems(), useProjectBreadcrumbItems(), otherProfile, renderOwner() (+23 more)
+Cohesion: 0.08
+Nodes (27): IssueEditor(), PRIORITY_OPTIONS, STATUS_OPTIONS, TYPE_OPTIONS, AppToast(), AttachmentPanel(), BreadcrumbItem, memberSelectLabel() (+19 more)
 
 ### Community 20 - "Backend Test Plan Repository (MySQL)"
 Cohesion: 0.18
@@ -440,35 +425,35 @@ Nodes (16): Testify Platform Evolution - Architecture Redesign, Public Profile R
 
 ### Community 24 - "Backend Issue Repository (MySQL)"
 Cohesion: 0.08
-Nodes (29): IssueEditorProps, IssueFormData, PRIORITY_OPTIONS, STATUS_OPTIONS, TYPE_OPTIONS, AttachmentPanel(), member(), profile() (+21 more)
+Nodes (21): IssueEditorProps, IssueFormData, AttachmentPanelProps, CommentEditorProps, entityAttachmentRepositoryAdapter, issueRepositoryAdapter, createMockEntityAttachmentRepository(), createMockIssueRepository() (+13 more)
 
 ### Community 25 - "Backend Test Run HTTP Layer"
 Cohesion: 0.11
 Nodes (26): FromTestResult(), FromTestResults(), FromTestResultStep(), FromTestRun(), FromTestRuns(), FromTestRunSummary(), FromTestRunWithResults(), Summary (+18 more)
 
 ### Community 26 - "Frontend Test Plan UI"
-Cohesion: 0.18
-Nodes (14): createMockProjectRepository(), projectRepositoryAdapter, projectRepositoryAdapter, REST_API_URL, projectRepositoryAdapter, SORT_COLUMN, ProjectOwnerFilter, ProjectPaginatedQuery (+6 more)
+Cohesion: 0.10
+Nodes (21): makeProfile(), renderProfileView(), CreateProjectDialogProps, DuplicateProjectDialogProps, createMockProjectRepository(), projectRepositoryAdapter, projectRepositoryAdapter, REST_API_URL (+13 more)
 
 ### Community 27 - "Backend Test Plan Repository (Postgres)"
 Cohesion: 0.10
-Nodes (24): mapApiTokenRow(), buildMcpSetupPrompt(), MCP_AGENT_TARGET_OPTIONS, McpAgentTarget, PromptParams, setupSteps(), ACCESS_LEVEL_OPTIONS, MCP_SERVER_URL (+16 more)
+Nodes (23): mapApiTokenRow(), buildMcpSetupPrompt(), MCP_AGENT_TARGET_OPTIONS, McpAgentTarget, PromptParams, setupSteps(), ACCESS_LEVEL_OPTIONS, MCP_SERVER_URL (+15 more)
 
 ### Community 28 - "Backend Issue Repository (Postgres)"
-Cohesion: 0.13
-Nodes (15): Context, DB, NewTestCaseSnapshotRepository(), NewTestPlanCaseReader(), Context, DB, NewTestCaseSnapshotRepository(), NewTestPlanCaseReader() (+7 more)
+Cohesion: 0.16
+Nodes (13): Context, DB, NewTestCaseSnapshotRepository(), NewTestPlanCaseReader(), Context, DB, NewTestCaseSnapshotRepository(), NewTestPlanCaseReader() (+5 more)
 
 ### Community 29 - "Frontend Test Run Dialogs"
-Cohesion: 0.21
-Nodes (14): boolLiteral(), decodeCaseBatch(), CallToolRequest, CallToolResult, Context, Registry, Session, ToolAdder (+6 more)
+Cohesion: 0.30
+Nodes (11): isUUID(), strPtrIfNonEmpty(), CallToolRequest, CallToolResult, Context, Registry, Session, TokenScope (+3 more)
 
 ### Community 30 - "AGENTS.md Conventions"
 Cohesion: 0.13
 Nodes (20): Clean Architecture Layering (Repository→Service→Hook→Component), Google OAuth Setup Steps, Module Creation Order convention, PageHeader Convention (Judul Halaman), TestManager (shiftech-test-mgr), Layered Architecture Flow (Page→Hook→Service→Repository→Supabase), React Query + Supabase Realtime Data Freshness (E14), System Architecture - Client-side SPA (+12 more)
 
 ### Community 31 - "Backend App Error Types"
-Cohesion: 0.14
-Nodes (29): supabase, mapActivityEntryRow(), mapAttachmentRow(), mapExternalLinks(), mapIssueRow(), mapModuleRow(), mapNotificationRow(), mapProfileRow() (+21 more)
+Cohesion: 0.12
+Nodes (31): supabase, mapActivityEntryRow(), mapAttachmentRow(), mapExternalLinks(), mapIssueRow(), mapModuleRow(), mapNotificationRow(), mapProfileRow() (+23 more)
 
 ### Community 32 - "Backend Test Plan Service"
 Cohesion: 0.22
@@ -487,16 +472,16 @@ Cohesion: 0.25
 Nodes (7): Aturan wajib untuk semua ticket (jangan diulang per-ticket, baca sekali), Di luar scope dokumen ini, Ticket — Prioritas Menengah (ada logic, tapi lebih sempit scope-nya), Ticket — Prioritas Rendah (pass-through, test tipis/opsional), Ticket — Prioritas Tinggi (business logic padat, ROI test tertinggi), Urutan pengerjaan yang disarankan, Work Breakdown — Unit Test Service Layer (`frontend/src/services/`)
 
 ### Community 36 - "Backend Google OAuth Service"
-Cohesion: 0.05
-Nodes (55): Error, Kind, GoogleConfig, googleUserInfo, Service, TokenPair, As(), Forbidden() (+47 more)
+Cohesion: 0.20
+Nodes (14): GoogleConfig, googleUserInfo, Service, TokenPair, Unauthorized(), Context, Duration, Profile (+6 more)
 
 ### Community 37 - "Backend Test Case Repository (MySQL)"
-Cohesion: 0.08
-Nodes (28): AppToast(), ColumnHeaderMenu(), ColumnHeaderMenuProps, PageHeader(), PageHeaderProps, RelativeTime(), RelativeTimeProps, ONE_MIN_AGO (+20 more)
+Cohesion: 0.21
+Nodes (12): fromDomainTestCase(), Context, DB, Query, TestCase, TestCaseStep, NewTestCaseRepository(), toDomainTestCase() (+4 more)
 
 ### Community 38 - "Backend Test Run DTO"
-Cohesion: 0.18
-Nodes (13): describeSystemEvent(), eventTypeLabel(), statusLabel(), ACTIVITY_ENTITY_LABEL, ACTIVITY_ENTITY_ROUTE, pathForActivityEntity(), ActivityFeedSectionSkeleton(), ContinueWorkingSectionSkeleton() (+5 more)
+Cohesion: 0.10
+Nodes (28): RelativeTime(), RelativeTimeProps, ONE_MIN_AGO, describeSystemEvent(), eventTypeLabel(), statusLabel(), ACTIVITY_ENTITY_LABEL, ACTIVITY_ENTITY_ROUTE (+20 more)
 
 ### Community 39 - "Backend Module HTTP DTO"
 Cohesion: 0.20
@@ -515,8 +500,8 @@ Cohesion: 0.30
 Nodes (9): fromDomainProject(), Context, DB, Project, Query, Status, NewProjectRepository(), toDomainProject() (+1 more)
 
 ### Community 43 - "Backend Project Repository (Postgres)"
-Cohesion: 0.15
-Nodes (16): isDuplicateKeyErr(), fromDomainProject(), Context, DB, Project, Query, Status, NewProjectRepository() (+8 more)
+Cohesion: 0.30
+Nodes (9): fromDomainProject(), Context, DB, Project, Query, Status, NewProjectRepository(), toDomainProject() (+1 more)
 
 ### Community 44 - "Backend Project Service"
 Cohesion: 0.23
@@ -525,10 +510,6 @@ Nodes (9): Context, Project, Query, Repository, Status, NewService(), CreateInpu
 ### Community 45 - "Backend Attachment HTTP DTO"
 Cohesion: 0.21
 Nodes (11): FromAttachment(), FromAttachments(), Attachment, Time, Context, Service, NewAttachmentHandler(), AttachmentResponse (+3 more)
-
-### Community 46 - "Backend Module Repository (MySQL)"
-Cohesion: 0.16
-Nodes (5): createMockTagRepository(), tagRepositoryAdapter, tagRepositoryAdapter, TagRepository, Tag
 
 ### Community 47 - "Frontend CSV Import"
 Cohesion: 0.12
@@ -540,7 +521,7 @@ Nodes (4): Context, DB, NewProjectMemberRepository(), ProjectMemberRepository
 
 ### Community 49 - "Backend RBAC Middleware"
 Cohesion: 0.08
-Nodes (108): analysisReg(), analysisToolNames(), Session, T, TestAnalysisToolsRegister(), TestFlakyCandidates_Clamps(), TestFlakyCandidates_Defaults(), TestRunSummary_RejectsBadRunID() (+100 more)
+Nodes (109): analysisReg(), analysisToolNames(), Session, T, TestAnalysisToolsRegister(), TestFlakyCandidates_Clamps(), TestFlakyCandidates_Defaults(), TestRunSummary_RejectsBadRunID() (+101 more)
 
 ### Community 50 - "Backend JWT & Auth Service"
 Cohesion: 0.36
@@ -563,16 +544,16 @@ Cohesion: 0.36
 Nodes (7): fromDomainAttachment(), Attachment, Context, DB, NewAttachmentRepository(), toDomainAttachment(), AttachmentRepository
 
 ### Community 55 - "Backend Tag Repository (MySQL)"
-Cohesion: 0.13
-Nodes (3): TestSuiteRepository, TestSuiteItem, TestSuiteItemStep
+Cohesion: 0.08
+Nodes (10): ProfileViewProps, MockDashboardSeed, createMockTestSuiteRepository(), testSuiteRepositoryAdapter, testSuiteRepositoryAdapter, TestSuiteRepository, testSuiteRepository, TestSuite (+2 more)
 
 ### Community 56 - "Backend Attachment Repository (Postgres)"
 Cohesion: 0.36
 Nodes (7): fromDomainAttachment(), Attachment, Context, DB, NewAttachmentRepository(), toDomainAttachment(), AttachmentRepository
 
 ### Community 57 - "Backend Tag Repository (Postgres)"
-Cohesion: 0.13
-Nodes (20): Context, Context, DB, NewRepoRepo(), assertContained(), assertRepoRevision(), gitCredentialEnv(), Context (+12 more)
+Cohesion: 0.19
+Nodes (14): Context, assertContained(), assertRepoRevision(), gitCredentialEnv(), Context, NewRepoService(), safeRepoURL(), validateRepoLimit() (+6 more)
 
 ### Community 58 - "Platform Evolution V2 Roadmap"
 Cohesion: 0.29
@@ -583,20 +564,20 @@ Cohesion: 0.33
 Nodes (6): CreateInput, Service, Attachment, Context, Repository, NewService()
 
 ### Community 60 - "Backend Refresh Token Repository (MySQL)"
-Cohesion: 0.23
-Nodes (10): Conflict(), fromDomainTestPlan(), Context, DB, TestPlan, TestPlanCase, NewTestPlanRepository(), toDomainTestPlan() (+2 more)
+Cohesion: 0.14
+Nodes (17): Conflict(), isDuplicateKeyErr(), Context, DB, Tag, NewTagRepository(), toDomainTag(), fromDomainTestPlan() (+9 more)
 
 ### Community 61 - "Backend Refresh Token Repository (Postgres)"
-Cohesion: 0.12
-Nodes (15): STATUS_OPTIONS, TestPlanDialog(), TestPlanDialogProps, PRIORITY_OPTIONS, STEP_TYPE_OPTIONS, TestSuiteItemDialog(), TestSuiteItemDialogMode, TestSuiteItemDialogProps (+7 more)
+Cohesion: 0.07
+Nodes (31): STATUS_OPTIONS, TestPlanDialog(), TestPlanDialogProps, PRIORITY_OPTIONS, STEP_TYPE_OPTIONS, TestSuiteItemDialog(), TestSuiteItemDialogMode, TestSuiteItemDialogProps (+23 more)
 
 ### Community 62 - "Backend Tag Service"
 Cohesion: 0.36
 Nodes (5): Context, Repository, Tag, NewService(), Service
 
 ### Community 63 - "Backend Test Role Service"
-Cohesion: 0.08
-Nodes (34): Time, fromDomainTestCase(), Context, DB, Query, TestCase, TestCaseStep, NewTestCaseRepository() (+26 more)
+Cohesion: 0.20
+Nodes (14): cleanSteps(), dedupe(), Context, Priority, Query, Repository, Status, StepType (+6 more)
 
 ### Community 64 - "PRD Feature Concepts"
 Cohesion: 0.20
@@ -631,36 +612,36 @@ Cohesion: 0.22
 Nodes (10): Domain Model - Test Management Workflow, Database Schema (Supabase/Postgres), Entity Code Auto-Generate mechanism (next_entity_code), Test Management Workflow design rationale, Testing Domain (unchanged), Decision: Full history instead of last-result, Design Review - Test Management v2, E08 - Test Management v2 (+2 more)
 
 ### Community 72 - "PrimeReact UI Convention"
-Cohesion: 0.09
-Nodes (22): UsernamePicker(), useApiTokens(), InviteMemberDialog(), InviteMemberDialogProps, ModuleDialog(), ModuleDialogProps, TagDialog(), TagDialogProps (+14 more)
+Cohesion: 0.22
+Nodes (8): UsernamePicker(), CaseOption, ImportCasesDialogProps, ImportSource, InviteMemberDialog(), InviteMemberDialogProps, MEMBER_ROLE_OPTIONS, projectRepository
 
 ### Community 73 - "Backend Issue DB Model (MySQL)"
 Cohesion: 0.17
 Nodes (25): T, TestAssertProjectReferences_ArrayElements(), TestAssertProjectReferences_CamelCaseMatch(), TestAssertProjectReferences_Mismatch(), TestAssertProjectReferences_NestedObject(), TestAssertProjectReferences_NestedObjectAllMatch(), TestAssertProjectReferences_NonStringRef(), TestAssertProjectReferences_NoRefs() (+17 more)
 
 ### Community 74 - "Backend Test Case DB Model (MySQL)"
-Cohesion: 0.14
-Nodes (9): createMockModuleRepository(), moduleRepositoryAdapter, moduleRepositoryAdapter, ModuleRepository, moduleRepository, tagRepository, testResultRepository, testRoleRepository (+1 more)
+Cohesion: 0.25
+Nodes (5): createMockModuleRepository(), moduleRepositoryAdapter, moduleRepositoryAdapter, ModuleRepository, Module
 
 ### Community 75 - "Backend Test Run DB Model (MySQL)"
-Cohesion: 0.30
-Nodes (5): Context, TestPlan, NewTestPlanService(), TestPlanService, TestPlanRepository
+Cohesion: 0.19
+Nodes (10): NewActivityService(), Context, PageResult, TestPlan, TestPlanStatus, NewTestPlanService(), ActivityRepository, TestPlanRepository (+2 more)
 
 ### Community 76 - "Backend User/Profile DB Model (MySQL)"
 Cohesion: 0.15
 Nodes (26): T, strPtr(), TestAPITokenIdentityJSONRoundtrip(), TestIssueJSONRoundtrip(), TestIssueStatusConstants(), TestIssueTypeConstants(), TestModuleJSONRoundtrip(), TestPageResultEmpty() (+18 more)
 
 ### Community 77 - "Backend Issue DB Model (Postgres)"
-Cohesion: 0.10
-Nodes (23): T, Context, NewTestRunService(), CreateTestRunInput, IssueRepository, ModuleRepository, PageResult, ProjectRepository (+15 more)
+Cohesion: 0.21
+Nodes (10): Context, PageResult, RunSummary, TestRun, TestRunStatus, NewTestRunService(), TestResultRepository, TestRunRepository (+2 more)
 
 ### Community 79 - "Backend Test Run DB Model (Postgres)"
-Cohesion: 0.14
-Nodes (27): NewIssueService(), T, newTestIssueContextSources(), TestIssueService_Assign_LogsActivityAndNotifiesNewAssignee(), TestIssueService_UpdateStatus_NoopWhenUnchanged(), TestIssueService_UpdateStatus_NotifiesPreviousAssignee(), TestIssueServicePassthrough(), TestModuleServicePassthrough() (+19 more)
+Cohesion: 0.13
+Nodes (32): CreateNotificationInput, T, TestResult, newTestIssueContextSources(), TestIssueService_Assign_LogsActivityAndNotifiesNewAssignee(), TestIssueService_UpdateStatus_NoopWhenUnchanged(), TestIssueService_UpdateStatus_NotifiesPreviousAssignee(), TestIssueServicePassthrough() (+24 more)
 
 ### Community 80 - "Backend User/Profile DB Model (Postgres)"
-Cohesion: 0.10
-Nodes (24): Context, Context, DB, StringArray, Time, NewAnalysisRepo(), round2(), toPriorityPtr() (+16 more)
+Cohesion: 0.09
+Nodes (40): Time, Context, Context, DB, StringArray, Time, NewAnalysisRepo(), round2() (+32 more)
 
 ### Community 81 - "Public Docs TS Config"
 Cohesion: 0.25
@@ -672,7 +653,7 @@ Nodes (6): CSV Import instead of xlsx dependency, Test Suite Library, Import CSV
 
 ### Community 83 - "Backend Test Plan DB Model (MySQL)"
 Cohesion: 0.17
-Nodes (15): Internal(), fromDomainIssue(), Context, DB, Issue, Status, NewIssueRepository(), toDomainIssue() (+7 more)
+Nodes (13): Context, DB, Next(), fromDomainIssue(), Context, DB, Issue, Status (+5 more)
 
 ### Community 84 - "Backend Test Plan DB Model (Postgres)"
 Cohesion: 0.70
@@ -683,68 +664,68 @@ Cohesion: 0.16
 Nodes (17): FromTestCase(), FromTestCases(), FromTestCaseWithDetails(), TestCase, Time, Context, Service, NewTestCaseHandler() (+9 more)
 
 ### Community 86 - "Backend Test Case Snapshot Model (Postgres)"
-Cohesion: 0.18
-Nodes (9): Context, DB, TestPlan, Time, NewTestPlanRepo(), newUUID(), testPlanCaseRow, TestPlanRepo (+1 more)
+Cohesion: 0.17
+Nodes (10): Context, DB, PageResult, TestPlan, TestPlanStatus, Time, NewTestPlanRepo(), testPlanCaseRow (+2 more)
 
 ### Community 87 - "Backend Auth Repository Ports"
 Cohesion: 0.50
 Nodes (3): ProfileRepository, ProjectMemberRepository, RefreshTokenRepository
 
 ### Community 88 - "Backend Attachment DB Model (MySQL)"
-Cohesion: 0.22
-Nodes (7): AttachmentPanelProps, entityAttachmentRepositoryAdapter, createMockEntityAttachmentRepository(), entityAttachmentRepositoryAdapter, entityAttachmentRepository, EntityAttachmentRepository, AttachmentEntityType
+Cohesion: 0.14
+Nodes (14): EnsureWriteScope(), Context, Session, TokenScope, ModuleService, ProjectService, TagService, TestCaseService (+6 more)
 
 ### Community 89 - "Backend Module DB Model (MySQL)"
-Cohesion: 0.16
-Nodes (7): createMockProjectMemberRepository(), projectMemberRepositoryAdapter, projectMemberRepositoryAdapter, ProjectMemberRepository, projectMemberRepository, ProjectMemberInvitation, ProjectMemberRole
+Cohesion: 0.15
+Nodes (10): member(), profile(), createMockProjectMemberRepository(), projectMemberRepositoryAdapter, projectMemberRepositoryAdapter, ProjectMemberRepository, ProjectMember, ProjectMemberInvitation (+2 more)
 
 ### Community 90 - "Backend Project DB Model (MySQL)"
-Cohesion: 0.08
-Nodes (41): IssueEditor(), EVENT_TYPE_LABEL, STATUS_LABEL_BY_ENTITY, ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL, ISSUE_STATUS_SEVERITY, ISSUE_TYPE_LABEL (+33 more)
+Cohesion: 0.06
+Nodes (49): EVENT_TYPE_LABEL, STATUS_LABEL_BY_ENTITY, ISSUE_PRIORITY_LABEL, ISSUE_PRIORITY_SEVERITY, ISSUE_STATUS_LABEL, ISSUE_STATUS_SEVERITY, ISSUE_TYPE_LABEL, ISSUE_TYPE_SEVERITY (+41 more)
 
 ### Community 91 - "Backend Tag DB Model (MySQL)"
-Cohesion: 0.17
-Nodes (21): emptyToNil(), strOrEmpty(), T, TestIssueRowToDomain(), TestIssueRowToDomainNilPointers(), TestModuleRowToDomain(), TestProjectRowToDomain(), TestProjectRowToDomainAllStatuses() (+13 more)
+Cohesion: 0.12
+Nodes (24): emptyToNil(), strOrEmpty(), T, TestIssueRowToDomain(), TestIssueRowToDomainNilPointers(), TestModuleRowToDomain(), TestProjectRowToDomain(), TestProjectRowToDomainAllStatuses() (+16 more)
 
 ### Community 92 - "Backend Test Role DB Model (MySQL)"
-Cohesion: 0.18
-Nodes (9): Context, DB, TestResult, TestRun, Time, NewTestRunRepo(), testResultRow, TestRunRepo (+1 more)
+Cohesion: 0.14
+Nodes (11): Context, DB, PageResult, RunSummary, TestResult, TestRun, Time, NewTestRunRepo() (+3 more)
 
 ### Community 93 - "Backend Project Member Repository (MySQL)"
-Cohesion: 0.18
-Nodes (4): ProfileViewProps, createMockTestSuiteRepository(), TestSuite, TestSuiteVisibility
+Cohesion: 0.29
+Nodes (14): MiddlewareFunc, ProjectMemberRepository, RequireProjectAccess(), RequireProjectDelete(), RequireProjectEdit(), RequireProjectManageIssues(), RequireProjectManageTests(), requireProjectRole() (+6 more)
 
 ### Community 94 - "Backend Attachment DB Model (Postgres)"
-Cohesion: 0.17
-Nodes (10): TestRunWithSummary, createMockTestRunRepository(), sampleRun, TestRunSeed, testRunRepositoryAdapter, testRunRepositoryAdapter, TestRunRepository, TestRunWithPlan (+2 more)
+Cohesion: 0.16
+Nodes (9): createMockTestRunRepository(), sampleRun, TestRunSeed, testRunRepositoryAdapter, testRunRepositoryAdapter, TestRunRepository, TestRunWithPlan, testRunRepository (+1 more)
 
 ### Community 95 - "Backend Module DB Model (Postgres)"
 Cohesion: 0.19
 Nodes (5): createMockNotificationRepository(), notificationRepositoryAdapter, notificationRepositoryAdapter, NotificationRepository, Notification
 
 ### Community 96 - "Backend Project DB Model (Postgres)"
-Cohesion: 0.12
-Nodes (18): derefProfile(), Context, normalizeIssueCode(), statusLabel(), strPtr(), CanCloseResult, CreateIssueInput, ExternalLink (+10 more)
+Cohesion: 0.19
+Nodes (15): derefProfile(), Context, NewIssueService(), normalizeIssueCode(), statusLabel(), strPtr(), CanCloseResult, Issue (+7 more)
 
 ### Community 97 - "Backend Tag DB Model (Postgres)"
-Cohesion: 0.32
-Nodes (6): Context, DB, TestCase, TestCaseStep, NewTestCaseRepo(), TestCaseRepo
+Cohesion: 0.15
+Nodes (13): Context, DB, PageResult, TestCase, Time, NewTestCaseRepo(), externalLinks, tagRow (+5 more)
 
 ### Community 98 - "Backend Test Role DB Model (Postgres)"
 Cohesion: 0.11
 Nodes (17): 0. Prasyarat: `DATABASE_URL`, Cara menjalankan backend Go (mcp-server & rest-api), Deploy ke VPS (garis besar), Env var per mode, Jalankan server, Konek dari MCP client sungguhan (Claude Desktop / Claude Code) — mode stdio, Membuat token dulu, Menjalankan MCP Server — dua mode, pilih sesuai kebutuhan (+9 more)
 
 ### Community 100 - "ResultStep"
-Cohesion: 0.27
-Nodes (10): fromDomainTestCase(), Context, DB, Query, TestCase, TestCaseStep, NewTestCaseRepository(), toDomainTestCase() (+2 more)
+Cohesion: 0.17
+Nodes (18): Time, fromDomainTestCase(), Context, DB, Query, TestCase, TestCaseStep, NewTestCaseRepository() (+10 more)
 
 ### Community 105 - "Backend Logger"
-Cohesion: 0.22
-Nodes (7): UsernamePickerProps, AuthContextValue, createMockProfileRepository(), profileRepositoryAdapter, profileRepositoryAdapter, ProfileRepository, Profile
+Cohesion: 0.12
+Nodes (15): UsernamePickerProps, AuthContextValue, activityRepositoryAdapter, createDataSourceResolver(), DataSourceName, dashboardRepositoryAdapter, createMockDashboardRepository(), createMockProfileRepository() (+7 more)
 
 ### Community 116 - "MentionTextarea.tsx"
-Cohesion: 0.21
-Nodes (5): CreateProjectDialogProps, DuplicateProjectDialogProps, RestProjectDTO, ProjectRepository, Project
+Cohesion: 0.37
+Nodes (6): CallToolRequest, CallToolResult, Context, Session, optionalLabels(), AutomationTools
 
 ### Community 123 - "frontend/scripts/generate-icons.mjs"
 Cohesion: 0.15
@@ -755,16 +736,16 @@ Cohesion: 0.18
 Nodes (10): background_color, description, display, icons, name, orientation, scope, short_name (+2 more)
 
 ### Community 125 - "dashboardRepository.ts"
-Cohesion: 0.08
-Nodes (11): dashboardRepositoryAdapter, createMockDashboardRepository(), dashboardRepositoryAdapter, dashboardRepository, ContinueWorkingItem, DashboardCounts, DashboardRepository, MyWorkIssue (+3 more)
+Cohesion: 0.06
+Nodes (12): createMockActivityRepository(), createMockTestPlanRepository(), ActivityRepository, ContinueWorkingItem, DashboardCounts, DashboardRepository, MyWorkIssue, TestPlanCreateInput (+4 more)
 
 ### Community 126 - "TestCaseSnapshotRepository"
 Cohesion: 0.18
 Nodes (15): Context, DB, StringArray, Time, NewTokenRepo(), sha256Hex(), T, TestSha256Hex() (+7 more)
 
 ### Community 127 - "RequireAuth"
-Cohesion: 0.38
-Nodes (6): Context, DB, Tag, NewTagRepository(), toDomainTag(), TagRepository
+Cohesion: 0.23
+Nodes (5): CallToolRequest, CallToolResult, Context, AnalysisTools, ToolAdder
 
 ### Community 128 - "frontend/package.json"
 Cohesion: 0.22
@@ -787,8 +768,8 @@ Cohesion: 0.21
 Nodes (11): contextKey, Session, FromContext(), Context, TokenScope, Load(), LoadFromToken(), TestWithSessionFromContext() (+3 more)
 
 ### Community 135 - "Project"
-Cohesion: 0.15
-Nodes (17): authenticateRequest(), governanceInt(), governanceLimit(), governanceWindow(), main(), ToolAdder, governanceInt(), governanceLimit() (+9 more)
+Cohesion: 0.43
+Nodes (7): ToolAdder, governanceInt(), governanceLimit(), governanceWindow(), main(), toolAdder(), MCPServer
 
 ### Community 136 - "TestCaseSnapshotRepository"
 Cohesion: 0.40
@@ -803,20 +784,20 @@ Cohesion: 0.39
 Nodes (3): StorageAdapter, UploadedFile, supabaseStorageAdapter
 
 ### Community 139 - "primereact"
-Cohesion: 0.24
-Nodes (13): decodeCodeCursor(), decodeCreatedAtCursor(), encodeCodeCursor(), encodeCreatedAtCursor(), Time, T, TestDecodeCodeCursorEmptyIsOK(), TestDecodeCodeCursorInvalid() (+5 more)
+Cohesion: 0.16
+Nodes (18): decodeCodeCursor(), decodeCreatedAtCursor(), encodeCodeCursor(), encodeCreatedAtCursor(), Time, T, TestDecodeCodeCursorEmptyIsOK(), TestDecodeCodeCursorInvalid() (+10 more)
 
 ### Community 140 - "@supabase/supabase-js"
-Cohesion: 0.11
-Nodes (17): Time, Context, Context, TestTestPlanServiceCreateAddRemoveApprove(), TestTestRunServiceCreateRecordComplete(), CreateNotificationInput, CreateTestPlanInput, Module (+9 more)
+Cohesion: 0.09
+Nodes (24): TestPlanStatus, ActivityEntry, AttachmentInfo, Context, CreateActivityInput, Issue, IssueLink, IssueStatus (+16 more)
 
 ### Community 141 - "@tanstack/react-query"
 Cohesion: 0.18
 Nodes (8): main(), Context, ProjectHandler, Context, Project, NewProjectService(), ProjectRepository, ProjectService
 
 ### Community 142 - "ProjectMemberRepository"
-Cohesion: 0.24
-Nodes (7): Context, NewAttachmentService(), AttachmentInfo, AttachmentRepository, AttachmentService, mockAttachmentRepo, writeMockAttachmentRepo
+Cohesion: 0.07
+Nodes (24): ActivityEntry, AttachmentInfo, Context, CreateActivityInput, CreateNotificationInput, Issue, IssueLink, IssueStatus (+16 more)
 
 ### Community 144 - "NewServer"
 Cohesion: 0.31
@@ -827,8 +808,8 @@ Cohesion: 0.33
 Nodes (5): Context, DB, RefreshToken, NewRefreshTokenRepository(), RefreshTokenRepository
 
 ### Community 146 - "projectDuplicateService.test.ts"
-Cohesion: 0.10
-Nodes (9): makeTestCase(), nextId(), TestCaseCreateInput, TestCaseRepository, makeTestCase(), makeTestCaseWithDetails(), TestCase, TestPlanCase (+1 more)
+Cohesion: 0.11
+Nodes (9): createMockTestCaseRepository(), makeTestCase(), nextId(), testCaseRepositoryAdapter, testCaseRepositoryAdapter, TestCaseRepository, TestCase, TestPlanCase (+1 more)
 
 ### Community 147 - "Backend Go — Validation Spike (bukti arsitektur bekerja)"
 Cohesion: 0.14
@@ -839,8 +820,8 @@ Cohesion: 0.17
 Nodes (12): Backend Go — Feature Backlog, Epic 10 — AI Gateway Integration (opsional, defer), Epic 1 — Fondasi Repository Layer (Read), Epic 2 — MCP Read Tools (testify.*.list/get/search), Epic 3 — MCP Write Tools (testify.*.create/update/...), Epic 4 — Auth & Governance Middleware, Epic 5 — Automation & Analysis Tools, Epic 6 — Database Migrations (tabel baru) (+4 more)
 
 ### Community 150 - "Profile"
-Cohesion: 0.05
-Nodes (50): CallToolRequest, CallToolResult, Context, CallToolRequest, CallToolResult, Context, Session, optionalLabels() (+42 more)
+Cohesion: 0.25
+Nodes (8): CallToolRequest, CallToolResult, Context, Registry, ToolAdder, issueRef(), validLimit(), ReadTools
 
 ### Community 163 - "react"
 Cohesion: 0.25
@@ -855,24 +836,24 @@ Cohesion: 0.27
 Nodes (7): Context, DB, Module, Time, NewModuleRepo(), ModuleRepo, moduleRow
 
 ### Community 168 - "testcase_repo.go"
-Cohesion: 0.13
-Nodes (8): tagRow, Time, externalLinks, jsonbMap, testCaseRow, testCaseStepRow, testCaseTagRow, Value
+Cohesion: 0.40
+Nodes (4): CallToolRequest, CallToolResult, Context, RepoTools
 
 ### Community 169 - "NewTestRoleRepo"
 Cohesion: 0.27
 Nodes (7): Context, DB, TestRole, Time, NewTestRoleRepo(), TestRoleRepo, testRoleRow
 
 ### Community 170 - "NewTestCaseService"
-Cohesion: 0.33
-Nodes (5): Context, TestCase, TestCaseRepository, NewTestCaseService(), TestCaseService
+Cohesion: 0.31
+Nodes (5): Context, PageResult, TestCase, TestCaseStatus, TestCaseService
 
 ### Community 171 - "Backend Go — Roadmap Eksekusi"
 Cohesion: 0.17
 Nodes (12): Backend Go — Roadmap Eksekusi, Fase 0 — Perbaikan Scaffold (✅ done — 2026-08-01), Fase 1 — Database Prasyarat (P0, ✅ done — 2026-08-02), Fase 2 — Repository Layer Lengkap (P0), Fase 3 — MCP Read Tools + Wiring Protokol (P0), Fase 4 — MCP Write Tools + Governance Middleware (P1), Fase 5.5 — MCP Agent-Experience Hardening (✅ done — 2026-08-02), Fase 5 — Automation, Analysis, Repo Tools (P1/P2) (+4 more)
 
 ### Community 172 - "IssueService"
-Cohesion: 0.24
-Nodes (7): Context, NewProfileService(), Profile, ProfileRepository, mockProfileRepo, ProfileService, writeMockProfileRepo
+Cohesion: 0.38
+Nodes (6): clampRange(), defaultIfZero(), Context, NewAnalysisService(), AnalysisRepository, AnalysisService
 
 ### Community 173 - "main"
 Cohesion: 0.39
@@ -887,7 +868,7 @@ Cohesion: 0.22
 Nodes (9): Backend Architecture — Testify Platform (Go), Database, Dependency, Environment variables, Frontend parallel — kenapa service/adapter ini tidak boleh diskip, Overview, Perbandingan dengan MCP server Node (NvlFr-testify), Prinsip (+1 more)
 
 ### Community 176 - "RequireAuth"
-Cohesion: 0.16
+Cohesion: 0.17
 Nodes (11): createMockTestResultRepository(), sampleResult, sampleResultWithSteps, testResultRepositoryAdapter, testResultRepositoryAdapter, TestResultRepository, TestResult, TestResultStatus (+3 more)
 
 ### Community 177 - "System Architecture - Client-side SPA"
@@ -927,8 +908,8 @@ Cohesion: 0.32
 Nodes (4): Profile, ProjectMember, RefreshToken, Time
 
 ### Community 187 - ".List"
-Cohesion: 0.39
-Nodes (5): Context, DB, TestResult, NewTestResultRepo(), TestResultRepo
+Cohesion: 0.42
+Nodes (7): Forbidden(), CanDeleteProject(), CanEditProject(), CanManageIssues(), CanManageTests(), Member, MemberRole
 
 ### Community 188 - "NewTestRoleService"
 Cohesion: 0.39
@@ -967,60 +948,88 @@ Cohesion: 0.40
 Nodes (5): Fase 6 — Requirement Tools + Artifact Storage, T6.1 — Migration `requirements`/`requirement_links`, T6.2 — `RequirementRepo`, T6.3 — 3 requirement tool, T6.4 — `testify.artifact.getUrl`
 
 ### Community 210 - "Recover"
-Cohesion: 0.18
-Nodes (9): Context, DB, Time, NewIssueRepo(), externalLinks, issueLinkRow, IssueRepo, issueRow (+1 more)
+Cohesion: 0.16
+Nodes (10): T, Context, DB, Time, NewIssueRepo(), PageResult, issueLinkRow, IssueRepo (+2 more)
 
 ### Community 211 - "health_handler_test.go"
 Cohesion: 0.67
 Nodes (3): T, TestHealthCheckDBDisconnected(), TestHealthCheckResponseFields()
 
+### Community 217 - "ProfileView.test.tsx"
+Cohesion: 0.33
+Nodes (8): extractBearerToken(), Context, MiddlewareFunc, Service, RequireAdmin(), RequireApproved(), RequireAuth(), UserIDFromContext()
+
 ### Community 219 - "Context"
-Cohesion: 0.13
-Nodes (14): validStepType(), Context, TestTestCaseServiceUpdateDuplicateArchive(), CreateTestCaseInput, StepType, TestCase, TestCaseFilter, TestCasePriority (+6 more)
+Cohesion: 0.15
+Nodes (12): TestCaseStatus, validStepType(), TestCase, TestCase, TestTestCaseServiceUpdateDuplicateArchive(), CreateTestCaseInput, TestCaseFilter, UpdateTestCaseInput (+4 more)
 
 ### Community 240 - "response.go"
-Cohesion: 0.83
-Nodes (3): NewNotificationService(), NotificationRepository, NotificationService
+Cohesion: 0.21
+Nodes (9): Context, DB, NewNotificationRepo(), Context, NewNotificationService(), CreateNotificationInput, NotificationRepository, NotificationRepo (+1 more)
+
+### Community 245 - "jwt.go"
+Cohesion: 0.31
+Nodes (6): Duration, Profile, NewService(), Claims, Service, RegisteredClaims
 
 ### Community 246 - "NewTestResultService"
 Cohesion: 0.39
 Nodes (5): Context, TestResult, TestResultRepository, NewTestResultService(), TestResultService
 
 ### Community 247 - "entityAttachmentResolver.ts"
-Cohesion: 0.21
-Nodes (7): activityRepository, activityRepositoryAdapter, createMockActivityRepository(), MockDashboardSeed, activityRepositoryAdapter, ActivityRepository, ActivityEntry
+Cohesion: 0.31
+Nodes (6): Context, DB, NewRepoRepo(), RepositorySourceType, projectRepositoryRow, RepoRepo
+
+### Community 248 - "Profile"
+Cohesion: 0.36
+Nodes (4): Time, Profile, RefreshToken, Role
+
+### Community 249 - "ports.go"
+Cohesion: 0.14
+Nodes (15): IssueStatus, CreateIssueInput, IssueFilter, ModuleRepository, ProjectFilter, ProjectRepository, TagRepository, TestCaseRepository (+7 more)
 
 ### Community 250 - "repositories/testCaseStepRepository.ts"
-Cohesion: 0.28
-Nodes (5): createMockTestCaseStepRepository(), testCaseStepRepositoryAdapter, testCaseStepRepositoryAdapter, TestCaseStepRepository, TestCaseStep
+Cohesion: 0.22
+Nodes (7): createMockTestCaseStepRepository(), testCaseStepRepositoryAdapter, testCaseStepRepositoryAdapter, TestCaseStepRepository, makeTestCase(), makeTestCaseWithDetails(), TestCaseStep
 
 ### Community 251 - "AutomationTools"
-Cohesion: 0.18
-Nodes (12): Context, DB, Next(), isDuplicateKeyErr(), fromDomainModule(), Context, DB, Module (+4 more)
+Cohesion: 0.17
+Nodes (14): isDuplicateKeyErr(), fromDomainModule(), Context, DB, Module, NewModuleRepository(), toDomainModule(), Context (+6 more)
 
 ### Community 252 - ".toDomain"
-Cohesion: 0.14
-Nodes (17): Context, DB, Project, Time, NewProjectRepo(), Project, ProjectFilter, ProjectOwnerType (+9 more)
+Cohesion: 0.20
+Nodes (11): Context, DB, Project, Time, NewProjectRepo(), Project, ProjectOwnerType, ProjectStatus (+3 more)
 
 ### Community 254 - "RepoTools"
 Cohesion: 0.20
 Nodes (9): Authorization, X-Testify-Project-Id, mcp, testify, $schema, enabled, headers, type (+1 more)
 
 ### Community 255 - "AppLayout.tsx"
-Cohesion: 0.33
-Nodes (8): Context, HTTPErrorHandler(), httpMessage(), OKWithMeta(), statusFor(), HTTPError, envelope, errorBody
+Cohesion: 0.27
+Nodes (7): Error, Kind, As(), HTTPErrorHandler(), httpMessage(), statusFor(), HTTPError
 
 ### Community 256 - ".Update"
 Cohesion: 0.11
-Nodes (17): Fase F1 — Frontend: repository REST di belakang flag (`todo`), Fase F2 — Frontend: migrasi modul Issue (percobaan) (`todo`), Fase F3 — Frontend: migrasi modul sisanya (`todo`), Fase F4 — Hapus jalur Supabase langsung dari frontend (`todo`), Fase G1 — Activity write path (`done` — 2026-08-03), Fase G2 — Notification write path (`done` — 2026-08-03), Fase G3 — `IssueService` full parity (`done` — 2026-08-03), Fase G4 — Audit parity service lain (`todo`) (+9 more)
+Nodes (17): Fase F1 — Frontend: repository REST di belakang flag (`todo`), Fase F2 — Frontend: migrasi modul Issue (percobaan) (`todo`), Fase F3 — Frontend: migrasi modul sisanya (`todo`), Fase F4 — Hapus jalur Supabase langsung dari frontend (`todo`), Fase G1 — Activity write path (`done` — 2026-08-03), Fase G2 — Notification write path (`done` — 2026-08-03), Fase G3 — `IssueService` full parity (`done` — 2026-08-03), Fase G4 — Audit parity service lain (`done` — 2026-08-03) (+9 more)
 
 ### Community 257 - "AnalysisTools"
 Cohesion: 0.26
 Nodes (10): errHandler(), CallToolRequest, CallToolResult, Context, isErrorHandler(), okHandler(), beginCall, BeginResult (+2 more)
 
+### Community 258 - "main"
+Cohesion: 0.52
+Nodes (6): authenticateRequest(), governanceInt(), governanceLimit(), governanceWindow(), main(), HTTPContextFunc
+
+### Community 260 - "write_tools.go"
+Cohesion: 0.40
+Nodes (5): boolLiteral(), decodeCaseBatch(), requireStringSlice(), validIssueType(), createCaseArg
+
 ### Community 261 - "NotificationPanel.tsx"
 Cohesion: 0.33
 Nodes (6): Fase 5 — Automation, Analysis, Repo Tools, T5.1 — Migration automation tables, T5.2 — Automation tools (5 tool), T5.3 — Analysis tools (3 tool), T5.4 — Migration `project_repositories`, T5.5 — Repo tools (4 tool) — ✅ selesai
+
+### Community 262 - "Recover"
+Cohesion: 0.50
+Nodes (3): Logger, MiddlewareFunc, Recover()
 
 ### Community 263 - "ProjectMemberRepository"
 Cohesion: 0.36
@@ -1031,12 +1040,12 @@ Cohesion: 0.20
 Nodes (6): Repository, Time, ToolHandlerFunc, Repository, Service, SessionResolver
 
 ### Community 266 - "testcase/entity.go"
-Cohesion: 0.27
-Nodes (6): Context, DB, Time, NewAttachmentRepo(), AttachmentRepo, attachmentRow
+Cohesion: 0.16
+Nodes (11): Context, DB, Time, NewAttachmentRepo(), Context, NewAttachmentService(), AttachmentInfo, AttachmentRepository (+3 more)
 
 ### Community 267 - "Notification"
-Cohesion: 0.09
-Nodes (18): createDataSourceResolver(), DataSourceName, issueRepositoryAdapter, createMockIssueRepository(), createMockTestCaseRepository(), createMockTestPlanRepository(), createMockTestRoleRepository(), issueRepositoryAdapter (+10 more)
+Cohesion: 0.12
+Nodes (11): activityRepository, createMockTestRoleRepository(), testRoleRepositoryAdapter, testRoleRepositoryAdapter, dashboardRepository, TestRoleRepository, moduleRepository, projectMemberRepository (+3 more)
 
 ### Community 268 - "PostgresRepository"
 Cohesion: 0.43
@@ -1047,36 +1056,44 @@ Cohesion: 0.40
 Nodes (5): Fase 4 — Write Tools + Governance, T4.1 — File baru `write_tools.go` — ✅ DONE (2026-08-01), T4.2 — Governance middleware (rate-limit + audit) — ✅ DONE, T4.3 — Project-scope recursive guard — ✅ DONE (2026-08-01), T4.4 — Aktifkan write tools di registry — ✅ DONE (2026-08-01)
 
 ### Community 274 - "ProtectedRoute.tsx"
-Cohesion: 0.31
-Nodes (5): Context, DB, NewProfileRepo(), ProfileRepo, profileRow
+Cohesion: 0.17
+Nodes (10): Context, DB, NewProfileRepo(), Context, NewProfileService(), Profile, ProfileRepository, ProfileRepo (+2 more)
+
+### Community 322 - "TestRun"
+Cohesion: 0.21
+Nodes (6): TestRunStatus, RunSummary, TestRun, RecordResultInput, TestRunFilter, mockTestRunRepo
+
+### Community 330 - "TestResultStatus"
+Cohesion: 0.18
+Nodes (16): T, TestIsUUID(), TestValidIssueStatus(), TestValidLimit(), TestValidPriority(), TestValidResultStatus(), TestValidRunStatus(), TestValidTestCaseStatus() (+8 more)
 
 ### Community 338 - "writeMockRepoRepo"
 Cohesion: 0.27
 Nodes (11): Time, Priority, CreateInput, GithubLink, Issue, Link, Priority, Status (+3 more)
 
 ### Community 339 - "ActivityEntry"
-Cohesion: 0.12
-Nodes (14): Context, DB, Time, NewActivityRepo(), Context, NewActivityService(), ActivityEntry, ActivityRepository (+6 more)
+Cohesion: 0.18
+Nodes (9): Context, DB, Time, NewActivityRepo(), Context, ActivityEntry, CreateActivityInput, ActivityRepo (+1 more)
 
 ## Knowledge Gaps
-- **481 isolated node(s):** `ProjectRepository`, `TestCaseRepository`, `TestPlanRepository`, `ModuleRepository`, `TagRepository` (+476 more)
+- **479 isolated node(s):** `ProjectRepository`, `ModuleRepository`, `TagRepository`, `TestRoleRepository`, `Kenapa roadmap ini ada` (+474 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **110 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **87 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Internal()` connect `Backend Test Plan DB Model (MySQL)` to `Test Run Repository (MySQL+Postgres)`, `Frontend Repository/Mapper Layer`, `Created`, `Backend Profile Repository`, `Backend Issue Domain & Service`, `Recover`, `Backend Test Plan Repository (MySQL)`, `Backend Issue Repository (Postgres)`, `Backend Google OAuth Service`, `Backend Project Repository (MySQL)`, `Backend Project Repository (Postgres)`, `Backend Project Membership & Auth Policy`, `Backend JWT & Auth Service`, `Backend Test Role Repository (MySQL)`, `Backend Attachment Repository (MySQL)`, `Backend Attachment Repository (Postgres)`, `Backend Refresh Token Repository (MySQL)`, `Backend Test Role Service`, `Backend HTTP Response Helpers`, `Fase 4 — Write Tools + Governance`, `ResultStep`, `AutomationTools`, `RequireAuth`?**
-  _High betweenness centrality (0.030) - this node is a cross-community bridge._
-- **Why does `Validation()` connect `Backend Test Run Service` to `Backend Test Plan Service`, `Backend Google OAuth Service`, `ProjectMemberRepository`, `Backend Project Service`, `Backend Issue HTTP Layer`, `Backend Attachment HTTP DTO`, `Backend Test Plan HTTP Layer`, `Backend Project HTTP Layer`, `Backend Module Service`, `Backend Test Case Snapshot Model (MySQL)`, `Backend Auth HTTP Handler`, `Backend Test Run HTTP Layer`, `Backend Attachment Service`, `Backend Tag Service`, `Backend Test Role Service`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
-- **Why does `NewRouter()` connect `Backend Google OAuth Service` to `Backend App Bootstrap & Config`, `Backend Auth HTTP DTO`?**
-  _High betweenness centrality (0.010) - this node is a cross-community bridge._
+- **Why does `Internal()` connect `Backend Issue Domain & Service` to `Test Run Repository (MySQL+Postgres)`, `Frontend Repository/Mapper Layer`, `Recover`, `Created`, `Backend Profile Repository`, `Recover`, `Backend Test Plan Repository (MySQL)`, `Backend Issue Repository (Postgres)`, `Backend Google OAuth Service`, `Backend Test Case Repository (MySQL)`, `Backend Project Repository (MySQL)`, `Backend Project Repository (Postgres)`, `Backend Project Membership & Auth Policy`, `Backend JWT & Auth Service`, `Backend Test Role Repository (MySQL)`, `Backend Attachment Repository (MySQL)`, `Backend Attachment Repository (Postgres)`, `Backend Refresh Token Repository (MySQL)`, `Backend HTTP Response Helpers`, `Fase 4 — Write Tools + Governance`, `Backend Test Plan DB Model (MySQL)`, `ResultStep`, `AutomationTools`, `AppLayout.tsx`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `Session` connect `primereact` to `Backend Issue DB Model (MySQL)`, `Backend Test Plan DB Model (Postgres)`, `Test Case Backend (Domain+Service+Repo)`?**
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `Validation()` connect `Backend Test Run Service` to `Backend Test Plan Service`, `ProjectMemberRepository`, `Backend Project Service`, `Backend Issue HTTP Layer`, `Backend Attachment HTTP DTO`, `Backend Test Plan HTTP Layer`, `Backend Project HTTP Layer`, `Backend Module Service`, `Backend Test Case Snapshot Model (MySQL)`, `Backend Auth HTTP Handler`, `Backend Test Run HTTP Layer`, `Backend Attachment Service`, `Backend Test Role Service`, `Backend Tag Service`, `AppLayout.tsx`?**
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **Are the 160 inferred relationships involving `Internal()` (e.g. with `.issueTokenPair()` and `toDomainIssues()`) actually correct?**
   _`Internal()` has 160 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 38 inferred relationships involving `writeSession()` (e.g. with `TestFlakyCandidates_Clamps()` and `TestFlakyCandidates_Defaults()`) actually correct?**
   _`writeSession()` has 38 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 38 inferred relationships involving `call()` (e.g. with `TestFlakyCandidates_Clamps()` and `TestFlakyCandidates_Defaults()`) actually correct?**
   _`call()` has 38 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `ProjectRepository`, `TestCaseRepository`, `TestPlanRepository` to the rest of the system?**
-  _481 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `ProjectRepository`, `ModuleRepository`, `TagRepository` to the rest of the system?**
+  _479 weakly-connected nodes found - possible documentation gaps or missing edges._
