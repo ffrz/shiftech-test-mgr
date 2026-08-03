@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { LoginPage } from '../../pages/auth/LoginPage';
@@ -12,9 +13,15 @@ vi.mock('../../config/app', () => ({
   APP_NAME: 'Testify',
 }));
 
-const { useAuthContext } = await import('../../hooks/useAuth');
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>();
+  return { ...actual, Navigate: vi.fn(({ to }) => <div data-testid="redirect" data-to={to} />) };
+});
 
-function renderLogin() {
+const { useAuthContext } = await import('../../hooks/useAuth');
+const { Navigate } = await import('react-router-dom');
+
+function renderLogin(overrides: Partial<Record<string, unknown>> = {}) {
   const signInWithGoogle = vi.fn();
 
   (useAuthContext as Mock).mockReturnValue({
@@ -26,9 +33,14 @@ function renderLogin() {
     signInWithGoogle,
     signOut: vi.fn(),
     reloadProfile: vi.fn(),
+    ...overrides,
   });
 
-  const result = render(<LoginPage />);
+  const result = render(
+    <MemoryRouter>
+      <LoginPage />
+    </MemoryRouter>,
+  );
   return { ...result, signInWithGoogle };
 }
 
@@ -60,5 +72,10 @@ describe('LoginPage', () => {
     const { signInWithGoogle } = renderLogin();
     fireEvent.click(screen.getByRole('button', { name: /sign in with google/i }));
     expect(signInWithGoogle).toHaveBeenCalledOnce();
+  });
+
+  it('redirects to / when a session already exists', () => {
+    renderLogin({ session: { user: { id: 'u1' } } });
+    expect(Navigate).toHaveBeenCalledWith({ to: '/', replace: true }, undefined);
   });
 });

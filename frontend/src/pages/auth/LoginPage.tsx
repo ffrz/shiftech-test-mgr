@@ -1,10 +1,13 @@
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
+import { Navigate } from 'react-router-dom';
 import { useAuthContext } from '../../hooks/useAuth';
 import { APP_NAME } from '../../config/app';
 
 export function LoginPage() {
-  const { signInWithGoogle } = useAuthContext();
+  const { session, signInWithGoogle } = useAuthContext();
+
+  if (session) return <Navigate to="/" replace />;
 
   return (
     <div className="flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
