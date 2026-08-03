@@ -210,14 +210,27 @@ berubah — sudah diperbaiki dengan mock `ProfileRepository`/`ActivityRepository
 
 ---
 
-## Fase 6 — Requirement Tools + Artifact Storage (P2)
+## Fase 6 — Requirement Tools + Artifact Storage (SKIPPED — 2026-08-03)
 
-- [ ] T6.1 — Migration `requirements`, `requirement_links`
-- [ ] T6.2 — `RequirementRepo` + port di `core/ports.go`
-- [ ] T6.3 — 3 requirement tool (list/get/coverage)
-- [ ] T6.4 — `testify.artifact.getUrl` (signed URL Supabase Storage)
+**Keputusan produk:** requirement traceability (requirement → test case
+linkage) adalah pola compliance/audit tradisional yang di-porting mentah
+dari referensi Node (`NvlFr-testify`) tanpa kebutuhan nyata di domain model
+project ini — **tidak ada** di `frontend/src/types/domain.ts` maupun
+Testing Domain inti (`Project → Module → Test Case → Test Plan → Test Run →
+Test Result → Issue`, lihat CLAUDE.md). Dengan MCP server yang sudah paham
+konteks project secara langsung, AI agent bisa generate test plan/test case
+dari pemahaman project itu sendiri — tidak butuh lapisan requirement
+terpisah untuk mencapai alur agentic itu. `artifact.getUrl` (signed URL
+Supabase Storage) juga di-skip karena tidak ada kebutuhan nyata saat ini.
 
-**Dependency:** Fase 3 (pola read tool sudah mapan).
+**Kalau nanti dibutuhkan kembali:** revisit hanya jika ada use case nyata
+(mis. audit compliance eksternal butuh traceability formal) — jangan
+di-build spekulatif.
+
+~~- [ ] T6.1 — Migration `requirements`, `requirement_links`~~
+~~- [ ] T6.2 — `RequirementRepo` + port di `core/ports.go`~~
+~~- [ ] T6.3 — 3 requirement tool (list/get/coverage)~~
+~~- [ ] T6.4 — `testify.artifact.getUrl` (signed URL Supabase Storage)~~
 
 ---
 
@@ -229,9 +242,12 @@ berubah — sudah diperbaiki dengan mock `ProfileRepository`/`ActivityRepository
 - [ ] T7.3 — Auth middleware JWT/Google (beda total dari API-token MCP)
 - [ ] T7.4 — CRUD endpoint dasar (project, testcase, testplan minimal)
 
-**Dependency:** Fase 2–6 selesai (semua repository sudah teruji lewat MCP
+**Dependency:** Fase 2–5.5 selesai (semua repository sudah teruji lewat MCP
 sebelum dipakai transport kedua) — sesuai prinsip `ARCHITECTURE.md`:
-"Implementasi menunggu MCP server stabil."
+"Implementasi menunggu MCP server stabil." Fase 6 di-skip (lihat di atas),
+bukan blocker. Urutan aktual: Fase 7 menunggu `docs/ROADMAP_V3.md` (service
+parity) selesai duluan — REST API sebaiknya reuse service layer yang sudah
+punya business logic lengkap, bukan cuma pass-through repository tipis.
 
 **Tidak diblokir oleh:** Epic AI Gateway (Fase 8) — REST API tidak butuh itu.
 
@@ -252,14 +268,21 @@ setelah keputusan produk ada, termasuk paralel dengan Fase 7.
 ## Ringkasan urutan wajib (dependency chain)
 
 ```
-Fase 0 (done) → Fase 1 (done) ─┬───► Fase 3 (done) → Fase 4 (done) → Fase 5 (done) ─┐
-                Fase 2 (done) ──┘                                    │                ├─► Fase 7 (todo)
-                                                                      └──► Fase 6 (todo) ┘
-                                                                      Fase 8 (todo, tidak memblokir)
+Fase 0 (done) → Fase 1 (done) ─┬───► Fase 3 (done) → Fase 4 (done) → Fase 5 (done) → Fase 5.5 (done)
+                Fase 2 (done) ──┘                                                          │
+                                                                                            ▼
+                                                                  ROADMAP_V3 (service parity, todo)
+                                                                                            │
+                                                                                            ▼
+                                                                          Fase 7 — REST API (todo)
+
+Fase 6 (requirement tools + artifact storage): SKIPPED, bukan blocker.
+Fase 8 (AI Gateway): defer, tidak memblokir apa pun.
 ```
 
-Fase 0–5.5 semuanya **done** per 2026-08-02. Sisa kerja: Fase 6
-(requirement tools + artifact storage), Fase 7 (REST API, menunggu Fase
-2–6), Fase 8 (AI Gateway, opsional/defer). Lihat juga
-[`../docs/ROADMAP_V3.md`](../docs/ROADMAP_V3.md) — kelanjutan paralel yang
-porting business logic frontend ke Go service layer sebelum Fase 7 mulai.
+**MCP server inti sudah selesai (Fase 0–5.5, per 2026-08-02)** — mencakup
+semua entity Testing Domain (Project/Module/Tag/TestRole/TestCase/TestPlan/
+TestRun/TestResult/Issue) plus automation/analysis/repo tools dan governance.
+Urutan kerja selanjutnya: [`../docs/ROADMAP_V3.md`](../docs/ROADMAP_V3.md)
+(service parity — port business logic frontend ke Go service layer) dulu,
+baru Fase 7 (REST API) di atasnya.
