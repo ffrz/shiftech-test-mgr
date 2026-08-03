@@ -82,7 +82,7 @@ export function AppTopbar() {
       </Link>
       {trailItems.length > 0 && (
         <>
-          <BreadcrumbTrail items={trailItems} className="hidden lg:flex align-items-center flex-wrap gap-2 text-sm" />
+          <BreadcrumbTrail items={trailItems} className="hidden lg:flex align-items-center flex-nowrap gap-2 text-sm min-w-0" />
           <BreadcrumbCollapsed items={trailItems} />
         </>
       )}

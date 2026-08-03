@@ -411,6 +411,16 @@ html.dark .p-datatable .p-datatable-tbody>tr.p-highlight {
   height: 2rem !important;
 }
 
+/* ISS-0076: keep the topbar's icon buttons square (never a vertical/horizontal
+   oval) even when a long breadcrumb trail fills the row — flex-shrink would
+   otherwise compress width below the !important width above, since flex items
+   size from flex-basis regardless of a fixed width. The logo and breadcrumb
+   spacer get the same pin so only the trail itself absorbs the squeeze. */
+.layout-topbar .p-button.p-button-icon-only,
+.layout-topbar-logo {
+  flex-shrink: 0;
+}
+
 .p-column-header-content .p-button {
   width: 1.5rem !important;
   height: 1.5rem !important;

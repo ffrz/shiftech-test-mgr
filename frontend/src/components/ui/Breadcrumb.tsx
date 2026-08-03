@@ -28,15 +28,15 @@ function BreadcrumbTrail({ items, className }: { items: BreadcrumbItem[]; classN
         const isLast = index === items.length - 1;
         const label = truncateLabel(item.label);
         return (
-          <span key={index} className="flex align-items-center gap-2">
-            {index > 0 && <span className="text-color-secondary">/</span>}
+          <span key={index} className="flex align-items-center gap-2 min-w-0">
+            {index > 0 && <span className="text-color-secondary flex-shrink-0">/</span>}
             {!item.path ? (
-              <span className={isLast ? 'text-color font-bold' : 'text-color-secondary'}>{label}</span>
+              <span className={`${isLast ? 'text-color font-bold' : 'text-color-secondary'} whitespace-nowrap overflow-hidden text-ellipsis`}>{label}</span>
             ) : (
               <a
                 href={item.path}
                 title={label.length > MAX_LABEL_LENGTH ? item.label : undefined}
-                className={`breadcrumb-link cursor-pointer ${isLast ? 'text-color font-bold' : 'text-color-secondary'}`}
+                className={`breadcrumb-link cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis ${isLast ? 'text-color font-bold' : 'text-color-secondary'}`}
                 onClick={(e) => {
                   e.preventDefault();
                   if (isLast) {
@@ -87,7 +87,7 @@ export function BreadcrumbCollapsed({ items }: { items: BreadcrumbItem[] }) {
           <span className="text-color-secondary">/</span>
         </>
       )}
-      <span className="text-color font-bold whitespace-nowrap overflow-hidden text-ellipsis" title={last?.label}>
+      <span className="text-color font-bold whitespace-nowrap overflow-hidden text-ellipsis min-w-0 flex-1" title={last?.label}>
         {last ? truncateLabel(last.label) : ''}
       </span>
     </nav>
