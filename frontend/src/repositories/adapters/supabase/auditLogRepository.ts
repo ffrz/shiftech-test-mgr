@@ -31,7 +31,7 @@ export const auditLogRepositoryAdapter: AuditLogRepository = {
     return {
       data: (data ?? []).map((row: any) => ({
         ...mapActivityEntryRow(row),
-        actorName: row.actor?.display_name ?? row.actor?.username ?? 'Unknown',
+        actorName: row.actor?.username ?? row.actor?.display_name ?? 'Unknown',
       })),
       total: count ?? 0,
     };

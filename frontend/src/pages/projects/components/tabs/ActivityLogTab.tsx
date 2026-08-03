@@ -8,6 +8,7 @@ import { Button } from 'primereact/button';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
+import { UserHoverCard } from '../../../../components/ui/UserHoverCard';
 import { auditLogService } from '../../../../services/auditLogService';
 import { useStoredState } from '../../../../hooks/useStoredState';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
@@ -76,6 +77,15 @@ export function ActivityLogTab({ projectId }: { projectId: string }) {
     </span>
   );
 
+  const actorBodyTemplate = (row: AuditLogEntry) =>
+    row.actorId ? (
+      <UserHoverCard userId={row.actorId}>
+        <span className="username-text cursor-pointer font-medium">{row.actorName}</span>
+      </UserHoverCard>
+    ) : (
+      <span>{row.actorName}</span>
+    );
+
   return (
     <>
       <FilterToolbar
@@ -132,7 +142,7 @@ export function ActivityLogTab({ projectId }: { projectId: string }) {
         className="cursor-pointer"
       >
         <Column field="createdAt" header="Time" body={(row: AuditLogEntry) => formatDateTime(row.createdAt)} style={{ width: '12rem' }} />
-        <Column field="actorName" header="Actor" style={{ width: '10rem' }} />
+        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: '10rem' }} />
         <Column
           field="entityType"
           header="Entity"
