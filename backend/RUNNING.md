@@ -1,9 +1,10 @@
 # Cara menjalankan backend Go (mcp-server & rest-api)
 
-Status saat ini: **validation spike** (lihat `VALIDATION.md`) — hanya
-`testify.project.list` (MCP, tersedia lewat dua entry point: stdio untuk
-dev lokal dan HTTP untuk deploy VPS/remote) dan `GET /projects` (REST)
-yang benar-benar jalan. Panduan ini untuk menjalankan/menguji ketiganya.
+MCP server sudah lengkap (`backend/ROADMAP.md` Fase 0-5.5 done — semua
+entity Testing Domain + automation/analysis/repo tools). REST API sedang
+dibangun bertahap di atas MCP yang sudah stabil (lihat `docs/ROADMAP_V3.md`):
+auth transport (R3) sudah ada, endpoint per-domain (R1/R2) menyusul.
+Panduan ini untuk menjalankan/menguji keduanya.
 
 ## 0. Prasyarat: `DATABASE_URL`
 
@@ -37,14 +38,24 @@ membaca `DATABASE_URL` dari environment — pastikan sudah di-export atau
 pakai tool yang otomatis load `.env` (lihat catatan Windows/PowerShell di
 bawah).
 
-Test:
+Butuh juga `SUPABASE_JWT_SECRET` di environment (Supabase Dashboard →
+Project Settings → API → JWT Secret — skema HS256/shared-secret lama,
+didukung semua project Supabase) — server menolak start tanpa itu sejak
+R3 (`docs/ROADMAP_V3.md`).
+
+Test (butuh access token Supabase Auth asli — login lewat frontend lalu
+ambil dari `supabase.auth.getSession()` di devtools, atau dari network tab):
 
 ```bash
-curl http://localhost:8081/projects
+curl -H "Authorization: Bearer <supabase-access-token>" http://localhost:8081/projects
 ```
 
-Harus mengembalikan JSON array project. **Belum ada auth** — jangan
-expose port ini ke jaringan publik.
+Tanpa header `Authorization` yang valid akan dapat `401`. `GET /projects/:id`
+juga menolak dengan `403` kalau user login tidak punya accepted membership
+di project itu (lihat `rest-api/internal/auth/` — replikasi
+`has_project_access()`/`can_edit_project_content()`/`is_project_manager()`
+di Go, karena RLS Postgres yang mengandalkan `auth.uid()` tidak otomatis
+berlaku untuk koneksi `DATABASE_URL` langsung, hanya untuk PostgREST).
 
 ---
 

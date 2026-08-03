@@ -8,17 +8,16 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/shiftech/testify-platform/repository/postgres"
+	"github.com/shiftech/testify-platform/rest-api/internal/auth"
 	"github.com/shiftech/testify-platform/rest-api/internal/handler"
 	"github.com/shiftech/testify-platform/service"
 	pgdriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-// Validation spike (see backend/VALIDATION.md S3), now extended for the
-// frontend adapter-switching experiment (see frontend/src/config, adapter
-// pattern for Project data source). No auth — this is NOT production-ready.
-// TODO before real deployment: JWT/Google auth middleware (TASKS.md T7.3),
-// endpoints beyond Project (T7.4).
+// Was a no-auth validation spike (see backend/VALIDATION.md S3); now carries
+// real Supabase Auth JWT verification + project-membership gating (ROADMAP_V3
+// R3) ahead of the Issue endpoints (R1) built on top of it.
 func main() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
@@ -28,6 +27,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("db connect: %v", err)
 	}
+
+	jwtSecret := os.Getenv("SUPABASE_JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("SUPABASE_JWT_SECRET is not set")
+	}
+	accessRepo := auth.NewAccessRepository(db)
 
 	projectService := service.NewProjectService(postgres.NewProjectRepo(db))
 	projectHandler := &handler.ProjectHandler{Service: projectService}
@@ -40,16 +45,20 @@ func main() {
 	// which the frontend already trusts unconditionally.
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
-		AllowMethods: []string{http.MethodGet},
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch},
+		AllowHeaders: []string{"Authorization", "Content-Type"},
 	}))
 	e.GET("/health", healthHandler.Check)
-	e.GET("/projects", projectHandler.List)
-	e.GET("/projects/:id", projectHandler.Get)
+
+	// Every route below requires a valid Supabase session JWT.
+	authed := e.Group("", auth.RequireAuth(jwtSecret))
+	authed.GET("/projects", projectHandler.List)
+	authed.GET("/projects/:id", projectHandler.Get, auth.RequireProjectAccess(accessRepo, auth.RoleMember))
 
 	port := os.Getenv("HTTP_PORT")
 	if port == "" {
 		port = "8081"
 	}
-	log.Printf("rest-api listening on :%s (validation spike, no auth)", port)
+	log.Printf("rest-api listening on :%s", port)
 	log.Fatal(e.Start(":" + port))
 }

@@ -51,9 +51,9 @@ bisa pindah dari Supabase langsung ke REST API tanpa kehilangan behavior apa pun
 | G3 | `IssueService` full parity: `UpdateStatus`/`Assign` meniru `issueService.ts` persis (actor wajib, activity + notifikasi). `BulkChangeStatus` sengaja tidak diport (belum ada kebutuhan nyata) | G1, G2 | ✅ done |
 | G4 | `TestRunService`/`TestPlanService`/`TestCaseService` parity check — audit satu per satu apakah versi frontend punya business rule yang belum ada di Go | G1, G2 | ✅ done |
 | G5 | `ActivityService.addComment` (dengan `@mention` parsing) — kalau MCP/REST butuh comment, bukan cuma system event | G1, G2 |
-| R1 | REST API: endpoint issue (list/get/create/update/updateStatus/assign) di atas service yang sudah full-parity | G3 |
-| R2 | REST API: endpoint test case/test plan/test run mengikuti pola yang sama | G4, R1 |
-| R3 | REST API: auth transport (sesi login user asli — Google OAuth token verification — bukan API token seperti MCP) | R1 |
+| R3 | REST API: auth transport (sesi login user asli — Google OAuth/Supabase JWT verification — bukan API token seperti MCP) | — (dikerjakan lebih dulu dari R1, keputusan produk: jangan ada endpoint write unprotected) | ✅ done |
+| R1 | REST API: endpoint issue (list/get/create/update/updateStatus/assign) di atas service yang sudah full-parity | G3, R3 | todo |
+| R2 | REST API: endpoint test case/test plan/test run mengikuti pola yang sama | G4, R1 | todo |
 | F1 | Frontend: repository layer baru (`*Repository.ts`) yang manggil REST, di belakang flag/env, **tidak menghapus jalur Supabase dulu** | R1, R2, R3 |
 | F2 | Frontend: pindahkan satu modul percobaan (Issue) sepenuhnya ke REST, uji golden path penuh | F1 |
 | F3 | Frontend: migrasi modul sisanya (Test Case/Plan/Run, Project, Membership, dst) satu per satu | F2 |
@@ -274,12 +274,17 @@ sungguhan, bukan cuma activity log system event.
 ## Fase R1 — REST API: endpoint Issue (`todo`)
 
 **Depends on:** G3 (service harus full-parity dulu, supaya REST tidak mewarisi gap
-yang sama seperti MCP sebelumnya).
+yang sama seperti MCP sebelumnya) dan **R3** (✅ done — auth transport harus ada
+lebih dulu, supaya endpoint write Issue di fase ini tidak pernah unprotected
+walau sementara).
 
 **Pola:** ikuti `rest-api/internal/handler/project_handler.go` yang sudah ada (baca
 dulu strukturnya saat eksekusi) — REST handler **memanggil service Go yang sama**
 dipakai MCP (`service.IssueService`), bukan menulis ulang logic apa pun. Ini poin
-utama yang memastikan "tidak menulis fungsionalitas 2x di tempat berbeda".
+utama yang memastikan "tidak menulis fungsionalitas 2x di tempat berbeda". Setiap
+route mutasi harus dipasangi `auth.RequireAuth` + `auth.RequireProjectAccess`
+(pola sama seperti `GET /projects/:id` di `cmd/main.go`) — jangan daftarkan
+route baru di luar group `authed` yang sudah ada.
 
 **Endpoint minimal:**
 - `GET /api/v1/projects/{id}/issues` (list, filter setara `testify.issue.search`)
@@ -312,7 +317,73 @@ yang paling sering dipakai user harian.
 
 ---
 
-## Fase R3 — REST API: auth transport (`todo`)
+## Fase R3 — REST API: auth transport (`done` — 2026-08-03)
+
+**Diselesaikan lebih dulu dari R1/R2** (keputusan produk: jangan pernah ada
+endpoint write yang unprotected walau sementara — lihat urutan dependency
+di bawah, sudah direvisi).
+
+**Keputusan arsitektur** (poin yang disebut sebagai "perlu didiskusikan
+terpisah" di draft awal fase ini): REST API Go connect ke Postgres langsung
+via `DATABASE_URL` (koneksi GORM biasa), **bukan** lewat PostgREST — jadi
+RLS Postgres yang mengandalkan `auth.uid()` (di-set otomatis oleh
+PostgREST dari JWT) **tidak berlaku** di jalur ini. Solusi: replikasi cek
+akses secara eksplisit di Go (`rest-api/internal/auth/access.go`), bukan
+`SET LOCAL`/session trick untuk mengaktifkan RLS lewat koneksi biasa.
+
+**Implementasi** (`rest-api/internal/auth/`):
+- `jwt.go` — `VerifyToken()` verifikasi Supabase Auth access token (HS256,
+  `SUPABASE_JWT_SECRET` — skema shared-secret lama, didukung semua project
+  Supabase terlepas JWKS/RS256 aktif atau tidak). Reject eksplisit
+  `alg: none` (classic JWT bypass) dan signing method selain HS256.
+- `access.go` — `AccessRepository` query `project_members` (`RoleFor`/
+  `HasAccess`/`CanEditContent`/`IsManager`), replika 1:1 dari
+  `has_project_access()`/`can_edit_project_content()`/`is_project_manager()`
+  (`supabase/migrations/20260725000004_...`, `20260725000009_...`),
+  termasuk filter `status = 'accepted'` (member yang masih `invited` tidak
+  dianggap punya akses).
+- `middleware.go` — `RequireAuth` (verify JWT → `echo.Context` bawa
+  `user_id`) + `RequireProjectAccess(repo, minRole)` (baca `:project_id`
+  atau fallback `:id` dari path, cek role minimum: `RoleMember` untuk "ada
+  akses", `RoleSupervisor` untuk "boleh edit", `RoleManager` untuk "manager
+  only" — analog `AssertProjectReferences` di sisi MCP, tapi untuk role
+  bukan cuma project-scope).
+
+**Keputusan desain penting untuk arah jangka panjang** (lihat juga
+[[testing-strategy]] kalau ditulis nanti): paket ini **sengaja ditulis
+pakai GORM standar** (`.Where()`, `.Create()`, struct row biasa) — **tidak**
+ada Raw SQL, `jsonb`, atau tipe Postgres-only (`pq.StringArray`) seperti di
+`repository/postgres/` yang lama. Konsekuensinya: kode ini jalan tanpa
+perubahan di Postgres (production) **maupun** SQLite in-memory (test) — jadi
+test (`access_test.go`, `middleware_test.go`) tidak butuh DB nyata sama
+sekali, pakai `github.com/glebarez/sqlite` (driver SQLite pure-Go, tidak
+butuh CGO/gcc — `mattn/go-sqlite3` yang butuh CGO sengaja dihindari karena
+environment ini `CGO_ENABLED=0` tanpa compiler C). `repository/postgres/`
+yang sudah ada (Raw SQL-heavy) **tidak disentuh/dimigrasikan** — dibiarkan
+sebagai legacy Postgres-only. Kode BARU ke depan (termasuk R1/R2) mengikuti
+pola GORM-standar ini kalau memungkinkan.
+
+**Wiring:** `rest-api/cmd/main.go` — semua route (kecuali `/health`) sekarang
+di belakang `auth.RequireAuth`; `GET /projects/:id` juga di belakang
+`RequireProjectAccess(..., RoleMember)`. `GET /projects` (list lintas
+project) sengaja belum di-gate per-project — itu soal filtering by
+membership di level `ProjectFilter`, di luar scope R3.
+
+**Test:** 24 test baru di `rest-api/internal/auth/` — JWT (valid/wrong
+secret/expired/no-subject/alg-none-bypass), AccessRepository (accepted vs
+invited, scoped per-project, role hierarchy), middleware (401/403/200,
+fallback `:id`).
+
+**Belum diselesaikan di fase ini (tetap todo, bagian dari R1/R2):**
+- Env var `SUPABASE_JWT_SECRET` didokumentasikan di `RUNNING.md`, belum
+  ditambah ke `.env.example` mana pun (tidak ada `.env.example` khusus
+  `rest-api/` saat ini)
+- Security review formal (exit criteria asli fase ini) — **belum dilakukan**
+  secara terpisah; audit ini sebatas review inline saat implementasi. Sebelum
+  endpoint write (R1) benar-benar dipakai user nyata, lakukan review
+  keamanan eksplisit (terutama: token replay, CORS scope `AllowOrigins:
+  []string{"*"}` di `main.go` yang masih permisif untuk semua origin,
+  belum di-restrict ke domain frontend asli).
 
 **Kenapa terpisah dari R1/R2:** MCP pakai API token per-project (`TM_API_TOKEN`,
 lihat `mcp-server/internal/auth/session.go`). Frontend butuh sesi user asli — Google
@@ -403,12 +474,19 @@ bilang backend paused padahal MCP sudah dipakai aktif oleh AI agent).
 ## Urutan dependency ringkas
 
 ```
-G1 (activity write) ─┬─→ G3 (IssueService parity) ─→ R1 (REST Issue) ─┬─→ F1 (flag infra)
-G2 (notification)   ─┘                                                 │
-                                                                        ├─→ F2 (migrasi Issue)
-G4 (audit lain) ──→ R2 (REST domain lain) ──────────────────────────────┼─→ F3 (migrasi sisanya)
-                                                                        │
-R3 (auth transport) ────────────────────────────────────────────────────┴─→ F4 (hapus Supabase)
+G1 (done) ─┬─→ G3 (done) ─┐
+G2 (done) ─┘              │
+                           ├─→ R1 (REST Issue, todo) ─┬─→ F1 (flag infra)
+R3 (done, dikerjakan       │                          │
+  duluan) ─────────────────┘                          ├─→ F2 (migrasi Issue)
+                                                        │
+G4 (done) ──→ R2 (REST domain lain, todo) ──────────────┼─→ F3 (migrasi sisanya)
+                                                        │
+                                                        └─→ F4 (hapus Supabase)
 
 G5 (comment/mention) — independen, mulai kapan saja ada trigger nyata
 ```
+
+**Status per 2026-08-03:** G1-G4 dan R3 semua ✅ done. R1 (endpoint Issue)
+adalah pekerjaan berikutnya — service sudah full-parity (G3) dan auth
+transport sudah siap (R3), tidak ada lagi blocker.
