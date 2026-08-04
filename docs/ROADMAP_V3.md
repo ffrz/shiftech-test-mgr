@@ -52,7 +52,7 @@ bisa pindah dari Supabase langsung ke REST API tanpa kehilangan behavior apa pun
 | G4 | `TestRunService`/`TestPlanService`/`TestCaseService` parity check — audit satu per satu apakah versi frontend punya business rule yang belum ada di Go | G1, G2 | ✅ done |
 | G5 | `ActivityService.addComment` (dengan `@mention` parsing) — kalau MCP/REST butuh comment, bukan cuma system event | G1, G2 |
 | R3 | REST API: auth transport (sesi login user asli — Google OAuth/Supabase JWT verification — bukan API token seperti MCP) | — (dikerjakan lebih dulu dari R1, keputusan produk: jangan ada endpoint write unprotected) | ✅ done |
-| R1 | REST API: endpoint issue (list/get/create/update/updateStatus/assign) di atas service yang sudah full-parity | G3, R3 | todo |
+| R1 | REST API: endpoint issue (list/get/create/update/updateStatus/assign) di atas service yang sudah full-parity | G3, R3 | ✅ done — 2026-08-04 |
 | R2 | REST API: endpoint test case/test plan/test run mengikuti pola yang sama | G4, R1 | todo |
 | F1 | Frontend: repository layer baru (`*Repository.ts`) yang manggil REST, di belakang flag/env, **tidak menghapus jalur Supabase dulu** | R1, R2, R3 |
 | F2 | Frontend: pindahkan satu modul percobaan (Issue) sepenuhnya ke REST, uji golden path penuh | F1 |
@@ -271,37 +271,31 @@ sungguhan, bukan cuma activity log system event.
 
 ---
 
-## Fase R1 — REST API: endpoint Issue (`todo`)
+## Fase R1 — REST API: endpoint Issue (`done` — 2026-08-04)
 
-**Depends on:** G3 (service harus full-parity dulu, supaya REST tidak mewarisi gap
-yang sama seperti MCP sebelumnya) dan **R3** (✅ done — auth transport harus ada
-lebih dulu, supaya endpoint write Issue di fase ini tidak pernah unprotected
-walau sementara).
+**Implementasi:** `rest-api/internal/handler/issue_handler.go` — `IssueHandler`
+dengan 5 endpoint:
 
-**Pola:** ikuti `rest-api/internal/handler/project_handler.go` yang sudah ada (baca
-dulu strukturnya saat eksekusi) — REST handler **memanggil service Go yang sama**
-dipakai MCP (`service.IssueService`), bukan menulis ulang logic apa pun. Ini poin
-utama yang memastikan "tidak menulis fungsionalitas 2x di tempat berbeda". Setiap
-route mutasi harus dipasangi `auth.RequireAuth` + `auth.RequireProjectAccess`
-(pola sama seperti `GET /projects/:id` di `cmd/main.go`) — jangan daftarkan
-route baru di luar group `authed` yang sudah ada.
+- `GET /api/v1/projects/:project_id/issues` — List (filter: type, status,
+  priority, assignee_id, testrun_id, testcase_id, search, cursor)
+- `GET /api/v1/projects/:project_id/issues/:id` — Get + Inspect
+  (`?detail=inspect`, satu handler dua mode, :id menerima UUID atau
+  human code)
+- `POST /api/v1/projects/:project_id/issues` — Create
+- `PATCH /api/v1/projects/:project_id/issues/:id/status` — UpdateStatus
+  (activity + notifikasi dari G3 dikerjakan service, handler tidak tahu)
+- `PATCH /api/v1/projects/:project_id/issues/:id/assign` — Assign
+  (activity + notifikasi dari G3)
 
-**Endpoint minimal:**
-- `GET /api/v1/projects/{id}/issues` (list, filter setara `testify.issue.search`)
-- `GET /api/v1/issues/{id}` (get, bisa terima `?detail=inspect` untuk full aggregate
-  setara `testify.issue.inspect` — **satu handler, satu service call**, bukan dua
-  endpoint terpisah kalau bedanya cuma kedalaman response)
-- `POST /api/v1/issues` (create)
-- `PATCH /api/v1/issues/{id}/status` (update status — otomatis dapat activity +
-  notifikasi dari G3, tanpa REST tahu detail itu)
-- `PATCH /api/v1/issues/{id}/assign`
+Semua endpoint di belakang `auth.RequireAuth` + `auth.RequireProjectAccess`
+(dengan `:project_id` path param — semua route Issue project-scoped, jadi
+middleware akses langsung match). Handler murni transport — parse request,
+delegasi ke `service.IssueService`, serialize response. Nol business logic
+di layer handler.
 
-**Auth di endpoint ini:** REST dipakai frontend (user login), beda dari MCP (API
-token per-project) — lihat Fase R3.
-
-**Exit criteria:** endpoint teruji (`rest-api/internal/handler/*_test.go` pola yang
-sama dengan `health_handler_test.go`), Postman/curl manual: update status lewat REST
-menghasilkan row activity yang sama persis strukturnya dengan yang dihasilkan MCP.
+**Wiring:** `rest-api/cmd/main.go` — `IssueService` diinisialisasi dengan
+`IssueContextSources` (ProfileRepo, ActivityRepo, AttachmentRepo,
+NotificationRepo) dan di-inject ke `IssueHandler`.
 
 ---
 
@@ -509,17 +503,17 @@ bilang backend paused padahal MCP sudah dipakai aktif oleh AI agent).
 ```
 G1 (done) ─┬─→ G3 (done) ─┐
 G2 (done) ─┘              │
-                           ├─→ R1 (REST Issue, todo) ─┬─→ F1 (flag infra)
-R3 (done, dikerjakan       │                          │
-  duluan) ─────────────────┘                          ├─→ F2 (migrasi Issue)
-                                                        │
-G4 (done) ──→ R2 (REST domain lain, todo) ──────────────┼─→ F3 (migrasi sisanya)
-                                                        │
-                                                        └─→ F4 (hapus Supabase)
+                           ├─→ R1 (done) ─┬─→ F1 (flag infra)
+R3 (done, dikerjakan       │              │
+  duluan) ─────────────────┘              ├─→ F2 (migrasi Issue)
+                                             │
+G4 (done) ──→ R2 (REST domain lain, todo) ───┼─→ F3 (migrasi sisanya)
+                                             │
+                                             └─→ F4 (hapus Supabase)
 
 G5 (comment/mention) — independen, mulai kapan saja ada trigger nyata
 ```
 
-**Status per 2026-08-03:** G1-G4 dan R3 semua ✅ done. R1 (endpoint Issue)
-adalah pekerjaan berikutnya — service sudah full-parity (G3) dan auth
-transport sudah siap (R3), tidak ada lagi blocker.
+**Status per 2026-08-04:** G1-G4, R3, dan R1 semua ✅ done. R2 (endpoint TestCase/
+TestPlan/TestRun) adalah pekerjaan berikutnya — service sudah full-parity (G4)
+dan pola handler sudah settle (R1), tidak ada lagi blocker.

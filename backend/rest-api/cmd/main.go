@@ -41,6 +41,14 @@ func main() {
 	projectHandler := &handler.ProjectHandler{Service: projectService}
 	healthHandler := &handler.HealthHandler{DB: db}
 
+	issueService := service.NewIssueService(postgres.NewIssueRepo(db), service.IssueContextSources{
+		Profiles:      postgres.NewProfileRepo(db),
+		Activity:      postgres.NewActivityRepo(db),
+		Attachments:   postgres.NewAttachmentRepo(db),
+		Notifications: postgres.NewNotificationRepo(db),
+	})
+	issueHandler := &handler.IssueHandler{Service: issueService}
+
 	e := echo.New()
 	e.HideBanner = true
 	// CORS: this experiment is called directly from the Vite dev server
@@ -57,6 +65,15 @@ func main() {
 	authed := e.Group("", auth.RequireAuth(jwks))
 	authed.GET("/projects", projectHandler.List)
 	authed.GET("/projects/:id", projectHandler.Get, auth.RequireProjectAccess(accessRepo, auth.RoleMember))
+
+	// Issue routes — all project-scoped via :project_id in the path, so
+	// RequireProjectAccess can gate them naturally.
+	issues := authed.Group("/projects/:project_id/issues", auth.RequireProjectAccess(accessRepo, auth.RoleMember))
+	issues.GET("", issueHandler.List)
+	issues.GET("/:id", issueHandler.Get)
+	issues.POST("", issueHandler.Create)
+	issues.PATCH("/:id/status", issueHandler.UpdateStatus)
+	issues.PATCH("/:id/assign", issueHandler.Assign)
 
 	port := os.Getenv("HTTP_PORT")
 	if port == "" {
