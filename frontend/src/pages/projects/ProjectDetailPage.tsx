@@ -916,7 +916,7 @@ export function ProjectDetailPage() {
       }, data.tagNames, user?.id ?? null);
       toastSuccess('Issue updated');
     } else {
-      await issueService.create({
+      const created = await issueService.create({
         projectId: id,
         moduleId: data.moduleId,
         type: data.type,
@@ -931,6 +931,9 @@ export function ProjectDetailPage() {
         createdBy: user?.id ?? null,
       });
       toastSuccess('Issue created');
+      setIssueEditor(null);
+      await loadAll();
+      return created;
     }
     setIssueEditor(null);
     await loadAll();

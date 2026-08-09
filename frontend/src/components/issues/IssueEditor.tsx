@@ -7,7 +7,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
 import { FloatLabel } from 'primereact/floatlabel';
-import { FileUpload, type FileUploadHandlerEvent } from 'primereact/fileupload';
+import { FileUpload, type FileUploadHandlerEvent, type FileUploadSelectEvent } from 'primereact/fileupload';
 import type { Attachment, ExternalLink, IssuePriority, IssueStatus, IssueType, Module, ProjectMemberWithProfile, Tag, TestRole } from '../../types/domain';
 import { ISSUE_PRIORITY_LABEL, ISSUE_STATUS_LABEL, ISSUE_TYPE_LABEL } from '../../helpers/statusLabels';
 import { moduleService } from '../../services/moduleService';
@@ -36,7 +36,10 @@ export interface IssueFormData {
 interface IssueEditorProps {
   visible: boolean;
   onHide: () => void;
-  onSave: (data: IssueFormData) => Promise<void>;
+  // Returns the created issue so the editor can upload the files staged in create mode
+  // AFTER the issue exists (attachment upload needs the issue id — see the "staged files"
+  // flow below). Edit mode parents may resolve with anything/void.
+  onSave: (data: IssueFormData) => Promise<{ id: string } | void>;
   // Status changes are routed separately from onSave because they go through
   // issueService.changeStatus (activity log + assignee notification), which needs actor
   // info this component doesn't have. Omit in create mode — new issues pick their initial
@@ -119,6 +122,12 @@ export function IssueEditor({
   const [quickAddModuleVisible, setQuickAddModuleVisible] = useState(false);
   const [quickAddRoleVisible, setQuickAddRoleVisible] = useState(false);
 
+  // Files staged in create mode before the issue exists (there's no issueId to attach to
+  // until after onSave resolves) — same pattern as CommentEditor's pendingFiles. Uploaded
+  // right after creation succeeds, see handleSave.
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const stagedUploadRef = useRef<FileUpload>(null);
+
   useEffect(() => {
     if (!visible) return;
     setCode(initialData?.code ?? '');
@@ -143,6 +152,7 @@ export function IssueEditor({
     setQuickAddTagVisible(false);
     setQuickAddModuleVisible(false);
     setQuickAddRoleVisible(false);
+    setPendingFiles([]);
   }, [visible, initialData]);
 
   async function handleSave() {
@@ -154,7 +164,7 @@ export function IssueEditor({
     setError(null);
     setSaving(true);
     try {
-      await onSave({
+      const created = await onSave({
         code: code.trim(),
         title: title.trim(),
         type,
@@ -169,6 +179,14 @@ export function IssueEditor({
         tagNames,
         externalLinks: externalLinks.filter((l) => l.url.trim()),
       });
+      // Create-mode staged files (see pendingFiles) can't be uploaded until the entity
+      // exists — onSave returns the new issue so we can attach them right after.
+      if (created?.id && pendingFiles.length > 0) {
+        for (const file of pendingFiles) {
+          await attachmentService.upload(created.id, projectId, file);
+        }
+        onAttachmentsChange?.();
+      }
       if (mode === 'edit' && onStatusChange && initialData && status !== initialData.status) {
         await onStatusChange(status);
       }
@@ -180,6 +198,15 @@ export function IssueEditor({
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleStageSelect(event: FileUploadSelectEvent) {
+    setPendingFiles((prev) => [...prev, ...event.files]);
+    stagedUploadRef.current?.clear();
+  }
+
+  function removePendingFile(index: number) {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleQuickAddTag() {
@@ -471,7 +498,31 @@ export function IssueEditor({
                 />
               </>
             ) : (
-              <p className="text-color-secondary text-sm m-0">Attachments can be added after the issue is created.</p>
+              <>
+                {pendingFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {pendingFiles.map((file, i) => (
+                      <span key={`${file.name}-${i}`} className="flex align-items-center gap-1 px-2 py-1 border-round surface-100 text-xs">
+                        <i className="pi pi-paperclip" style={{ fontSize: '0.7rem' }} />
+                        {file.name}
+                        <i className="pi pi-times cursor-pointer" style={{ fontSize: '0.7rem' }} onClick={() => removePendingFile(i)} />
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <FileUpload
+                  ref={stagedUploadRef}
+                  mode="basic"
+                  chooseLabel="Attach File"
+                  chooseOptions={{ icon: 'pi pi-plus', className: 'p-button-text p-button-secondary p-button-sm w-fit comment-btn-sm' }}
+                  customUpload
+                  uploadHandler={(e: FileUploadHandlerEvent) => e.options.clear()}
+                  onSelect={handleStageSelect}
+                  multiple
+                  auto={false}
+                />
+                <p className="text-color-secondary text-sm m-0">Files will be attached when the issue is created.</p>
+              </>
             )}
           </div>
 

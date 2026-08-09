@@ -376,7 +376,7 @@ export function TestRunResultDetailPage() {
 
   async function handleIssueEditorSave(data: IssueFormData) {
     if (!activeResult || !projectId) return;
-    await issueService.create({
+    const created = await issueService.create({
       projectId,
       linkToTestResultId: activeResult.id,
       moduleId: data.moduleId,
@@ -397,6 +397,7 @@ export function TestRunResultDetailPage() {
     setIssueEditorInitialData(null);
     await refreshLinkedIssues();
     toastHelper.success('Issue created and linked');
+    return created;
   }
 
   // --- Complete run dialog ---
