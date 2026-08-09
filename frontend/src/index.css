@@ -557,6 +557,25 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   width: 100%;
 }
 
+/* Primary title/name column of a list table: give it a flexible width so it
+   absorbs the space left over by the fixed-width columns (Code, Module, Type,
+   Status, actions, etc.) on medium/large screens. Without this, the browser's
+   auto table layout squeezes the content column to near-zero because every
+   sibling column carries an explicit rem width. Applied via className on the
+   Column (body <td>) plus headerClassName (header <th>). */
+.p-datatable .p-datatable-thead>tr>th.dt-title-fill,
+.p-datatable .p-datatable-tbody>tr>td.dt-title-fill {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Serial-number style codes (e.g. "ISS-0001", "TC-0042") must never break
+   across lines at the hyphen when the column is narrower than the code. */
+.p-datatable .p-datatable-thead>tr>th.dt-code-nowrap,
+.p-datatable .p-datatable-tbody>tr>td.dt-code-nowrap {
+  white-space: nowrap;
+}
+
 /* The selectionMode="multiple" checkbox column's <th> renders an empty
    .p-column-title span as a sibling of the header checkbox inside
    .p-column-header-content (display:flex, per PrimeReact's createHeader).

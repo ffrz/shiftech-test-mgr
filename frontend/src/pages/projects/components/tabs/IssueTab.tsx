@@ -433,11 +433,14 @@ export function IssueTab({
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
         <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
+          className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={(row: IssueWithDetails) => <a className="entity-link" href={`/issues/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/issues/${row.id}`); }}>{row.code}</a>} />
         <Column
           field="title"
           header="Title"
           sortable={!isMobile}
+          className="dt-title-fill"
+          headerClassName="dt-title-fill"
           body={isMobile ? mobileIssueBody : (row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'title';

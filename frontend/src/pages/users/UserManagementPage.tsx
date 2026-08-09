@@ -234,6 +234,8 @@ export function UserManagementPage() {
         {!isMobile && (
           <Column
             field="email"
+            className="dt-title-fill"
+            headerClassName="dt-title-fill"
             header={<ColumnHeaderMenu label="Email" field="email" sortField={sortField} sortOrder={sortOrder} onSort={handleColumnSort} />}
           />
         )}

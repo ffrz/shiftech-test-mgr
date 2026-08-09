@@ -76,9 +76,9 @@ export function ModulesTab({
         {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
         {isMobile
           ? <Column header="Nama" body={mobileBody} />
-          : <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
+          : <Column field="code" header="Code" sortable style={{ width: '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />
         }
-        {!isMobile && <Column field="name" header="Nama" sortable />}
+        {!isMobile && <Column field="name" header="Nama" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}
         <Column
           header=""
           style={{ width: '3.5rem' }}

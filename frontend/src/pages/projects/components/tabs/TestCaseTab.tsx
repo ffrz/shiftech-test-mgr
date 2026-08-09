@@ -397,8 +397,9 @@ export function TestCaseTab({
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
         <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
+          className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={(row: TestCaseWithDetails) => <a className="entity-link" href={`/test-cases/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-cases/${row.id}`); }}>{row.code}</a>} />
-        <Column field="title" header="Title" sortable={!isMobile} body={isMobile ? mobileCaseBody : (row: TestCaseWithDetails) => {
+        <Column field="title" header="Title" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobileCaseBody : (row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'title';
           if (isEditing && canEditContent) {
             return (

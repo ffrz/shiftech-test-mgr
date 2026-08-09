@@ -90,8 +90,8 @@ export function TestCasesPage() {
 
       <DataTable value={testCases} loading={loading} {...dataTablePaginatorProps} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small">
         {isMobile && <Column body={mobileBodyTemplate} />}
-        {!isMobile && <Column field="code" header="Code" sortable style={{ width: '7rem' }} />}
-        {!isMobile && <Column field="title" header="Title" sortable />}
+        {!isMobile && <Column field="code" header="Code" sortable style={{ width: '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
+        {!isMobile && <Column field="title" header="Title" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}
         {!isMobile && <Column field="module.name" header="Module" body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} sortable />}
         {!isMobile && (
           <Column

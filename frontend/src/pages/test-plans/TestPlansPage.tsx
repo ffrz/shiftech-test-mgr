@@ -114,9 +114,9 @@ export function TestPlansPage() {
 
       <DataTable value={testPlans} loading={loading} {...dataTablePaginatorProps} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
         selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
-        <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : '7rem' }}
+        <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={isMobile ? mobileCodeBody : undefined} />
-        {!isMobile && <Column field="name" header="Name" sortable />}
+        {!isMobile && <Column field="name" header="Name" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}
         {!isMobile && <Column field="status" header="Status" body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />}
         {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: TestPlan) => formatDate(row.updatedAt)} sortable />}
         {canEditContent && (

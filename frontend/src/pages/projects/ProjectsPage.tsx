@@ -292,7 +292,7 @@ export function ProjectsPage() {
         className="cursor-pointer"
       >
         {isMobile && <Column field="name" header="Project" body={mobileBody} />}
-        {!isMobile && <Column field="name" header="Name" sortable body={nameBody} />}
+        {!isMobile && <Column field="name" header="Name" sortable body={nameBody} className="dt-title-fill" headerClassName="dt-title-fill" />}
         {!isMobile && <Column field="description" header="Description" />}
         {!isMobile && (
           <Column

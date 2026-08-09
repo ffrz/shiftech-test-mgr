@@ -275,6 +275,8 @@ export function TestSuitesPage() {
             field="name"
             header="Name"
             sortable
+            className="dt-title-fill"
+            headerClassName="dt-title-fill"
             body={(row: EnrichedTestSuite) => (
               <div className="flex flex-column">
                 <span>{row.name}</span>

@@ -40,7 +40,7 @@ export function AutomationRunnersTab({ runners, isMobile, onMint }: AutomationRu
       </div>
       <DataTable value={runners} size="small" emptyMessage="No runners registered yet" dataKey="id">
         {isMobile && <Column header="Runner" body={mobileBody} />}
-        {!isMobile && <Column header="Name" field="name" />}
+        {!isMobile && <Column header="Name" field="name" className="dt-title-fill" headerClassName="dt-title-fill" />}
         {!isMobile && <Column header="Prefix" body={(row: AutomationRunner) => `${row.tokenPrefix}...`} />}
         {!isMobile && <Column header="Labels" body={(row: AutomationRunner) => row.labels.join(', ') || '—'} />}
         {!isMobile && <Column header="Status" body={(row: AutomationRunner) => <StatusTag row={row} />} />}

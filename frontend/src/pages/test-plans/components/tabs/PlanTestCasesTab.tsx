@@ -207,6 +207,8 @@ export function PlanTestCasesTab({
             field="testCase.code"
             header="Code"
             style={{ width: '7rem' }}
+            className="dt-code-nowrap"
+            headerClassName="dt-code-nowrap"
             body={(row: TestPlanCaseWithDetails) => (
               <a
                 className="entity-link"

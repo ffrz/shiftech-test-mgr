@@ -75,7 +75,7 @@ export function TagsTab({
         {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
         {isMobile
           ? <Column header="Nama" body={mobileBody} />
-          : <Column field="name" header="Nama" sortable />
+          : <Column field="name" header="Nama" sortable className="dt-title-fill" headerClassName="dt-title-fill" />
         }
         <Column
           header=""

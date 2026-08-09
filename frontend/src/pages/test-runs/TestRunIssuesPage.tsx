@@ -271,9 +271,9 @@ export function TestRunIssuesPage() {
       >
         {isMobile
           ? <Column header="Code" body={mobileBodyTemplate} />
-          : <Column field="code" header="Code" sortable style={{ width: '7rem' }} />
+          : <Column field="code" header="Code" sortable style={{ width: '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />
         }
-        {!isMobile && <Column field="title" header="Title" sortable />}
+        {!isMobile && <Column field="title" header="Title" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}
         {!isMobile && <Column field="priority" header="Priority" body={(row: IssueWithDetails) => <Tag value={ISSUE_PRIORITY_LABEL[row.priority]} severity={ISSUE_PRIORITY_SEVERITY[row.priority]} />} sortable />}
         {!isMobile && (
           <Column

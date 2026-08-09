@@ -252,8 +252,9 @@ export function TestPlanTab({
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
         <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
+          className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={(row: TestPlan) => <a className="entity-link" href={`/test-plans/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-plans/${row.id}`); }}>{row.code}</a>} />
-        <Column field="name" header="Name" sortable={!isMobile} body={isMobile ? mobilePlanBody : (row: TestPlan) => {
+        <Column field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobilePlanBody : (row: TestPlan) => {
           const isEditing = editingCell?.planId === row.id && editingCell?.field === 'name';
           if (isEditing && canEditContent) {
             return (

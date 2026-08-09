@@ -150,7 +150,7 @@ export function ActivityLogTab({ projectId }: { projectId: string }) {
           style={{ width: '8rem' }}
         />
         <Column field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: '8rem' }} />
-        <Column header="Description" body={descriptionBodyTemplate} />
+        <Column header="Description" body={descriptionBodyTemplate} className="dt-title-fill" headerClassName="dt-title-fill" />
       </DataTable>
     </>
   );

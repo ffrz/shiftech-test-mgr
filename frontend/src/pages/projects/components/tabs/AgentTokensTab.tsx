@@ -56,7 +56,7 @@ export function AgentTokensTab({ tokens, isMobile, onMint, onRevoke }: AgentToke
       </div>
       <DataTable value={activeTokens} size="small" emptyMessage="No agent tokens yet" dataKey="id">
         {isMobile && <Column header="Token" body={mobileBody} />}
-        {!isMobile && <Column header="Name" field="name" />}
+        {!isMobile && <Column header="Name" field="name" className="dt-title-fill" headerClassName="dt-title-fill" />}
         {!isMobile && <Column header="Prefix" body={(row: ApiToken) => `${row.tokenPrefix}...`} />}
         {!isMobile && <Column header="Access" body={(row: ApiToken) => <AccessLevelTag row={row} />} />}
         {!isMobile && (

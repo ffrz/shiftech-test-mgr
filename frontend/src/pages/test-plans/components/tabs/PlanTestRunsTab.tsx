@@ -124,8 +124,8 @@ export function PlanTestRunsTab({
         className="cursor-pointer"
         size="small"
       >
-        {!isMobile && <Column field="code" header="Code" style={{ width: '7rem' }} />}
-        <Column field="name" header="Run Name" body={isMobile ? mobileRunNameBody : undefined} />
+        {!isMobile && <Column field="code" header="Code" style={{ width: '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
+        <Column field="name" header="Run Name" className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobileRunNameBody : undefined} />
         {!isMobile && <Column field="status" header="Status" body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
         {!isMobile && (
           <Column

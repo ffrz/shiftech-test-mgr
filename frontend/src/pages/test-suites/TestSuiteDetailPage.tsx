@@ -512,7 +512,7 @@ export function TestSuiteDetailPage() {
         {isOwner && <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />}
         {isMobile
           ? <Column header="Title" body={mobileBodyTemplate} />
-          : <Column field="title" header="Title" sortable body={(row: TestSuiteItem) => {
+          : <Column field="title" header="Title" sortable className="dt-title-fill" headerClassName="dt-title-fill" body={(row: TestSuiteItem) => {
             const isEditing = editingCell?.itemId === row.id && editingCell?.field === 'title';
             if (isEditing && isOwner) {
               return (
