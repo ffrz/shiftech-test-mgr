@@ -53,7 +53,7 @@ bisa pindah dari Supabase langsung ke REST API tanpa kehilangan behavior apa pun
 | G5 | `ActivityService.addComment` (dengan `@mention` parsing) — kalau MCP/REST butuh comment, bukan cuma system event | G1, G2 |
 | R3 | REST API: auth transport (sesi login user asli — Google OAuth/Supabase JWT verification — bukan API token seperti MCP) | — (dikerjakan lebih dulu dari R1, keputusan produk: jangan ada endpoint write unprotected) | ✅ done |
 | R1 | REST API: endpoint issue (list/get/create/update/updateStatus/assign) di atas service yang sudah full-parity | G3, R3 | ✅ done — 2026-08-04 |
-| R2 | REST API: endpoint test case/test plan/test run mengikuti pola yang sama | G4, R1 | todo |
+| R2 | REST API: endpoint test case/test plan/test run mengikuti pola yang sama | G4, R1 | ✅ done — 2026-08-05 |
 | F1 | Frontend: repository layer baru (`*Repository.ts`) yang manggil REST, di belakang flag/env, **tidak menghapus jalur Supabase dulu** | R1, R2, R3 |
 | F2 | Frontend: pindahkan satu modul percobaan (Issue) sepenuhnya ke REST, uji golden path penuh | F1 |
 | F3 | Frontend: migrasi modul sisanya (Test Case/Plan/Run, Project, Membership, dst) satu per satu | F2 |
@@ -299,15 +299,48 @@ NotificationRepo) dan di-inject ke `IssueHandler`.
 
 ---
 
-## Fase R2 — REST API: endpoint domain lain (`todo`)
+## Fase R2 — REST API: endpoint domain lain (`done` — 2026-08-05)
 
-**Depends on:** G4 (audit selesai, supaya tahu service mana yang sudah aman diekspos)
-dan R1 (pola handler sudah settle).
+**Implementasi:** 3 handler baru + wiring di `rest-api/cmd/main.go`:
 
-Endpoint test case/test plan/test run/module/tag/test role, mengikuti pola yang sama
-dengan R1. Urutan pengerjaan ikuti prioritas golden path testing domain (lihat
-CLAUDE.md §Domain Model): TestCase → TestPlan → TestRun → TestResult, karena itu alur
-yang paling sering dipakai user harian.
+**TestCaseHandler** (`rest-api/internal/handler/testcase_handler.go`):
+- `GET /projects/:project_id/test-cases` — List (filter: module_id, module,
+  tag, priority, status, step_type, search, cursor)
+- `GET /projects/:project_id/test-cases/:id` — Get
+- `POST /projects/:project_id/test-cases` — Create
+- `PATCH /projects/:project_id/test-cases/:id` — Update
+- `POST /projects/:project_id/test-cases/:id/duplicate` — Duplicate
+- `POST /projects/:project_id/test-cases/:id/archive` — Archive (activity log)
+- `POST /projects/:project_id/test-cases/:id/reactivate` — Reactivate (activity log)
+
+**TestPlanHandler** (`rest-api/internal/handler/testplan_handler.go`):
+- `GET /projects/:project_id/test-plans` — List (filter: status, search, cursor)
+- `GET /projects/:project_id/test-plans/:id` — Get
+- `POST /projects/:project_id/test-plans` — Create
+- `POST /projects/:project_id/test-plans/:id/cases` — AddCases
+- `DELETE /projects/:project_id/test-plans/:id/cases` — RemoveCases
+- `POST /projects/:project_id/test-plans/:id/approve` — Approve
+- `PATCH /projects/:project_id/test-plans/:id/status` — ChangeStatus (activity log)
+
+**TestRunHandler** (`rest-api/internal/handler/testrun_handler.go`):
+- `GET /projects/:project_id/test-runs` — List (filter: status, plan_id,
+  tester_id, cursor)
+- `GET /projects/:project_id/test-runs/:id` — Get + Summary
+  (`?detail=summary`, satu handler dua mode)
+- `POST /projects/:project_id/test-runs` — Create
+- `PATCH /projects/:project_id/test-runs/:id/results/:result_id` — RecordResult
+- `POST /projects/:project_id/test-runs/:id/complete` — Complete (activity log)
+- `POST /projects/:project_id/test-runs/:id/reopen` — Reopen (activity log)
+- `GET /projects/:project_id/test-runs/:id/summary` — Summary (on-the-fly)
+
+Semua endpoint di belakang `RequireAuth` + `RequireProjectAccess`.
+Handler murni transport — delegasi ke service layer, nol business logic.
+Activity logging & idempotency check dikerjakan service (G4), handler tidak tahu.
+
+**Wiring:** `rest-api/cmd/main.go` — `TestCaseService`, `TestPlanService`,
+`TestRunService` diinisialisasi dengan `ActivityRepository` (reuse instance
+yang sama) dan di-inject ke handler masing-masing. CORS diperluas
+mencakup `DELETE` untuk `RemoveCases`.
 
 ---
 
@@ -507,13 +540,13 @@ G2 (done) ─┘              │
 R3 (done, dikerjakan       │              │
   duluan) ─────────────────┘              ├─→ F2 (migrasi Issue)
                                              │
-G4 (done) ──→ R2 (REST domain lain, todo) ───┼─→ F3 (migrasi sisanya)
+G4 (done) ──→ R2 (done) ────────────────────┼─→ F3 (migrasi sisanya)
                                              │
                                              └─→ F4 (hapus Supabase)
 
 G5 (comment/mention) — independen, mulai kapan saja ada trigger nyata
 ```
 
-**Status per 2026-08-04:** G1-G4, R3, dan R1 semua ✅ done. R2 (endpoint TestCase/
-TestPlan/TestRun) adalah pekerjaan berikutnya — service sudah full-parity (G4)
-dan pola handler sudah settle (R1), tidak ada lagi blocker.
+**Status per 2026-08-05:** G1-G4, R3, R1, dan R2 semua ✅ done. F1 (flag infra
+frontend) adalah pekerjaan berikutnya — semua service backend sudah parity dan
+semua REST endpoint sudah tersedia, tidak ada lagi blocker dari sisi backend.

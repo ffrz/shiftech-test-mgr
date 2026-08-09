@@ -41,13 +41,24 @@ func main() {
 	projectHandler := &handler.ProjectHandler{Service: projectService}
 	healthHandler := &handler.HealthHandler{DB: db}
 
+	activityRepo := postgres.NewActivityRepo(db)
+
 	issueService := service.NewIssueService(postgres.NewIssueRepo(db), service.IssueContextSources{
 		Profiles:      postgres.NewProfileRepo(db),
-		Activity:      postgres.NewActivityRepo(db),
+		Activity:      activityRepo,
 		Attachments:   postgres.NewAttachmentRepo(db),
 		Notifications: postgres.NewNotificationRepo(db),
 	})
 	issueHandler := &handler.IssueHandler{Service: issueService}
+
+	testCaseService := service.NewTestCaseService(postgres.NewTestCaseRepo(db), activityRepo)
+	testCaseHandler := &handler.TestCaseHandler{Service: testCaseService}
+
+	testPlanService := service.NewTestPlanService(postgres.NewTestPlanRepo(db), activityRepo)
+	testPlanHandler := &handler.TestPlanHandler{Service: testPlanService}
+
+	testRunService := service.NewTestRunService(postgres.NewTestRunRepo(db), postgres.NewTestResultRepo(db), activityRepo)
+	testRunHandler := &handler.TestRunHandler{Service: testRunService}
 
 	e := echo.New()
 	e.HideBanner = true
@@ -56,7 +67,7 @@ func main() {
 	// which the frontend already trusts unconditionally.
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
-		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch},
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodDelete},
 		AllowHeaders: []string{"Authorization", "Content-Type"},
 	}))
 	e.GET("/health", healthHandler.Check)
@@ -74,6 +85,37 @@ func main() {
 	issues.POST("", issueHandler.Create)
 	issues.PATCH("/:id/status", issueHandler.UpdateStatus)
 	issues.PATCH("/:id/assign", issueHandler.Assign)
+
+	// Test Case routes — list/search needs member access, mutations need
+	// supervisor (mirrors can_edit_project_content in the frontend).
+	tc := authed.Group("/projects/:project_id/test-cases", auth.RequireProjectAccess(accessRepo, auth.RoleMember))
+	tc.GET("", testCaseHandler.List)
+	tc.GET("/:id", testCaseHandler.Get)
+	tc.POST("", testCaseHandler.Create)
+	tc.PATCH("/:id", testCaseHandler.Update)
+	tc.POST("/:id/duplicate", testCaseHandler.Duplicate)
+	tc.POST("/:id/archive", testCaseHandler.Archive)
+	tc.POST("/:id/reactivate", testCaseHandler.Reactivate)
+
+	// Test Plan routes.
+	tp := authed.Group("/projects/:project_id/test-plans", auth.RequireProjectAccess(accessRepo, auth.RoleMember))
+	tp.GET("", testPlanHandler.List)
+	tp.GET("/:id", testPlanHandler.Get)
+	tp.POST("", testPlanHandler.Create)
+	tp.POST("/:id/cases", testPlanHandler.AddCases)
+	tp.DELETE("/:id/cases", testPlanHandler.RemoveCases)
+	tp.POST("/:id/approve", testPlanHandler.Approve)
+	tp.PATCH("/:id/status", testPlanHandler.ChangeStatus)
+
+	// Test Run routes.
+	tr := authed.Group("/projects/:project_id/test-runs", auth.RequireProjectAccess(accessRepo, auth.RoleMember))
+	tr.GET("", testRunHandler.List)
+	tr.GET("/:id", testRunHandler.Get)
+	tr.POST("", testRunHandler.Create)
+	tr.PATCH("/:id/results/:result_id", testRunHandler.RecordResult)
+	tr.POST("/:id/complete", testRunHandler.Complete)
+	tr.POST("/:id/reopen", testRunHandler.Reopen)
+	tr.GET("/:id/summary", testRunHandler.Summary)
 
 	port := os.Getenv("HTTP_PORT")
 	if port == "" {
