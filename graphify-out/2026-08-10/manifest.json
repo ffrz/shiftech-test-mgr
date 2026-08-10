@@ -20,8 +20,8 @@
     "semantic_hash": ""
   },
   "frontend/src/App.tsx": {
-    "mtime": 1786331267.8550262,
-    "ast_hash": "0b52fcfc5ae0f68f693bc8b1f584dcbc",
+    "mtime": 1785555384.60166,
+    "ast_hash": "b652a7146790c0ee3a8fa5e406b16cae",
     "semantic_hash": ""
   },
   "frontend/src/components/auth/AdminRoute.tsx": {
