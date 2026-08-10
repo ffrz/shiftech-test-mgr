@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from 'primereact/button';
+import { useScreenSize } from '../../hooks/useScreenSize';
 
 type FilterToolbarProps = {
   /** Extra icon buttons rendered right of the filter toggle, before the primary action (e.g. import/duplicate). */
@@ -14,6 +15,8 @@ type FilterToolbarProps = {
   /** Controlled mode: pass both to let the parent own the toggle state instead of FilterToolbar managing it internally. */
   filterVisible?: boolean;
   onToggleFilterVisible?: () => void;
+  /** Called whenever the effective filter visibility changes (manual toggle OR responsive collapse/expand) so consumers can recompute the table height. */
+  onVisibilityChange?: (visible: boolean) => void;
 };
 
 export function FilterToolbar({
@@ -24,10 +27,25 @@ export function FilterToolbar({
   defaultFilterVisible = true,
   filterVisible: filterVisibleProp,
   onToggleFilterVisible,
+  onVisibilityChange,
 }: FilterToolbarProps) {
-  const [internalFilterVisible, setInternalFilterVisible] = useState(defaultFilterVisible);
+  const { lt } = useScreenSize();
+  const isMobile = lt.sm;
+  // On small screens filters always start collapsed regardless of defaultFilterVisible,
+  // so a wide-layout "open" default never leaks a tall filter bar onto a phone viewport.
+  const [internalFilterVisible, setInternalFilterVisible] = useState(isMobile ? false : defaultFilterVisible);
   const filterVisible = filterVisibleProp ?? internalFilterVisible;
   const toggleFilterVisible = onToggleFilterVisible ?? (() => setInternalFilterVisible((v) => !v));
+
+  // Auto-collapse filters on small screens; restore the desktop default when wide again.
+  useEffect(() => {
+    if (onToggleFilterVisible) return; // parent owns the value
+    setInternalFilterVisible(isMobile ? false : defaultFilterVisible);
+  }, [isMobile, defaultFilterVisible, onToggleFilterVisible]);
+
+  useEffect(() => {
+    onVisibilityChange?.(filterVisible);
+  }, [filterVisible, onVisibilityChange]);
 
   if (!visible) return null;
 

@@ -4,8 +4,24 @@ import { describe, expect, it, vi, afterEach } from 'vitest';
 import { FilterToolbar } from '../../components/ui/FilterToolbar';
 
 afterEach(() => {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024, writable: true });
   cleanup();
 });
+
+function setMobileViewport() {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: 500, writable: true });
+  window.matchMedia = (query: string) =>
+    ({
+      matches: query.includes('max-width'),
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }) as unknown as MediaQueryList;
+}
 
 describe('FilterToolbar', () => {
   it('returns null when visible=false', () => {
@@ -93,5 +109,29 @@ describe('FilterToolbar', () => {
     );
     fireEvent.click(screen.getByRole('button'));
     expect(onToggle).toHaveBeenCalledOnce();
+  });
+
+  it('starts collapsed on small screens even when defaultFilterVisible=true', () => {
+    setMobileViewport();
+    render(
+      <FilterToolbar>
+        <div>Filter Fields</div>
+      </FilterToolbar>,
+    );
+    expect(screen.queryByText('Filter Fields')).not.toBeInTheDocument();
+  });
+
+  it('reports initial collapsed visibility via onVisibilityChange on small screens, then the toggle opening it', () => {
+    setMobileViewport();
+    const onVisibilityChange = vi.fn();
+    render(
+      <FilterToolbar onVisibilityChange={onVisibilityChange}>
+        <div>Filter Fields</div>
+      </FilterToolbar>,
+    );
+    expect(onVisibilityChange).toHaveBeenLastCalledWith(false);
+    fireEvent.click(screen.getByRole('button'));
+    expect(onVisibilityChange).toHaveBeenLastCalledWith(true);
+    expect(screen.getByText('Filter Fields')).toBeInTheDocument();
   });
 });
