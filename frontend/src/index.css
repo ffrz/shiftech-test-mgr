@@ -791,11 +791,36 @@ html.dark .p-tag.p-tag-danger {
   height: var(--topbar-height);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
   padding: 0 1rem;
   background: var(--surface-ground);
   border-bottom: 1px solid var(--surface-border);
   z-index: 1000;
+}
+
+.layout-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.layout-topbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 45%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.layout-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  z-index: 1;
 }
 
 /* Dark theme: topbar is a lighter gray than the sidebar — inverse of the
