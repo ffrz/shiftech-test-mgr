@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { useDialogResizeFix } from './hooks/useDialogResizeFix';
 import { AppLayout } from './components/layout/AppLayout';
 import { AppToast } from './components/ui/AppToast';
@@ -26,6 +26,7 @@ import { PublicProfilePage } from './pages/profiles/PublicProfilePage';
 
 function App() {
   useDialogResizeFix();
+  const location = useLocation();
 
   return (
     <>
@@ -37,7 +38,7 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage key={location.pathname} />} />
             <Route path="/projects/:id/settings" element={<ProjectSettingsPage />} />
             <Route path="/test-plans" element={<TestPlansPage />} />
             <Route path="/test-plans/:id" element={<TestPlanDetailPage />} />
