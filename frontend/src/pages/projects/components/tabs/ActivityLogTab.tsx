@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useState, type CSSProperties } from 'react';
 import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { MultiSelect } from 'primereact/multiselect';
@@ -8,6 +9,7 @@ import { Button } from 'primereact/button';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../../../hooks/useTableHeight';
 import { UserHoverCard } from '../../../../components/ui/UserHoverCard';
 import { auditLogService } from '../../../../services/auditLogService';
 import { useStoredState } from '../../../../hooks/useStoredState';
@@ -29,14 +31,20 @@ const ENTITY_TYPE_OPTIONS: { label: string; value: ActivityEntityType }[] = [
 // this one project — distinct from each entity detail page's own "Activity" tab, which
 // only shows that single entity's comments/events. Any project member can see this (same
 // has_project_access RLS as the rest of entity_activity), not just managers/owners.
-export function ActivityLogTab({ projectId }: { projectId: string }) {
+export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }: { projectId: string; isMobile: boolean; visible: boolean; detailCollapsed: boolean }) {
   const navigate = useNavigate();
 
   const [entityTypes, setEntityTypes] = useStoredState<ActivityEntityType[]>(`project-${projectId}:activityLog:entityTypes`, []);
   const [search, setSearch] = useStoredState(`project-${projectId}:activityLog:search`, '');
   const [page, setPage] = useStoredState(`project-${projectId}:activityLog:page`, 1);
   const [rowsPerPage, setRowsPerPage] = useStoredState(`project-${projectId}:activityLog:rowsPerPage`, 20);
-  const [filterVisible, setFilterVisible] = useStoredState(`project-${projectId}:activityLog:filterVisible`, true);
+  // The persisted `filterVisible` stored state was dropped — the responsive FilterToolbar
+  // owns visibility now (hidden on first open on small screens, desktop default otherwise).
+  const [filterVisible, setFilterVisible] = useState(!isMobile);
+  const { containerRef, tableHeight } = useTableHeight({
+    enabled: isMobile,
+    deps: [isMobile, visible, detailCollapsed, filterVisible],
+  });
 
   const hasActiveFilters = entityTypes.length > 0 || !!search;
 
@@ -77,21 +85,27 @@ export function ActivityLogTab({ projectId }: { projectId: string }) {
     </span>
   );
 
+  const actorTitleStyle: CSSProperties = {
+    display: 'inline-block',
+    maxWidth: '20ch',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    verticalAlign: 'bottom',
+  };
+
   const actorBodyTemplate = (row: AuditLogEntry) =>
     row.actorId ? (
       <UserHoverCard userId={row.actorId}>
-        <span className="username-text cursor-pointer font-medium">{row.actorName}</span>
+        <span className="username-text cursor-pointer font-medium" style={actorTitleStyle}>{row.actorName}</span>
       </UserHoverCard>
     ) : (
-      <span>{row.actorName}</span>
+      <span style={actorTitleStyle}>{row.actorName}</span>
     );
 
   return (
     <>
-      <FilterToolbar
-        filterVisible={filterVisible}
-        onToggleFilterVisible={() => setFilterVisible(!filterVisible)}
-      >
+      <FilterToolbar onVisibilityChange={setFilterVisible}>
         <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={entityTypes}
@@ -125,6 +139,7 @@ export function ActivityLogTab({ projectId }: { projectId: string }) {
         </div>
       </FilterToolbar>
 
+      <div ref={containerRef}>
       <DataTable
         value={entries}
         loading={loading}
@@ -137,12 +152,20 @@ export function ActivityLogTab({ projectId }: { projectId: string }) {
         rowsPerPageOptions={[10, 20, 50, 100]}
         onPage={onPage}
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         onRowClick={(e) => navigate(pathForActivityEntity((e.data as AuditLogEntry).entityType, (e.data as AuditLogEntry).entityId))}
         rowHover
         className="cursor-pointer"
       >
-        <Column field="createdAt" header="Time" body={(row: AuditLogEntry) => formatDateTime(row.createdAt)} style={{ width: '12rem' }} />
-        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: '10rem' }} />
+        <Column
+          field="createdAt"
+          header="Time"
+          body={(row: AuditLogEntry) => formatDateTime(row.createdAt)}
+          style={{ width: '12rem' }}
+          className="text-nowrap overflow-hidden text-overflow-ellipsis"
+          headerClassName="text-nowrap"
+        />
+        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: '10rem' }} className="text-nowrap overflow-hidden" />
         <Column
           field="entityType"
           header="Entity"
@@ -152,6 +175,7 @@ export function ActivityLogTab({ projectId }: { projectId: string }) {
         <Column field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: '8rem' }} />
         <Column header="Description" body={descriptionBodyTemplate} className="dt-title-fill" headerClassName="dt-title-fill" />
       </DataTable>
+      </div>
     </>
   );
 }

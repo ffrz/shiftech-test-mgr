@@ -22,6 +22,7 @@ import { formatDate } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../hooks/useTableHeight';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
 
@@ -43,6 +44,9 @@ export function ProjectsPage() {
   const { user: currentUser } = useAuthContext();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+
+  const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
+
   const menuRef = useRef<Menu>(null);
 
   const [search, setSearch] = useStoredState('projectsPage:search', '');
@@ -272,12 +276,14 @@ export function ProjectsPage() {
           </div>
         </div>
 
+      <div ref={containerRef}>
       <DataTable
         value={projects}
         loading={loading}
         lazy
         totalRecords={totalRecords}
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         rows={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25, 50]}
         first={(page - 1) * rowsPerPage}
@@ -324,6 +330,7 @@ export function ProjectsPage() {
           />
         )}
       </DataTable>
+      </div>
 
       <CreateProjectDialog
         visible={dialogOpen}

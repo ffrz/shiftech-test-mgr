@@ -127,6 +127,18 @@ export function ProjectDetailPage() {
   };
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [detailCollapsed, setDetailCollapsed] = useStoredState(`project-${id ?? '__unknown__'}:detailCollapsed`, false);
+  // First open on a small screen ALWAYS collapses the project info section, even if a
+  // wider-layout session persisted "expanded" — the stats/detail block must not eat the
+  // little vertical space available on a phone. Cleared the moment the user toggles again.
+  const [forcedCollapsedOnMobile, setForcedCollapsedOnMobile] = useState(isMobile);
+  useEffect(() => { setForcedCollapsedOnMobile(isMobile); }, [isMobile]);
+  const effectiveDetailCollapsed = isMobile && forcedCollapsedOnMobile ? true : detailCollapsed;
+
+  function toggleDetailCollapsed() {
+    const next = !effectiveDetailCollapsed;
+    setDetailCollapsed(next);
+    if (isMobile) setForcedCollapsedOnMobile(false);
+  }
 
   // --- Debounced search for each tab ---
   function useDebouncedSearch(immediate: string, setter: (v: string) => void) {
@@ -1044,17 +1056,17 @@ export function ProjectDetailPage() {
             )}
             <Button
               text
-              icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'}
+              icon={effectiveDetailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'}
               rounded
               size="small"
               severity="secondary"
-              onClick={() => setDetailCollapsed(!detailCollapsed)}
-              aria-label={detailCollapsed ? 'Expand' : 'Collapse'}
+              onClick={toggleDetailCollapsed}
+              aria-label={effectiveDetailCollapsed ? 'Expand' : 'Collapse'}
             />
           </div>
         </div>
 
-        {!detailCollapsed && (
+        {!effectiveDetailCollapsed && (
           <>
             <p className="text-color-secondary text-sm mt-2 mb-0">{project.description || 'No description'}</p>
 
@@ -1126,6 +1138,8 @@ export function ProjectDetailPage() {
             issues={issues}
             loading={tabLoading[3]}
             isMobile={isMobile}
+            visible={activeTabIndex === 0}
+            detailCollapsed={effectiveDetailCollapsed}
             search={issueSearch}
             onSearchChange={setIssueSearch}
             statusFilter={issueStatusFilter}
@@ -1175,6 +1189,8 @@ export function ProjectDetailPage() {
             plans={testPlans}
             loading={tabLoading[0]}
             isMobile={isMobile}
+            visible={activeTabIndex === 1}
+            detailCollapsed={effectiveDetailCollapsed}
             projectId={id ?? ''}
             search={planSearch}
             onSearchChange={setPlanSearch}
@@ -1205,6 +1221,8 @@ export function ProjectDetailPage() {
             cases={testCases}
             loading={tabLoading[1]}
             isMobile={isMobile}
+            visible={activeTabIndex === 2}
+            detailCollapsed={effectiveDetailCollapsed}
             search={caseSearch}
             onSearchChange={setCaseSearch}
             statusFilter={caseStatusFilter}
@@ -1248,6 +1266,8 @@ export function ProjectDetailPage() {
             runs={testRuns}
             loading={tabLoading[2]}
             isMobile={isMobile}
+            visible={activeTabIndex === 3}
+            detailCollapsed={effectiveDetailCollapsed}
             search={runSearch}
             onSearchChange={setRunSearch}
             statusFilter={runStatusFilter}
@@ -1270,7 +1290,7 @@ export function ProjectDetailPage() {
         </TabPanel>
 
         <TabPanel header="Activity Log">
-          {id && <ActivityLogTab projectId={id} />}
+          {id && <ActivityLogTab projectId={id} isMobile={isMobile} visible={activeTabIndex === 4} detailCollapsed={effectiveDetailCollapsed} />}
         </TabPanel>
       </TabView>
 

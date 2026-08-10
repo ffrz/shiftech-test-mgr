@@ -19,6 +19,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../hooks/useTableHeight';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
@@ -42,6 +43,8 @@ export function TestSuitesPage() {
   const queryClient = useQueryClient();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+
+  const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
 
   const [ownershipFilter, setOwnershipFilter] = useStoredState<OwnershipFilter>('testSuitesPage:ownership', 'mine');
   const [search, setSearch] = useStoredState('testSuitesPage:search', '');
@@ -250,12 +253,14 @@ export function TestSuitesPage() {
           </div>
         </div>
 
+      <div ref={containerRef}>
       <DataTable
         value={suites}
         loading={loading}
         lazy
         totalRecords={totalRecords}
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         rows={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25, 50]}
         first={(page - 1) * rowsPerPage}
@@ -318,6 +323,7 @@ export function TestSuitesPage() {
           )}
         />
       </DataTable>
+      </div>
 
       <TestSuiteDialog
         visible={dialogOpen}

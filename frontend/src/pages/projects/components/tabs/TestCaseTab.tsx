@@ -15,6 +15,7 @@ import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../../../hooks/useTableHeight';
 import type { TestCase, TestCaseWithDetails, TestCasePriority, TestCaseStatus } from '../../../../types/domain';
 import { testCaseService } from '../../../../services/testCaseService';
 import { tagService } from '../../../../services/tagService';
@@ -43,6 +44,11 @@ type TestCaseTabProps = {
   cases: TestCaseWithDetails[];
   loading: boolean;
   isMobile: boolean;
+  /** True while this tab's TabView panel is the active one — hidden panels are kept
+   * mounted by PrimeReact, so table-height measurement must be skipped until visible. */
+  visible: boolean;
+  /** Project detail section collapsed state (mobile-first collapse) — feeds table-height re-measure. */
+  detailCollapsed: boolean;
   search: string;
   onSearchChange: (value: string) => void;
   statusFilter: TestCaseStatus[];
@@ -86,6 +92,8 @@ export function TestCaseTab({
   cases,
   loading,
   isMobile,
+  visible,
+  detailCollapsed,
   search,
   onSearchChange,
   statusFilter,
@@ -159,6 +167,14 @@ export function TestCaseTab({
   const cancelledRef = useRef(false);
   const undoToast = useRef<Toast>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Mirrors the FilterToolbar's own visibility (initial: hidden on mobile, per the
+  // responsive toolbars) and drives table re-measurement when it toggles.
+  const [filterVisible, setFilterVisible] = useState(!isMobile);
+  const { containerRef, tableHeight } = useTableHeight({
+    enabled: isMobile,
+    deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
+  });
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -284,6 +300,7 @@ export function TestCaseTab({
           </div>
         }
         primaryAction={<Button label="New Test Case" icon="pi pi-plus" size="small" onClick={onCreate} />}
+        onVisibilityChange={setFilterVisible}
       >
         <div className="col-6 md:col-2 p-1">
           <MultiSelect
@@ -377,6 +394,7 @@ export function TestCaseTab({
           }
         />
       )}
+      <div ref={containerRef}>
       <DataTable
         value={cases}
         loading={loading}
@@ -385,6 +403,7 @@ export function TestCaseTab({
         onRowClick={isMobile ? (e) => onRowClick(e.data as TestCaseWithDetails) : undefined}
         rowHover
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : sortOrder}
@@ -516,6 +535,7 @@ export function TestCaseTab({
           )}
         />
       </DataTable>
+      </div>
 
       <Dialog header={`Bulk Edit (${selected.length} selected)`} visible={bulkEditOpen} onHide={() => setBulkEditOpen(false)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">

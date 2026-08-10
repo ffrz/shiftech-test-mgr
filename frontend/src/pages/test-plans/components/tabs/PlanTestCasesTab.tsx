@@ -8,6 +8,7 @@ import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../../../hooks/useTableHeight';
 import type { Module, Tag as TagEntity, TestCasePriority, TestPlanCaseWithDetails } from '../../../../types/domain';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY } from '../../../../helpers/statusLabels';
 
@@ -23,6 +24,11 @@ type PlanTestCasesTabProps = {
   totalCases: number;
   loading: boolean;
   isMobile: boolean;
+  /** True while this tab's TabView panel is the active one — hidden panels are kept
+   * mounted by PrimeReact, so table-height measurement must be skipped until visible. */
+  visible: boolean;
+  /** Test plan detail section collapsed state (mobile-first collapse) — feeds table-height re-measure. */
+  detailCollapsed: boolean;
   canEditContent: boolean;
   isFilterActive: boolean;
   projectId: string | undefined;
@@ -59,6 +65,8 @@ export function PlanTestCasesTab({
   totalCases,
   loading,
   isMobile,
+  visible,
+  detailCollapsed,
   canEditContent,
   isFilterActive,
   projectId,
@@ -90,6 +98,12 @@ export function PlanTestCasesTab({
   onRemove,
 }: PlanTestCasesTabProps) {
   const navigate = useNavigate();
+
+  // Mirrors the parent-controlled filter visibility and drives table re-measurement.
+  const { containerRef, tableHeight } = useTableHeight({
+    enabled: isMobile,
+    deps: [isMobile, visible, detailCollapsed, filterVisible, selected.length],
+  });
 
   const mobileCaseTitleBody = (row: TestPlanCaseWithDetails) => (
     <div className="flex flex-column gap-2 py-1">
@@ -181,6 +195,7 @@ export function PlanTestCasesTab({
           actions={<Button label="Remove Selected" icon="pi pi-times" size="small" severity="danger" outlined onClick={onBulkRemove} />}
         />
       )}
+      <div ref={containerRef}>
       <DataTable
         value={cases}
         loading={loading}
@@ -192,7 +207,7 @@ export function PlanTestCasesTab({
         paginator
         paginatorTemplate={dataTablePaginatorProps.paginatorTemplate}
         scrollable={dataTablePaginatorProps.scrollable}
-        scrollHeight={dataTablePaginatorProps.scrollHeight}
+        scrollHeight={tableHeight}
         rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="No test cases in this plan yet"
         size="small"
@@ -289,6 +304,7 @@ export function PlanTestCasesTab({
           />
         )}
       </DataTable>
+      </div>
     </>
   );
 }

@@ -16,6 +16,7 @@ import { confirmDialog } from 'primereact/confirmdialog';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../../../hooks/useTableHeight';
 import type { IssueWithDetails, IssueStatus, IssuePriority, IssueType, ProjectMemberWithProfile } from '../../../../types/domain';
 import { issueService } from '../../../../services/issueService';
 import { tagService } from '../../../../services/tagService';
@@ -45,6 +46,11 @@ type IssueTabProps = {
   issues: IssueWithDetails[];
   loading: boolean;
   isMobile: boolean;
+  /** True while this tab's TabView panel is the active one — hidden panels are kept
+   * mounted by PrimeReact, so table-height measurement must be skipped until visible. */
+  visible: boolean;
+  /** Project detail section collapsed state (mobile-first collapse) — feeds table-height re-measure. */
+  detailCollapsed: boolean;
   search: string;
   onSearchChange: (value: string) => void;
   statusFilter: IssueStatus[];
@@ -92,6 +98,8 @@ export function IssueTab({
   issues,
   loading,
   isMobile,
+  visible,
+  detailCollapsed,
   search,
   onSearchChange,
   statusFilter,
@@ -143,6 +151,14 @@ export function IssueTab({
   const cancelledRef = useRef(false);
   const undoToast = useRef<Toast>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Mirrors the FilterToolbar's own visibility (initial: hidden on mobile, per the
+  // responsive toolbars) and drives table re-measurement when it toggles.
+  const [filterVisible, setFilterVisible] = useState(!isMobile);
+  const { containerRef, tableHeight } = useTableHeight({
+    enabled: isMobile,
+    deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
+  });
 
   // Bulk-edit dialog: UNSET (untouched, excluded from the update) until the user picks
   // something. `null` is itself a meaningful choice for assignedTo (unassign, via the
@@ -305,6 +321,7 @@ export function IssueTab({
       <Toast ref={undoToast} position="bottom-center" />
       <FilterToolbar
         primaryAction={canManageIssues && <Button label="New Issue" icon="pi pi-plus" size="small" onClick={onCreate} />}
+        onVisibilityChange={setFilterVisible}
       >
         <div className="col-6 md:col-2 p-1">
           <MultiSelect
@@ -409,7 +426,8 @@ export function IssueTab({
           }
         />
       )}
-      <DataTable
+      <div ref={containerRef}>
+        <DataTable
         value={issues}
         loading={loading}
         size="small"
@@ -421,6 +439,7 @@ export function IssueTab({
         first={lazy ? first : undefined}
         onPage={lazy ? onPage : undefined}
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         rows={rows ?? 10} rowsPerPageOptions={[5, 10, 25, 50]}
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : sortOrder}
@@ -718,6 +737,7 @@ export function IssueTab({
           )}
         />
       </DataTable>
+      </div>
 
       <Dialog header={`Bulk Edit (${selected.length} selected)`} visible={bulkEditOpen} onHide={() => setBulkEditOpen(false)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">

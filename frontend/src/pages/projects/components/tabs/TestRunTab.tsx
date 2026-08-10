@@ -11,6 +11,7 @@ import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../../../hooks/useTableHeight';
 import { testRunService } from '../../../../services/testRunService';
 import { useAuthContext } from '../../../../hooks/useAuth';
 import type { TestRun, TestRunStatus } from '../../../../types/domain';
@@ -34,6 +35,11 @@ type TestRunTabProps = {
   runs: TestRunWithSummary[];
   loading: boolean;
   isMobile: boolean;
+  /** True while this tab's TabView panel is the active one — hidden panels are kept
+   * mounted by PrimeReact, so table-height measurement must be skipped until visible. */
+  visible: boolean;
+  /** Project detail section collapsed state (mobile-first collapse) — feeds table-height re-measure. */
+  detailCollapsed: boolean;
   search: string;
   onSearchChange: (value: string) => void;
   statusFilter: TestRunStatus[];
@@ -58,6 +64,8 @@ export function TestRunTab({
   runs,
   loading,
   isMobile,
+  visible,
+  detailCollapsed,
   search,
   onSearchChange,
   statusFilter,
@@ -79,6 +87,15 @@ export function TestRunTab({
 }: TestRunTabProps) {
   const navigate = useNavigate();
   const { user } = useAuthContext();
+
+  // Mirrors the FilterToolbar's own visibility (initial: hidden on mobile, per the
+  // responsive toolbars) and drives table re-measurement when it toggles.
+  const [filterVisible, setFilterVisible] = useState(!isMobile);
+  const { containerRef, tableHeight } = useTableHeight({
+    enabled: isMobile,
+    deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
+  });
+
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const editNameRef = useRef<HTMLInputElement>(null);
@@ -125,6 +142,7 @@ export function TestRunTab({
       <FilterToolbar
         visible={canRunTests}
         primaryAction={<Button label="Create Test Run" icon="pi pi-plus" size="small" onClick={onCreate} />}
+        onVisibilityChange={setFilterVisible}
       >
         <div className="col-12 md:col-2 p-1">
           <MultiSelect
@@ -160,6 +178,7 @@ export function TestRunTab({
           actions={<Button label="Delete Selected" icon="pi pi-trash" size="small" severity="danger" outlined onClick={onBulkDelete} />}
         />
       )}
+      <div ref={containerRef}>
       <DataTable
         value={runs}
         loading={loading}
@@ -168,6 +187,7 @@ export function TestRunTab({
         onRowClick={isMobile ? (e) => onRowClick(e.data as TestRunWithSummary) : undefined}
         rowHover
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : sortOrder}
@@ -250,6 +270,7 @@ export function TestRunTab({
           )}
         />
       </DataTable>
+      </div>
     </>
   );
 }

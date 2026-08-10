@@ -14,6 +14,7 @@ import type { TestCaseWithDetails } from '../../types/domain';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../hooks/useTableHeight';
 import {
   TEST_CASE_PRIORITY_LABEL,
   TEST_CASE_PRIORITY_SEVERITY,
@@ -25,6 +26,9 @@ export function TestCasesPage() {
   const navigate = useNavigate();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+
+  const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
+
   const [projectId, setProjectId] = useState<string | null>(null);
 
   const { data: projects = [] } = useQuery({
@@ -88,7 +92,8 @@ export function TestCasesPage() {
         </p>
       )}
 
-      <DataTable value={testCases} loading={loading} {...dataTablePaginatorProps} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small">
+      <div ref={containerRef}>
+        <DataTable value={testCases} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small">
         {isMobile && <Column body={mobileBodyTemplate} />}
         {!isMobile && <Column field="code" header="Code" sortable style={{ width: '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
         {!isMobile && <Column field="title" header="Title" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}
@@ -111,6 +116,7 @@ export function TestCasesPage() {
         )}
         <Column header="" style={{ width: '3.5rem' }} body={actionBodyTemplate} />
       </DataTable>
+      </div>
     </div>
   );
 }

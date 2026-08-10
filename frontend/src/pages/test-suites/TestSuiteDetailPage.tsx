@@ -19,6 +19,7 @@ import { testSuiteService } from '../../services/testSuiteService';
 import { queryKeys } from '../../hooks/queryKeys';
 import type { TestCasePriority, TestSuiteItem, TestSuiteVisibility } from '../../types/domain';
 import { FilterToolbar } from '../../components/ui/FilterToolbar';
+import { useTableHeight } from '../../hooks/useTableHeight';
 import SearchInput from '../../components/ui/SearchInput';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
@@ -51,6 +52,17 @@ export function TestSuiteDetailPage() {
   const queryClient = useQueryClient();
 
   const [detailCollapsed, setDetailCollapsed] = useStoredState(`suite-${id ?? '__unknown__'}:detailCollapsed`, false);
+  // First open on a small screen ALWAYS collapses the suite info section, even if a
+  // wider-layout session persisted "expanded". Cleared the moment the user toggles again.
+  const [forcedCollapsedOnMobile, setForcedCollapsedOnMobile] = useState(isMobile);
+  useEffect(() => { setForcedCollapsedOnMobile(isMobile); }, [isMobile]);
+  const effectiveDetailCollapsed = isMobile && forcedCollapsedOnMobile ? true : detailCollapsed;
+
+  function toggleDetailCollapsed() {
+    const next = !effectiveDetailCollapsed;
+    setDetailCollapsed(next);
+    if (isMobile) setForcedCollapsedOnMobile(false);
+  }
 
   const [moduleFilter, setModuleFilter] = useState<string[]>([]);
   const [priorityFilter, setPriorityFilter] = useState<TestCasePriority[]>([]);
@@ -71,6 +83,14 @@ export function TestSuiteDetailPage() {
 
   // --- Bulk selection ---
   const [selectedItems, setSelectedItems] = useState<TestSuiteItem[]>([]);
+
+  // Mirrors the FilterToolbar's own visibility (initial: hidden on mobile) and drives table
+  // re-measurement whenever the filter area toggles or the detail section collapses.
+  const [filterVisible, setFilterVisible] = useState(!isMobile);
+  const { containerRef, tableHeight } = useTableHeight({
+    enabled: isMobile,
+    deps: [isMobile, effectiveDetailCollapsed, filterVisible, selectedItems.length],
+  });
 
   function handleBulkDeleteItems() {
     confirmDialog({
@@ -422,10 +442,10 @@ export function TestSuiteDetailPage() {
                 onClick={() => setEditDialogOpen(true)}
                 tooltip="Edit Test Suite"
                 tooltipOptions={{ position: 'bottom' }} />}
-            <Button text icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'} severity="secondary" rounded size="small" onClick={() => setDetailCollapsed(!detailCollapsed)} aria-label={detailCollapsed ? 'Expand' : 'Collapse'} />
+            <Button text icon={effectiveDetailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'} severity="secondary" rounded size="small" onClick={toggleDetailCollapsed} aria-label={effectiveDetailCollapsed ? 'Expand' : 'Collapse'} />
           </div>
         </div>
-        {!detailCollapsed && (
+        {!effectiveDetailCollapsed && (
           <>
             <p className="text-color-secondary text-sm mt-2 mb-0">{suite?.description || 'No description'}</p>
             <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-0 text-xs">
@@ -463,6 +483,7 @@ export function TestSuiteDetailPage() {
           </div>
         }
         primaryAction={isOwner && <Button label="New Item" icon="pi pi-plus" size="small" onClick={openCreateItemDialog} />}
+        onVisibilityChange={setFilterVisible}
       >
         <div className="col-6 md:col-2 p-1">
           <MultiSelect value={moduleFilter} options={moduleOptions} onChange={(e) => setModuleFilter(e.value)} placeholder="All Modules" className="w-full" selectAll selectAllLabel="All" virtualScrollerOptions={{ itemSize: 40 }} />
@@ -495,6 +516,7 @@ export function TestSuiteDetailPage() {
         />
       )}
 
+      <div ref={containerRef}>
       <DataTable
         value={filteredItems}
         loading={loading}
@@ -503,6 +525,7 @@ export function TestSuiteDetailPage() {
         dataKey="id"
         selectionMode={isMobile ? null : 'checkbox'}
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         rows={10}
         rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="No items yet"
@@ -585,6 +608,7 @@ export function TestSuiteDetailPage() {
           />
         )}
       </DataTable>
+      </div>
 
       <TestSuiteItemDialog
         visible={itemDialogOpen}

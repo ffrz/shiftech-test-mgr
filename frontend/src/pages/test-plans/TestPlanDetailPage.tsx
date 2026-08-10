@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tag } from 'primereact/tag';
@@ -51,6 +51,18 @@ export function TestPlanDetailPage() {
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
   const [detailCollapsed, setDetailCollapsed] = useState(false);
+  // First open on a small screen ALWAYS collapses the test plan info section. Cleared the
+  // moment the user toggles again.
+  const [forcedCollapsedOnMobile, setForcedCollapsedOnMobile] = useState(isMobile);
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
+  useEffect(() => { setForcedCollapsedOnMobile(isMobile); }, [isMobile]);
+  const effectiveDetailCollapsed = isMobile && forcedCollapsedOnMobile ? true : detailCollapsed;
+
+  function toggleDetailCollapsed() {
+    const next = !effectiveDetailCollapsed;
+    setDetailCollapsed(next);
+    if (isMobile) setForcedCollapsedOnMobile(false);
+  }
 
   // --- Edit Test Plan dialog ---
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
@@ -117,7 +129,7 @@ export function TestPlanDetailPage() {
   });
 
   // --- Test Runs: search / multi-select filter / server-side pagination ---
-  const [runFilterVisible, setRunFilterVisible] = useState(true);
+  const [runFilterVisible, setRunFilterVisible] = useState(!isMobile);
   const [runSearch, setRunSearch] = useState('');
   const [runStatusFilters, setRunStatusFilters] = useState<TestRunStatus[]>([]);
   const [runFirst, setRunFirst] = useState(0);
@@ -133,7 +145,7 @@ export function TestPlanDetailPage() {
   });
 
   // --- Test Cases: search / multi-select filter / server-side pagination ---
-  const [caseFilterVisible, setCaseFilterVisible] = useState(true);
+  const [caseFilterVisible, setCaseFilterVisible] = useState(!isMobile);
   const [caseSearch, setCaseSearch] = useState('');
   const [casePriorityFilters, setCasePriorityFilters] = useState<TestCasePriority[]>([]);
   const [caseModuleFilters, setCaseModuleFilters] = useState<string[]>([]);
@@ -347,16 +359,16 @@ export function TestPlanDetailPage() {
             )}
             <Button
               text
-              icon={detailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'}
+              icon={effectiveDetailCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'}
               rounded
               size="small"
-              onClick={() => setDetailCollapsed(!detailCollapsed)}
-              aria-label={detailCollapsed ? 'Expand' : 'Collapse'}
+              onClick={toggleDetailCollapsed}
+              aria-label={effectiveDetailCollapsed ? 'Expand' : 'Collapse'}
             />
           </div>
         </div>
 
-        {!detailCollapsed && testPlan && (
+        {!effectiveDetailCollapsed && testPlan && (
           <>
             <div>
               {testPlan && <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />}
@@ -402,13 +414,15 @@ export function TestPlanDetailPage() {
         )}
       </Card>
 
-      <TabView scrollable>
+      <TabView scrollable activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
         <TabPanel header="Test Cases">
           <PlanTestCasesTab
             cases={cases}
             totalCases={totalCases}
             loading={casesLoading}
             isMobile={isMobile}
+            visible={activeTabIndex === 0}
+            detailCollapsed={effectiveDetailCollapsed}
             canEditContent={canEditContent}
             isFilterActive={isCaseFilterActive}
             projectId={testPlan?.projectId}
@@ -446,6 +460,8 @@ export function TestPlanDetailPage() {
             total={totalRuns}
             loading={runsLoading}
             isMobile={isMobile}
+            visible={activeTabIndex === 1}
+            detailCollapsed={effectiveDetailCollapsed}
             canRunTests={canRunTests}
             canDeleteContent={canDeleteContent}
             filterVisible={runFilterVisible}

@@ -21,6 +21,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../hooks/useTableHeight';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
 
@@ -35,6 +36,8 @@ export function TestPlansPage() {
 
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+
+  const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
 
   const { data: projects = [] } = useQuery({
     queryKey: queryKeys.projects(),
@@ -112,8 +115,9 @@ export function TestPlansPage() {
         </p>
       )}
 
-      <DataTable value={testPlans} loading={loading} {...dataTablePaginatorProps} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
-        selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
+      <div ref={containerRef}>
+        <DataTable value={testPlans} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
+          selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
         <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={isMobile ? mobileCodeBody : undefined} />
         {!isMobile && <Column field="name" header="Name" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}
@@ -137,6 +141,7 @@ export function TestPlansPage() {
           />
         )}
       </DataTable>
+      </div>
 
       <Dialog header="Duplicate Test Plan" visible={!!duplicateRow} onHide={() => setDuplicateRow(null)} style={{ width: '28rem' }}>
         <div className="flex flex-column gap-3">

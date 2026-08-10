@@ -19,6 +19,7 @@ import { formatDateTime } from '../../helpers/dateFormatter';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../hooks/useTableHeight';
 import { ColumnHeaderMenu } from '../../components/ui/ColumnHeaderMenu';
 import { USER_ROLE_LABEL, USER_ROLE_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
@@ -36,6 +37,9 @@ export function UserManagementPage() {
   const { user: currentUser } = useAuthContext();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+
+  const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
+
   const menuRef = useRef<Menu>(null);
   const [menuRow, setMenuRow] = useState<EnrichedUser | null>(null);
 
@@ -189,12 +193,14 @@ export function UserManagementPage() {
             </div>
           </div>
         </div>
+      <div ref={containerRef}>
       <DataTable
         value={users}
         loading={loading}
         lazy
         totalRecords={totalRecords}
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         rows={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25, 50]}
         first={(page - 1) * rowsPerPage}
@@ -294,6 +300,7 @@ export function UserManagementPage() {
           )}
         />
       </DataTable>
+      </div>
     </div>
   );
 }

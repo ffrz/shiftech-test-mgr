@@ -19,6 +19,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../hooks/useTableHeight';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import { testRunService } from '../../services/testRunService';
 import { testPlanService } from '../../services/testPlanService';
@@ -49,6 +50,8 @@ export function TestRunIssuesPage() {
   const queryClient = useQueryClient();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+
+  const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
 
   const { data: testRun = null } = useQuery({
     queryKey: queryKeys.testRun(id ?? ''),
@@ -258,10 +261,12 @@ export function TestRunIssuesPage() {
         }
       />
 
+      <div ref={containerRef}>
       <DataTable
         value={issues}
         loading={loading}
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="No issues yet"
         size="small"
@@ -330,6 +335,7 @@ export function TestRunIssuesPage() {
           )}
         />
       </DataTable>
+      </div>
 
       {/* --- Edit Issue Dialog (reusable IssueEditor) --- */}
       <IssueEditor

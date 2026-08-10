@@ -7,6 +7,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../../../hooks/useTableHeight';
 import type { TestRun, TestRunStatus } from '../../../../types/domain';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
 import {
@@ -25,6 +26,11 @@ type PlanTestRunsTabProps = {
   total: number;
   loading: boolean;
   isMobile: boolean;
+  /** True while this tab's TabView panel is the active one — hidden panels are kept
+   * mounted by PrimeReact, so table-height measurement must be skipped until visible. */
+  visible: boolean;
+  /** Test plan detail section collapsed state (mobile-first collapse) — feeds table-height re-measure. */
+  detailCollapsed: boolean;
   canRunTests: boolean;
   canDeleteContent: boolean;
   filterVisible: boolean;
@@ -46,6 +52,8 @@ export function PlanTestRunsTab({
   total,
   loading,
   isMobile,
+  visible,
+  detailCollapsed,
   canRunTests,
   canDeleteContent,
   filterVisible,
@@ -62,6 +70,12 @@ export function PlanTestRunsTab({
   onDeleteRun,
 }: PlanTestRunsTabProps) {
   const navigate = useNavigate();
+
+  // Mirrors the parent-controlled filter visibility and drives table re-measurement.
+  const { containerRef, tableHeight } = useTableHeight({
+    enabled: isMobile,
+    deps: [isMobile, visible, detailCollapsed, filterVisible],
+  });
 
   const mobileRunNameBody = (row: TestRunWithSummary) => (
     <div className="flex flex-column gap-2 py-1">
@@ -108,11 +122,13 @@ export function PlanTestRunsTab({
           </div>
         </div>
       </FilterToolbar>
+      <div ref={containerRef}>
       <DataTable
         value={testRuns}
         loading={loading}
         lazy
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         totalRecords={total}
         first={first}
         rows={rows}
@@ -173,6 +189,7 @@ export function PlanTestRunsTab({
           />
         )}
       </DataTable>
+      </div>
     </>
   );
 }

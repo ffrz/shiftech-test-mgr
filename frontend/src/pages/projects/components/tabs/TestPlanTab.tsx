@@ -13,6 +13,7 @@ import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
+import { useTableHeight } from '../../../../hooks/useTableHeight';
 import { testPlanService } from '../../../../services/testPlanService';
 import { useAuthContext } from '../../../../hooks/useAuth';
 import type { TestPlan, TestPlanStatus } from '../../../../types/domain';
@@ -29,6 +30,11 @@ type TestPlanTabProps = {
   plans: TestPlan[];
   loading: boolean;
   isMobile: boolean;
+  /** True while this tab's TabView panel is the active one — hidden panels are kept
+   * mounted by PrimeReact, so table-height measurement must be skipped until visible. */
+  visible: boolean;
+  /** Project detail section collapsed state (mobile-first collapse) — feeds table-height re-measure. */
+  detailCollapsed: boolean;
   projectId: string;
   search: string;
   onSearchChange: (value: string) => void;
@@ -57,6 +63,8 @@ export function TestPlanTab({
   plans,
   loading,
   isMobile,
+  visible,
+  detailCollapsed,
   projectId,
   search,
   onSearchChange,
@@ -88,6 +96,14 @@ export function TestPlanTab({
   const cancelledRef = useRef(false);
   const undoToast = useRef<Toast>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Mirrors the FilterToolbar's own visibility (initial: hidden on mobile, per the
+  // responsive toolbars) and drives table re-measurement when it toggles.
+  const [filterVisible, setFilterVisible] = useState(!isMobile);
+  const { containerRef, tableHeight } = useTableHeight({
+    enabled: isMobile,
+    deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
+  });
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -183,6 +199,7 @@ export function TestPlanTab({
       <FilterToolbar
         visible={canEditContent}
         primaryAction={<Button label="New Test Plan" icon="pi pi-plus" size="small" onClick={onCreate} />}
+        onVisibilityChange={setFilterVisible}
       >
         <div className="col-12 md:col-2 p-1">
           <MultiSelect
@@ -232,6 +249,7 @@ export function TestPlanTab({
           }
         />
       )}
+      <div ref={containerRef}>
       <DataTable
         value={plans}
         loading={loading}
@@ -240,6 +258,7 @@ export function TestPlanTab({
         onRowClick={isMobile ? (e) => onRowClick(e.data as TestPlan) : undefined}
         rowHover
         {...dataTablePaginatorProps}
+        scrollHeight={tableHeight}
         rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
         sortField={isMobile ? undefined : sortField}
         sortOrder={isMobile ? undefined : sortOrder}
@@ -299,6 +318,7 @@ export function TestPlanTab({
           )}
         />
       </DataTable>
+      </div>
     </>
   );
 }
