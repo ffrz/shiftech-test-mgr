@@ -74,16 +74,16 @@ const TAB_QUERY_NAMES = ['testPlans', 'testCases', 'modules', 'tags', 'testRoles
 // every render even though nothing meaningful did).
 const EMPTY_ARRAY: never[] = [];
 const TAB_DEPENDENCIES: (typeof TAB_QUERY_NAMES[number])[][] = [
+  ['issues', 'projectMembers'],
   ['testPlans'],
   ['testCases', 'modules', 'tags', 'testRoles'],
   ['testRuns'],
-  ['issues', 'projectMembers'],
 ];
 
 // TabView panel order (index -> `tab` query param value) — keep in sync with the
 // <TabPanel> order below. Names, not indices, so links built elsewhere (breadcrumbs,
 // notifications) stay valid even if tabs are reordered.
-const PROJECT_TAB_NAMES = ['testPlans', 'testCases', 'testRuns', 'issues', 'activity', 'activityLog'] as const;
+const PROJECT_TAB_NAMES = ['issues', 'testPlans', 'testCases', 'testRuns', 'activityLog'] as const;
 
 
 export function ProjectDetailPage() {
