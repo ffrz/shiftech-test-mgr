@@ -593,7 +593,7 @@ export function ProjectSettingsPage() {
       </Card>
 
       <Card>
-        <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
+        <TabView scrollable activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
           <TabPanel header="Modules">
             <ModulesTab
               modules={filteredModules}

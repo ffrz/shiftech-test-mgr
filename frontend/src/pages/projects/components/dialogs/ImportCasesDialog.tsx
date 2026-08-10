@@ -131,7 +131,7 @@ export function ImportCasesDialog({ visible, onHide, loading, onImport, excludeP
 
   return (
     <Dialog header="Import Test Cases" visible={visible} onHide={handleHide} style={{ width: '38rem' }}>
-      <TabView activeIndex={activeTab} onTabChange={(e) => setActiveTab(e.index)}>
+      <TabView scrollable activeIndex={activeTab} onTabChange={(e) => setActiveTab(e.index)}>
         <TabPanel header="My Suites">
           <div className="flex flex-column gap-2 pt-2">
             <FloatLabel className="ifta-field">

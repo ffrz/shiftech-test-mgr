@@ -1119,7 +1119,57 @@ export function ProjectDetailPage() {
         )}
       </Card>
 
-      <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
+      <TabView scrollable activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
+
+        <TabPanel header="Issues">
+          <IssueTab
+            issues={issues}
+            loading={tabLoading[3]}
+            isMobile={isMobile}
+            search={issueSearch}
+            onSearchChange={setIssueSearch}
+            statusFilter={issueStatusFilter}
+            onStatusFilterChange={setIssueStatusFilter}
+            priorityFilter={issuePriorityFilter}
+            onPriorityFilterChange={setIssuePriorityFilter}
+            moduleFilter={issueModuleFilter}
+            onModuleFilterChange={setIssueModuleFilter}
+            tagFilter={issueTagFilter}
+            onTagFilterChange={setIssueTagFilter}
+            typeFilter={issueTypeFilter}
+            onTypeFilterChange={setIssueTypeFilter}
+            testRoleFilter={issueTestRoleFilter}
+            onTestRoleFilterChange={setIssueTestRoleFilter}
+            hasActiveFilters={!!issueSearch || issueStatusFilter.length > 0 || issuePriorityFilter.length > 0 || issueModuleFilter.length > 0 || issueTagFilter.length > 0 || issueTypeFilter.length > 0 || issueTestRoleFilter.length > 0}
+            onClearFilters={() => { setIssueSearch(''); setIssueStatusFilter([]); setIssuePriorityFilter([]); setIssueModuleFilter([]); setIssueTagFilter([]); setIssueTypeFilter([]); setIssueTestRoleFilter([]); }}
+            moduleOptions={moduleOptions}
+            tagOptions={tagOptions}
+            testRoleOptions={testRoleOptions}
+            sortField={issueSortField}
+            sortOrder={issueSortOrder}
+            onSort={sortHandler(setIssueSortField, setIssueSortOrder)}
+            selected={selectedIssues}
+            onSelectedChange={setSelectedIssues}
+            projectMembers={projectMembers}
+            canManageIssues={canManageIssues}
+            canDeleteContent={canDeleteContent}
+            onCreate={openCreateIssueDialog}
+            onEdit={openEditIssueDialog}
+            onDuplicate={openDuplicateIssueDialog}
+            onBulkDelete={handleBulkDeleteIssues}
+            onBulkEdit={handleBulkEditIssues}
+            onRowClick={(row) => navigate(`/issues/${row.id}`)}
+            onPatchIssue={patchIssue}
+            onReload={loadAll}
+            onToastSuccess={toastSuccess}
+            lazy
+            totalRecords={totalIssues}
+            first={(issuePage - 1) * issueRowsPerPage}
+            rows={issueRowsPerPage}
+            onPage={onIssuePage}
+          />
+        </TabPanel>
+
         <TabPanel header="Test Plans">
           <TestPlanTab
             plans={testPlans}
@@ -1216,55 +1266,6 @@ export function ProjectDetailPage() {
             onBulkDelete={handleBulkDeleteRuns}
             onRowClick={(row) => navigate(`/test-runs/${row.id}`)}
             onPlanLinkClick={(planId) => navigate(`/test-plans/${planId}`)}
-          />
-        </TabPanel>
-
-        <TabPanel header="Issues">
-          <IssueTab
-            issues={issues}
-            loading={tabLoading[3]}
-            isMobile={isMobile}
-            search={issueSearch}
-            onSearchChange={setIssueSearch}
-            statusFilter={issueStatusFilter}
-            onStatusFilterChange={setIssueStatusFilter}
-            priorityFilter={issuePriorityFilter}
-            onPriorityFilterChange={setIssuePriorityFilter}
-            moduleFilter={issueModuleFilter}
-            onModuleFilterChange={setIssueModuleFilter}
-            tagFilter={issueTagFilter}
-            onTagFilterChange={setIssueTagFilter}
-            typeFilter={issueTypeFilter}
-            onTypeFilterChange={setIssueTypeFilter}
-            testRoleFilter={issueTestRoleFilter}
-            onTestRoleFilterChange={setIssueTestRoleFilter}
-            hasActiveFilters={!!issueSearch || issueStatusFilter.length > 0 || issuePriorityFilter.length > 0 || issueModuleFilter.length > 0 || issueTagFilter.length > 0 || issueTypeFilter.length > 0 || issueTestRoleFilter.length > 0}
-            onClearFilters={() => { setIssueSearch(''); setIssueStatusFilter([]); setIssuePriorityFilter([]); setIssueModuleFilter([]); setIssueTagFilter([]); setIssueTypeFilter([]); setIssueTestRoleFilter([]); }}
-            moduleOptions={moduleOptions}
-            tagOptions={tagOptions}
-            testRoleOptions={testRoleOptions}
-            sortField={issueSortField}
-            sortOrder={issueSortOrder}
-            onSort={sortHandler(setIssueSortField, setIssueSortOrder)}
-            selected={selectedIssues}
-            onSelectedChange={setSelectedIssues}
-            projectMembers={projectMembers}
-            canManageIssues={canManageIssues}
-            canDeleteContent={canDeleteContent}
-            onCreate={openCreateIssueDialog}
-            onEdit={openEditIssueDialog}
-            onDuplicate={openDuplicateIssueDialog}
-            onBulkDelete={handleBulkDeleteIssues}
-            onBulkEdit={handleBulkEditIssues}
-            onRowClick={(row) => navigate(`/issues/${row.id}`)}
-            onPatchIssue={patchIssue}
-            onReload={loadAll}
-            onToastSuccess={toastSuccess}
-            lazy
-            totalRecords={totalIssues}
-            first={(issuePage - 1) * issueRowsPerPage}
-            rows={issueRowsPerPage}
-            onPage={onIssuePage}
           />
         </TabPanel>
 

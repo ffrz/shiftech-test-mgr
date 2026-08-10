@@ -402,7 +402,7 @@ export function TestPlanDetailPage() {
         )}
       </Card>
 
-      <TabView>
+      <TabView scrollable>
         <TabPanel header="Test Cases">
           <PlanTestCasesTab
             cases={cases}
