@@ -65,8 +65,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/layout/AppTopbar.tsx": {
-    "mtime": 1785719250.642388,
-    "ast_hash": "63129002436da452afdf9996d5e5abbc",
+    "mtime": 1786345076.9759872,
+    "ast_hash": "aa7d12f3d5de1e0de3cd5bdb665e0686",
     "semantic_hash": ""
   },
   "frontend/src/components/layout/BreadcrumbContext.tsx": {
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/ProjectDetailPage.tsx": {
-    "mtime": 1786336232.554335,
-    "ast_hash": "98536fa4039e507f03704b2140cbf884",
+    "mtime": 1786345106.5388887,
+    "ast_hash": "bbeeacadadfd2f8724030d9104d04c73",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/ProjectSettingsPage.tsx": {
@@ -1315,8 +1315,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/ActivityLogTab.tsx": {
-    "mtime": 1786334938.8103998,
-    "ast_hash": "58ac044cd41ff0dec3678cbc415827a4",
+    "mtime": 1786344844.0417974,
+    "ast_hash": "db671a08898586baee90681bda3ce382",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/DangerZoneTab.tsx": {
