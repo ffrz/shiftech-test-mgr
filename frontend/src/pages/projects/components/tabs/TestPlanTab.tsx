@@ -301,7 +301,7 @@ export function TestPlanTab({
             <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />
           </div>;
         }} />
-        <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: '11rem' }} body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
+        <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: '11rem', whiteSpace: 'nowrap' }} body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
         <Column
           header=""
           style={{ width: '3.5rem' }}

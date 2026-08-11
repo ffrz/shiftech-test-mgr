@@ -103,6 +103,26 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
       <span style={actorTitleStyle}>{row.actorName}</span>
     );
 
+  const mobileBody = (row: AuditLogEntry) => (
+    <div className="flex flex-column gap-1">
+      <div className="text-sm">
+        {row.eventType === 'comment'
+          ? (typeof row.payload.body === 'string' ? row.payload.body.slice(0, 120) : '')
+          : describeSystemEvent(row)}
+      </div>
+      <div className="flex gap-1 align-items-center text-sm flex-wrap">
+        <Tag value={eventTypeLabel(row.eventType)} severity={row.eventType === 'comment' ? 'info' : 'secondary'} />
+        <Tag value={ACTIVITY_ENTITY_LABEL[row.entityType] ?? row.entityType} severity="info" />
+      </div>
+      <div className="text-sm text-color-secondary">
+        {formatDateTime(row.createdAt)}
+      </div>
+      <div className="text-sm text-color-secondary">
+        {row.actorName}
+      </div>
+    </div>
+  );
+
   return (
     <>
       <FilterToolbar onVisibilityChange={setFilterVisible}>
@@ -141,6 +161,7 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
 
       <div ref={containerRef}>
       <DataTable
+        key={isMobile ? 'mobile' : 'desktop'}
         value={entries}
         loading={loading}
         size="small"
@@ -156,24 +177,27 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
         onRowClick={(e) => navigate(pathForActivityEntity((e.data as AuditLogEntry).entityType, (e.data as AuditLogEntry).entityId))}
         rowHover
         className="cursor-pointer"
+        cellMemo={false}
       >
         <Column
           field="createdAt"
           header="Time"
           body={(row: AuditLogEntry) => formatDateTime(row.createdAt)}
           style={{ width: '12rem' }}
-          className="text-nowrap overflow-hidden text-overflow-ellipsis"
-          headerClassName="text-nowrap"
+          className="white-space-nowrap overflow-hidden text-overflow-ellipsis"
+          headerClassName="white-space-nowrap"
+          hidden={isMobile}
         />
-        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: '10rem' }} className="text-nowrap overflow-hidden" />
+        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: '13rem' }} className="white-space-nowrap overflow-hidden text-overflow-ellipsis" hidden={isMobile} />
         <Column
           field="entityType"
           header="Entity"
           body={(row: AuditLogEntry) => ACTIVITY_ENTITY_LABEL[row.entityType] ?? row.entityType}
           style={{ width: '8rem' }}
+          hidden={isMobile}
         />
-        <Column field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: '8rem' }} />
-        <Column header="Description" body={descriptionBodyTemplate} className="dt-title-fill" headerClassName="dt-title-fill" />
+        <Column field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: '8rem' }} hidden={isMobile} />
+        <Column header={isMobile ? 'Activity' : 'Description'} body={isMobile ? mobileBody : descriptionBodyTemplate} className="dt-title-fill" headerClassName="dt-title-fill" />
       </DataTable>
       </div>
     </>

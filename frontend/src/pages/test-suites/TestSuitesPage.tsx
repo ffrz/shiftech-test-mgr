@@ -280,8 +280,6 @@ export function TestSuitesPage() {
             field="name"
             header="Name"
             sortable
-            className="dt-title-fill"
-            headerClassName="dt-title-fill"
             body={(row: EnrichedTestSuite) => (
               <div className="flex flex-column">
                 <span>{row.name}</span>
@@ -303,7 +301,7 @@ export function TestSuitesPage() {
             body={(row: EnrichedTestSuite) => <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} />}
           />
         )}
-        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: EnrichedTestSuite) => formatDateTime(row.updatedAt)} sortable />}
+        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: EnrichedTestSuite) => formatDateTime(row.updatedAt)} sortable style={{ whiteSpace: 'nowrap' }} />}
         <Column
           header=""
           style={{ width: '3.5rem' }}

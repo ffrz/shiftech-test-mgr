@@ -298,8 +298,8 @@ export function ProjectsPage() {
         className="cursor-pointer"
       >
         {isMobile && <Column field="name" header="Project" body={mobileBody} />}
-        {!isMobile && <Column field="name" header="Name" sortable body={nameBody} className="dt-title-fill" headerClassName="dt-title-fill" />}
-        {!isMobile && <Column field="description" header="Description" />}
+        {!isMobile && <Column field="name" header="Name" sortable body={nameBody} style={{ width: '30%' }} />}
+        {!isMobile && <Column field="description" header="Description" style={{ minWidth: '12rem' }} />}
         {!isMobile && (
           <Column
             field="status"
@@ -308,7 +308,7 @@ export function ProjectsPage() {
           />
         )}
         {!isMobile && (
-          <Column field="createdAt" header="Created" body={(row: Project) => formatDate(row.createdAt)} sortable />
+          <Column field="createdAt" header="Created" body={(row: Project) => <span style={{ whiteSpace: 'nowrap' }}>{formatDate(row.createdAt)}</span>} sortable />
         )}
         {!isMobile && (
           <Column
