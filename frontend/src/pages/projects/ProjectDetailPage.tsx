@@ -279,10 +279,10 @@ export function ProjectDetailPage() {
   const projectMembers = projectMembersQuery.data ?? EMPTY_ARRAY;
 
   const tabLoading: Record<number, boolean> = {
-    0: testPlansQuery.isLoading,
-    1: testCasesQuery.isLoading || modulesQuery.isLoading || tagsQuery.isLoading || testRolesQuery.isLoading,
-    2: testRunsQuery.isLoading,
-    3: issuesQuery.isLoading || projectMembersQuery.isLoading,
+    0: issuesQuery.isLoading || projectMembersQuery.isLoading,
+    1: testPlansQuery.isLoading,
+    2: testCasesQuery.isLoading || modulesQuery.isLoading || tagsQuery.isLoading || testRolesQuery.isLoading,
+    3: testRunsQuery.isLoading,
   };
 
   const queryKeyByName: Record<(typeof TAB_QUERY_NAMES)[number], readonly unknown[]> = id
@@ -1136,7 +1136,7 @@ export function ProjectDetailPage() {
         <TabPanel header="Issues">
           <IssueTab
             issues={issues}
-            loading={tabLoading[3]}
+            loading={tabLoading[0]}
             isMobile={isMobile}
             visible={activeTabIndex === 0}
             detailCollapsed={effectiveDetailCollapsed}
@@ -1187,7 +1187,7 @@ export function ProjectDetailPage() {
         <TabPanel header="Test Plans">
           <TestPlanTab
             plans={testPlans}
-            loading={tabLoading[0]}
+            loading={tabLoading[1]}
             isMobile={isMobile}
             visible={activeTabIndex === 1}
             detailCollapsed={effectiveDetailCollapsed}
@@ -1219,7 +1219,7 @@ export function ProjectDetailPage() {
         <TabPanel header="Test Cases">
           <TestCaseTab
             cases={testCases}
-            loading={tabLoading[1]}
+            loading={tabLoading[2]}
             isMobile={isMobile}
             visible={activeTabIndex === 2}
             detailCollapsed={effectiveDetailCollapsed}
@@ -1264,7 +1264,7 @@ export function ProjectDetailPage() {
         <TabPanel header="Test Runs">
           <TestRunTab
             runs={testRuns}
-            loading={tabLoading[2]}
+            loading={tabLoading[3]}
             isMobile={isMobile}
             visible={activeTabIndex === 3}
             detailCollapsed={effectiveDetailCollapsed}
