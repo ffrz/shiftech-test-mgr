@@ -101,9 +101,9 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
 
   useEffect(() => {
     setItems(items);
-    // No cleanup: the next page's Breadcrumb sets its own items on mount before
-    // this one's cleanup would run, so clearing here only causes a blank flash
-    // in the topbar between unmount and the next page's effect.
+    // Clear stale breadcrumb on unmount so pages without their own Breadcrumb
+    // (plain list pages) don't inherit the previous page's trail.
+    return () => { setItems([]); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(items)]);
 
