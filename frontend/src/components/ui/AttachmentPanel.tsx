@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { attachmentService } from '../../services/attachmentService';
 import { queryKeys } from '../../hooks/queryKeys';
+import { useAuthContext } from '../../hooks/useAuth';
 import { toastHelper } from '../../helpers/toast';
 import type { AttachmentEntityType, Attachment } from '../../types/domain';
 
@@ -20,6 +21,7 @@ interface AttachmentPanelProps {
 // wired and tested), this covers the entity types that had no attachment UI before.
 export function AttachmentPanel({ projectId, entityType, entityId, canManage }: AttachmentPanelProps) {
   const queryClient = useQueryClient();
+  const { user } = useAuthContext();
 
   const { data: attachments = [] } = useQuery({
     queryKey: queryKeys.entityAttachments(entityType, entityId ?? ''),
@@ -36,7 +38,7 @@ export function AttachmentPanel({ projectId, entityType, entityId, canManage }: 
     if (!entityId) return;
     try {
       for (const file of event.files) {
-        await attachmentService.uploadForEntity(entityType, entityId, projectId, file);
+        await attachmentService.uploadForEntity(entityType, entityId, projectId, file, user?.id);
       }
       await invalidate();
       toastHelper.success('Attachment uploaded');
@@ -55,7 +57,7 @@ export function AttachmentPanel({ projectId, entityType, entityId, canManage }: 
       acceptClassName: 'p-button-danger',
       accept: async () => {
         try {
-          await attachmentService.removeForEntity(attachment.id, attachment.url);
+          await attachmentService.removeForEntity(attachment.id, attachment.url, { projectId: attachment.projectId, entityType: attachment.entityType, entityId: attachment.entityId, actorId: user?.id, fileName: attachment.fileName });
           await invalidate();
           toastHelper.success('Attachment removed');
         } catch (err) {

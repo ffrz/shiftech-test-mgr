@@ -302,7 +302,7 @@ export function IssueDetailPage() {
     if (!issue) return;
     try {
       for (const file of event.files) {
-        await attachmentService.upload(issue.id, issue.projectId, file);
+        await attachmentService.upload(issue.id, issue.projectId, file, user?.id);
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) });
       toastHelper.success('Attachment uploaded');
@@ -321,7 +321,7 @@ export function IssueDetailPage() {
       acceptClassName: 'p-button-danger',
       accept: async () => {
         if (!issue) return;
-        await attachmentService.remove(attachment.id, attachment.url);
+        await attachmentService.remove(attachment.id, attachment.url, { projectId: issue.projectId, entityId: issue.id, actorId: user?.id, fileName: attachment.fileName });
         await queryClient.invalidateQueries({ queryKey: queryKeys.attachmentsByIssue(issue.id) });
       },
     });

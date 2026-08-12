@@ -15,6 +15,7 @@ import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
 import { attachmentService } from '../../services/attachmentService';
 import { toastHelper } from '../../helpers/toast';
+import { useAuthContext } from '../../hooks/useAuth';
 import { memberSelectLabel } from '../../helpers/memberLabels';
 
 export interface IssueFormData {
@@ -106,6 +107,8 @@ export function IssueEditor({
   const [titleError, setTitleError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const { user } = useAuthContext();
+
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -183,7 +186,7 @@ export function IssueEditor({
       // exists — onSave returns the new issue so we can attach them right after.
       if (created?.id && pendingFiles.length > 0) {
         for (const file of pendingFiles) {
-          await attachmentService.upload(created.id, projectId, file);
+          await attachmentService.upload(created.id, projectId, file, user?.id);
         }
         onAttachmentsChange?.();
       }
@@ -258,7 +261,7 @@ export function IssueEditor({
     if (!issueId) return;
     try {
       for (const file of event.files) {
-        await attachmentService.upload(issueId, projectId, file);
+        await attachmentService.upload(issueId, projectId, file, user?.id);
       }
       onAttachmentsChange?.();
       toastHelper.success('Attachment uploaded');
@@ -270,7 +273,7 @@ export function IssueEditor({
   async function handleRemoveAttachment(attachment: Attachment) {
     if (!issueId) return;
     try {
-      await attachmentService.remove(attachment.id, attachment.url);
+      await attachmentService.remove(attachment.id, attachment.url, { projectId, entityId: issueId, actorId: user?.id, fileName: attachment.fileName });
       onAttachmentsChange?.();
     } catch (err) {
       toastHelper.errorFromCatch('Failed to remove attachment', err);
