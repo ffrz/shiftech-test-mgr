@@ -411,6 +411,10 @@ export function ActivityPanel({ projectId, entityType, entityId }: ActivityPanel
         return 'pi pi-user-edit';
       case 'attachment_added':
         return 'pi pi-paperclip';
+      case 'attachment_removed':
+        return 'pi pi-times-circle';
+      case 'result_update':
+        return 'pi pi-check-square';
       default:
         return 'pi pi-bolt';
     }

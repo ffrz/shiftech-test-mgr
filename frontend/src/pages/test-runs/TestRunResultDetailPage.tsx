@@ -251,7 +251,7 @@ export function TestRunResultDetailPage() {
     const testerId = next.testerId ?? resultTesterId;
     const notes = next.notes ?? resultNotes;
     if (!testerId) return;
-    await testRunService.recordResult(activeResult.id, testerId, status, notes.trim() || null);
+    await testRunService.recordResult(activeResult.id, testerId, status, notes.trim() || null, { projectId, actorId: user?.id });
     await reload();
     // Pass/fail counts shown in the run summary lists on ProjectDetailPage/TestPlanDetailPage
     // come from this same recorded result — keep them in sync too.
@@ -816,7 +816,7 @@ export function TestRunResultDetailPage() {
                             options={[{ label: 'Pass', value: 'pass' }, { label: 'Fail', value: 'fail' }]}
                             placeholder="-"
                             onChange={async (e) => {
-                              await testRunService.recordStepResult(sr.id, e.value, sr.actualResult);
+                              await testRunService.recordStepResult(sr.id, e.value, sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
                               await reload();
                             }}
                             className="w-8rem"

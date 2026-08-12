@@ -201,14 +201,36 @@ export const testRunService = {
     return { results, summary: { total, executed, progressPercent, ...counts } };
   },
 
-  recordResult(id: string, testerId: string, status: TestResultStatus, notes: string | null) {
-    return testResultRepository.recordResult(id, { status, testerId, notes });
+  async recordResult(id: string, testerId: string, status: TestResultStatus, notes: string | null, context?: { projectId?: string; actorId?: string }) {
+    const result = await testResultRepository.recordResult(id, { status, testerId, notes });
+    if (context?.actorId && context.projectId) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'test_run',
+        entityId: result.testRunId,
+        actorId: context.actorId,
+        eventType: 'result_update',
+        payload: { status: result.status, testCaseCode: result.testCaseCode, testCaseTitle: result.testCaseTitle },
+      });
+    }
+    return result;
   },
 
   // Mirrors recordResult but for a single step of a 'detailed' test case — a simpler
   // pass/fail than the overall Test Result status.
-  recordStepResult(testResultStepId: string, status: 'pass' | 'fail', actualResult: string | null) {
-    return testResultRepository.recordStepResult(testResultStepId, { status, actualResult });
+  async recordStepResult(testResultStepId: string, status: 'pass' | 'fail', actualResult: string | null, context?: { projectId?: string; actorId?: string; testRunId?: string; testCaseCode?: string | null; stepNumber?: number }) {
+    const result = await testResultRepository.recordStepResult(testResultStepId, { status, actualResult });
+    if (context?.actorId && context.projectId && context.testRunId) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'test_run',
+        entityId: context.testRunId,
+        actorId: context.actorId,
+        eventType: 'result_update',
+        payload: { status, testCaseCode: context.testCaseCode, step: context.stepNumber },
+      });
+    }
+    return result;
   },
 
   // Manual, per-case sync back to the current test case template — only while the run

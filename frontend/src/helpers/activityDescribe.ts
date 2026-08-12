@@ -1,4 +1,4 @@
-import { ISSUE_STATUS_LABEL, TEST_PLAN_STATUS_LABEL, TEST_CASE_STATUS_LABEL, TEST_RUN_STATUS_LABEL, PROJECT_STATUS_LABEL } from './statusLabels';
+import { ISSUE_STATUS_LABEL, TEST_PLAN_STATUS_LABEL, TEST_CASE_STATUS_LABEL, TEST_RUN_STATUS_LABEL, TEST_RESULT_STATUS_LABEL, PROJECT_STATUS_LABEL } from './statusLabels';
 import { ACTIVITY_ENTITY_LABEL } from './activityRoutes';
 import type { ActivityEntityType, ActivityEntry } from '../types/domain';
 
@@ -46,6 +46,17 @@ export function describeSystemEvent(entry: ActivityEntry): string {
       return entry.payload.assigneeName ? `assigned to ${entry.payload.assigneeName}` : 'changed the assignee';
     case 'attachment_added':
       return entry.payload.fileName ? `attached ${entry.payload.fileName}` : 'added an attachment';
+    case 'attachment_removed':
+      return entry.payload.fileName ? `removed ${entry.payload.fileName}` : 'removed an attachment';
+    case 'result_update': {
+      const caseCode = typeof entry.payload.testCaseCode === 'string' ? entry.payload.testCaseCode : null;
+      const status = typeof entry.payload.status === 'string'
+        ? (TEST_RESULT_STATUS_LABEL[entry.payload.status as keyof typeof TEST_RESULT_STATUS_LABEL] ?? entry.payload.status)
+        : '?';
+      const step = typeof entry.payload.step === 'number' ? ` step ${entry.payload.step} ` : ' ';
+      const codePart = caseCode ? ` for ${caseCode}` : '';
+      return `recorded${step}${status}${codePart}`;
+    }
     case 'field_update':
       return 'updated the details';
     default:
@@ -67,6 +78,8 @@ const EVENT_TYPE_LABEL: Record<string, string> = {
   status_change: 'Status Change',
   assignment: 'Assignment',
   attachment_added: 'Attachment Added',
+  attachment_removed: 'Attachment Removed',
+  result_update: 'Result Update',
   field_update: 'Updated',
 };
 
