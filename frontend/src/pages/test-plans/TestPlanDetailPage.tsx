@@ -200,7 +200,7 @@ export function TestPlanDetailPage() {
 
   async function handleAddCases() {
     if (!id) return;
-    await Promise.all(selectedCaseIds.map((testCaseId, index) => testPlanService.addCase(id, testCaseId, cases.length + index)));
+    await Promise.all(selectedCaseIds.map((testCaseId, index) => testPlanService.addCase(id, testCaseId, cases.length + index, { projectId: testPlan?.projectId, actorId: user?.id, planCode: testPlan?.code, planName: testPlan?.name })));
     setAddCaseDialogOpen(false);
     await reloadCases();
     toastHelper.success('Test case added to plan');
@@ -215,7 +215,7 @@ export function TestPlanDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await testPlanService.removeCase(row.id);
+        await testPlanService.removeCase(row.id, { testPlanId: row.testPlanId, projectId: testPlan?.projectId, actorId: user?.id, planCode: testPlan?.code, planName: testPlan?.name });
         await reloadCases();
       },
     });
@@ -230,7 +230,7 @@ export function TestPlanDetailPage() {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: async () => {
-        await Promise.all(selectedCases.map((row) => testPlanService.removeCase(row.id)));
+        await Promise.all(selectedCases.map((row) => testPlanService.removeCase(row.id, { testPlanId: row.testPlanId, projectId: testPlan?.projectId, actorId: user?.id, planCode: testPlan?.code, planName: testPlan?.name })));
         setSelectedCases([]);
         await reloadCases();
         toastHelper.success('Selected test cases removed from plan');
@@ -239,7 +239,7 @@ export function TestPlanDetailPage() {
   }
 
   async function swapCases(a: { id: string; order: number }, b: { id: string; order: number }) {
-    await testPlanService.swapCaseOrder(a, b);
+    await testPlanService.swapCaseOrder(a, b, { testPlanId: testPlan?.id, projectId: testPlan?.projectId, actorId: user?.id, planCode: testPlan?.code, planName: testPlan?.name });
     await reloadCases();
   }
 

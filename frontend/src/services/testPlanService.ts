@@ -147,20 +147,62 @@ export const testPlanService = {
     return testCaseRepository.findCasesForPlanPaginated(testPlanId, options);
   },
 
-  addCasesMany(inputs: { testPlanId: string; testCaseId: string; order: number }[]) {
-    return testCaseRepository.attachToPlanMany(inputs);
+  async addCasesMany(inputs: { testPlanId: string; testCaseId: string; order: number }[], context?: { projectId?: string; actorId?: string; planCode?: string | null; planName?: string }) {
+    const result = await testCaseRepository.attachToPlanMany(inputs);
+    if (context?.actorId && context.projectId && inputs.length > 0) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'test_plan',
+        entityId: inputs[0].testPlanId,
+        actorId: context.actorId,
+        eventType: 'updated',
+        payload: { code: context.planCode, name: context.planName },
+      });
+    }
+    return result;
   },
 
-  addCase(testPlanId: string, testCaseId: string, order: number) {
-    return testCaseRepository.attachToPlan(testPlanId, testCaseId, order);
+  async addCase(testPlanId: string, testCaseId: string, order: number, context?: { projectId?: string; actorId?: string; planCode?: string | null; planName?: string }) {
+    const result = await testCaseRepository.attachToPlan(testPlanId, testCaseId, order);
+    if (context?.actorId && context.projectId) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'test_plan',
+        entityId: testPlanId,
+        actorId: context.actorId,
+        eventType: 'updated',
+        payload: { code: context.planCode, name: context.planName },
+      });
+    }
+    return result;
   },
 
-  removeCase(testPlanCaseId: string) {
-    return testCaseRepository.detachFromPlan(testPlanCaseId);
+  async removeCase(testPlanCaseId: string, context?: { testPlanId?: string; projectId?: string; actorId?: string; planCode?: string | null; planName?: string }) {
+    await testCaseRepository.detachFromPlan(testPlanCaseId);
+    if (context?.actorId && context.projectId && context.testPlanId) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'test_plan',
+        entityId: context.testPlanId,
+        actorId: context.actorId,
+        eventType: 'updated',
+        payload: { code: context.planCode, name: context.planName },
+      });
+    }
   },
 
-  swapCaseOrder(caseA: { id: string; order: number }, caseB: { id: string; order: number }) {
-    return testCaseRepository.swapCaseOrder(caseA.id, caseA.order, caseB.id, caseB.order);
+  async swapCaseOrder(caseA: { id: string; order: number }, caseB: { id: string; order: number }, context?: { testPlanId?: string; projectId?: string; actorId?: string; planCode?: string | null; planName?: string }) {
+    await testCaseRepository.swapCaseOrder(caseA.id, caseA.order, caseB.id, caseB.order);
+    if (context?.actorId && context.projectId && context.testPlanId) {
+      await activityService.logEvent({
+        projectId: context.projectId,
+        entityType: 'test_plan',
+        entityId: context.testPlanId,
+        actorId: context.actorId,
+        eventType: 'updated',
+        payload: { code: context.planCode, name: context.planName },
+      });
+    }
   },
 
   findAdjacentCase(testPlanId: string, order: number, direction: 'before' | 'after') {
