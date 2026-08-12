@@ -110,10 +110,12 @@ export function useRealtimeSync() {
         invalidate(queryClient, queryKeys.profiles());
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'entity_activity' }, (payload) => {
-        const p = payload as unknown as ChangePayload<{ id: string; entity_type: string; entity_id: string }>;
+        const p = payload as unknown as ChangePayload<{ id: string; entity_type: string; entity_id: string; project_id: string }>;
         const entityType = p.new?.entity_type ?? p.old?.entity_type;
         const entityId = p.new?.entity_id ?? p.old?.entity_id;
+        const projectId = p.new?.project_id ?? p.old?.project_id;
         if (entityType && entityId) invalidate(queryClient, queryKeys.activity(entityType, entityId));
+        if (projectId) invalidate(queryClient, ['activityLog', projectId]);
         invalidate(queryClient, queryKeys.dashboardActivity());
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {

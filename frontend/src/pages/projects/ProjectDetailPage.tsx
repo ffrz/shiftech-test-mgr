@@ -68,7 +68,7 @@ import {
 
 // Index within the TabView -> which query keys that tab depends on, so loading state and
 // invalidation on mutation both know exactly what to touch without over-fetching other tabs.
-const TAB_QUERY_NAMES = ['testPlans', 'testCases', 'modules', 'tags', 'testRoles', 'testRuns', 'issues', 'projectMembers'] as const;
+const TAB_QUERY_NAMES = ['testPlans', 'testCases', 'modules', 'tags', 'testRoles', 'testRuns', 'issues', 'projectMembers', 'activityLog'] as const;
 // Stable empty-array reference — `data ?? []` alone allocates a new array every render
 // when the query has no data yet, which defeats useMemo below it (dependency "changes"
 // every render even though nothing meaningful did).
@@ -78,6 +78,7 @@ const TAB_DEPENDENCIES: (typeof TAB_QUERY_NAMES[number])[][] = [
   ['testPlans'],
   ['testCases', 'modules', 'tags', 'testRoles'],
   ['testRuns'],
+  ['activityLog'],
 ];
 
 // TabView panel order (index -> `tab` query param value) — keep in sync with the
@@ -295,6 +296,7 @@ export function ProjectDetailPage() {
       testRuns: queryKeys.testRunsByProject(id),
       issues: queryKeys.issuesByProject(id),
       projectMembers: queryKeys.projectMembers(id),
+      activityLog: ['activityLog', id],
     }
     : ({} as Record<(typeof TAB_QUERY_NAMES)[number], readonly unknown[]>);
 
