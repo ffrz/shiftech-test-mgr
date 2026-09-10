@@ -152,18 +152,18 @@ export function HomePage() {
                 onClick={() => navigate(`/projects/${item.project.id}`)}
               >
                 <div className="flex align-items-center justify-content-between gap-3 flex-wrap">
-                  <div className="flex align-items-center gap-3">
-                    <div className="stat-icon-badge stat-icon-orange">
+                  <div className="flex align-items-center gap-3 min-w-0 flex-1">
+                    <div className="stat-icon-badge stat-icon-orange flex-shrink-0">
                       <i className="pi pi-play" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1 overflow-hidden">
                       <div className="font-bold"><OwnerProjectLabel username={item._ownerUsername} name={item.project.name} maxOwnerLength={10} /></div>
-                      <div className="text-sm text-color-secondary">
+                      <div className="text-sm text-color-secondary white-space-nowrap overflow-hidden text-overflow-ellipsis">
                         {item.testPlan ? item.testPlan.name : item.testRunName}
                       </div>
                     </div>
                   </div>
-                  <i className="pi pi-arrow-right text-color-secondary" />
+                  <i className="pi pi-arrow-right text-color-secondary flex-shrink-0" />
                 </div>
               </Card>
             ))}
@@ -187,14 +187,14 @@ export function HomePage() {
             {recentProjects.map((project) => (
               <div
                 key={project.id}
-                className="flex align-items-center justify-content-between gap-3 p-2 border-round cursor-pointer hover:surface-100"
+                className="flex align-items-center justify-content-between gap-3 p-2 border-round cursor-pointer hover:surface-100 min-w-0"
                 onClick={() => navigate(`/projects/${project.id}`)}
               >
-                <span className="flex align-items-center gap-2 font-medium">
-                  <i className="pi pi-folder text-color-secondary" />
+                <span className="flex align-items-center gap-2 font-medium min-w-0 flex-1 overflow-hidden">
+                  <i className="pi pi-folder text-color-secondary flex-shrink-0" />
                   <OwnerProjectLabel username={project._ownerUsername} name={project.name} maxOwnerLength={10} />
                 </span>
-                <i className="pi pi-chevron-right text-color-secondary" />
+                <i className="pi pi-chevron-right text-color-secondary flex-shrink-0" />
               </div>
             ))}
           </div>

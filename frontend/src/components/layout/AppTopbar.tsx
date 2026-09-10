@@ -11,7 +11,7 @@ import { useLayoutContext } from './LayoutContext';
 import { useBreadcrumbContext } from './BreadcrumbContext';
 import { BreadcrumbCollapsed, BreadcrumbTrail, type BreadcrumbItem } from '../ui/Breadcrumb';
 import { NotificationPanel } from '../notifications/NotificationPanel';
-import { ThemeToggle } from './ThemeToggle';
+import { useThemeContext } from '../../hooks/useTheme';
 import { pathForActivityEntity } from '../../helpers/activityRoutes';
 import { APP_NAME } from '../../config/app';
 import type { Notification } from '../../types/domain';
@@ -31,6 +31,7 @@ function getUserInitial(displayName: string | null | undefined, username?: strin
 export function AppTopbar() {
   const navigate = useNavigate();
   const { profile, user, signOut } = useAuthContext();
+  const { mode, setMode } = useThemeContext();
   const { notifications, unreadCount, markRead, markAllRead, remove, clearAll } = useNotifications();
   const { onMenuToggle } = useLayoutContext();
   const { items } = useBreadcrumbContext();
@@ -50,6 +51,32 @@ export function AppTopbar() {
       command: () => window.location.assign('/app/settings'),
     },
     { separator: true },
+    {
+      label: 'Theme',
+      icon: mode === 'dark' ? 'pi pi-moon' : mode === 'light' ? 'pi pi-sun' : 'pi pi-desktop',
+      items: [
+        {
+          label: 'System',
+          icon: `pi pi-desktop ${mode === 'system' ? 'text-primary font-bold' : ''}`,
+          command: () => setMode('system'),
+        },
+        {
+          label: 'Light',
+          icon: `pi pi-sun ${mode === 'light' ? 'text-primary font-bold' : ''}`,
+          command: () => setMode('light'),
+        },
+        {
+          label: 'Dark',
+          icon: `pi pi-moon ${mode === 'dark' ? 'text-primary font-bold' : ''}`,
+          command: () => setMode('dark'),
+        },
+      ],
+    },
+    {
+      label: 'Help & Documentation',
+      icon: 'pi pi-question-circle',
+      command: () => window.open('/docs', '_blank'),
+    },
     {
       label: `About ${APP_NAME}`,
       icon: 'pi pi-info-circle',
@@ -96,16 +123,6 @@ export function AppTopbar() {
       )}
 
       <div className="layout-topbar-right">
-        <Button
-          icon="pi pi-question-circle"
-          text
-          rounded
-          severity="secondary"
-          aria-label="Help"
-          style={{ width: '1.75rem', height: '1.75rem' }}
-          onClick={() => window.open('/docs', '_blank')}
-        />
-        <ThemeToggle />
         <span className="p-overlay-badge">
           <Button
             icon="pi pi-bell"

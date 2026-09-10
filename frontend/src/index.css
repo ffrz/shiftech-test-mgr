@@ -807,12 +807,12 @@ html.dark .p-tag.p-tag-danger {
 }
 
 .layout-topbar-center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 45%;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  margin: 0 1rem;
   overflow: hidden;
-  z-index: 0;
 }
 
 .layout-topbar-right {
