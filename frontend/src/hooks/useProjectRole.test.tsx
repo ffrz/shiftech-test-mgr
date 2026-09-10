@@ -51,22 +51,24 @@ describe('useProjectRole', () => {
     expect(result.current.canDeleteProject).toBe(true);
   });
 
-  it('supervisor can edit + run tests but cannot delete/manage settings/issues', async () => {
+  it('supervisor can edit, run tests, and manage issues but cannot delete or manage settings', async () => {
     const { result } = renderRole('supervisor');
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.canEditContent).toBe(true);
     expect(result.current.canRunTests).toBe(true);
+    expect(result.current.canManageIssues).toBe(true);
+    expect(result.current.canManageModules).toBe(true);
     expect(result.current.canDeleteContent).toBe(false);
     expect(result.current.canManageSettings).toBe(false);
-    expect(result.current.canManageIssues).toBe(false);
     expect(result.current.canArchiveProject).toBe(false);
   });
 
-  it('tester can run tests + manage issues but cannot edit content', async () => {
+  it('tester can run tests, manage issues, and manage modules but cannot edit general content', async () => {
     const { result } = renderRole('tester');
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.canRunTests).toBe(true);
     expect(result.current.canManageIssues).toBe(true);
+    expect(result.current.canManageModules).toBe(true);
     expect(result.current.canEditContent).toBe(false);
     expect(result.current.canDeleteContent).toBe(false);
   });
