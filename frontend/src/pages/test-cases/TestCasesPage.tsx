@@ -23,13 +23,22 @@ import {
   TEST_CASE_STATUS_SEVERITY,
 } from '../../helpers/statusLabels';
 
+// See useResizableColumns for why this list (fixed-width columns only, "Title" flex-fills
+// the remainder and is excluded) is needed to restore the table's total width.
+const TEST_CASES_PAGE_COLUMNS = [
+  ['code', '7rem'],
+  ['module.name', '10rem'],
+  ['priority', '8rem'],
+  ['status', '8rem'],
+] as const;
+
 export function TestCasesPage() {
   const navigate = useNavigate();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
 
   const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
-  const { onColumnResizeEnd, colWidth } = useResizableColumns('testCasesCrossProject');
+  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('testCasesCrossProject', TEST_CASES_PAGE_COLUMNS);
 
   const [projectId, setProjectId] = useState<string | null>(null);
 
@@ -96,7 +105,7 @@ export function TestCasesPage() {
 
       <div ref={containerRef}>
         <DataTable value={testCases} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small"
-          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} className={isMobile ? undefined : 'dt-resizable'}>
+          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} tableStyle={isMobile ? undefined : tableStyle} className={isMobile ? undefined : 'dt-resizable'}>
         {isMobile && <Column body={mobileBodyTemplate} />}
         {!isMobile && <Column field="code" header="Code" sortable style={{ width: colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
         {!isMobile && <Column field="title" header="Title" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}

@@ -23,6 +23,17 @@ const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
   ['in_progress', 'completed'] as const
 ).map((v) => ({ label: TEST_RUN_STATUS_LABEL[v], value: v }));
 
+// See useResizableColumns for why this list (fixed-width columns only, "Name" flex-fills
+// the remainder and is excluded) is needed to restore the table's total width.
+const TEST_RUN_COLUMNS = [
+  ['code', '7rem'],
+  ['testPlanName', '12rem'],
+  ['status', '7rem'],
+  ['result', '8rem'],
+  ['tester', '11rem'],
+  ['completedAt', '11rem'],
+] as const;
+
 export type TestRunWithSummary = TestRun & {
   testPlanName: string | null;
   testPlanCode: string | null;
@@ -96,7 +107,7 @@ export function TestRunTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidth } = useResizableColumns('testRuns');
+  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('testRuns', TEST_RUN_COLUMNS);
 
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -202,6 +213,7 @@ export function TestRunTab({
         resizableColumns={!isMobile}
         columnResizeMode="expand"
         onColumnResizeEnd={onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />

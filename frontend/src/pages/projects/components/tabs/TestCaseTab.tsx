@@ -35,6 +35,17 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
   { label: TEST_CASE_PRIORITY_LABEL.critical, value: 'critical' },
 ];
 
+// See useResizableColumns for why this list (fixed-width columns only, "Title" flex-fills
+// the remainder and is excluded) is needed to restore the table's total width.
+const TEST_CASE_COLUMNS = [
+  ['code', '7rem'],
+  ['moduleName', '10rem'],
+  ['priority', '7rem'],
+  ['status', '7rem'],
+  ['targetRoleName', '10rem'],
+  ['tags', '11rem'],
+] as const;
+
 const TEST_CASE_STATUS_OPTIONS: { label: string; value: TestCaseStatus }[] = (
   ['active', 'archived'] as const
 ).map((v) => ({ label: TEST_CASE_STATUS_LABEL[v], value: v }));
@@ -176,7 +187,7 @@ export function TestCaseTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidth } = useResizableColumns('testCases');
+  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('testCases', TEST_CASE_COLUMNS);
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -418,6 +429,7 @@ export function TestCaseTab({
         resizableColumns={!isMobile}
         columnResizeMode="expand"
         onColumnResizeEnd={onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />

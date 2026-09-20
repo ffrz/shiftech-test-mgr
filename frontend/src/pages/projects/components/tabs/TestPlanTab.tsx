@@ -25,6 +25,15 @@ const TEST_PLAN_STATUS_OPTIONS: { label: string; value: TestPlanStatus }[] = (
   ['draft', 'active', 'completed', 'archived'] as const
 ).map((v) => ({ label: TEST_PLAN_STATUS_LABEL[v], value: v }));
 
+// See useResizableColumns for why this list (fixed-width columns only, "Name" flex-fills
+// the remainder and is excluded) is needed to restore the table's total width.
+const TEST_PLAN_COLUMNS = [
+  ['code', '7rem'],
+  ['status', '9rem'],
+  ['lastRun', '13rem'],
+  ['updatedAt', '11rem'],
+] as const;
+
 const UNDO_TIMEOUT_MS = 9000;
 
 type TestPlanLastRun = { runAt: string; total: number; pass: number; fail: number } | null;
@@ -108,7 +117,7 @@ export function TestPlanTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidth } = useResizableColumns('testPlans');
+  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('testPlans', TEST_PLAN_COLUMNS);
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -289,6 +298,7 @@ export function TestPlanTab({
         resizableColumns={!isMobile}
         columnResizeMode="expand"
         onColumnResizeEnd={onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />

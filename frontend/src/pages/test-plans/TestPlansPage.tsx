@@ -36,6 +36,15 @@ function formatLastRun(lastRun: TestPlanLastRun): string {
   return `${formatDate(lastRun.runAt)} · ${pct}% pass`;
 }
 
+// See useResizableColumns for why this list (fixed-width columns only, "Name" flex-fills
+// the remainder and is excluded) is needed to restore the table's total width.
+const TEST_PLANS_PAGE_COLUMNS = [
+  ['code', '7rem'],
+  ['status', '9rem'],
+  ['lastRun', '13rem'],
+  ['updatedAt', '10rem'],
+] as const;
+
 export function TestPlansPage() {
   const navigate = useNavigate();
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -55,7 +64,7 @@ export function TestPlansPage() {
   const isMobile = lt.sm;
 
   const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
-  const { onColumnResizeEnd, colWidth } = useResizableColumns('testPlansCrossProject');
+  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('testPlansCrossProject', TEST_PLANS_PAGE_COLUMNS);
 
   const { data: projects = [] } = useQuery({
     queryKey: queryKeys.projects(),
@@ -141,7 +150,7 @@ export function TestPlansPage() {
       <div ref={containerRef}>
         <DataTable value={testPlans} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
           selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlanRow).id}`)}
-          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} className={isMobile ? undefined : 'dt-resizable'}>
+          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} tableStyle={isMobile ? undefined : tableStyle} className={isMobile ? undefined : 'dt-resizable'}>
         <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={isMobile ? mobileCodeBody : undefined} />
         {!isMobile && <Column field="name" header="Name" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}

@@ -26,6 +26,23 @@ import { memberSelectLabel } from '../../../../helpers/memberLabels';
 
 const UNDO_TIMEOUT_MS = 9000;
 type EditableField = 'status' | 'assignedTo' | 'title' | 'type' | 'priority' | 'moduleId' | 'targetRoleId' | 'tags';
+
+// Fallback (design-time) widths for every fixed-width column, in the order rendered —
+// the "Title" column flex-fills the remainder and is deliberately excluded, since it has
+// no fixed fallback width to sum. Paired with useResizableColumns so the table's own total
+// width can be restored to the exact sum of all fixed columns after a reload (see that
+// hook's comment for why this is needed).
+const ISSUE_COLUMNS = [
+  ['code', '7rem'],
+  ['type', '8rem'],
+  ['moduleName', '10rem'],
+  ['targetRoleName', '10rem'],
+  ['tags', '11rem'],
+  ['linked', '7rem'],
+  ['priority', '7rem'],
+  ['status', '9rem'],
+  ['assignedTo', '10rem'],
+] as const;
 import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
@@ -160,7 +177,7 @@ export function IssueTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidth } = useResizableColumns('issues');
+  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('issues', ISSUE_COLUMNS);
 
   // Bulk-edit dialog: UNSET (untouched, excluded from the update) until the user picks
   // something. `null` is itself a meaningful choice for assignedTo (unassign, via the
@@ -454,8 +471,10 @@ export function IssueTab({
         resizableColumns={!isMobile}
         columnResizeMode="expand"
         onColumnResizeEnd={onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
+
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
         <Column field="code" header="Code" sortable style={{ width: colWidth('code', '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"

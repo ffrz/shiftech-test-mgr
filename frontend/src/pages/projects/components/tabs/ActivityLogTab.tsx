@@ -20,6 +20,15 @@ import { pathForActivityEntity, ACTIVITY_ENTITY_LABEL } from '../../../../helper
 import type { AuditLogEntry } from '../../../../repositories/auditLogRepository';
 import type { ActivityEntityType } from '../../../../types/domain';
 
+// See useResizableColumns for why this list (fixed-width columns only, "Description"
+// flex-fills the remainder and is excluded) is needed to restore the table's total width.
+const ACTIVITY_LOG_COLUMNS = [
+  ['createdAt', '12rem'],
+  ['actorName', '10rem'],
+  ['entityType', '8rem'],
+  ['eventType', '8rem'],
+] as const;
+
 const ENTITY_TYPE_OPTIONS: { label: string; value: ActivityEntityType }[] = [
   { label: 'Issue', value: 'issue' },
   { label: 'Test Case', value: 'test_case' },
@@ -46,7 +55,7 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible],
   });
-  const { onColumnResizeEnd, colWidth } = useResizableColumns('activityLog');
+  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('activityLog', ACTIVITY_LOG_COLUMNS);
 
   const hasActiveFilters = entityTypes.length > 0 || !!search;
 
@@ -176,6 +185,7 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
         resizableColumns={!isMobile}
         columnResizeMode="expand"
         onColumnResizeEnd={onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : tableStyle}
       >
         <Column
           field="createdAt"

@@ -20,6 +20,16 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
   { label: TEST_CASE_PRIORITY_LABEL.critical, value: 'critical' },
 ];
 
+// See useResizableColumns for why this list (fixed-width columns only, "Test Case" flex-
+// fills the remainder and is excluded) is needed to restore the table's total width.
+const PLAN_TEST_CASES_COLUMNS = [
+  ['testCase.code', '7rem'],
+  ['testCase.module.name', '10rem'],
+  ['targetRole', '10rem'],
+  ['tag', '11rem'],
+  ['testCase.priority', '8rem'],
+] as const;
+
 type PlanTestCasesTabProps = {
   cases: TestPlanCaseWithDetails[];
   totalCases: number;
@@ -105,7 +115,7 @@ export function PlanTestCasesTab({
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidth } = useResizableColumns('planTestCases');
+  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('planTestCases', PLAN_TEST_CASES_COLUMNS);
 
   const mobileCaseTitleBody = (row: TestPlanCaseWithDetails) => (
     <div className="flex flex-column gap-2 py-1">
@@ -220,6 +230,7 @@ export function PlanTestCasesTab({
         resizableColumns={!isMobile}
         columnResizeMode="expand"
         onColumnResizeEnd={onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
         {canEditContent && <Column selectionMode="multiple" style={{ width: '3rem' }} />}

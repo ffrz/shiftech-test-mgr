@@ -22,6 +22,16 @@ const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
   ['in_progress', 'completed'] as const
 ).map((v) => ({ label: TEST_RUN_STATUS_LABEL[v], value: v }));
 
+// See useResizableColumns for why this list (fixed-width columns only, "Run Name" flex-
+// fills the remainder and is excluded) is needed to restore the table's total width.
+const PLAN_TEST_RUNS_COLUMNS = [
+  ['code', '7rem'],
+  ['status', '7rem'],
+  ['results', '8rem'],
+  ['tester', '11rem'],
+  ['completedAt', '11rem'],
+] as const;
+
 type PlanTestRunsTabProps = {
   testRuns: TestRunWithSummary[];
   total: number;
@@ -77,7 +87,7 @@ export function PlanTestRunsTab({
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible],
   });
-  const { onColumnResizeEnd, colWidth } = useResizableColumns('planTestRuns');
+  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('planTestRuns', PLAN_TEST_RUNS_COLUMNS);
 
   const mobileRunNameBody = (row: TestRunWithSummary) => (
     <div className="flex flex-column gap-2 py-1">
@@ -144,6 +154,7 @@ export function PlanTestRunsTab({
         resizableColumns={!isMobile}
         columnResizeMode="expand"
         onColumnResizeEnd={onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : tableStyle}
       >
         {!isMobile && <Column field="code" header="Code" style={{ width: colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
         <Column field="name" header="Run Name" className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobileRunNameBody : undefined} />
