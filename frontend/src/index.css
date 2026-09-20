@@ -629,6 +629,24 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   text-overflow: clip;
 }
 
+/* Action column (row menu/buttons, see the `resizeable={false}` Column in every
+   resizable table): must always render in full and never shrink, since it holds the
+   only way to act on a row — exempt it from the ellipsis default above, and pin a
+   floor width so PrimeReact's own table-width redistribution can't squeeze it either. */
+.p-datatable.dt-resizable .p-datatable-tbody>tr>td.dt-col-actions,
+.p-datatable.dt-resizable .p-datatable-thead>tr>th.dt-col-actions {
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+}
+.p-datatable.dt-resizable .p-datatable-tbody>tr>td.dt-col-actions>* {
+  overflow: visible;
+  text-overflow: clip;
+}
+.p-datatable.dt-resizable .p-datatable-thead>tr>th.dt-col-actions .p-column-resizer {
+  display: none;
+}
+
 /* The selectionMode="multiple" checkbox column's <th> renders an empty
    .p-column-title span as a sibling of the header checkbox inside
    .p-column-header-content (display:flex, per PrimeReact's createHeader).

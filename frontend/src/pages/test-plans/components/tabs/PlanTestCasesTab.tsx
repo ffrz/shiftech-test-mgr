@@ -284,7 +284,9 @@ export function PlanTestCasesTab({
             columnKey="actions"
             header=""
             resizeable={false}
-            style={{ width: isMobile ? '3rem' : '7rem' }}
+            className="dt-col-actions"
+            headerClassName="dt-col-actions"
+            style={{ width: isMobile ? '3rem' : '7rem', minWidth: isMobile ? '3rem' : '7rem' }}
             body={(row: TestPlanCaseWithDetails) => {
               const idx = cases.indexOf(row);
               const isFirstOverall = first + idx === 0;

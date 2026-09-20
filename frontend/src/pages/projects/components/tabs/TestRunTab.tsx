@@ -268,7 +268,9 @@ export function TestRunTab({
           columnKey="actions"
           header=""
           resizeable={false}
-          style={{ width: '3.5rem' }}
+          className="dt-col-actions"
+          headerClassName="dt-col-actions"
+          style={{ width: '3.5rem', minWidth: '3.5rem' }}
           body={(row: TestRunWithSummary) => (
             <RowActionsMenu
               items={[

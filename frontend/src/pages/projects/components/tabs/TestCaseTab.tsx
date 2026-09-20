@@ -520,7 +520,9 @@ export function TestCaseTab({
           columnKey="actions"
           header=""
           resizeable={false}
-          style={{ width: '3.5rem' }}
+          className="dt-col-actions"
+          headerClassName="dt-col-actions"
+          style={{ width: '3.5rem', minWidth: '3.5rem' }}
           body={(row: TestCaseWithDetails) => (
 
             <RowActionsMenu

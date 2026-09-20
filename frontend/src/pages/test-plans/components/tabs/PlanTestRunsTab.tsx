@@ -178,7 +178,9 @@ export function PlanTestRunsTab({
             columnKey="actions"
             header=""
             resizeable={false}
-            style={{ width: '4rem' }}
+            className="dt-col-actions"
+            headerClassName="dt-col-actions"
+            style={{ width: '4rem', minWidth: '4rem' }}
             body={(row: TestRun) => (
               <Button
                 icon="pi pi-trash"

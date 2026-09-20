@@ -119,7 +119,7 @@ export function TestCasesPage() {
             sortable
           />
         )}
-        <Column columnKey="actions" header="" resizeable={false} style={{ width: '3.5rem' }} body={actionBodyTemplate} />
+        <Column columnKey="actions" header="" resizeable={false} className="dt-col-actions" headerClassName="dt-col-actions" style={{ width: '3.5rem', minWidth: '3.5rem' }} body={actionBodyTemplate} />
       </DataTable>
       </div>
     </div>
