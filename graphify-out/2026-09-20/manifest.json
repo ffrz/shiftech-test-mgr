@@ -1315,8 +1315,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/ActivityLogTab.tsx": {
-    "mtime": 1789915572.5533388,
-    "ast_hash": "0859ab787c1a93ede4388f0bea1e0a6f",
+    "mtime": 1786449776.6330206,
+    "ast_hash": "40115652fbd7994f9961e642d00410bb",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/DangerZoneTab.tsx": {
