@@ -15,6 +15,7 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../hooks/useTableHeight';
+import { useResizableColumns } from '../../hooks/useResizableColumns';
 import {
   TEST_CASE_PRIORITY_LABEL,
   TEST_CASE_PRIORITY_SEVERITY,
@@ -28,6 +29,7 @@ export function TestCasesPage() {
   const isMobile = lt.sm;
 
   const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
+  const { onColumnResizeEnd, colWidth } = useResizableColumns('testCasesCrossProject');
 
   const [projectId, setProjectId] = useState<string | null>(null);
 
@@ -93,15 +95,17 @@ export function TestCasesPage() {
       )}
 
       <div ref={containerRef}>
-        <DataTable value={testCases} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small">
+        <DataTable value={testCases} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small"
+          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} className={isMobile ? undefined : 'dt-resizable'}>
         {isMobile && <Column body={mobileBodyTemplate} />}
-        {!isMobile && <Column field="code" header="Code" sortable style={{ width: '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
+        {!isMobile && <Column field="code" header="Code" sortable style={{ width: colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
         {!isMobile && <Column field="title" header="Title" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}
-        {!isMobile && <Column field="module.name" header="Module" body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} sortable />}
+        {!isMobile && <Column field="module.name" header="Module" style={{ width: colWidth('module.name', '10rem') }} body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} sortable />}
         {!isMobile && (
           <Column
             field="priority"
             header="Priority"
+            style={{ width: colWidth('priority', '8rem') }}
             body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />}
             sortable
           />
@@ -110,11 +114,12 @@ export function TestCasesPage() {
           <Column
             field="status"
             header="Status"
+            style={{ width: colWidth('status', '8rem') }}
             body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />}
             sortable
           />
         )}
-        <Column header="" style={{ width: '3.5rem' }} body={actionBodyTemplate} />
+        <Column columnKey="actions" header="" resizeable={false} style={{ width: '3.5rem' }} body={actionBodyTemplate} />
       </DataTable>
       </div>
     </div>

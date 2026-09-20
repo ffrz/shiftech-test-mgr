@@ -8,6 +8,7 @@ import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
+import { useResizableColumns } from '../../../../hooks/useResizableColumns';
 import type { TestRun, TestRunStatus } from '../../../../types/domain';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
 import {
@@ -76,6 +77,7 @@ export function PlanTestRunsTab({
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible],
   });
+  const { onColumnResizeEnd, colWidth } = useResizableColumns('planTestRuns');
 
   const mobileRunNameBody = (row: TestRunWithSummary) => (
     <div className="flex flex-column gap-2 py-1">
@@ -137,15 +139,20 @@ export function PlanTestRunsTab({
         emptyMessage="No test runs yet"
         onRowClick={(e) => navigate(`/test-runs/${(e.data as TestRun).id}`)}
         rowHover
-        className="cursor-pointer"
+        className={isMobile ? 'cursor-pointer' : 'cursor-pointer dt-resizable'}
         size="small"
+        resizableColumns={!isMobile}
+        columnResizeMode="expand"
+        onColumnResizeEnd={onColumnResizeEnd}
       >
-        {!isMobile && <Column field="code" header="Code" style={{ width: '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
+        {!isMobile && <Column field="code" header="Code" style={{ width: colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
         <Column field="name" header="Run Name" className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobileRunNameBody : undefined} />
-        {!isMobile && <Column field="status" header="Status" body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
+        {!isMobile && <Column field="status" header="Status" style={{ width: colWidth('status', '7rem') }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
         {!isMobile && (
           <Column
+            columnKey="results"
             header="Results"
+            style={{ width: colWidth('results', '8rem') }}
             body={(row: TestRunWithSummary) => (
               <div className="flex gap-1 align-items-center">
                 <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
@@ -159,18 +166,18 @@ export function PlanTestRunsTab({
         )}
         {!isMobile && (
           <Column
+            columnKey="tester"
             header="Tester"
-            body={(row: TestRunWithSummary) =>
-              row.testers.length > 0
-                ? row.testers.map((t) => t.fullName ?? t.id).join(', ')
-                : '-'
-            }
+            style={{ width: colWidth('tester', '11rem') }}
+            body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
           />
         )}
-        {!isMobile && <Column field="completedAt" header="Completed" body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
+        {!isMobile && <Column field="completedAt" header="Completed" style={{ width: colWidth('completedAt', '11rem') }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
         {canDeleteContent && (
           <Column
+            columnKey="actions"
             header=""
+            resizeable={false}
             style={{ width: '4rem' }}
             body={(row: TestRun) => (
               <Button

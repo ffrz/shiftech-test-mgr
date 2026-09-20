@@ -17,6 +17,7 @@ import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
+import { useResizableColumns } from '../../../../hooks/useResizableColumns';
 import type { IssueWithDetails, IssueStatus, IssuePriority, IssueType, ProjectMemberWithProfile } from '../../../../types/domain';
 import { issueService } from '../../../../services/issueService';
 import { tagService } from '../../../../services/tagService';
@@ -159,6 +160,7 @@ export function IssueTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
+  const { onColumnResizeEnd, colWidth } = useResizableColumns('issues');
 
   // Bulk-edit dialog: UNSET (untouched, excluded from the update) until the user picks
   // something. `null` is itself a meaningful choice for assignedTo (unassign, via the
@@ -449,9 +451,13 @@ export function IssueTab({
         dataKey="id"
         selectionMode={isMobile ? null : 'checkbox'}
         cellMemo={false}
+        resizableColumns={!isMobile}
+        columnResizeMode="expand"
+        onColumnResizeEnd={onColumnResizeEnd}
+        className={isMobile ? undefined : 'dt-resizable'}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
+        <Column field="code" header="Code" sortable style={{ width: colWidth('code', '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={(row: IssueWithDetails) => <a className="entity-link" href={`/issues/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/issues/${row.id}`); }}>{row.code}</a>} />
         <Column
@@ -488,7 +494,7 @@ export function IssueTab({
           header="Type"
           sortable
           hidden={isMobile}
-          style={{ width: '8rem' }}
+          style={{ width: colWidth('type', '8rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'type';
@@ -514,7 +520,7 @@ export function IssueTab({
           header="Module"
           sortable
           hidden={isMobile}
-          style={{ width: '10rem' }}
+          style={{ width: colWidth('moduleName', '10rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'moduleId';
@@ -529,7 +535,7 @@ export function IssueTab({
               );
             }
             return (
-              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'moduleId', row.moduleId); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'moduleId', row.moduleId); }} style={{ cursor: canEdit ? 'pointer' : undefined }} title={row.module?.name ?? undefined}>
                 {row.module?.name ?? '-'}
               </div>
             );
@@ -540,7 +546,7 @@ export function IssueTab({
           header="Target Role"
           sortable
           hidden={isMobile}
-          style={{ width: '10rem' }}
+          style={{ width: colWidth('targetRoleName', '10rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'targetRoleId';
@@ -555,13 +561,13 @@ export function IssueTab({
               );
             }
             return (
-              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'targetRoleId', row.targetRoleId); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'targetRoleId', row.targetRoleId); }} style={{ cursor: canEdit ? 'pointer' : undefined }} title={row.targetRole?.name}>
                 {row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-'}
               </div>
             );
           }}
         />
-        <Column field="tags" header="Tag" hidden={isMobile} style={{ width: '11rem' }} body={(row: IssueWithDetails) => {
+        <Column field="tags" header="Tag" hidden={isMobile} style={{ width: colWidth('tags', '11rem') }} body={(row: IssueWithDetails) => {
           const canEdit = canManageIssues && row.status !== 'closed';
           const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'tags';
           if (isEditing && canEdit) {
@@ -575,17 +581,18 @@ export function IssueTab({
             );
           }
           return (
-            <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'tags', row.tags.map((t) => t.name)); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
-              <div className="flex flex-wrap gap-1">
+            <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'tags', row.tags.map((t) => t.name)); }} style={{ cursor: canEdit ? 'pointer' : undefined }} title={row.tags.map((t) => t.name).join(', ') || undefined}>
+              <div className="flex flex-nowrap gap-1 overflow-hidden">
                 {row.tags.length > 0 ? row.tags.map((t) => <Tag key={t.id} value={t.name} severity="info" />) : '-'}
               </div>
             </div>
           );
         }} />
         <Column
+          columnKey="linked"
           header="Linked"
           hidden={isMobile}
-          style={{ width: '7rem' }}
+          style={{ width: colWidth('linked', '7rem') }}
           body={(row: IssueWithDetails) =>
             row.linkedTestResults.length > 0 ? (
               <span className="text-sm">{row.linkedTestResults.length} Test Result</span>
@@ -599,7 +606,7 @@ export function IssueTab({
           header="Priority"
           sortable
           hidden={isMobile}
-          style={{ width: '7rem' }}
+          style={{ width: colWidth('priority', '7rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'priority';
@@ -625,7 +632,7 @@ export function IssueTab({
           header="Status"
           sortable
           hidden={isMobile}
-          style={{ width: '9rem' }}
+          style={{ width: colWidth('status', '9rem') }}
           body={(row: IssueWithDetails) => {
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'status';
             if (isEditing && canManageIssues) {
@@ -650,7 +657,7 @@ export function IssueTab({
           header="Assigned To"
           sortable
           hidden={isMobile}
-          style={{ width: '10rem' }}
+          style={{ width: colWidth('assignedTo', '10rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'assignedTo';
@@ -666,14 +673,16 @@ export function IssueTab({
             }
             const display = row.assignee?.displayName ?? row.assignedTo ?? '-';
             return (
-              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'assignedTo', row.assignedTo); }} style={{ cursor: canEdit ? 'pointer' : undefined }}>
+              <div onClick={(e) => { e.stopPropagation(); canEdit && startEdit(row.id, 'assignedTo', row.assignedTo); }} style={{ cursor: canEdit ? 'pointer' : undefined }} title={display !== '-' ? display : undefined}>
                 {display}
               </div>
             );
           }}
         />
         <Column
+          columnKey="actions"
           header=""
+          resizeable={false}
           style={{ width: '3.5rem' }}
           body={(row: IssueWithDetails) => (
             <RowActionsMenu

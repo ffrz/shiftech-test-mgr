@@ -576,6 +576,59 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   white-space: nowrap;
 }
 
+/* Columns like Module/Target Role/Tag/Assigned To: keep to one line and
+   truncate with an ellipsis instead of wrapping the row tall; pair with a
+   `title` attribute on the cell content for the full text on hover. */
+.p-datatable .p-datatable-tbody>tr>td.dt-cell-ellipsis {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.p-datatable .p-datatable-tbody>tr>td.dt-cell-ellipsis > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Resizable list tables (.dt-resizable, see useResizableColumns): once a column can be
+   dragged narrower than its content, every cell must truncate with an ellipsis instead
+   of wrapping tall — wrapping under a user-shrunk column reads as broken layout, not a
+   real overflow indicator. Header cells get the same treatment so long headers don't
+   force the column wide again. Cells that render interactive controls (dropdowns,
+   buttons) aren't affected since those manage their own sizing. */
+.p-datatable.dt-resizable .p-datatable-tbody>tr>td {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
+.p-datatable.dt-resizable .p-datatable-tbody>tr>td>div,
+.p-datatable.dt-resizable .p-datatable-tbody>tr>td>span,
+.p-datatable.dt-resizable .p-datatable-tbody>tr>td>a {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.p-datatable.dt-resizable .p-datatable-thead>tr>th .p-column-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* Opt a specific column out of the resizable-table ellipsis default when its content
+   must always render in full (e.g. "Last Run" — a compact one-line summary that should
+   push the column wider rather than truncate). */
+.p-datatable.dt-resizable .p-datatable-tbody>tr>td.dt-cell-no-ellipsis {
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+}
+.p-datatable.dt-resizable .p-datatable-tbody>tr>td.dt-cell-no-ellipsis>* {
+  overflow: visible;
+  text-overflow: clip;
+}
+
 /* The selectionMode="multiple" checkbox column's <th> renders an empty
    .p-column-title span as a sibling of the header checkbox inside
    .p-column-header-content (display:flex, per PrimeReact's createHeader).
@@ -720,6 +773,16 @@ html.dark .p-tag.p-tag-danger {
 
   .dialog-fullscreen-mobile .p-dialog-content {
     flex: 1 1 auto;
+  }
+}
+
+/* Filter-heavy dialogs (e.g. Add Test Case to Plan) lay their MultiSelect filters out
+   2-per-row at the lg breakpoint instead of 4-per-row, so each select gets enough room
+   to be usable — widen the dialog itself to match, or the 2-column grid just leaves
+   the dialog with a lot of empty space either side. */
+@media screen and (min-width: 992px) {
+  .dialog-wide-lg {
+    width: 52rem !important;
   }
 }
 

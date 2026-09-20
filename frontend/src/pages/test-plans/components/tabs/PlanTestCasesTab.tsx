@@ -9,6 +9,7 @@ import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
+import { useResizableColumns } from '../../../../hooks/useResizableColumns';
 import type { Module, Tag as TagEntity, TestCasePriority, TestPlanCaseWithDetails } from '../../../../types/domain';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY } from '../../../../helpers/statusLabels';
 
@@ -104,6 +105,7 @@ export function PlanTestCasesTab({
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible, selected.length],
   });
+  const { onColumnResizeEnd, colWidth } = useResizableColumns('planTestCases');
 
   const mobileCaseTitleBody = (row: TestPlanCaseWithDetails) => (
     <div className="flex flex-column gap-2 py-1">
@@ -215,13 +217,17 @@ export function PlanTestCasesTab({
         onSelectionChange={(e: { value: TestPlanCaseWithDetails[] }) => onSelectedChange(e.value)}
         dataKey="id"
         selectionMode={canEditContent ? 'checkbox' : null}
+        resizableColumns={!isMobile}
+        columnResizeMode="expand"
+        onColumnResizeEnd={onColumnResizeEnd}
+        className={isMobile ? undefined : 'dt-resizable'}
       >
         {canEditContent && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
         {!isMobile && (
           <Column
             field="testCase.code"
             header="Code"
-            style={{ width: '7rem' }}
+            style={{ width: colWidth('testCase.code', '7rem') }}
             className="dt-code-nowrap"
             headerClassName="dt-code-nowrap"
             body={(row: TestPlanCaseWithDetails) => (
@@ -237,11 +243,13 @@ export function PlanTestCasesTab({
             )}
           />
         )}
-        <Column field="testCase.title" header="Test Case" body={isMobile ? mobileCaseTitleBody : undefined} />
-        {!isMobile && <Column field="testCase.module.name" header="Module" body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
+        <Column field="testCase.title" header="Test Case" className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobileCaseTitleBody : undefined} />
+        {!isMobile && <Column field="testCase.module.name" header="Module" style={{ width: colWidth('testCase.module.name', '10rem') }} body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
         {!isMobile && (
           <Column
+            columnKey="targetRole"
             header="Target Role"
+            style={{ width: colWidth('targetRole', '10rem') }}
             body={(row: TestPlanCaseWithDetails) =>
               row.testCase.targetRole ? <Tag value={row.testCase.targetRole.name} severity="secondary" /> : '-'
             }
@@ -249,7 +257,9 @@ export function PlanTestCasesTab({
         )}
         {!isMobile && (
           <Column
+            columnKey="tag"
             header="Tag"
+            style={{ width: colWidth('tag', '11rem') }}
             body={(row: TestPlanCaseWithDetails) => (
               <div className="flex flex-wrap gap-1">
                 {row.testCase.tags.map((t) => (
@@ -263,6 +273,7 @@ export function PlanTestCasesTab({
           <Column
             field="testCase.priority"
             header="Priority"
+            style={{ width: colWidth('testCase.priority', '8rem') }}
             body={(row: TestPlanCaseWithDetails) => (
               <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
             )}
@@ -270,7 +281,9 @@ export function PlanTestCasesTab({
         )}
         {canEditContent && (
           <Column
+            columnKey="actions"
             header=""
+            resizeable={false}
             style={{ width: isMobile ? '3rem' : '7rem' }}
             body={(row: TestPlanCaseWithDetails) => {
               const idx = cases.indexOf(row);
