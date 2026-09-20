@@ -15,7 +15,7 @@ import { testRunService } from '../../services/testRunService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
 import { testRoleService } from '../../services/testRoleService';
-import type { TestCasePriority, TestCaseWithDetails, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
+import type { TestCase, TestCasePriority, TestCaseWithDetails, TestPlanCaseWithDetails, TestPlanStatus, TestRun, TestRunStatus } from '../../types/domain';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
@@ -32,6 +32,7 @@ import { PlanTestCasesTab } from './components/tabs/PlanTestCasesTab';
 import { PlanTestRunsTab } from './components/tabs/PlanTestRunsTab';
 import { TestPlanDetailPageSkeleton } from './TestPlanDetailPageSkeleton';
 import { AddCaseToPlanDialog } from './components/dialogs/AddCaseToPlanDialog';
+import { TestCaseDialog } from '../projects/components/dialogs/TestCaseDialog';
 import { StartTestRunDialog } from './components/dialogs/StartTestRunDialog';
 import { toastHelper } from '../../helpers/toast';
 
@@ -204,6 +205,71 @@ export function TestPlanDetailPage() {
     setAddCaseDialogOpen(false);
     await reloadCases();
     toastHelper.success('Test case added to plan');
+  }
+
+  // --- Quick Add Test Case (create a brand-new case, then attach it straight to this plan) ---
+  const [quickAddCaseDialogOpen, setQuickAddCaseDialogOpen] = useState(false);
+  const [quickAddCode, setQuickAddCode] = useState('');
+  const [quickAddModuleId, setQuickAddModuleId] = useState<string | null>(null);
+  const [quickAddTitle, setQuickAddTitle] = useState('');
+  const [quickAddObjective, setQuickAddObjective] = useState('');
+  const [quickAddPreconditions, setQuickAddPreconditions] = useState('');
+  const [quickAddSteps, setQuickAddSteps] = useState('');
+  const [quickAddExpectedResult, setQuickAddExpectedResult] = useState('');
+  const [quickAddPriority, setQuickAddPriority] = useState<TestCasePriority>('medium');
+  const [quickAddTargetRoleId, setQuickAddTargetRoleId] = useState<string | null>(null);
+  const [quickAddNotes, setQuickAddNotes] = useState('');
+  const [quickAddTags, setQuickAddTags] = useState<string[]>([]);
+  const [quickAddError, setQuickAddError] = useState<string | null>(null);
+  const [quickAddStepType, setQuickAddStepType] = useState<TestCase['stepType']>('simple');
+  const [quickAddDetailedSteps, setQuickAddDetailedSteps] = useState<{ action: string; expectedResult: string }[]>([]);
+
+  function openQuickAddCaseDialog() {
+    setQuickAddCode('');
+    setQuickAddModuleId(null);
+    setQuickAddTitle('');
+    setQuickAddObjective('');
+    setQuickAddPreconditions('');
+    setQuickAddSteps('');
+    setQuickAddExpectedResult('');
+    setQuickAddPriority('medium');
+    setQuickAddTargetRoleId(null);
+    setQuickAddNotes('');
+    setQuickAddTags([]);
+    setQuickAddStepType('simple');
+    setQuickAddDetailedSteps([]);
+    setQuickAddError(null);
+    setQuickAddCaseDialogOpen(true);
+  }
+
+  async function handleSaveQuickAddCase() {
+    if (!testPlan) return;
+    setQuickAddError(null);
+    try {
+      const created = await testCaseService.create({
+        projectId: testPlan.projectId,
+        moduleId: quickAddModuleId,
+        code: quickAddCode,
+        title: quickAddTitle,
+        objective: quickAddObjective,
+        preconditions: quickAddPreconditions,
+        steps: quickAddSteps,
+        expectedResult: quickAddExpectedResult,
+        priority: quickAddPriority,
+        targetRoleId: quickAddTargetRoleId,
+        notes: quickAddNotes,
+        tagNames: quickAddTags,
+        stepType: quickAddStepType,
+        detailedSteps: quickAddStepType === 'detailed' ? quickAddDetailedSteps : undefined,
+        createdBy: user?.id ?? null,
+      });
+      await testPlanService.addCase(testPlan.id, created.id, cases.length, { projectId: testPlan.projectId, actorId: user?.id, planCode: testPlan.code, planName: testPlan.name });
+      setQuickAddCaseDialogOpen(false);
+      await reloadCases();
+      toastHelper.success('Test case created and added to plan');
+    } catch (err) {
+      setQuickAddError(err instanceof Error ? err.message : 'Failed to save test case');
+    }
   }
 
   function handleRemoveCase(row: TestPlanCaseWithDetails) {
@@ -493,6 +559,47 @@ export function TestPlanDetailPage() {
         selectedCaseIds={selectedCaseIds}
         onSelectedCaseIdsChange={setSelectedCaseIds}
         onAdd={handleAddCases}
+        onQuickAdd={openQuickAddCaseDialog}
+      />
+
+      <TestCaseDialog
+        visible={quickAddCaseDialogOpen}
+        editing={false}
+        code={quickAddCode}
+        onCodeChange={setQuickAddCode}
+        moduleId={quickAddModuleId}
+        onModuleIdChange={setQuickAddModuleId}
+        moduleOptions={modules.map((m) => ({ label: m.name, value: m.id }))}
+        onQuickAddModule={() => {}}
+        priority={quickAddPriority}
+        onPriorityChange={setQuickAddPriority}
+        targetRoleId={quickAddTargetRoleId}
+        onTargetRoleIdChange={setQuickAddTargetRoleId}
+        testRoleOptions={testRoles.map((r) => ({ label: r.name, value: r.id }))}
+        onQuickAddTestRole={() => {}}
+        title={quickAddTitle}
+        onTitleChange={setQuickAddTitle}
+        objective={quickAddObjective}
+        onObjectiveChange={setQuickAddObjective}
+        preconditions={quickAddPreconditions}
+        onPreconditionsChange={setQuickAddPreconditions}
+        stepType={quickAddStepType}
+        onStepTypeChange={setQuickAddStepType}
+        steps={quickAddSteps}
+        onStepsChange={setQuickAddSteps}
+        expectedResult={quickAddExpectedResult}
+        onExpectedResultChange={setQuickAddExpectedResult}
+        detailedSteps={quickAddDetailedSteps}
+        onDetailedStepsChange={setQuickAddDetailedSteps}
+        tags={quickAddTags}
+        onTagsChange={setQuickAddTags}
+        tagOptions={tags.map((t) => ({ label: t.name, value: t.name }))}
+        onQuickAddTag={() => {}}
+        notes={quickAddNotes}
+        onNotesChange={setQuickAddNotes}
+        error={quickAddError}
+        onHide={() => setQuickAddCaseDialogOpen(false)}
+        onSave={handleSaveQuickAddCase}
       />
 
       <StartTestRunDialog

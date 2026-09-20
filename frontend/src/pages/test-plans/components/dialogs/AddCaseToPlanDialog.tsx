@@ -23,6 +23,7 @@ type AddCaseToPlanDialogProps = {
   selectedCaseIds: string[];
   onSelectedCaseIdsChange: (value: string[]) => void;
   onAdd: () => void;
+  onQuickAdd: () => void;
 };
 
 export function AddCaseToPlanDialog({
@@ -35,6 +36,7 @@ export function AddCaseToPlanDialog({
   selectedCaseIds,
   onSelectedCaseIdsChange,
   onAdd,
+  onQuickAdd,
 }: AddCaseToPlanDialogProps) {
   const [moduleFilter, setModuleFilter] = useState<string[]>([]);
   const [tagFilter, setTagFilter] = useState<string[]>([]);
@@ -63,10 +65,10 @@ export function AddCaseToPlanDialog({
   const filteredCases = filterCases(moduleFilter, tagFilter, priorityFilter, testRoleFilter);
 
   return (
-    <Dialog header="Add Test Case to Plan" visible={visible} onHide={onHide} style={{ width: '38rem' }}>
+    <Dialog header="Add Test Case to Plan" visible={visible} onHide={onHide} style={{ width: '38rem', maxWidth: '92vw' }} className="dialog-wide-lg">
       <div className="flex flex-column gap-2">
         <div className="grid p-1">
-          <div className="col-12 md:col-3 p-1">
+          <div className="col-12 lg:col-6 p-1">
             <MultiSelect
               value={moduleFilter}
               options={modules.map((m) => ({ label: m.name, value: m.id }))}
@@ -78,7 +80,7 @@ export function AddCaseToPlanDialog({
               virtualScrollerOptions={{ itemSize: 40 }}
             />
           </div>
-          <div className="col-12 md:col-3 p-1">
+          <div className="col-12 lg:col-6 p-1">
             <MultiSelect
               value={tagFilter}
               options={tags.map((t) => ({ label: t.name, value: t.id }))}
@@ -90,7 +92,7 @@ export function AddCaseToPlanDialog({
               virtualScrollerOptions={{ itemSize: 40 }}
             />
           </div>
-          <div className="col-12 md:col-3 p-1">
+          <div className="col-12 lg:col-6 p-1">
             <MultiSelect
               value={priorityFilter}
               options={PRIORITY_OPTIONS}
@@ -101,7 +103,7 @@ export function AddCaseToPlanDialog({
               selectAllLabel="All"
             />
           </div>
-          <div className="col-12 md:col-3 p-1">
+          <div className="col-12 lg:col-6 p-1">
             <MultiSelect
               value={testRoleFilter}
               options={testRoles.map((r) => ({ label: r.name, value: r.id }))}
@@ -113,18 +115,30 @@ export function AddCaseToPlanDialog({
             />
           </div>
         </div>
-        <FloatLabel className="ifta-field">
-          <MultiSelect
-            id="add-case-to-plan"
-            value={selectedCaseIds}
-            options={filteredCases.map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
-            onChange={(e) => onSelectedCaseIdsChange(e.value)}
-            filter
-            display="chip"
-            className="w-full"
+        <div className="flex align-items-center gap-2">
+          <FloatLabel className="ifta-field flex-grow-1">
+            <MultiSelect
+              id="add-case-to-plan"
+              value={selectedCaseIds}
+              options={filteredCases.map((c) => ({ label: `${c.code} — ${c.title}`, value: c.id }))}
+              onChange={(e) => onSelectedCaseIdsChange(e.value)}
+              filter
+              display="chip"
+              className="w-full"
+            />
+            <label htmlFor="add-case-to-plan">Test Case ({filteredCases.length})</label>
+          </FloatLabel>
+          <Button
+            icon="pi pi-plus"
+            type="button"
+            text
+            rounded
+            size="small"
+            aria-label="Quick Add Test Case"
+            onClick={onQuickAdd}
+            style={{ width: '2rem', height: '2rem', flexShrink: 0 }}
           />
-          <label htmlFor="add-case-to-plan">Test Case ({filteredCases.length})</label>
-        </FloatLabel>
+        </div>
         <Button label="Add" size="small" onClick={onAdd} disabled={selectedCaseIds.length === 0} />
       </div>
     </Dialog>
