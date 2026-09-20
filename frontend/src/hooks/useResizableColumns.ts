@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { DataTableColumnResizeEndEvent } from 'primereact/datatable';
-import type { ColumnProps } from 'primereact/column';
 
-// Persists per-column pixel widths to localStorage, so a user's manual column resize
-// survives reload/navigation.
+// Persists every column's pixel width (not just the one being dragged) to localStorage,
+// so a user's manual column resize survives reload/navigation.
 //
 // Deliberately hand-rolled instead of PrimeReact's own `stateKey`/`stateStorage` DataTable
 // state mechanism: that mechanism bundles column widths together with sort/filter/
@@ -13,26 +12,33 @@ import type { ColumnProps } from 'primereact/column';
 // corrupted pagination on reload ("NaN-NaN of N"). Tracking widths ourselves, fully
 // outside PrimeReact's stateful-table code path, avoids that interaction entirely.
 //
-// The table element also needs an explicit total width restored, not just each <Column>:
-// PrimeReact's `.p-datatable-table` renders at `width: 100%` of its wrapper by default, so
-// under `table-layout: fixed` the browser scales every column's declared width down
-// proportionally to fit that 100% whenever the *sum* of all columns' widths exceeds the
-// wrapper's width — a column saved at 320px can render back much narrower after reload.
-// During a live drag, PrimeReact compensates by growing the table element itself
-// (`columnResizeMode="expand"`'s internal `updateTableWidth`); on reload there's no live
-// drag to do that, so this hook is given the full list of columns' (field, fallback width)
-// up front and sums their resolved pixel widths itself for the DataTable's `tableStyle`.
+// Why EVERY column, not just the resized one: PrimeReact's DataTable renders at
+// `width: 100%` of its wrapper by default, and any flex-fill column (the "Title"/"Name"
+// column, styled via the `dt-title-fill` class with `width: 100%`) claims the rest. Under
+// `table-layout: fixed`, mixing that 100%-width column with fixed px/rem siblings makes
+// the browser's column-width algorithm misallocate space across the WHOLE row, not just
+// that one column — so a resized column can render narrower than its own saved width even
+// though nothing else changed. During a live drag PrimeReact works around this by
+// snapshotting and re-applying every column's width via an injected stylesheet
+// (`columnResizeMode="expand"`'s internal `resizeTableCells`); on reload there's no live
+// drag to do that, so `onColumnResizeEnd` here mirrors the same idea — on any resize it
+// reads and saves every header cell's current rendered width by its position in the row,
+// and `colWidthAt` returns an explicit px value for all of them (including the fill
+// column) once any resize has happened, so nothing is left for the browser to reflow.
+//
+// Positions are plain left-to-right index among ALL rendered <th> in the row, including
+// the selection-checkbox and actions columns — pass the same index consistently between
+// `colWidthAt` calls and column order in JSX.
 //
 // Usage:
-//   const { colWidth, tableStyle, onColumnResizeEnd } = useResizableColumns('issues', [
-//     ['code', '7rem'], ['title', '20rem'], ['status', '9rem'],
-//   ]);
-//   <DataTable tableStyle={tableStyle} resizableColumns columnResizeMode="expand"
-//     onColumnResizeEnd={onColumnResizeEnd} ...>
-//     <Column style={{ width: colWidth('code', '7rem') }} .../>
-export function useResizableColumns(storageKey: string, columns: readonly (readonly [field: string, fallback: string])[]) {
+//   const { colWidthAt, onColumnResizeEnd } = useResizableColumns('issues');
+//   <DataTable resizableColumns columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} ...>
+//     <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} />
+//     <Column field="code" style={{ width: colWidthAt(1, '7rem') }} .../>
+//     <Column field="title" className="dt-title-fill" style={{ width: colWidthAt(2) }} .../>
+export function useResizableColumns(storageKey: string) {
   const key = `table-col-widths:${storageKey}`;
-  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
+  const [columnWidths, setColumnWidths] = useState<Record<number, number>>(() => {
     try {
       const raw = localStorage.getItem(key);
       return raw ? JSON.parse(raw) : {};
@@ -53,53 +59,49 @@ export function useResizableColumns(storageKey: string, columns: readonly (reado
 
   const onColumnResizeEnd = useCallback(
     (e: DataTableColumnResizeEndEvent) => {
-      const props = e.column.props as ColumnProps;
-      const field = props.field ?? props.columnKey;
-      if (!field) return;
-      const width = Math.round(e.element.getBoundingClientRect().width);
-      if (!width) return;
-      setColumnWidths((prev) => {
-        const next = { ...prev, [field]: width };
-        try {
-          localStorage.setItem(key, JSON.stringify(next));
-        } catch {
-          // best-effort only — a full/blocked localStorage shouldn't break resizing
-        }
-        return next;
+      const table = e.element.closest('table');
+      const headerRow = table?.querySelector('thead tr');
+      if (!headerRow) return;
+      const headers = Array.from(headerRow.children) as HTMLElement[];
+      const next: Record<number, number> = {};
+      headers.forEach((th, index) => {
+        const width = Math.round(th.getBoundingClientRect().width);
+        if (width) next[index] = width;
       });
+      setColumnWidths(next);
+      try {
+        localStorage.setItem(key, JSON.stringify(next));
+      } catch {
+        // best-effort only — a full/blocked localStorage shouldn't break resizing
+      }
     },
     [key],
   );
 
-  // field is a Column's `field`/`columnKey` (also used as the object key above, and — for
-  // columns with no `field`, like body-only ones — any string you pass to both call sites
-  // consistently, e.g. a short slug). fallback is the design-time width (e.g. '10rem').
-  const colWidth = useCallback(
-    (field: string, fallback: string): string => {
-      const saved = columnWidths[field];
-      return saved ? `${saved}px` : fallback;
+  // fallback is the design-time width (e.g. '10rem', '7rem'), or omitted for a flex-fill
+  // column (e.g. "Title") that has no fixed fallback — once ANY column in this table has
+  // been resized, every tracked column (including the fill one) gets an explicit
+  // saved-or-computed px width; until then, fill columns keep their normal `width: 100%`
+  // (via className="dt-title-fill") and fixed columns keep their rem fallback, exactly as
+  // before any resizing ever happened.
+  const colWidthAt = useCallback(
+    (index: number, fallback?: string): string | undefined => {
+      const saved = columnWidths[index];
+      if (saved) return `${saved}px`;
+      return fallback;
     },
     [columnWidths],
   );
 
-  // Only force an explicit table width once at least one of this table's columns has
-  // actually been resized — otherwise an untouched table keeps its normal
-  // 100%-of-wrapper sizing so it still fills the available space by default.
-  const tableStyle = useMemo(() => {
-    const hasResizedColumn = columns.some(([field]) => columnWidths[field] !== undefined);
-    if (!hasResizedColumn) return undefined;
-    const sum = columns.reduce((total, [field, fallback]) => total + (columnWidths[field] ?? remOrPxToPx(fallback)), 0);
-    return { width: `${sum}px`, minWidth: '100%' };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnWidths, columns]);
+  // Once every column has an explicit saved px width (including the fill column), the
+  // table itself also needs to be at least that wide — otherwise the browser proportionally
+  // compresses all of them to fit the wrapper anyway, same failure mode as relying on each
+  // column's own style in isolation. min-width (not width) so the table can still grow
+  // past this if its wrapper is wider.
+  const savedWidths = Object.values(columnWidths);
+  const tableStyle = savedWidths.length > 0
+    ? { minWidth: `${savedWidths.reduce((a, b) => a + b, 0)}px` }
+    : undefined;
 
-  return { onColumnResizeEnd, colWidth, tableStyle };
-}
-
-function remOrPxToPx(value: string): number {
-  const remMatch = value.match(/^([\d.]+)rem$/);
-  if (remMatch) return parseFloat(remMatch[1]) * 16;
-  const pxMatch = value.match(/^([\d.]+)px$/);
-  if (pxMatch) return parseFloat(pxMatch[1]);
-  return 0;
+  return { onColumnResizeEnd, colWidthAt, tableStyle };
 }

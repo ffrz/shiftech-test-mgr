@@ -23,16 +23,6 @@ const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
   ['in_progress', 'completed'] as const
 ).map((v) => ({ label: TEST_RUN_STATUS_LABEL[v], value: v }));
 
-// See useResizableColumns for why this list (fixed-width columns only, "Name" flex-fills
-// the remainder and is excluded) is needed to restore the table's total width.
-const TEST_RUN_COLUMNS = [
-  ['code', '7rem'],
-  ['testPlanName', '12rem'],
-  ['status', '7rem'],
-  ['result', '8rem'],
-  ['tester', '11rem'],
-  ['completedAt', '11rem'],
-] as const;
 
 export type TestRunWithSummary = TestRun & {
   testPlanName: string | null;
@@ -107,7 +97,7 @@ export function TestRunTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('testRuns', TEST_RUN_COLUMNS);
+  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('testRuns');
 
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -216,11 +206,11 @@ export function TestRunTab({
         tableStyle={isMobile ? undefined : tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
-        <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: colWidth('code', '7rem') }} hidden={isMobile}
+        <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} hidden={isMobile} />
+        <Column field="code" header="Code" sortable style={{ width: colWidthAt(1, '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={(row: TestRunWithSummary) => <a className="entity-link" href={`/test-runs/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-runs/${row.id}`); }}>{row.code}</a>} />
-        <Column field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobileRunBody : (row: TestRunWithSummary) => {
+        <Column field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(2) }} body={isMobile ? mobileRunBody : (row: TestRunWithSummary) => {
           if (editingName === row.id) {
             return (
               <div onKeyDown={(e) => { if (e.key === 'Enter') confirmEditName(row); else if (e.key === 'Escape') cancelEditName(); }}>
@@ -236,7 +226,7 @@ export function TestRunTab({
           field="testPlanName"
           sortable
           hidden={isMobile}
-          style={{ width: colWidth('testPlanName', '12rem') }}
+          style={{ width: colWidthAt(3, '12rem') }}
           body={(row: TestRunWithSummary) =>
             row.testPlanId ? (
               <a
@@ -254,12 +244,12 @@ export function TestRunTab({
             )
           }
         />
-        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: colWidth('status', '7rem') }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
+        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: colWidthAt(4, '7rem') }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
         <Column
           columnKey="result"
           header="Result"
           hidden={isMobile}
-          style={{ width: colWidth('result', '8rem') }}
+          style={{ width: colWidthAt(5, '8rem') }}
           body={(row: TestRunWithSummary) => (
             <div className="flex gap-1 align-items-center">
               <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
@@ -272,10 +262,10 @@ export function TestRunTab({
           columnKey="tester"
           header="Tester"
           hidden={isMobile}
-          style={{ width: colWidth('tester', '11rem') }}
+          style={{ width: colWidthAt(6, '11rem') }}
           body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
         />
-        <Column field="completedAt" header="Completed" sortable hidden={isMobile} style={{ width: colWidth('completedAt', '11rem') }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
+        <Column field="completedAt" header="Completed" sortable hidden={isMobile} style={{ width: colWidthAt(7, '11rem') }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
         <Column
           columnKey="actions"
           header=""

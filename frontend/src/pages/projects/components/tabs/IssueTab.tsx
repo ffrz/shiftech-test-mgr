@@ -27,22 +27,6 @@ import { memberSelectLabel } from '../../../../helpers/memberLabels';
 const UNDO_TIMEOUT_MS = 9000;
 type EditableField = 'status' | 'assignedTo' | 'title' | 'type' | 'priority' | 'moduleId' | 'targetRoleId' | 'tags';
 
-// Fallback (design-time) widths for every fixed-width column, in the order rendered —
-// the "Title" column flex-fills the remainder and is deliberately excluded, since it has
-// no fixed fallback width to sum. Paired with useResizableColumns so the table's own total
-// width can be restored to the exact sum of all fixed columns after a reload (see that
-// hook's comment for why this is needed).
-const ISSUE_COLUMNS = [
-  ['code', '7rem'],
-  ['type', '8rem'],
-  ['moduleName', '10rem'],
-  ['targetRoleName', '10rem'],
-  ['tags', '11rem'],
-  ['linked', '7rem'],
-  ['priority', '7rem'],
-  ['status', '9rem'],
-  ['assignedTo', '10rem'],
-] as const;
 import {
   ISSUE_PRIORITY_LABEL,
   ISSUE_PRIORITY_SEVERITY,
@@ -177,7 +161,7 @@ export function IssueTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('issues', ISSUE_COLUMNS);
+  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('issues');
 
   // Bulk-edit dialog: UNSET (untouched, excluded from the update) until the user picks
   // something. `null` is itself a meaningful choice for assignedTo (unassign, via the
@@ -475,8 +459,8 @@ export function IssueTab({
         className={isMobile ? undefined : 'dt-resizable'}
       >
 
-        <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: colWidth('code', '7rem') }} hidden={isMobile}
+        <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} hidden={isMobile} />
+        <Column field="code" header="Code" sortable style={{ width: colWidthAt(1, '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={(row: IssueWithDetails) => <a className="entity-link" href={`/issues/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/issues/${row.id}`); }}>{row.code}</a>} />
         <Column
@@ -485,6 +469,7 @@ export function IssueTab({
           sortable={!isMobile}
           className="dt-title-fill"
           headerClassName="dt-title-fill"
+          style={{ width: colWidthAt(2) }}
           body={isMobile ? mobileIssueBody : (row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'title';
@@ -513,7 +498,7 @@ export function IssueTab({
           header="Type"
           sortable
           hidden={isMobile}
-          style={{ width: colWidth('type', '8rem') }}
+          style={{ width: colWidthAt(3, '8rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'type';
@@ -539,7 +524,7 @@ export function IssueTab({
           header="Module"
           sortable
           hidden={isMobile}
-          style={{ width: colWidth('moduleName', '10rem') }}
+          style={{ width: colWidthAt(4, '10rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'moduleId';
@@ -565,7 +550,7 @@ export function IssueTab({
           header="Target Role"
           sortable
           hidden={isMobile}
-          style={{ width: colWidth('targetRoleName', '10rem') }}
+          style={{ width: colWidthAt(5, '10rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'targetRoleId';
@@ -586,7 +571,7 @@ export function IssueTab({
             );
           }}
         />
-        <Column field="tags" header="Tag" hidden={isMobile} style={{ width: colWidth('tags', '11rem') }} body={(row: IssueWithDetails) => {
+        <Column field="tags" header="Tag" hidden={isMobile} style={{ width: colWidthAt(6, '11rem') }} body={(row: IssueWithDetails) => {
           const canEdit = canManageIssues && row.status !== 'closed';
           const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'tags';
           if (isEditing && canEdit) {
@@ -611,7 +596,7 @@ export function IssueTab({
           columnKey="linked"
           header="Linked"
           hidden={isMobile}
-          style={{ width: colWidth('linked', '7rem') }}
+          style={{ width: colWidthAt(7, '7rem') }}
           body={(row: IssueWithDetails) =>
             row.linkedTestResults.length > 0 ? (
               <span className="text-sm">{row.linkedTestResults.length} Test Result</span>
@@ -625,7 +610,7 @@ export function IssueTab({
           header="Priority"
           sortable
           hidden={isMobile}
-          style={{ width: colWidth('priority', '7rem') }}
+          style={{ width: colWidthAt(8, '7rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'priority';
@@ -651,7 +636,7 @@ export function IssueTab({
           header="Status"
           sortable
           hidden={isMobile}
-          style={{ width: colWidth('status', '9rem') }}
+          style={{ width: colWidthAt(9, '9rem') }}
           body={(row: IssueWithDetails) => {
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'status';
             if (isEditing && canManageIssues) {
@@ -676,7 +661,7 @@ export function IssueTab({
           header="Assigned To"
           sortable
           hidden={isMobile}
-          style={{ width: colWidth('assignedTo', '10rem') }}
+          style={{ width: colWidthAt(10, '10rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'assignedTo';

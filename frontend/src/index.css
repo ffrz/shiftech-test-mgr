@@ -569,11 +569,25 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   min-width: 0;
 }
 
+
 /* Serial-number style codes (e.g. "ISS-0001", "TC-0042") must never break
    across lines at the hyphen when the column is narrower than the code. */
 .p-datatable .p-datatable-thead>tr>th.dt-code-nowrap,
 .p-datatable .p-datatable-tbody>tr>td.dt-code-nowrap {
   white-space: nowrap;
+}
+
+/* Inside a resizable table, an unbreakable long value (e.g. "ISS-0001") in a nowrap cell
+   can still distort every sibling column's width under table-layout:fixed even with
+   overflow:hidden set — the browser's fixed-layout algorithm treats the cell's intrinsic
+   min-content size as a floor unless min-width is also pinned to 0. Without this, resizing
+   any OTHER column can end up misallocating space to/from a code column purely because of
+   its own unclipped text metrics. */
+.p-datatable.dt-resizable .p-datatable-thead>tr>th.dt-code-nowrap,
+.p-datatable.dt-resizable .p-datatable-tbody>tr>td.dt-code-nowrap {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Columns like Module/Target Role/Tag/Assigned To: keep to one line and

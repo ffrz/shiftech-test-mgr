@@ -25,14 +25,6 @@ const TEST_PLAN_STATUS_OPTIONS: { label: string; value: TestPlanStatus }[] = (
   ['draft', 'active', 'completed', 'archived'] as const
 ).map((v) => ({ label: TEST_PLAN_STATUS_LABEL[v], value: v }));
 
-// See useResizableColumns for why this list (fixed-width columns only, "Name" flex-fills
-// the remainder and is excluded) is needed to restore the table's total width.
-const TEST_PLAN_COLUMNS = [
-  ['code', '7rem'],
-  ['status', '9rem'],
-  ['lastRun', '13rem'],
-  ['updatedAt', '11rem'],
-] as const;
 
 const UNDO_TIMEOUT_MS = 9000;
 
@@ -117,7 +109,7 @@ export function TestPlanTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('testPlans', TEST_PLAN_COLUMNS);
+  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('testPlans');
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -301,11 +293,11 @@ export function TestPlanTab({
         tableStyle={isMobile ? undefined : tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
-        <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: colWidth('code', '7rem') }} hidden={isMobile}
+        <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} hidden={isMobile} />
+        <Column field="code" header="Code" sortable style={{ width: colWidthAt(1, '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={(row: TestPlan) => <a className="entity-link" href={`/test-plans/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-plans/${row.id}`); }}>{row.code}</a>} />
-        <Column field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobilePlanBody : (row: TestPlan) => {
+        <Column field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(2) }} body={isMobile ? mobilePlanBody : (row: TestPlan) => {
           const isEditing = editingCell?.planId === row.id && editingCell?.field === 'name';
           if (isEditing && canEditContent) {
             return (
@@ -317,7 +309,7 @@ export function TestPlanTab({
           }
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'name', row.name); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>{row.name}</div>;
         }} />
-        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: colWidth('status', '9rem') }} body={(row: TestPlan) => {
+        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: colWidthAt(3, '9rem') }} body={(row: TestPlan) => {
           const isEditing = editingCell?.planId === row.id && editingCell?.field === 'status';
           if (isEditing && canEditContent) {
             return (
@@ -333,8 +325,8 @@ export function TestPlanTab({
             <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />
           </div>;
         }} />
-        {!isMobile && <Column columnKey="lastRun" header="Last Run" style={{ width: colWidth('lastRun', '13rem'), whiteSpace: 'nowrap' }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />}
-        <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: colWidth('updatedAt', '11rem'), whiteSpace: 'nowrap' }} body={(row: TestPlanRow) => formatDateTime(row.updatedAt)} />
+        {!isMobile && <Column columnKey="lastRun" header="Last Run" style={{ width: colWidthAt(4, '13rem'), whiteSpace: 'nowrap' }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />}
+        <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: colWidthAt(5, '11rem'), whiteSpace: 'nowrap' }} body={(row: TestPlanRow) => formatDateTime(row.updatedAt)} />
         <Column
           columnKey="actions"
           header=""

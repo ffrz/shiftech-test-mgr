@@ -22,15 +22,6 @@ const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
   ['in_progress', 'completed'] as const
 ).map((v) => ({ label: TEST_RUN_STATUS_LABEL[v], value: v }));
 
-// See useResizableColumns for why this list (fixed-width columns only, "Run Name" flex-
-// fills the remainder and is excluded) is needed to restore the table's total width.
-const PLAN_TEST_RUNS_COLUMNS = [
-  ['code', '7rem'],
-  ['status', '7rem'],
-  ['results', '8rem'],
-  ['tester', '11rem'],
-  ['completedAt', '11rem'],
-] as const;
 
 type PlanTestRunsTabProps = {
   testRuns: TestRunWithSummary[];
@@ -87,7 +78,7 @@ export function PlanTestRunsTab({
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible],
   });
-  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('planTestRuns', PLAN_TEST_RUNS_COLUMNS);
+  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('planTestRuns');
 
   const mobileRunNameBody = (row: TestRunWithSummary) => (
     <div className="flex flex-column gap-2 py-1">
@@ -156,14 +147,14 @@ export function PlanTestRunsTab({
         onColumnResizeEnd={onColumnResizeEnd}
         tableStyle={isMobile ? undefined : tableStyle}
       >
-        {!isMobile && <Column field="code" header="Code" style={{ width: colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
-        <Column field="name" header="Run Name" className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobileRunNameBody : undefined} />
-        {!isMobile && <Column field="status" header="Status" style={{ width: colWidth('status', '7rem') }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
+        {!isMobile && <Column field="code" header="Code" style={{ width: colWidthAt(0, '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
+        <Column field="name" header="Run Name" className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(1) }} body={isMobile ? mobileRunNameBody : undefined} />
+        {!isMobile && <Column field="status" header="Status" style={{ width: colWidthAt(2, '7rem') }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
         {!isMobile && (
           <Column
             columnKey="results"
             header="Results"
-            style={{ width: colWidth('results', '8rem') }}
+            style={{ width: colWidthAt(3, '8rem') }}
             body={(row: TestRunWithSummary) => (
               <div className="flex gap-1 align-items-center">
                 <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
@@ -179,11 +170,11 @@ export function PlanTestRunsTab({
           <Column
             columnKey="tester"
             header="Tester"
-            style={{ width: colWidth('tester', '11rem') }}
+            style={{ width: colWidthAt(4, '11rem') }}
             body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
           />
         )}
-        {!isMobile && <Column field="completedAt" header="Completed" style={{ width: colWidth('completedAt', '11rem') }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
+        {!isMobile && <Column field="completedAt" header="Completed" style={{ width: colWidthAt(5, '11rem') }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
         {canDeleteContent && (
           <Column
             columnKey="actions"

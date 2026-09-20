@@ -36,15 +36,6 @@ function formatLastRun(lastRun: TestPlanLastRun): string {
   return `${formatDate(lastRun.runAt)} · ${pct}% pass`;
 }
 
-// See useResizableColumns for why this list (fixed-width columns only, "Name" flex-fills
-// the remainder and is excluded) is needed to restore the table's total width.
-const TEST_PLANS_PAGE_COLUMNS = [
-  ['code', '7rem'],
-  ['status', '9rem'],
-  ['lastRun', '13rem'],
-  ['updatedAt', '10rem'],
-] as const;
-
 export function TestPlansPage() {
   const navigate = useNavigate();
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -64,7 +55,7 @@ export function TestPlansPage() {
   const isMobile = lt.sm;
 
   const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
-  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('testPlansCrossProject', TEST_PLANS_PAGE_COLUMNS);
+  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('testPlansCrossProject');
 
   const { data: projects = [] } = useQuery({
     queryKey: queryKeys.projects(),
@@ -151,12 +142,12 @@ export function TestPlansPage() {
         <DataTable value={testPlans} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
           selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlanRow).id}`)}
           resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} tableStyle={isMobile ? undefined : tableStyle} className={isMobile ? undefined : 'dt-resizable'}>
-        <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap"
+        <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : colWidthAt(0, '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={isMobile ? mobileCodeBody : undefined} />
-        {!isMobile && <Column field="name" header="Name" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}
-        {!isMobile && <Column field="status" header="Status" style={{ width: colWidth('status', '9rem') }} body={(row: TestPlanRow) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />}
-        {!isMobile && <Column columnKey="lastRun" header="Last Run" style={{ width: colWidth('lastRun', '13rem') }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />}
-        {!isMobile && <Column field="updatedAt" header="Last Updated" style={{ width: colWidth('updatedAt', '10rem') }} body={(row: TestPlanRow) => formatDate(row.updatedAt)} sortable />}
+        {!isMobile && <Column field="name" header="Name" sortable className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(1) }} />}
+        {!isMobile && <Column field="status" header="Status" style={{ width: colWidthAt(2, '9rem') }} body={(row: TestPlanRow) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />}
+        {!isMobile && <Column columnKey="lastRun" header="Last Run" style={{ width: colWidthAt(3, '13rem') }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />}
+        {!isMobile && <Column field="updatedAt" header="Last Updated" style={{ width: colWidthAt(4, '10rem') }} body={(row: TestPlanRow) => formatDate(row.updatedAt)} sortable />}
         {canEditContent && (
           <Column
             columnKey="actions"

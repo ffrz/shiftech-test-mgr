@@ -20,15 +20,6 @@ import { pathForActivityEntity, ACTIVITY_ENTITY_LABEL } from '../../../../helper
 import type { AuditLogEntry } from '../../../../repositories/auditLogRepository';
 import type { ActivityEntityType } from '../../../../types/domain';
 
-// See useResizableColumns for why this list (fixed-width columns only, "Description"
-// flex-fills the remainder and is excluded) is needed to restore the table's total width.
-const ACTIVITY_LOG_COLUMNS = [
-  ['createdAt', '12rem'],
-  ['actorName', '10rem'],
-  ['entityType', '8rem'],
-  ['eventType', '8rem'],
-] as const;
-
 const ENTITY_TYPE_OPTIONS: { label: string; value: ActivityEntityType }[] = [
   { label: 'Issue', value: 'issue' },
   { label: 'Test Case', value: 'test_case' },
@@ -55,7 +46,7 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible],
   });
-  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('activityLog', ACTIVITY_LOG_COLUMNS);
+  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('activityLog');
 
   const hasActiveFilters = entityTypes.length > 0 || !!search;
 
@@ -191,11 +182,11 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
           field="createdAt"
           header="Time"
           body={(row: AuditLogEntry) => formatDateTime(row.createdAt)}
-          style={{ width: colWidth('createdAt', '12rem') }}
+          style={{ width: colWidthAt(0, '12rem') }}
           headerClassName="white-space-nowrap"
           hidden={isMobile}
         />
-        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: colWidth('actorName', '10rem') }} hidden={isMobile} />
+        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: colWidthAt(1, '10rem') }} hidden={isMobile} />
         <Column
           field="entityType"
           header="Entity"
@@ -203,11 +194,11 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
             const label = ACTIVITY_ENTITY_LABEL[row.entityType] ?? row.entityType;
             return <span title={label}>{label}</span>;
           }}
-          style={{ width: colWidth('entityType', '8rem') }}
+          style={{ width: colWidthAt(2, '8rem') }}
           hidden={isMobile}
         />
-        <Column field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: colWidth('eventType', '8rem') }} hidden={isMobile} />
-        <Column header={isMobile ? 'Activity' : 'Description'} body={isMobile ? mobileBody : descriptionBodyTemplate} className="dt-title-fill" headerClassName="dt-title-fill" />
+        <Column field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: colWidthAt(3, '8rem') }} hidden={isMobile} />
+        <Column header={isMobile ? 'Activity' : 'Description'} body={isMobile ? mobileBody : descriptionBodyTemplate} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(4) }} />
       </DataTable>
       </div>
     </>

@@ -20,15 +20,6 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
   { label: TEST_CASE_PRIORITY_LABEL.critical, value: 'critical' },
 ];
 
-// See useResizableColumns for why this list (fixed-width columns only, "Test Case" flex-
-// fills the remainder and is excluded) is needed to restore the table's total width.
-const PLAN_TEST_CASES_COLUMNS = [
-  ['testCase.code', '7rem'],
-  ['testCase.module.name', '10rem'],
-  ['targetRole', '10rem'],
-  ['tag', '11rem'],
-  ['testCase.priority', '8rem'],
-] as const;
 
 type PlanTestCasesTabProps = {
   cases: TestPlanCaseWithDetails[];
@@ -115,7 +106,7 @@ export function PlanTestCasesTab({
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidth, tableStyle } = useResizableColumns('planTestCases', PLAN_TEST_CASES_COLUMNS);
+  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('planTestCases');
 
   const mobileCaseTitleBody = (row: TestPlanCaseWithDetails) => (
     <div className="flex flex-column gap-2 py-1">
@@ -233,12 +224,12 @@ export function PlanTestCasesTab({
         tableStyle={isMobile ? undefined : tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
-        {canEditContent && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
+        {canEditContent && <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} />}
         {!isMobile && (
           <Column
             field="testCase.code"
             header="Code"
-            style={{ width: colWidth('testCase.code', '7rem') }}
+            style={{ width: colWidthAt(canEditContent ? 1 : 0, '7rem') }}
             className="dt-code-nowrap"
             headerClassName="dt-code-nowrap"
             body={(row: TestPlanCaseWithDetails) => (
@@ -254,13 +245,13 @@ export function PlanTestCasesTab({
             )}
           />
         )}
-        <Column field="testCase.title" header="Test Case" className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobileCaseTitleBody : undefined} />
-        {!isMobile && <Column field="testCase.module.name" header="Module" style={{ width: colWidth('testCase.module.name', '10rem') }} body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
+        <Column field="testCase.title" header="Test Case" className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(canEditContent ? 2 : 1) }} body={isMobile ? mobileCaseTitleBody : undefined} />
+        {!isMobile && <Column field="testCase.module.name" header="Module" style={{ width: colWidthAt(canEditContent ? 3 : 2, '10rem') }} body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
         {!isMobile && (
           <Column
             columnKey="targetRole"
             header="Target Role"
-            style={{ width: colWidth('targetRole', '10rem') }}
+            style={{ width: colWidthAt(canEditContent ? 4 : 3, '10rem') }}
             body={(row: TestPlanCaseWithDetails) =>
               row.testCase.targetRole ? <Tag value={row.testCase.targetRole.name} severity="secondary" /> : '-'
             }
@@ -270,7 +261,7 @@ export function PlanTestCasesTab({
           <Column
             columnKey="tag"
             header="Tag"
-            style={{ width: colWidth('tag', '11rem') }}
+            style={{ width: colWidthAt(canEditContent ? 5 : 4, '11rem') }}
             body={(row: TestPlanCaseWithDetails) => (
               <div className="flex flex-wrap gap-1">
                 {row.testCase.tags.map((t) => (
@@ -284,7 +275,7 @@ export function PlanTestCasesTab({
           <Column
             field="testCase.priority"
             header="Priority"
-            style={{ width: colWidth('testCase.priority', '8rem') }}
+            style={{ width: colWidthAt(canEditContent ? 6 : 5, '8rem') }}
             body={(row: TestPlanCaseWithDetails) => (
               <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
             )}
