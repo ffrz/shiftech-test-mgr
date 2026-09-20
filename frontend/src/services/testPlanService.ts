@@ -1,5 +1,7 @@
 import { testPlanRepository } from '../repositories/testPlanRepository';
 import { testCaseRepository } from '../repositories/testCaseRepository';
+import { testRunRepository } from '../repositories/testRunRepository';
+import { testResultRepository } from '../repositories/testResultRepository';
 import { activityService } from './activityService';
 import type { TestPlan, TestPlanStatus } from '../types/domain';
 
@@ -9,6 +11,36 @@ import type { TestPlan, TestPlanStatus } from '../types/domain';
 export const testPlanService = {
   listByProject(projectId: string, options?: { search?: string; statuses?: TestPlan['status'][] }) {
     return testPlanRepository.findAllByProject(projectId, options);
+  },
+
+  // Test plan list needs "when was this last run, and how did it go" — the most recent
+  // Test Run under each plan (findAllByProject already orders runs newest-first, so the
+  // first run seen per plan while walking the list is its latest one).
+  async listByProjectWithRunStats(projectId: string, options?: { search?: string; statuses?: TestPlan['status'][] }) {
+    const [plans, runs] = await Promise.all([
+      testPlanRepository.findAllByProject(projectId, options),
+      testRunRepository.findAllByProject(projectId),
+    ]);
+
+    const runIds = runs.map((r) => r.id);
+    const summary = await testResultRepository.getSummaryByRunIds(runIds);
+
+    const lastRunByPlanId = new Map<string, { runAt: string; total: number; pass: number; fail: number }>();
+    for (const run of runs) {
+      if (!run.testPlanId || lastRunByPlanId.has(run.testPlanId)) continue;
+      const runSummary = summary[run.id] ?? { total: 0, pass: 0, fail: 0 };
+      lastRunByPlanId.set(run.testPlanId, {
+        runAt: run.completedAt ?? run.startedAt,
+        total: runSummary.total,
+        pass: runSummary.pass,
+        fail: runSummary.fail,
+      });
+    }
+
+    return plans.map((plan) => ({
+      ...plan,
+      lastRun: lastRunByPlanId.get(plan.id) ?? null,
+    }));
   },
 
   getById(id: string) {

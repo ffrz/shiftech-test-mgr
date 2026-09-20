@@ -14,6 +14,7 @@ import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
+import { useResizableColumns } from '../../../../hooks/useResizableColumns';
 import { testPlanService } from '../../../../services/testPlanService';
 import { useAuthContext } from '../../../../hooks/useAuth';
 import type { TestPlan, TestPlanStatus } from '../../../../types/domain';
@@ -26,8 +27,11 @@ const TEST_PLAN_STATUS_OPTIONS: { label: string; value: TestPlanStatus }[] = (
 
 const UNDO_TIMEOUT_MS = 9000;
 
+type TestPlanLastRun = { runAt: string; total: number; pass: number; fail: number } | null;
+type TestPlanRow = TestPlan & { lastRun?: TestPlanLastRun };
+
 type TestPlanTabProps = {
-  plans: TestPlan[];
+  plans: TestPlanRow[];
   loading: boolean;
   isMobile: boolean;
   /** True while this tab's TabView panel is the active one — hidden panels are kept
@@ -104,6 +108,7 @@ export function TestPlanTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
+  const { onColumnResizeEnd, colWidth } = useResizableColumns('testPlans');
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -182,7 +187,13 @@ export function TestPlanTab({
     else if (e.key === 'Escape') { cancelEdit(); }
   }, [confirmEdit, cancelEdit]);
 
-  const mobilePlanBody = (row: TestPlan) => (
+  function formatLastRun(lastRun: TestPlanLastRun): string {
+    if (!lastRun) return 'Never run';
+    const pct = lastRun.total > 0 ? Math.round((lastRun.pass / lastRun.total) * 100) : 0;
+    return `${formatDateTime(lastRun.runAt)} · ${pct}% pass`;
+  }
+
+  const mobilePlanBody = (row: TestPlanRow) => (
     <div className="flex flex-column gap-1">
       <div className="font-medium">{row.name}</div>
       <div className="flex gap-2 align-items-center text-sm flex-wrap">
@@ -190,7 +201,14 @@ export function TestPlanTab({
         <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />
         <span className="text-color-secondary">{formatDateTime(row.updatedAt)}</span>
       </div>
+      {row.lastRun !== undefined && (
+        <div className="text-sm text-color-secondary">{formatLastRun(row.lastRun)}</div>
+      )}
     </div>
+  );
+
+  const lastRunBody = (row: TestPlanRow) => (
+    <span className="text-sm white-space-nowrap">{formatLastRun(row.lastRun ?? null)}</span>
   );
 
   return (
@@ -268,9 +286,13 @@ export function TestPlanTab({
         dataKey="id"
         selectionMode={isMobile ? null : 'checkbox'}
         cellMemo={false}
+        resizableColumns={!isMobile}
+        columnResizeMode="expand"
+        onColumnResizeEnd={onColumnResizeEnd}
+        className={isMobile ? undefined : 'dt-resizable'}
       >
         <Column selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: '7rem' }} hidden={isMobile}
+        <Column field="code" header="Code" sortable style={{ width: colWidth('code', '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={(row: TestPlan) => <a className="entity-link" href={`/test-plans/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-plans/${row.id}`); }}>{row.code}</a>} />
         <Column field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobilePlanBody : (row: TestPlan) => {
@@ -285,7 +307,7 @@ export function TestPlanTab({
           }
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'name', row.name); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>{row.name}</div>;
         }} />
-        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: '9rem' }} body={(row: TestPlan) => {
+        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: colWidth('status', '9rem') }} body={(row: TestPlan) => {
           const isEditing = editingCell?.planId === row.id && editingCell?.field === 'status';
           if (isEditing && canEditContent) {
             return (
@@ -301,11 +323,14 @@ export function TestPlanTab({
             <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />
           </div>;
         }} />
-        <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: '11rem', whiteSpace: 'nowrap' }} body={(row: TestPlan) => formatDateTime(row.updatedAt)} />
+        {!isMobile && <Column columnKey="lastRun" header="Last Run" style={{ width: colWidth('lastRun', '13rem'), whiteSpace: 'nowrap' }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />}
+        <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: colWidth('updatedAt', '11rem'), whiteSpace: 'nowrap' }} body={(row: TestPlanRow) => formatDateTime(row.updatedAt)} />
         <Column
+          columnKey="actions"
           header=""
+          resizeable={false}
           style={{ width: '3.5rem' }}
-          body={(row: TestPlan) => (
+          body={(row: TestPlanRow) => (
             <RowActionsMenu
               items={[
                 ...(canEditContent ? [{ label: 'Duplicate', icon: 'pi pi-copy', command: () => onDuplicate(row) }] : []),

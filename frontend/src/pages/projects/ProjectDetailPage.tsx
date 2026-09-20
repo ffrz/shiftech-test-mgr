@@ -165,7 +165,7 @@ export function ProjectDetailPage() {
 
   const testPlansQuery = useQuery({
     queryKey: [...queryKeys.testPlans(id ?? ''), planDebouncedSearch, planStatusFilter],
-    queryFn: () => testPlanService.listByProject(id!, { search: planDebouncedSearch || undefined, statuses: planStatusFilter.length ? planStatusFilter : undefined }),
+    queryFn: () => testPlanService.listByProjectWithRunStats(id!, { search: planDebouncedSearch || undefined, statuses: planStatusFilter.length ? planStatusFilter : undefined }),
     enabled: !!id,
   });
 

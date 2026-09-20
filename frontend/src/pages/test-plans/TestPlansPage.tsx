@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
@@ -8,7 +8,6 @@ import { Dropdown } from 'primereact/dropdown';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { useTestPlans } from '../../hooks/useTestPlans';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useAuthContext } from '../../hooks/useAuth';
 import { projectService } from '../../services/projectService';
@@ -22,22 +21,41 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../hooks/useTableHeight';
+import { useResizableColumns } from '../../hooks/useResizableColumns';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
 
 const TEST_PLAN_STATUS_OPTIONS: TestPlanStatus[] = ['draft', 'active', 'completed', 'archived'];
 
+type TestPlanLastRun = { runAt: string; total: number; pass: number; fail: number } | null;
+type TestPlanRow = TestPlan & { lastRun: TestPlanLastRun };
+
+function formatLastRun(lastRun: TestPlanLastRun): string {
+  if (!lastRun) return 'Never run';
+  const pct = lastRun.total > 0 ? Math.round((lastRun.pass / lastRun.total) * 100) : 0;
+  return `${formatDate(lastRun.runAt)} · ${pct}% pass`;
+}
+
 export function TestPlansPage() {
   const navigate = useNavigate();
   const [projectId, setProjectId] = useState<string | null>(null);
-  const { testPlans, loading, reload } = useTestPlans(projectId);
   const { canEditContent } = useProjectRole(projectId ?? undefined);
   const { user } = useAuthContext();
+  const queryClient = useQueryClient();
+
+  const { data: testPlans = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.testPlansWithRunStats(projectId ?? ''),
+    queryFn: () => testPlanService.listByProjectWithRunStats(projectId!),
+    enabled: !!projectId,
+  });
+
+  const reload = () => (projectId ? queryClient.invalidateQueries({ queryKey: queryKeys.testPlansWithRunStats(projectId) }) : Promise.resolve());
 
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
 
   const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
+  const { onColumnResizeEnd, colWidth } = useResizableColumns('testPlansCrossProject');
 
   const { data: projects = [] } = useQuery({
     queryKey: queryKeys.projects(),
@@ -83,13 +101,18 @@ export function TestPlansPage() {
     }
   }
 
-  const mobileCodeBody = useCallback((row: TestPlan) => (
+  const mobileCodeBody = useCallback((row: TestPlanRow) => (
     <div className="flex flex-column gap-2 py-1">
       <span className="font-medium">{row.code}</span>
       <span className="text-sm text-color-secondary">{row.name}</span>
       <span><Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} /></span>
       <span className="text-sm text-color-secondary">{formatDate(row.updatedAt)}</span>
+      <span className="text-sm text-color-secondary">{formatLastRun(row.lastRun)}</span>
     </div>
+  ), []);
+
+  const lastRunBody = useCallback((row: TestPlanRow) => (
+    <span className="text-sm white-space-nowrap">{formatLastRun(row.lastRun)}</span>
   ), []);
 
   return (
@@ -117,17 +140,21 @@ export function TestPlansPage() {
 
       <div ref={containerRef}>
         <DataTable value={testPlans} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
-          selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlan).id}`)}>
-        <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : '7rem' }} className="dt-code-nowrap" headerClassName="dt-code-nowrap"
+          selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlanRow).id}`)}
+          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} className={isMobile ? undefined : 'dt-resizable'}>
+        <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap"
           body={isMobile ? mobileCodeBody : undefined} />
         {!isMobile && <Column field="name" header="Name" sortable className="dt-title-fill" headerClassName="dt-title-fill" />}
-        {!isMobile && <Column field="status" header="Status" body={(row: TestPlan) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />}
-        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: TestPlan) => formatDate(row.updatedAt)} sortable />}
+        {!isMobile && <Column field="status" header="Status" style={{ width: colWidth('status', '9rem') }} body={(row: TestPlanRow) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />}
+        {!isMobile && <Column columnKey="lastRun" header="Last Run" style={{ width: colWidth('lastRun', '13rem') }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />}
+        {!isMobile && <Column field="updatedAt" header="Last Updated" style={{ width: colWidth('updatedAt', '10rem') }} body={(row: TestPlanRow) => formatDate(row.updatedAt)} sortable />}
         {canEditContent && (
           <Column
+            columnKey="actions"
             header=""
+            resizeable={false}
             style={{ width: '4rem' }}
-            body={(row: TestPlan) => (
+            body={(row: TestPlanRow) => (
               <RowActionsMenu
                 items={[
                   { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
