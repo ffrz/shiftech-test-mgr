@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
 import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { MultiSelect } from 'primereact/multiselect';
@@ -10,6 +10,7 @@ import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
+import { useResizableColumns } from '../../../../hooks/useResizableColumns';
 import { UserHoverCard } from '../../../../components/ui/UserHoverCard';
 import { auditLogService } from '../../../../services/auditLogService';
 import { useStoredState } from '../../../../hooks/useStoredState';
@@ -45,6 +46,7 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible],
   });
+  const { onColumnResizeEnd, colWidth } = useResizableColumns('activityLog');
 
   const hasActiveFilters = entityTypes.length > 0 || !!search;
 
@@ -74,7 +76,9 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
   }
 
   const eventTypeBodyTemplate = (row: AuditLogEntry) => (
-    <Tag value={eventTypeLabel(row.eventType)} severity={row.eventType === 'comment' ? 'info' : 'secondary'} />
+    <span title={eventTypeLabel(row.eventType)}>
+      <Tag value={eventTypeLabel(row.eventType)} severity={row.eventType === 'comment' ? 'info' : 'secondary'} />
+    </span>
   );
 
   const descriptionBodyTemplate = (row: AuditLogEntry) => (
@@ -85,22 +89,13 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
     </span>
   );
 
-  const actorTitleStyle: CSSProperties = {
-    display: 'inline-block',
-    maxWidth: '20ch',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    verticalAlign: 'bottom',
-  };
-
   const actorBodyTemplate = (row: AuditLogEntry) =>
     row.actorId ? (
       <UserHoverCard userId={row.actorId}>
-        <span className="username-text cursor-pointer font-medium" style={actorTitleStyle}>{row.actorName}</span>
+        <span className="username-text cursor-pointer font-medium" title={row.actorName}>{row.actorName}</span>
       </UserHoverCard>
     ) : (
-      <span style={actorTitleStyle}>{row.actorName}</span>
+      <span title={row.actorName}>{row.actorName}</span>
     );
 
   const mobileBody = (row: AuditLogEntry) => (
@@ -176,27 +171,32 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
         scrollHeight={tableHeight}
         onRowClick={(e) => navigate(pathForActivityEntity((e.data as AuditLogEntry).entityType, (e.data as AuditLogEntry).entityId))}
         rowHover
-        className="cursor-pointer"
+        className={isMobile ? 'cursor-pointer' : 'cursor-pointer dt-resizable'}
         cellMemo={false}
+        resizableColumns={!isMobile}
+        columnResizeMode="expand"
+        onColumnResizeEnd={onColumnResizeEnd}
       >
         <Column
           field="createdAt"
           header="Time"
           body={(row: AuditLogEntry) => formatDateTime(row.createdAt)}
-          style={{ width: '12rem' }}
-          className="white-space-nowrap overflow-hidden text-overflow-ellipsis"
+          style={{ width: colWidth('createdAt', '12rem') }}
           headerClassName="white-space-nowrap"
           hidden={isMobile}
         />
-        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: '13rem' }} className="white-space-nowrap overflow-hidden text-overflow-ellipsis" hidden={isMobile} />
+        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: colWidth('actorName', '10rem') }} hidden={isMobile} />
         <Column
           field="entityType"
           header="Entity"
-          body={(row: AuditLogEntry) => ACTIVITY_ENTITY_LABEL[row.entityType] ?? row.entityType}
-          style={{ width: '8rem' }}
+          body={(row: AuditLogEntry) => {
+            const label = ACTIVITY_ENTITY_LABEL[row.entityType] ?? row.entityType;
+            return <span title={label}>{label}</span>;
+          }}
+          style={{ width: colWidth('entityType', '8rem') }}
           hidden={isMobile}
         />
-        <Column field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: '8rem' }} hidden={isMobile} />
+        <Column field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: colWidth('eventType', '8rem') }} hidden={isMobile} />
         <Column header={isMobile ? 'Activity' : 'Description'} body={isMobile ? mobileBody : descriptionBodyTemplate} className="dt-title-fill" headerClassName="dt-title-fill" />
       </DataTable>
       </div>
