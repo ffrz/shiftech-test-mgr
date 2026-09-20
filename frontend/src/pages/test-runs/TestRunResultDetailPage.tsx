@@ -815,8 +815,8 @@ export function TestRunResultDetailPage() {
                             <Button
                               icon="pi pi-check"
                               rounded
-                              text={sr.status !== 'pass'}
-                              severity="success"
+                              text
+                              severity={sr.status === 'pass' ? undefined : 'secondary'}
                               aria-label="Pass"
                               disabled={isCompleted}
                               onClick={async () => {
@@ -827,8 +827,8 @@ export function TestRunResultDetailPage() {
                             <Button
                               icon="pi pi-times"
                               rounded
-                              text={sr.status !== 'fail'}
-                              severity="danger"
+                              text
+                              severity={sr.status === 'fail' ? undefined : 'secondary'}
                               aria-label="Fail"
                               disabled={isCompleted}
                               onClick={async () => {
