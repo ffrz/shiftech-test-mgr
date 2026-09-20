@@ -811,17 +811,32 @@ export function TestRunResultDetailPage() {
                               </div>
                             )}
                           </div>
-                          <Dropdown
-                            value={sr.status === 'not_run' ? null : sr.status}
-                            options={[{ label: 'Pass', value: 'pass' }, { label: 'Fail', value: 'fail' }]}
-                            placeholder="-"
-                            onChange={async (e) => {
-                              await testRunService.recordStepResult(sr.id, e.value, sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
-                              await reload();
-                            }}
-                            className="w-8rem"
-                            disabled={isCompleted}
-                          />
+                          <div className="flex gap-1">
+                            <Button
+                              icon="pi pi-check"
+                              rounded
+                              text={sr.status !== 'pass'}
+                              severity="success"
+                              aria-label="Pass"
+                              disabled={isCompleted}
+                              onClick={async () => {
+                                await testRunService.recordStepResult(sr.id, 'pass', sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
+                                await reload();
+                              }}
+                            />
+                            <Button
+                              icon="pi pi-times"
+                              rounded
+                              text={sr.status !== 'fail'}
+                              severity="danger"
+                              aria-label="Fail"
+                              disabled={isCompleted}
+                              onClick={async () => {
+                                await testRunService.recordStepResult(sr.id, 'fail', sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
+                                await reload();
+                              }}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
