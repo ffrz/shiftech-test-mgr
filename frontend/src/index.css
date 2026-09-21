@@ -604,7 +604,7 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   text-overflow: ellipsis;
 }
 
-/* Resizable list tables (.dt-resizable, see useResizableColumns): once a column can be
+/* Resizable list tables (.dt-resizable, see useColumnPreferences): once a column can be
    dragged narrower than its content, every cell must truncate with an ellipsis instead
    of wrapping tall — wrapping under a user-shrunk column reads as broken layout, not a
    real overflow indicator. Header cells get the same treatment so long headers don't
@@ -659,6 +659,44 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
 }
 .p-datatable.dt-resizable .p-datatable-thead>tr>th.dt-col-actions .p-column-resizer {
   display: none;
+}
+
+/* ColumnPickerButton's overlay: checkbox list with a drag handle per row for reorder.
+   Kept compact and narrow since it's a short utility list, not a form. */
+.column-picker-panel {
+  width: 16rem;
+}
+.column-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 20rem;
+  overflow-y: auto;
+}
+.column-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.25rem;
+  border-radius: 4px;
+  cursor: default;
+}
+.column-picker-item-dragover {
+  background: var(--surface-100);
+  outline: 1px dashed var(--surface-300);
+}
+.column-picker-handle {
+  cursor: grab;
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.column-picker-label {
+  cursor: pointer;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* The selectionMode="multiple" checkbox column's <th> renders an empty

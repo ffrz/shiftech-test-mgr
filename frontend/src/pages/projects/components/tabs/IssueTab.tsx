@@ -17,7 +17,8 @@ import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
-import { useResizableColumns } from '../../../../hooks/useResizableColumns';
+import { useColumnPreferences, type ColumnDef } from '../../../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../../../components/ui/ColumnPickerButton';
 import type { IssueWithDetails, IssueStatus, IssuePriority, IssueType, ProjectMemberWithProfile } from '../../../../types/domain';
 import { issueService } from '../../../../services/issueService';
 import { tagService } from '../../../../services/tagService';
@@ -35,6 +36,23 @@ import {
   ISSUE_TYPE_LABEL,
   ISSUE_TYPE_SEVERITY,
 } from '../../../../helpers/statusLabels';
+
+// Non-locked columns only — the selection checkbox and actions columns are `locked: true`
+// in the DataTable itself (see below) and never appear in the show/hide/reorder picker.
+const ISSUE_COLUMNS: ColumnDef[] = [
+  { key: 'sel', label: 'Select', locked: true },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
+  { key: 'title', label: 'Title' },
+  { key: 'type', label: 'Type', fallbackWidth: '8rem' },
+  { key: 'moduleName', label: 'Module', fallbackWidth: '10rem' },
+  { key: 'targetRoleName', label: 'Target Role', fallbackWidth: '10rem' },
+  { key: 'tags', label: 'Tag', fallbackWidth: '11rem' },
+  { key: 'linked', label: 'Linked', fallbackWidth: '7rem' },
+  { key: 'priority', label: 'Priority', fallbackWidth: '7rem' },
+  { key: 'status', label: 'Status', fallbackWidth: '9rem' },
+  { key: 'assignedTo', label: 'Assigned To', fallbackWidth: '10rem' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 const ISSUE_STATUS_OPTIONS: { label: string; value: IssueStatus }[] = (
   ['backlog', 'open', 'in_progress', 'resolved', 'verified', 'closed', 'rejected', 'duplicate'] as const
@@ -161,7 +179,7 @@ export function IssueTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('issues');
+  const cp = useColumnPreferences('issues', ISSUE_COLUMNS);
 
   // Bulk-edit dialog: UNSET (untouched, excluded from the update) until the user picks
   // something. `null` is itself a meaningful choice for assignedTo (unassign, via the
@@ -323,6 +341,16 @@ export function IssueTab({
     <>
       <Toast ref={undoToast} position="bottom-center" />
       <FilterToolbar
+        secondaryActions={!isMobile && (
+          <ColumnPickerButton
+            reorderableColumns={cp.reorderableColumns}
+            order={cp.order}
+            isVisible={cp.isVisible}
+            setVisible={cp.setVisible}
+            setOrder={cp.setOrder}
+            reset={cp.reset}
+          />
+        )}
         primaryAction={canManageIssues && <Button label="New Issue" icon="pi pi-plus" size="small" onClick={onCreate} />}
         onVisibilityChange={setFilterVisible}
       >
@@ -454,22 +482,23 @@ export function IssueTab({
         cellMemo={false}
         resizableColumns={!isMobile}
         columnResizeMode="expand"
-        onColumnResizeEnd={onColumnResizeEnd}
-        tableStyle={isMobile ? undefined : tableStyle}
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
-
-        <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: colWidthAt(1, '7rem') }} hidden={isMobile}
+        {cp.arrange([
+        ['sel', <Column key="sel" selectionMode="multiple" style={{ width: cp.colWidth('sel', '3rem') }} hidden={isMobile} />],
+        ['code', <Column key="code" field="code" header="Code" sortable style={{ width: cp.colWidth('code', '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"
-          body={(row: IssueWithDetails) => <a className="entity-link" href={`/issues/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/issues/${row.id}`); }}>{row.code}</a>} />
-        <Column
+          body={(row: IssueWithDetails) => <a className="entity-link" href={`/issues/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/issues/${row.id}`); }}>{row.code}</a>} />],
+        ['title', <Column
+          key="title"
           field="title"
           header="Title"
           sortable={!isMobile}
           className="dt-title-fill"
           headerClassName="dt-title-fill"
-          style={{ width: colWidthAt(2) }}
+          style={{ width: cp.colWidth('title') }}
           body={isMobile ? mobileIssueBody : (row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'title';
@@ -492,13 +521,14 @@ export function IssueTab({
               </div>
             );
           }}
-        />
-        <Column
+        />],
+        ['type', <Column
+          key="type"
           field="type"
           header="Type"
           sortable
           hidden={isMobile}
-          style={{ width: colWidthAt(3, '8rem') }}
+          style={{ width: cp.colWidth('type', '8rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'type';
@@ -518,13 +548,14 @@ export function IssueTab({
               </div>
             );
           }}
-        />
-        <Column
+        />],
+        ['moduleName', <Column
+          key="moduleName"
           field="moduleName"
           header="Module"
           sortable
           hidden={isMobile}
-          style={{ width: colWidthAt(4, '10rem') }}
+          style={{ width: cp.colWidth('moduleName', '10rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'moduleId';
@@ -544,13 +575,14 @@ export function IssueTab({
               </div>
             );
           }}
-        />
-        <Column
+        />],
+        ['targetRoleName', <Column
+          key="targetRoleName"
           field="targetRoleName"
           header="Target Role"
           sortable
           hidden={isMobile}
-          style={{ width: colWidthAt(5, '10rem') }}
+          style={{ width: cp.colWidth('targetRoleName', '10rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'targetRoleId';
@@ -570,8 +602,8 @@ export function IssueTab({
               </div>
             );
           }}
-        />
-        <Column field="tags" header="Tag" hidden={isMobile} style={{ width: colWidthAt(6, '11rem') }} body={(row: IssueWithDetails) => {
+        />],
+        ['tags', <Column key="tags" field="tags" header="Tag" hidden={isMobile} style={{ width: cp.colWidth('tags', '11rem') }} body={(row: IssueWithDetails) => {
           const canEdit = canManageIssues && row.status !== 'closed';
           const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'tags';
           if (isEditing && canEdit) {
@@ -591,12 +623,13 @@ export function IssueTab({
               </div>
             </div>
           );
-        }} />
-        <Column
+        }} />],
+        ['linked', <Column
+          key="linked"
           columnKey="linked"
           header="Linked"
           hidden={isMobile}
-          style={{ width: colWidthAt(7, '7rem') }}
+          style={{ width: cp.colWidth('linked', '7rem') }}
           body={(row: IssueWithDetails) =>
             row.linkedTestResults.length > 0 ? (
               <span className="text-sm">{row.linkedTestResults.length} Test Result</span>
@@ -604,13 +637,14 @@ export function IssueTab({
               '-'
             )
           }
-        />
-        <Column
+        />],
+        ['priority', <Column
+          key="priority"
           field="priority"
           header="Priority"
           sortable
           hidden={isMobile}
-          style={{ width: colWidthAt(8, '7rem') }}
+          style={{ width: cp.colWidth('priority', '7rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'priority';
@@ -630,13 +664,14 @@ export function IssueTab({
               </div>
             );
           }}
-        />
-        <Column
+        />],
+        ['status', <Column
+          key="status"
           field="status"
           header="Status"
           sortable
           hidden={isMobile}
-          style={{ width: colWidthAt(9, '9rem') }}
+          style={{ width: cp.colWidth('status', '9rem') }}
           body={(row: IssueWithDetails) => {
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'status';
             if (isEditing && canManageIssues) {
@@ -655,13 +690,14 @@ export function IssueTab({
               </div>
             );
           }}
-        />
-        <Column
+        />],
+        ['assignedTo', <Column
+          key="assignedTo"
           field="assignedTo"
           header="Assigned To"
           sortable
           hidden={isMobile}
-          style={{ width: colWidthAt(10, '10rem') }}
+          style={{ width: cp.colWidth('assignedTo', '10rem') }}
           body={(row: IssueWithDetails) => {
             const canEdit = canManageIssues && row.status !== 'closed';
             const isEditing = editingCell?.issueId === row.id && editingCell?.field === 'assignedTo';
@@ -682,8 +718,9 @@ export function IssueTab({
               </div>
             );
           }}
-        />
-        <Column
+        />],
+        ['actions', <Column
+          key="actions"
           columnKey="actions"
           header=""
           resizeable={false}
@@ -750,7 +787,8 @@ export function IssueTab({
               ]}
             />
           )}
-        />
+        />],
+        ])}
       </DataTable>
       </div>
 

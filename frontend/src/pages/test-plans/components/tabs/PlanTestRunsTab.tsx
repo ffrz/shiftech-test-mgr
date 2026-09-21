@@ -8,7 +8,8 @@ import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
-import { useResizableColumns } from '../../../../hooks/useResizableColumns';
+import { useColumnPreferences, type ColumnDef } from '../../../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../../../components/ui/ColumnPickerButton';
 import type { TestRun, TestRunStatus } from '../../../../types/domain';
 import { formatDateTime } from '../../../../helpers/dateFormatter';
 import {
@@ -22,6 +23,15 @@ const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
   ['in_progress', 'completed'] as const
 ).map((v) => ({ label: TEST_RUN_STATUS_LABEL[v], value: v }));
 
+const PLAN_TEST_RUNS_COLUMNS: ColumnDef[] = [
+  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
+  { key: 'name', label: 'Run Name' },
+  { key: 'status', label: 'Status', fallbackWidth: '7rem' },
+  { key: 'results', label: 'Results', fallbackWidth: '8rem' },
+  { key: 'tester', label: 'Tester', fallbackWidth: '11rem' },
+  { key: 'completedAt', label: 'Completed', fallbackWidth: '11rem' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 type PlanTestRunsTabProps = {
   testRuns: TestRunWithSummary[];
@@ -78,7 +88,7 @@ export function PlanTestRunsTab({
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible],
   });
-  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('planTestRuns');
+  const cp = useColumnPreferences('planTestRuns', PLAN_TEST_RUNS_COLUMNS);
 
   const mobileRunNameBody = (row: TestRunWithSummary) => (
     <div className="flex flex-column gap-2 py-1">
@@ -105,6 +115,16 @@ export function PlanTestRunsTab({
         visible={canRunTests}
         filterVisible={filterVisible}
         onToggleFilterVisible={onToggleFilterVisible}
+        secondaryActions={!isMobile && (
+          <ColumnPickerButton
+            reorderableColumns={cp.reorderableColumns}
+            order={cp.order}
+            isVisible={cp.isVisible}
+            setVisible={cp.setVisible}
+            setOrder={cp.setOrder}
+            reset={cp.reset}
+          />
+        )}
         primaryAction={<Button label="Start Test Run" icon="pi pi-play" size="small" onClick={onStartRun} />}
       >
         <div className="col-12 md:col-2 p-1">
@@ -144,61 +164,62 @@ export function PlanTestRunsTab({
         size="small"
         resizableColumns={!isMobile}
         columnResizeMode="expand"
-        onColumnResizeEnd={onColumnResizeEnd}
-        tableStyle={isMobile ? undefined : tableStyle}
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
       >
-        {!isMobile && <Column field="code" header="Code" style={{ width: colWidthAt(0, '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
-        <Column field="name" header="Run Name" className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(1) }} body={isMobile ? mobileRunNameBody : undefined} />
-        {!isMobile && <Column field="status" header="Status" style={{ width: colWidthAt(2, '7rem') }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />}
-        {!isMobile && (
-          <Column
-            columnKey="results"
-            header="Results"
-            style={{ width: colWidthAt(3, '8rem') }}
-            body={(row: TestRunWithSummary) => (
-              <div className="flex gap-1 align-items-center">
-                <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
-                <Tag value={String(row.fail)} severity={TEST_RESULT_STATUS_SEVERITY.fail} />
-                <span className="text-color-secondary text-sm">/{row.total}</span>
-              </div>
-            )}
-            sortable
-            sortField="pass"
-          />
-        )}
-        {!isMobile && (
-          <Column
-            columnKey="tester"
-            header="Tester"
-            style={{ width: colWidthAt(4, '11rem') }}
-            body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
-          />
-        )}
-        {!isMobile && <Column field="completedAt" header="Completed" style={{ width: colWidthAt(5, '11rem') }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />}
-        {canDeleteContent && (
-          <Column
-            columnKey="actions"
-            header=""
-            resizeable={false}
-            className="dt-col-actions"
-            headerClassName="dt-col-actions"
-            style={{ width: '4rem', minWidth: '4rem' }}
-            body={(row: TestRun) => (
-              <Button
-                icon="pi pi-trash"
-                text
-                rounded
-                size="small"
-                severity="danger"
-                aria-label="Delete"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteRun(row);
-                }}
-              />
-            )}
-          />
-        )}
+        {isMobile
+          ? <Column field="name" header="Run Name" className="dt-title-fill" headerClassName="dt-title-fill" body={mobileRunNameBody} />
+          : cp.arrange([
+            ['code', <Column key="code" field="code" header="Code" style={{ width: cp.colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />],
+            ['name', <Column key="name" field="name" header="Run Name" className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: cp.colWidth('name') }} />],
+            ['status', <Column key="status" field="status" header="Status" style={{ width: cp.colWidth('status', '7rem') }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />],
+            ['results', <Column
+              key="results"
+              columnKey="results"
+              header="Results"
+              style={{ width: cp.colWidth('results', '8rem') }}
+              body={(row: TestRunWithSummary) => (
+                <div className="flex gap-1 align-items-center">
+                  <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
+                  <Tag value={String(row.fail)} severity={TEST_RESULT_STATUS_SEVERITY.fail} />
+                  <span className="text-color-secondary text-sm">/{row.total}</span>
+                </div>
+              )}
+              sortable
+              sortField="pass"
+            />],
+            ['tester', <Column
+              key="tester"
+              columnKey="tester"
+              header="Tester"
+              style={{ width: cp.colWidth('tester', '11rem') }}
+              body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
+            />],
+            ['completedAt', <Column key="completedAt" field="completedAt" header="Completed" style={{ width: cp.colWidth('completedAt', '11rem') }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />],
+            ...(canDeleteContent ? [['actions', <Column
+              key="actions"
+              columnKey="actions"
+              header=""
+              resizeable={false}
+              className="dt-col-actions"
+              headerClassName="dt-col-actions"
+              style={{ width: '4rem', minWidth: '4rem' }}
+              body={(row: TestRun) => (
+                <Button
+                  icon="pi pi-trash"
+                  text
+                  rounded
+                  size="small"
+                  severity="danger"
+                  aria-label="Delete"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteRun(row);
+                  }}
+                />
+              )}
+            />] as [string, React.ReactElement]] : []),
+          ])}
       </DataTable>
       </div>
     </>

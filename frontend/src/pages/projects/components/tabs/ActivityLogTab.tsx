@@ -10,7 +10,8 @@ import SearchInput from '../../../../components/ui/SearchInput';
 import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
-import { useResizableColumns } from '../../../../hooks/useResizableColumns';
+import { useColumnPreferences, type ColumnDef } from '../../../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../../../components/ui/ColumnPickerButton';
 import { UserHoverCard } from '../../../../components/ui/UserHoverCard';
 import { auditLogService } from '../../../../services/auditLogService';
 import { useStoredState } from '../../../../hooks/useStoredState';
@@ -26,6 +27,14 @@ const ENTITY_TYPE_OPTIONS: { label: string; value: ActivityEntityType }[] = [
   { label: 'Test Plan', value: 'test_plan' },
   { label: 'Test Run', value: 'test_run' },
   { label: 'Project', value: 'project' },
+];
+
+const ACTIVITY_LOG_COLUMNS: ColumnDef[] = [
+  { key: 'createdAt', label: 'Time', fallbackWidth: '12rem' },
+  { key: 'actorName', label: 'User', fallbackWidth: '10rem' },
+  { key: 'entityType', label: 'Entity', fallbackWidth: '8rem' },
+  { key: 'eventType', label: 'Event', fallbackWidth: '8rem' },
+  { key: 'description', label: 'Description' },
 ];
 
 // Combined activity feed across every Issue/TestCase/TestPlan/TestRun/Project entry in
@@ -46,7 +55,7 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible],
   });
-  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('activityLog');
+  const cp = useColumnPreferences('activityLog', ACTIVITY_LOG_COLUMNS);
 
   const hasActiveFilters = entityTypes.length > 0 || !!search;
 
@@ -120,7 +129,19 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
 
   return (
     <>
-      <FilterToolbar onVisibilityChange={setFilterVisible}>
+      <FilterToolbar
+        secondaryActions={!isMobile && (
+          <ColumnPickerButton
+            reorderableColumns={cp.reorderableColumns}
+            order={cp.order}
+            isVisible={cp.isVisible}
+            setVisible={cp.setVisible}
+            setOrder={cp.setOrder}
+            reset={cp.reset}
+          />
+        )}
+        onVisibilityChange={setFilterVisible}
+      >
         <div className="col-12 md:col-3 p-1">
           <MultiSelect
             value={entityTypes}
@@ -175,30 +196,34 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
         cellMemo={false}
         resizableColumns={!isMobile}
         columnResizeMode="expand"
-        onColumnResizeEnd={onColumnResizeEnd}
-        tableStyle={isMobile ? undefined : tableStyle}
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
       >
-        <Column
-          field="createdAt"
-          header="Time"
-          body={(row: AuditLogEntry) => formatDateTime(row.createdAt)}
-          style={{ width: colWidthAt(0, '12rem') }}
-          headerClassName="white-space-nowrap"
-          hidden={isMobile}
-        />
-        <Column field="actorName" header="User" body={actorBodyTemplate} style={{ width: colWidthAt(1, '10rem') }} hidden={isMobile} />
-        <Column
-          field="entityType"
-          header="Entity"
-          body={(row: AuditLogEntry) => {
-            const label = ACTIVITY_ENTITY_LABEL[row.entityType] ?? row.entityType;
-            return <span title={label}>{label}</span>;
-          }}
-          style={{ width: colWidthAt(2, '8rem') }}
-          hidden={isMobile}
-        />
-        <Column field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: colWidthAt(3, '8rem') }} hidden={isMobile} />
-        <Column header={isMobile ? 'Activity' : 'Description'} body={isMobile ? mobileBody : descriptionBodyTemplate} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(4) }} />
+        {isMobile
+          ? <Column header="Activity" body={mobileBody} />
+          : cp.arrange([
+            ['createdAt', <Column
+              key="createdAt"
+              field="createdAt"
+              header="Time"
+              body={(row: AuditLogEntry) => formatDateTime(row.createdAt)}
+              style={{ width: cp.colWidth('createdAt', '12rem') }}
+              headerClassName="white-space-nowrap"
+            />],
+            ['actorName', <Column key="actorName" field="actorName" header="User" body={actorBodyTemplate} style={{ width: cp.colWidth('actorName', '10rem') }} />],
+            ['entityType', <Column
+              key="entityType"
+              field="entityType"
+              header="Entity"
+              body={(row: AuditLogEntry) => {
+                const label = ACTIVITY_ENTITY_LABEL[row.entityType] ?? row.entityType;
+                return <span title={label}>{label}</span>;
+              }}
+              style={{ width: cp.colWidth('entityType', '8rem') }}
+            />],
+            ['eventType', <Column key="eventType" field="eventType" header="Event" body={eventTypeBodyTemplate} style={{ width: cp.colWidth('eventType', '8rem') }} />],
+            ['description', <Column key="description" columnKey="description" header="Description" body={descriptionBodyTemplate} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: cp.colWidth('description') }} />],
+          ])}
       </DataTable>
       </div>
     </>

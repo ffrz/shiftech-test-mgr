@@ -16,7 +16,8 @@ import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
-import { useResizableColumns } from '../../../../hooks/useResizableColumns';
+import { useColumnPreferences, type ColumnDef } from '../../../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../../../components/ui/ColumnPickerButton';
 import type { TestCase, TestCaseWithDetails, TestCasePriority, TestCaseStatus } from '../../../../types/domain';
 import { testCaseService } from '../../../../services/testCaseService';
 import { tagService } from '../../../../services/tagService';
@@ -38,6 +39,18 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
 const TEST_CASE_STATUS_OPTIONS: { label: string; value: TestCaseStatus }[] = (
   ['active', 'archived'] as const
 ).map((v) => ({ label: TEST_CASE_STATUS_LABEL[v], value: v }));
+
+const TEST_CASE_COLUMNS: ColumnDef[] = [
+  { key: 'sel', label: 'Select', locked: true },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
+  { key: 'title', label: 'Title' },
+  { key: 'moduleName', label: 'Module', fallbackWidth: '10rem' },
+  { key: 'priority', label: 'Priority', fallbackWidth: '7rem' },
+  { key: 'status', label: 'Status', fallbackWidth: '7rem' },
+  { key: 'targetRoleName', label: 'Target Role', fallbackWidth: '10rem' },
+  { key: 'tags', label: 'Tag', fallbackWidth: '11rem' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 type EditableField = 'title' | 'moduleId' | 'priority' | 'status' | 'targetRoleId' | 'tags';
 
@@ -176,7 +189,7 @@ export function TestCaseTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('testCases');
+  const cp = useColumnPreferences('testCases', TEST_CASE_COLUMNS);
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -297,6 +310,16 @@ export function TestCaseTab({
         visible={canEditContent}
         secondaryActions={
           <div className="flex items-center">
+            {!isMobile && (
+              <ColumnPickerButton
+                reorderableColumns={cp.reorderableColumns}
+                order={cp.order}
+                isVisible={cp.isVisible}
+                setVisible={cp.setVisible}
+                setOrder={cp.setOrder}
+                reset={cp.reset}
+              />
+            )}
             <Button rounded icon="pi pi-copy" size="large" text severity="secondary" onClick={onImportTemplate} />
             <Button rounded icon="pi pi-file-excel" size="large" text severity="secondary" onClick={onImportExcel} tooltip="Import CSV" tooltipOptions={{ position: 'bottom' }} />
           </div>
@@ -417,15 +440,16 @@ export function TestCaseTab({
         cellMemo={false}
         resizableColumns={!isMobile}
         columnResizeMode="expand"
-        onColumnResizeEnd={onColumnResizeEnd}
-        tableStyle={isMobile ? undefined : tableStyle}
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
-        <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: colWidthAt(1, '7rem') }} hidden={isMobile}
+        {cp.arrange([
+        ['sel', <Column key="sel" selectionMode="multiple" style={{ width: cp.colWidth('sel', '3rem') }} hidden={isMobile} />],
+        ['code', <Column key="code" field="code" header="Code" sortable style={{ width: cp.colWidth('code', '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"
-          body={(row: TestCaseWithDetails) => <a className="entity-link" href={`/test-cases/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-cases/${row.id}`); }}>{row.code}</a>} />
-        <Column field="title" header="Title" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(2) }} body={isMobile ? mobileCaseBody : (row: TestCaseWithDetails) => {
+          body={(row: TestCaseWithDetails) => <a className="entity-link" href={`/test-cases/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-cases/${row.id}`); }}>{row.code}</a>} />],
+        ['title', <Column key="title" field="title" header="Title" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: cp.colWidth('title') }} body={isMobile ? mobileCaseBody : (row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'title';
           if (isEditing && canEditContent) {
             return (
@@ -436,8 +460,8 @@ export function TestCaseTab({
             );
           }
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'title', row.title); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>{row.title}</div>;
-        }} />
-        <Column field="moduleName" header="Module" sortable hidden={isMobile} style={{ width: colWidthAt(3, '10rem') }} body={(row: TestCaseWithDetails) => {
+        }} />],
+        ['moduleName', <Column key="moduleName" field="moduleName" header="Module" sortable hidden={isMobile} style={{ width: cp.colWidth('moduleName', '10rem') }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'moduleId';
           if (isEditing && canEditContent) {
             return (
@@ -450,8 +474,8 @@ export function TestCaseTab({
             );
           }
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'moduleId', row.moduleId); }} style={{ cursor: canEditContent ? 'pointer' : undefined }} title={row.module?.name ?? undefined}>{row.module?.name ?? '-'}</div>;
-        }} />
-        <Column field="priority" header="Priority" sortable hidden={isMobile} style={{ width: colWidthAt(4, '7rem') }} body={(row: TestCaseWithDetails) => {
+        }} />],
+        ['priority', <Column key="priority" field="priority" header="Priority" sortable hidden={isMobile} style={{ width: cp.colWidth('priority', '7rem') }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'priority';
           if (isEditing && canEditContent) {
             return (
@@ -466,8 +490,8 @@ export function TestCaseTab({
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'priority', row.priority); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>
             <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />
           </div>;
-        }} />
-        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: colWidthAt(5, '7rem') }} body={(row: TestCaseWithDetails) => {
+        }} />],
+        ['status', <Column key="status" field="status" header="Status" sortable hidden={isMobile} style={{ width: cp.colWidth('status', '7rem') }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'status';
           if (isEditing && canEditContent) {
             return (
@@ -482,8 +506,8 @@ export function TestCaseTab({
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'status', row.status); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>
             <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />
           </div>;
-        }} />
-        <Column field="targetRoleName" header="Target Role" sortable hidden={isMobile} style={{ width: colWidthAt(6, '10rem') }} body={(row: TestCaseWithDetails) => {
+        }} />],
+        ['targetRoleName', <Column key="targetRoleName" field="targetRoleName" header="Target Role" sortable hidden={isMobile} style={{ width: cp.colWidth('targetRoleName', '10rem') }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'targetRoleId';
           if (isEditing && canEditContent) {
             return (
@@ -498,8 +522,8 @@ export function TestCaseTab({
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'targetRoleId', row.targetRoleId); }} style={{ cursor: canEditContent ? 'pointer' : undefined }} title={row.targetRole?.name}>
             {row.targetRole ? <Tag value={row.targetRole.name} severity="secondary" /> : '-'}
           </div>;
-        }} />
-        <Column field="tags" header="Tag" hidden={isMobile} style={{ width: colWidthAt(7, '11rem') }} body={(row: TestCaseWithDetails) => {
+        }} />],
+        ['tags', <Column key="tags" field="tags" header="Tag" hidden={isMobile} style={{ width: cp.colWidth('tags', '11rem') }} body={(row: TestCaseWithDetails) => {
           const isEditing = editingCell?.caseId === row.id && editingCell?.field === 'tags';
           if (isEditing && canEditContent) {
             return (
@@ -516,8 +540,9 @@ export function TestCaseTab({
               {row.tags.map((t) => (<Tag key={t.id} value={t.name} severity="info" />))}
             </div>
           </div>;
-        }} />
-        <Column
+        }} />],
+        ['actions', <Column
+          key="actions"
           columnKey="actions"
           header=""
           resizeable={false}
@@ -545,7 +570,8 @@ export function TestCaseTab({
               ]}
             />
           )}
-        />
+        />],
+        ])}
       </DataTable>
       </div>
 

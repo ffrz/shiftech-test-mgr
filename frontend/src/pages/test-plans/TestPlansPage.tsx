@@ -21,7 +21,8 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../hooks/useTableHeight';
-import { useResizableColumns } from '../../hooks/useResizableColumns';
+import { useColumnPreferences, type ColumnDef } from '../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../components/ui/ColumnPickerButton';
 import { TEST_PLAN_STATUS_LABEL, TEST_PLAN_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
 
@@ -35,6 +36,15 @@ function formatLastRun(lastRun: TestPlanLastRun): string {
   const pct = lastRun.total > 0 ? Math.round((lastRun.pass / lastRun.total) * 100) : 0;
   return `${formatDate(lastRun.runAt)} · ${pct}% pass`;
 }
+
+const TEST_PLANS_PAGE_COLUMNS: ColumnDef[] = [
+  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
+  { key: 'name', label: 'Name' },
+  { key: 'status', label: 'Status', fallbackWidth: '9rem' },
+  { key: 'lastRun', label: 'Last Run', fallbackWidth: '13rem' },
+  { key: 'updatedAt', label: 'Last Updated', fallbackWidth: '10rem' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 export function TestPlansPage() {
   const navigate = useNavigate();
@@ -55,7 +65,7 @@ export function TestPlansPage() {
   const isMobile = lt.sm;
 
   const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
-  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('testPlansCrossProject');
+  const cp = useColumnPreferences('testPlansCrossProject', TEST_PLANS_PAGE_COLUMNS);
 
   const { data: projects = [] } = useQuery({
     queryKey: queryKeys.projects(),
@@ -121,14 +131,26 @@ export function TestPlansPage() {
       <PageHeader
         title="Test Plans"
         actions={
-          <Dropdown
-            value={projectId}
-            options={projects.map((p) => ({ label: p.name, value: p.id }))}
-            onChange={(e) => setProjectId(e.value)}
-            placeholder="Select project"
-            className="w-15rem"
-            showClear
-          />
+          <div className="flex align-items-center gap-2">
+            {!isMobile && (
+              <ColumnPickerButton
+                reorderableColumns={cp.reorderableColumns}
+                order={cp.order}
+                isVisible={cp.isVisible}
+                setVisible={cp.setVisible}
+                setOrder={cp.setOrder}
+                reset={cp.reset}
+              />
+            )}
+            <Dropdown
+              value={projectId}
+              options={projects.map((p) => ({ label: p.name, value: p.id }))}
+              onChange={(e) => setProjectId(e.value)}
+              placeholder="Select project"
+              className="w-15rem"
+              showClear
+            />
+          </div>
         }
       />
 
@@ -141,34 +163,36 @@ export function TestPlansPage() {
       <div ref={containerRef}>
         <DataTable value={testPlans} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test plans yet" size="small"
           selectionMode="single" onSelectionChange={(e) => navigate(`/test-plans/${(e.value as TestPlanRow).id}`)}
-          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} tableStyle={isMobile ? undefined : tableStyle} className={isMobile ? undefined : 'dt-resizable'}>
-        <Column field="code" header="Code" sortable style={{ width: isMobile ? undefined : colWidthAt(0, '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap"
-          body={isMobile ? mobileCodeBody : undefined} />
-        {!isMobile && <Column field="name" header="Name" sortable className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(1) }} />}
-        {!isMobile && <Column field="status" header="Status" style={{ width: colWidthAt(2, '9rem') }} body={(row: TestPlanRow) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />}
-        {!isMobile && <Column columnKey="lastRun" header="Last Run" style={{ width: colWidthAt(3, '13rem') }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />}
-        {!isMobile && <Column field="updatedAt" header="Last Updated" style={{ width: colWidthAt(4, '10rem') }} body={(row: TestPlanRow) => formatDate(row.updatedAt)} sortable />}
-        {canEditContent && (
-          <Column
-            columnKey="actions"
-            header=""
-            resizeable={false}
-            className="dt-col-actions"
-            headerClassName="dt-col-actions"
-            style={{ width: '4rem', minWidth: '4rem' }}
-            body={(row: TestPlanRow) => (
-              <RowActionsMenu
-                items={[
-                  { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
-                  ...TEST_PLAN_STATUS_OPTIONS.filter((s) => s !== row.status).map((status) => ({
-                    label: `Change to ${TEST_PLAN_STATUS_LABEL[status]}`,
-                    command: () => handleChangeStatus(row, status),
-                  })),
-                ]}
-              />
-            )}
-          />
-        )}
+          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={cp.onColumnResizeEnd} tableStyle={isMobile ? undefined : cp.tableStyle} className={isMobile ? undefined : 'dt-resizable'}>
+        {isMobile
+          ? <Column field="code" header="Code" sortable className="dt-code-nowrap" headerClassName="dt-code-nowrap" body={mobileCodeBody} />
+          : cp.arrange([
+            ['code', <Column key="code" field="code" header="Code" sortable style={{ width: cp.colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />],
+            ['name', <Column key="name" field="name" header="Name" sortable className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: cp.colWidth('name') }} />],
+            ['status', <Column key="status" field="status" header="Status" style={{ width: cp.colWidth('status', '9rem') }} body={(row: TestPlanRow) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />],
+            ['lastRun', <Column key="lastRun" columnKey="lastRun" header="Last Run" style={{ width: cp.colWidth('lastRun', '13rem') }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />],
+            ['updatedAt', <Column key="updatedAt" field="updatedAt" header="Last Updated" style={{ width: cp.colWidth('updatedAt', '10rem') }} body={(row: TestPlanRow) => formatDate(row.updatedAt)} sortable />],
+            ...(canEditContent ? [['actions', <Column
+              key="actions"
+              columnKey="actions"
+              header=""
+              resizeable={false}
+              className="dt-col-actions"
+              headerClassName="dt-col-actions"
+              style={{ width: '4rem', minWidth: '4rem' }}
+              body={(row: TestPlanRow) => (
+                <RowActionsMenu
+                  items={[
+                    { label: 'Duplicate', icon: 'pi pi-copy', command: () => openDuplicateDialog(row) },
+                    ...TEST_PLAN_STATUS_OPTIONS.filter((s) => s !== row.status).map((status) => ({
+                      label: `Change to ${TEST_PLAN_STATUS_LABEL[status]}`,
+                      command: () => handleChangeStatus(row, status),
+                    })),
+                  ]}
+                />
+              )}
+            />] as [string, React.ReactElement]] : []),
+          ])}
       </DataTable>
       </div>
 

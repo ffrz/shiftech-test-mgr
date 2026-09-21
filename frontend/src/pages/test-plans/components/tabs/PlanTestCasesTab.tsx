@@ -9,7 +9,8 @@ import { FilterToolbar } from '../../../../components/ui/FilterToolbar';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
-import { useResizableColumns } from '../../../../hooks/useResizableColumns';
+import { useColumnPreferences, type ColumnDef } from '../../../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../../../components/ui/ColumnPickerButton';
 import type { Module, Tag as TagEntity, TestCasePriority, TestPlanCaseWithDetails } from '../../../../types/domain';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY } from '../../../../helpers/statusLabels';
 
@@ -18,6 +19,17 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
   { label: TEST_CASE_PRIORITY_LABEL.medium, value: 'medium' },
   { label: TEST_CASE_PRIORITY_LABEL.high, value: 'high' },
   { label: TEST_CASE_PRIORITY_LABEL.critical, value: 'critical' },
+];
+
+const PLAN_TEST_CASES_COLUMNS: ColumnDef[] = [
+  { key: 'sel', label: 'Select', locked: true },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
+  { key: 'title', label: 'Test Case' },
+  { key: 'moduleName', label: 'Module', fallbackWidth: '10rem' },
+  { key: 'targetRole', label: 'Target Role', fallbackWidth: '10rem' },
+  { key: 'tag', label: 'Tag', fallbackWidth: '11rem' },
+  { key: 'priority', label: 'Priority', fallbackWidth: '8rem' },
+  { key: 'actions', label: 'Actions', locked: true },
 ];
 
 
@@ -106,7 +118,7 @@ export function PlanTestCasesTab({
     enabled: isMobile,
     deps: [isMobile, visible, detailCollapsed, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('planTestCases');
+  const cp = useColumnPreferences('planTestCases', PLAN_TEST_CASES_COLUMNS);
 
   const mobileCaseTitleBody = (row: TestPlanCaseWithDetails) => (
     <div className="flex flex-column gap-2 py-1">
@@ -135,6 +147,16 @@ export function PlanTestCasesTab({
         visible={canEditContent}
         filterVisible={filterVisible}
         onToggleFilterVisible={onToggleFilterVisible}
+        secondaryActions={!isMobile && (
+          <ColumnPickerButton
+            reorderableColumns={cp.reorderableColumns}
+            order={cp.order}
+            isVisible={cp.isVisible}
+            setVisible={cp.setVisible}
+            setOrder={cp.setOrder}
+            reset={cp.reset}
+          />
+        )}
         primaryAction={<Button label="Add Test Case" icon="pi pi-plus" size="small" onClick={onAddCase} />}
       >
         <div className="col-12 md:col-2 p-1">
@@ -220,48 +242,48 @@ export function PlanTestCasesTab({
         selectionMode={canEditContent ? 'checkbox' : null}
         resizableColumns={!isMobile}
         columnResizeMode="expand"
-        onColumnResizeEnd={onColumnResizeEnd}
-        tableStyle={isMobile ? undefined : tableStyle}
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
-        {canEditContent && <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} />}
-        {!isMobile && (
-          <Column
-            field="testCase.code"
-            header="Code"
-            style={{ width: colWidthAt(canEditContent ? 1 : 0, '7rem') }}
-            className="dt-code-nowrap"
-            headerClassName="dt-code-nowrap"
-            body={(row: TestPlanCaseWithDetails) => (
-              <a
-                className="entity-link"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/test-cases/${row.testCase.id}?projectId=${projectId}`);
-                }}
-              >
-                {row.testCase.code}
-              </a>
-            )}
-          />
-        )}
-        <Column field="testCase.title" header="Test Case" className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(canEditContent ? 2 : 1) }} body={isMobile ? mobileCaseTitleBody : undefined} />
-        {!isMobile && <Column field="testCase.module.name" header="Module" style={{ width: colWidthAt(canEditContent ? 3 : 2, '10rem') }} body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />}
-        {!isMobile && (
-          <Column
+        {cp.arrange([
+        ...(canEditContent ? [['sel', <Column key="sel" selectionMode="multiple" style={{ width: cp.colWidth('sel', '3rem') }} />] as [string, React.ReactElement]] : []),
+        ...(!isMobile ? [['code', <Column
+          key="code"
+          field="testCase.code"
+          header="Code"
+          style={{ width: cp.colWidth('code', '7rem') }}
+          className="dt-code-nowrap"
+          headerClassName="dt-code-nowrap"
+          body={(row: TestPlanCaseWithDetails) => (
+            <a
+              className="entity-link"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/test-cases/${row.testCase.id}?projectId=${projectId}`);
+              }}
+            >
+              {row.testCase.code}
+            </a>
+          )}
+        />] as [string, React.ReactElement]] : []),
+        ['title', <Column key="title" field="testCase.title" header="Test Case" className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: cp.colWidth('title') }} body={isMobile ? mobileCaseTitleBody : undefined} />],
+        ...(!isMobile ? [
+          ['moduleName', <Column key="moduleName" field="testCase.module.name" header="Module" style={{ width: cp.colWidth('moduleName', '10rem') }} body={(row: TestPlanCaseWithDetails) => row.testCase.module?.name ?? '-'} />] as [string, React.ReactElement],
+          ['targetRole', <Column
+            key="targetRole"
             columnKey="targetRole"
             header="Target Role"
-            style={{ width: colWidthAt(canEditContent ? 4 : 3, '10rem') }}
+            style={{ width: cp.colWidth('targetRole', '10rem') }}
             body={(row: TestPlanCaseWithDetails) =>
               row.testCase.targetRole ? <Tag value={row.testCase.targetRole.name} severity="secondary" /> : '-'
             }
-          />
-        )}
-        {!isMobile && (
-          <Column
+          />] as [string, React.ReactElement],
+          ['tag', <Column
+            key="tag"
             columnKey="tag"
             header="Tag"
-            style={{ width: colWidthAt(canEditContent ? 5 : 4, '11rem') }}
+            style={{ width: cp.colWidth('tag', '11rem') }}
             body={(row: TestPlanCaseWithDetails) => (
               <div className="flex flex-wrap gap-1">
                 {row.testCase.tags.map((t) => (
@@ -269,57 +291,56 @@ export function PlanTestCasesTab({
                 ))}
               </div>
             )}
-          />
-        )}
-        {!isMobile && (
-          <Column
+          />] as [string, React.ReactElement],
+          ['priority', <Column
+            key="priority"
             field="testCase.priority"
             header="Priority"
-            style={{ width: colWidthAt(canEditContent ? 6 : 5, '8rem') }}
+            style={{ width: cp.colWidth('priority', '8rem') }}
             body={(row: TestPlanCaseWithDetails) => (
               <Tag value={TEST_CASE_PRIORITY_LABEL[row.testCase.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.testCase.priority]} />
             )}
-          />
-        )}
-        {canEditContent && (
-          <Column
-            columnKey="actions"
-            header=""
-            resizeable={false}
-            className="dt-col-actions"
-            headerClassName="dt-col-actions"
-            style={{ width: isMobile ? '3rem' : '7rem', minWidth: isMobile ? '3rem' : '7rem' }}
-            body={(row: TestPlanCaseWithDetails) => {
-              const idx = cases.indexOf(row);
-              const isFirstOverall = first + idx === 0;
-              const isLastOverall = first + idx === totalCases - 1;
-              const reorderTooltip = isFilterActive ? 'Clear filters to enable ordering' : undefined;
-              return (
-                <div className="flex flex-column md:flex-row gap-1">
-                  {totalCases > 1 && (
-                    <>
-                      <Button
-                        icon="pi pi-angle-up" text rounded size="small" severity="secondary" aria-label="Move up"
-                        disabled={isFilterActive || isFirstOverall}
-                        onClick={(e) => { e.stopPropagation(); onMoveUp(idx); }}
-                        tooltip={reorderTooltip}
-                        tooltipOptions={{ position: 'top' }}
-                      />
-                      <Button
-                        icon="pi pi-angle-down" text rounded size="small" severity="secondary" aria-label="Move down"
-                        disabled={isFilterActive || isLastOverall}
-                        onClick={(e) => { e.stopPropagation(); onMoveDown(idx); }}
-                        tooltip={reorderTooltip}
-                        tooltipOptions={{ position: 'top' }}
-                      />
-                    </>
-                  )}
-                  <Button icon="pi pi-times" text rounded size="small" severity="danger" aria-label="Remove" onClick={(e) => { e.stopPropagation(); onRemove(row); }} />
-                </div>
-              );
-            }}
-          />
-        )}
+          />] as [string, React.ReactElement],
+        ] : []),
+        ...(canEditContent ? [['actions', <Column
+          key="actions"
+          columnKey="actions"
+          header=""
+          resizeable={false}
+          className="dt-col-actions"
+          headerClassName="dt-col-actions"
+          style={{ width: isMobile ? '3rem' : '7rem', minWidth: isMobile ? '3rem' : '7rem' }}
+          body={(row: TestPlanCaseWithDetails) => {
+            const idx = cases.indexOf(row);
+            const isFirstOverall = first + idx === 0;
+            const isLastOverall = first + idx === totalCases - 1;
+            const reorderTooltip = isFilterActive ? 'Clear filters to enable ordering' : undefined;
+            return (
+              <div className="flex flex-column md:flex-row gap-1">
+                {totalCases > 1 && (
+                  <>
+                    <Button
+                      icon="pi pi-angle-up" text rounded size="small" severity="secondary" aria-label="Move up"
+                      disabled={isFilterActive || isFirstOverall}
+                      onClick={(e) => { e.stopPropagation(); onMoveUp(idx); }}
+                      tooltip={reorderTooltip}
+                      tooltipOptions={{ position: 'top' }}
+                    />
+                    <Button
+                      icon="pi pi-angle-down" text rounded size="small" severity="secondary" aria-label="Move down"
+                      disabled={isFilterActive || isLastOverall}
+                      onClick={(e) => { e.stopPropagation(); onMoveDown(idx); }}
+                      tooltip={reorderTooltip}
+                      tooltipOptions={{ position: 'top' }}
+                    />
+                  </>
+                )}
+                <Button icon="pi pi-times" text rounded size="small" severity="danger" aria-label="Remove" onClick={(e) => { e.stopPropagation(); onRemove(row); }} />
+              </div>
+            );
+          }}
+        />] as [string, React.ReactElement]] : []),
+        ])}
       </DataTable>
       </div>
     </>

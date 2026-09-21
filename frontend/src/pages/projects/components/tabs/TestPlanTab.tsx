@@ -14,7 +14,8 @@ import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
-import { useResizableColumns } from '../../../../hooks/useResizableColumns';
+import { useColumnPreferences, type ColumnDef } from '../../../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../../../components/ui/ColumnPickerButton';
 import { testPlanService } from '../../../../services/testPlanService';
 import { useAuthContext } from '../../../../hooks/useAuth';
 import type { TestPlan, TestPlanStatus } from '../../../../types/domain';
@@ -25,6 +26,15 @@ const TEST_PLAN_STATUS_OPTIONS: { label: string; value: TestPlanStatus }[] = (
   ['draft', 'active', 'completed', 'archived'] as const
 ).map((v) => ({ label: TEST_PLAN_STATUS_LABEL[v], value: v }));
 
+const TEST_PLAN_COLUMNS: ColumnDef[] = [
+  { key: 'sel', label: 'Select', locked: true },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
+  { key: 'name', label: 'Name' },
+  { key: 'status', label: 'Status', fallbackWidth: '9rem' },
+  { key: 'lastRun', label: 'Last Run', fallbackWidth: '13rem' },
+  { key: 'updatedAt', label: 'Last Update', fallbackWidth: '11rem' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 const UNDO_TIMEOUT_MS = 9000;
 
@@ -109,7 +119,7 @@ export function TestPlanTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('testPlans');
+  const cp = useColumnPreferences('testPlans', TEST_PLAN_COLUMNS);
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -217,6 +227,16 @@ export function TestPlanTab({
       <Toast ref={undoToast} position="bottom-center" />
       <FilterToolbar
         visible={canEditContent}
+        secondaryActions={!isMobile && (
+          <ColumnPickerButton
+            reorderableColumns={cp.reorderableColumns}
+            order={cp.order}
+            isVisible={cp.isVisible}
+            setVisible={cp.setVisible}
+            setOrder={cp.setOrder}
+            reset={cp.reset}
+          />
+        )}
         primaryAction={<Button label="New Test Plan" icon="pi pi-plus" size="small" onClick={onCreate} />}
         onVisibilityChange={setFilterVisible}
       >
@@ -289,15 +309,16 @@ export function TestPlanTab({
         cellMemo={false}
         resizableColumns={!isMobile}
         columnResizeMode="expand"
-        onColumnResizeEnd={onColumnResizeEnd}
-        tableStyle={isMobile ? undefined : tableStyle}
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
-        <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: colWidthAt(1, '7rem') }} hidden={isMobile}
+        {cp.arrange([
+        ['sel', <Column key="sel" selectionMode="multiple" style={{ width: cp.colWidth('sel', '3rem') }} hidden={isMobile} />],
+        ['code', <Column key="code" field="code" header="Code" sortable style={{ width: cp.colWidth('code', '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"
-          body={(row: TestPlan) => <a className="entity-link" href={`/test-plans/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-plans/${row.id}`); }}>{row.code}</a>} />
-        <Column field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(2) }} body={isMobile ? mobilePlanBody : (row: TestPlan) => {
+          body={(row: TestPlan) => <a className="entity-link" href={`/test-plans/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-plans/${row.id}`); }}>{row.code}</a>} />],
+        ['name', <Column key="name" field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: cp.colWidth('name') }} body={isMobile ? mobilePlanBody : (row: TestPlan) => {
           const isEditing = editingCell?.planId === row.id && editingCell?.field === 'name';
           if (isEditing && canEditContent) {
             return (
@@ -308,8 +329,8 @@ export function TestPlanTab({
             );
           }
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'name', row.name); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>{row.name}</div>;
-        }} />
-        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: colWidthAt(3, '9rem') }} body={(row: TestPlan) => {
+        }} />],
+        ['status', <Column key="status" field="status" header="Status" sortable hidden={isMobile} style={{ width: cp.colWidth('status', '9rem') }} body={(row: TestPlan) => {
           const isEditing = editingCell?.planId === row.id && editingCell?.field === 'status';
           if (isEditing && canEditContent) {
             return (
@@ -324,10 +345,11 @@ export function TestPlanTab({
           return <div onClick={(e) => { e.stopPropagation(); canEditContent && startEdit(row.id, 'status', row.status); }} style={{ cursor: canEditContent ? 'pointer' : undefined }}>
             <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />
           </div>;
-        }} />
-        {!isMobile && <Column columnKey="lastRun" header="Last Run" style={{ width: colWidthAt(4, '13rem'), whiteSpace: 'nowrap' }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />}
-        <Column field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: colWidthAt(5, '11rem'), whiteSpace: 'nowrap' }} body={(row: TestPlanRow) => formatDateTime(row.updatedAt)} />
-        <Column
+        }} />],
+        ['lastRun', <Column key="lastRun" columnKey="lastRun" header="Last Run" hidden={isMobile} style={{ width: cp.colWidth('lastRun', '13rem'), whiteSpace: 'nowrap' }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />],
+        ['updatedAt', <Column key="updatedAt" field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: cp.colWidth('updatedAt', '11rem'), whiteSpace: 'nowrap' }} body={(row: TestPlanRow) => formatDateTime(row.updatedAt)} />],
+        ['actions', <Column
+          key="actions"
           columnKey="actions"
           header=""
           resizeable={false}
@@ -345,7 +367,8 @@ export function TestPlanTab({
               ]}
             />
           )}
-        />
+        />],
+        ])}
       </DataTable>
       </div>
     </>

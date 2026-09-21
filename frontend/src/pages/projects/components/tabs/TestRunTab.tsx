@@ -12,7 +12,8 @@ import { RowActionsMenu } from '../../../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../../../hooks/useTableHeight';
-import { useResizableColumns } from '../../../../hooks/useResizableColumns';
+import { useColumnPreferences, type ColumnDef } from '../../../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../../../components/ui/ColumnPickerButton';
 import { testRunService } from '../../../../services/testRunService';
 import { useAuthContext } from '../../../../hooks/useAuth';
 import type { TestRun, TestRunStatus } from '../../../../types/domain';
@@ -23,6 +24,17 @@ const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
   ['in_progress', 'completed'] as const
 ).map((v) => ({ label: TEST_RUN_STATUS_LABEL[v], value: v }));
 
+const TEST_RUN_COLUMNS: ColumnDef[] = [
+  { key: 'sel', label: 'Select', locked: true },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
+  { key: 'name', label: 'Name' },
+  { key: 'testPlanName', label: 'Test Plan', fallbackWidth: '12rem' },
+  { key: 'status', label: 'Status', fallbackWidth: '7rem' },
+  { key: 'result', label: 'Result', fallbackWidth: '8rem' },
+  { key: 'tester', label: 'Tester', fallbackWidth: '11rem' },
+  { key: 'completedAt', label: 'Completed', fallbackWidth: '11rem' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 export type TestRunWithSummary = TestRun & {
   testPlanName: string | null;
@@ -97,7 +109,7 @@ export function TestRunTab({
     enabled: isMobile,
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
-  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('testRuns');
+  const cp = useColumnPreferences('testRuns', TEST_RUN_COLUMNS);
 
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -144,6 +156,16 @@ export function TestRunTab({
     <>
       <FilterToolbar
         visible={canRunTests}
+        secondaryActions={!isMobile && (
+          <ColumnPickerButton
+            reorderableColumns={cp.reorderableColumns}
+            order={cp.order}
+            isVisible={cp.isVisible}
+            setVisible={cp.setVisible}
+            setOrder={cp.setOrder}
+            reset={cp.reset}
+          />
+        )}
         primaryAction={<Button label="Create Test Run" icon="pi pi-plus" size="small" onClick={onCreate} />}
         onVisibilityChange={setFilterVisible}
       >
@@ -202,15 +224,16 @@ export function TestRunTab({
         cellMemo={false}
         resizableColumns={!isMobile}
         columnResizeMode="expand"
-        onColumnResizeEnd={onColumnResizeEnd}
-        tableStyle={isMobile ? undefined : tableStyle}
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
         className={isMobile ? undefined : 'dt-resizable'}
       >
-        <Column selectionMode="multiple" style={{ width: colWidthAt(0, '3rem') }} hidden={isMobile} />
-        <Column field="code" header="Code" sortable style={{ width: colWidthAt(1, '7rem') }} hidden={isMobile}
+        {cp.arrange([
+        ['sel', <Column key="sel" selectionMode="multiple" style={{ width: cp.colWidth('sel', '3rem') }} hidden={isMobile} />],
+        ['code', <Column key="code" field="code" header="Code" sortable style={{ width: cp.colWidth('code', '7rem') }} hidden={isMobile}
           className="dt-code-nowrap" headerClassName="dt-code-nowrap"
-          body={(row: TestRunWithSummary) => <a className="entity-link" href={`/test-runs/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-runs/${row.id}`); }}>{row.code}</a>} />
-        <Column field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(2) }} body={isMobile ? mobileRunBody : (row: TestRunWithSummary) => {
+          body={(row: TestRunWithSummary) => <a className="entity-link" href={`/test-runs/${row.id}`} onClick={(e) => { e.preventDefault(); navigate(`/test-runs/${row.id}`); }}>{row.code}</a>} />],
+        ['name', <Column key="name" field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: cp.colWidth('name') }} body={isMobile ? mobileRunBody : (row: TestRunWithSummary) => {
           if (editingName === row.id) {
             return (
               <div onKeyDown={(e) => { if (e.key === 'Enter') confirmEditName(row); else if (e.key === 'Escape') cancelEditName(); }}>
@@ -220,13 +243,14 @@ export function TestRunTab({
             );
           }
           return <div onClick={(e) => { e.stopPropagation(); startEditName(row); }} style={{ cursor: 'pointer' }}>{row.name}</div>;
-        }} />
-        <Column
+        }} />],
+        ['testPlanName', <Column
+          key="testPlanName"
           header="Test Plan"
           field="testPlanName"
           sortable
           hidden={isMobile}
-          style={{ width: colWidthAt(3, '12rem') }}
+          style={{ width: cp.colWidth('testPlanName', '12rem') }}
           body={(row: TestRunWithSummary) =>
             row.testPlanId ? (
               <a
@@ -243,13 +267,14 @@ export function TestRunTab({
               <Tag value="Unplanned" severity="secondary" />
             )
           }
-        />
-        <Column field="status" header="Status" sortable hidden={isMobile} style={{ width: colWidthAt(4, '7rem') }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />
-        <Column
+        />],
+        ['status', <Column key="status" field="status" header="Status" sortable hidden={isMobile} style={{ width: cp.colWidth('status', '7rem') }} body={(row: TestRun) => <Tag value={TEST_RUN_STATUS_LABEL[row.status]} severity={TEST_RUN_STATUS_SEVERITY[row.status]} />} />],
+        ['result', <Column
+          key="result"
           columnKey="result"
           header="Result"
           hidden={isMobile}
-          style={{ width: colWidthAt(5, '8rem') }}
+          style={{ width: cp.colWidth('result', '8rem') }}
           body={(row: TestRunWithSummary) => (
             <div className="flex gap-1 align-items-center">
               <Tag value={String(row.pass)} severity={TEST_RESULT_STATUS_SEVERITY.pass} />
@@ -257,16 +282,18 @@ export function TestRunTab({
               <span className="text-color-secondary text-sm">/{row.total}</span>
             </div>
           )}
-        />
-        <Column
+        />],
+        ['tester', <Column
+          key="tester"
           columnKey="tester"
           header="Tester"
           hidden={isMobile}
-          style={{ width: colWidthAt(6, '11rem') }}
+          style={{ width: cp.colWidth('tester', '11rem') }}
           body={(row: TestRunWithSummary) => (row.testers.length > 0 ? row.testers.map((t) => t.fullName ?? t.id).join(', ') : '-')}
-        />
-        <Column field="completedAt" header="Completed" sortable hidden={isMobile} style={{ width: colWidthAt(7, '11rem') }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />
-        <Column
+        />],
+        ['completedAt', <Column key="completedAt" field="completedAt" header="Completed" sortable hidden={isMobile} style={{ width: cp.colWidth('completedAt', '11rem') }} body={(row: TestRun) => (row.completedAt ? formatDateTime(row.completedAt) : '-')} />],
+        ['actions', <Column
+          key="actions"
           columnKey="actions"
           header=""
           resizeable={false}
@@ -283,7 +310,8 @@ export function TestRunTab({
               ]}
             />
           )}
-        />
+        />],
+        ])}
       </DataTable>
       </div>
     </>

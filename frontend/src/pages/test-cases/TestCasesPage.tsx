@@ -15,7 +15,8 @@ import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { useTableHeight } from '../../hooks/useTableHeight';
-import { useResizableColumns } from '../../hooks/useResizableColumns';
+import { useColumnPreferences, type ColumnDef } from '../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../components/ui/ColumnPickerButton';
 import {
   TEST_CASE_PRIORITY_LABEL,
   TEST_CASE_PRIORITY_SEVERITY,
@@ -23,13 +24,22 @@ import {
   TEST_CASE_STATUS_SEVERITY,
 } from '../../helpers/statusLabels';
 
+const TEST_CASES_PAGE_COLUMNS: ColumnDef[] = [
+  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
+  { key: 'title', label: 'Title' },
+  { key: 'module.name', label: 'Module', fallbackWidth: '10rem' },
+  { key: 'priority', label: 'Priority', fallbackWidth: '8rem' },
+  { key: 'status', label: 'Status', fallbackWidth: '8rem' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
+
 export function TestCasesPage() {
   const navigate = useNavigate();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
 
   const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
-  const { onColumnResizeEnd, colWidthAt, tableStyle } = useResizableColumns('testCasesCrossProject');
+  const cp = useColumnPreferences('testCasesCrossProject', TEST_CASES_PAGE_COLUMNS);
 
   const [projectId, setProjectId] = useState<string | null>(null);
 
@@ -77,14 +87,26 @@ export function TestCasesPage() {
       <PageHeader
         title="Test Cases"
         actions={
-          <Dropdown
-            value={projectId}
-            options={projects.map((p) => ({ label: p.name, value: p.id }))}
-            onChange={(e) => setProjectId(e.value)}
-            placeholder="Select project"
-            className="w-15rem"
-            showClear
-          />
+          <div className="flex align-items-center gap-2">
+            {!isMobile && (
+              <ColumnPickerButton
+                reorderableColumns={cp.reorderableColumns}
+                order={cp.order}
+                isVisible={cp.isVisible}
+                setVisible={cp.setVisible}
+                setOrder={cp.setOrder}
+                reset={cp.reset}
+              />
+            )}
+            <Dropdown
+              value={projectId}
+              options={projects.map((p) => ({ label: p.name, value: p.id }))}
+              onChange={(e) => setProjectId(e.value)}
+              placeholder="Select project"
+              className="w-15rem"
+              showClear
+            />
+          </div>
         }
       />
 
@@ -96,30 +118,30 @@ export function TestCasesPage() {
 
       <div ref={containerRef}>
         <DataTable value={testCases} loading={loading} {...dataTablePaginatorProps} scrollHeight={tableHeight} rows={10} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No test cases yet" size="small"
-          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={onColumnResizeEnd} tableStyle={isMobile ? undefined : tableStyle} className={isMobile ? undefined : 'dt-resizable'}>
+          resizableColumns={!isMobile} columnResizeMode="expand" onColumnResizeEnd={cp.onColumnResizeEnd} tableStyle={isMobile ? undefined : cp.tableStyle} className={isMobile ? undefined : 'dt-resizable'}>
         {isMobile && <Column body={mobileBodyTemplate} />}
-        {!isMobile && <Column field="code" header="Code" sortable style={{ width: colWidthAt(0, '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />}
-        {!isMobile && <Column field="title" header="Title" sortable className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: colWidthAt(1) }} />}
-        {!isMobile && <Column field="module.name" header="Module" style={{ width: colWidthAt(2, '10rem') }} body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} sortable />}
-        {!isMobile && (
-          <Column
-            field="priority"
-            header="Priority"
-            style={{ width: colWidthAt(3, '8rem') }}
-            body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />}
-            sortable
-          />
-        )}
-        {!isMobile && (
-          <Column
-            field="status"
-            header="Status"
-            style={{ width: colWidthAt(4, '8rem') }}
-            body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />}
-            sortable
-          />
-        )}
-        <Column columnKey="actions" header="" resizeable={false} className="dt-col-actions" headerClassName="dt-col-actions" style={{ width: '3.5rem', minWidth: '3.5rem' }} body={actionBodyTemplate} />
+        {!isMobile && cp.arrange([
+        ['code', <Column key="code" field="code" header="Code" sortable style={{ width: cp.colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />],
+        ['title', <Column key="title" field="title" header="Title" sortable className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: cp.colWidth('title') }} />],
+        ['module.name', <Column key="module.name" field="module.name" header="Module" style={{ width: cp.colWidth('module.name', '10rem') }} body={(row: TestCaseWithDetails) => row.module?.name ?? '-'} sortable />],
+        ['priority', <Column
+          key="priority"
+          field="priority"
+          header="Priority"
+          style={{ width: cp.colWidth('priority', '8rem') }}
+          body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_PRIORITY_LABEL[row.priority]} severity={TEST_CASE_PRIORITY_SEVERITY[row.priority]} />}
+          sortable
+        />],
+        ['status', <Column
+          key="status"
+          field="status"
+          header="Status"
+          style={{ width: cp.colWidth('status', '8rem') }}
+          body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />}
+          sortable
+        />],
+        ['actions', <Column key="actions" columnKey="actions" header="" resizeable={false} className="dt-col-actions" headerClassName="dt-col-actions" style={{ width: '3.5rem', minWidth: '3.5rem' }} body={actionBodyTemplate} />],
+        ])}
       </DataTable>
       </div>
     </div>
