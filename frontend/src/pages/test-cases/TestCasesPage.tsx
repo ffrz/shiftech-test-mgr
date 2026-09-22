@@ -25,8 +25,8 @@ import {
 } from '../../helpers/statusLabels';
 
 const TEST_CASES_PAGE_COLUMNS: ColumnDef[] = [
-  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
-  { key: 'title', label: 'Title' },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem', locked: true },
+  { key: 'title', label: 'Title', locked: true },
   { key: 'module.name', label: 'Module', fallbackWidth: '10rem' },
   { key: 'priority', label: 'Priority', fallbackWidth: '8rem' },
   { key: 'status', label: 'Status', fallbackWidth: '8rem' },
@@ -140,6 +140,8 @@ export function TestCasesPage() {
               isVisible={cp.isVisible}
               setVisible={cp.setVisible}
               reset={cp.reset}
+              canReorder={!isMobile}
+              reorderColumn={cp.reorderColumn}
             />
           )}
           resizeable={false}

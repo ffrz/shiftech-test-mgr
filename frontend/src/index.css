@@ -660,16 +660,31 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   box-shadow: none;
 }
 
-/* ColumnPickerButton's overlay: a simple show/hide checkbox list, kept compact and
+/* ColumnPickerButton's overlay: show/hide checkbox list (with an optional drag handle
+   per row, desktop only) followed by an optional "sort by" section — ported from
+   amanah-pos-dev's TableColumnControl.vue (Quasar q-menu/q-list) UI/UX. Kept compact and
    narrow since it's a short utility list, not a form. */
 .column-picker-panel {
   width: 16rem;
+}
+.column-picker-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-color-secondary);
+  padding: 0.35rem 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.column-picker-separator {
+  height: 1px;
+  background: var(--surface-200);
+  margin: 0.35rem 0;
 }
 .column-picker-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 20rem;
+  max-height: 14rem;
   overflow-y: auto;
 }
 .column-picker-item {
@@ -680,12 +695,44 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   border-radius: 4px;
   cursor: default;
 }
+.column-picker-item-dragover {
+  background: var(--surface-100);
+  outline: 1px dashed var(--surface-300);
+}
+.column-picker-item-clickable {
+  cursor: pointer;
+}
+.column-picker-item-clickable:hover {
+  background: var(--surface-100);
+}
+.column-picker-handle {
+  cursor: grab;
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.column-picker-check {
+  width: 0.8rem;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  color: transparent;
+}
+.column-picker-check-active {
+  color: var(--primary-color);
+}
 .column-picker-label {
   cursor: pointer;
   font-size: 0.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.column-picker-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.35rem;
+  margin-top: 0.35rem;
+  border-top: 1px solid var(--surface-200);
 }
 
 /* The selectionMode="multiple" checkbox column's <th> renders an empty

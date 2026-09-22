@@ -23,8 +23,8 @@ const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = [
 
 const PLAN_TEST_CASES_COLUMNS: ColumnDef[] = [
   { key: 'sel', label: 'Select', locked: true },
-  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
-  { key: 'title', label: 'Test Case' },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem', locked: true },
+  { key: 'title', label: 'Test Case', locked: true },
   { key: 'moduleName', label: 'Module', fallbackWidth: '10rem' },
   { key: 'targetRole', label: 'Target Role', fallbackWidth: '10rem' },
   { key: 'tag', label: 'Tag', fallbackWidth: '11rem' },
@@ -302,6 +302,8 @@ export function PlanTestCasesTab({
               isVisible={cp.isVisible}
               setVisible={cp.setVisible}
               reset={cp.reset}
+              canReorder={!isMobile}
+              reorderColumn={cp.reorderColumn}
             />
           )}
           resizeable={false}

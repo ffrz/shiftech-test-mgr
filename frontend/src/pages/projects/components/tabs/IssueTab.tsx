@@ -37,20 +37,21 @@ import {
   ISSUE_TYPE_SEVERITY,
 } from '../../../../helpers/statusLabels';
 
-// Non-locked columns only — the selection checkbox and actions columns are `locked: true`
-// in the DataTable itself (see below) and never appear in the show/hide/reorder picker.
+// Select/Code/Title/Actions are `locked: true` — always visible, pinned in place, and
+// excluded entirely from the show/hide/reorder picker (structural columns, not optional
+// content). Everything else can be hidden and reordered.
 const ISSUE_COLUMNS: ColumnDef[] = [
   { key: 'sel', label: 'Select', locked: true },
-  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
-  { key: 'title', label: 'Title' },
-  { key: 'type', label: 'Type', fallbackWidth: '8rem' },
-  { key: 'moduleName', label: 'Module', fallbackWidth: '10rem' },
-  { key: 'targetRoleName', label: 'Target Role', fallbackWidth: '10rem' },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem', locked: true, sortField: 'code' },
+  { key: 'title', label: 'Title', locked: true, sortField: 'title' },
+  { key: 'type', label: 'Type', fallbackWidth: '8rem', sortField: 'type' },
+  { key: 'moduleName', label: 'Module', fallbackWidth: '10rem', sortField: 'moduleName' },
+  { key: 'targetRoleName', label: 'Target Role', fallbackWidth: '10rem', sortField: 'targetRoleName' },
   { key: 'tags', label: 'Tag', fallbackWidth: '11rem' },
   { key: 'linked', label: 'Linked', fallbackWidth: '7rem' },
-  { key: 'priority', label: 'Priority', fallbackWidth: '7rem' },
-  { key: 'status', label: 'Status', fallbackWidth: '9rem' },
-  { key: 'assignedTo', label: 'Assigned To', fallbackWidth: '10rem' },
+  { key: 'priority', label: 'Priority', fallbackWidth: '7rem', sortField: 'priority' },
+  { key: 'status', label: 'Status', fallbackWidth: '9rem', sortField: 'status' },
+  { key: 'assignedTo', label: 'Assigned To', fallbackWidth: '10rem', sortField: 'assignedTo' },
   { key: 'actions', label: 'Actions', locked: true },
 ];
 
@@ -180,6 +181,11 @@ export function IssueTab({
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
   const cp = useColumnPreferences('issues', ISSUE_COLUMNS);
+  // Adapts the picker's plain (field, order) callbacks to onSort's DataTableStateEvent
+  // shape, so picking a field/direction in the menu stays in sync with clicking a
+  // column header — both paths end up calling the same onSort.
+  const handleSortFieldChange = (field: string) => onSort({ sortField: field, sortOrder: sortOrder ?? 1 } as DataTableStateEvent);
+  const handleSortOrderChange = (order: 1 | -1) => onSort({ sortField, sortOrder: order } as DataTableStateEvent);
 
   // Bulk-edit dialog: UNSET (untouched, excluded from the update) until the user picks
   // something. `null` is itself a meaningful choice for assignedTo (unassign, via the
@@ -719,6 +725,13 @@ export function IssueTab({
               isVisible={cp.isVisible}
               setVisible={cp.setVisible}
               reset={cp.reset}
+              canReorder={!isMobile}
+              reorderColumn={cp.reorderColumn}
+              sortableColumns={cp.sortableColumns}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSortFieldChange={handleSortFieldChange}
+              onSortOrderChange={handleSortOrderChange}
             />
           )}
           resizeable={false}

@@ -38,8 +38,8 @@ function formatLastRun(lastRun: TestPlanLastRun): string {
 }
 
 const TEST_PLANS_PAGE_COLUMNS: ColumnDef[] = [
-  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
-  { key: 'name', label: 'Name' },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem', locked: true },
+  { key: 'name', label: 'Name', locked: true },
   { key: 'status', label: 'Status', fallbackWidth: '9rem' },
   { key: 'lastRun', label: 'Last Run', fallbackWidth: '13rem' },
   { key: 'updatedAt', label: 'Last Updated', fallbackWidth: '10rem' },
@@ -173,6 +173,8 @@ export function TestPlansPage() {
                   isVisible={cp.isVisible}
                   setVisible={cp.setVisible}
                   reset={cp.reset}
+                  canReorder={!isMobile}
+                  reorderColumn={cp.reorderColumn}
                 />
               )}
               resizeable={false}

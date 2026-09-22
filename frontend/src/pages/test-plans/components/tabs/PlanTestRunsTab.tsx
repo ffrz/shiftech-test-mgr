@@ -24,8 +24,8 @@ const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
 ).map((v) => ({ label: TEST_RUN_STATUS_LABEL[v], value: v }));
 
 const PLAN_TEST_RUNS_COLUMNS: ColumnDef[] = [
-  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
-  { key: 'name', label: 'Run Name' },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem', locked: true },
+  { key: 'name', label: 'Run Name', locked: true },
   { key: 'status', label: 'Status', fallbackWidth: '7rem' },
   { key: 'results', label: 'Results', fallbackWidth: '8rem' },
   { key: 'tester', label: 'Tester', fallbackWidth: '11rem' },
@@ -196,6 +196,8 @@ export function PlanTestRunsTab({
                   isVisible={cp.isVisible}
                   setVisible={cp.setVisible}
                   reset={cp.reset}
+                  canReorder={!isMobile}
+                  reorderColumn={cp.reorderColumn}
                 />
               )}
               resizeable={false}

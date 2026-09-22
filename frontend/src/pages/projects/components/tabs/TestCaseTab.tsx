@@ -42,12 +42,12 @@ const TEST_CASE_STATUS_OPTIONS: { label: string; value: TestCaseStatus }[] = (
 
 const TEST_CASE_COLUMNS: ColumnDef[] = [
   { key: 'sel', label: 'Select', locked: true },
-  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
-  { key: 'title', label: 'Title' },
-  { key: 'moduleName', label: 'Module', fallbackWidth: '10rem' },
-  { key: 'priority', label: 'Priority', fallbackWidth: '7rem' },
-  { key: 'status', label: 'Status', fallbackWidth: '7rem' },
-  { key: 'targetRoleName', label: 'Target Role', fallbackWidth: '10rem' },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem', locked: true, sortField: 'code' },
+  { key: 'title', label: 'Title', locked: true, sortField: 'title' },
+  { key: 'moduleName', label: 'Module', fallbackWidth: '10rem', sortField: 'moduleName' },
+  { key: 'priority', label: 'Priority', fallbackWidth: '7rem', sortField: 'priority' },
+  { key: 'status', label: 'Status', fallbackWidth: '7rem', sortField: 'status' },
+  { key: 'targetRoleName', label: 'Target Role', fallbackWidth: '10rem', sortField: 'targetRoleName' },
   { key: 'tags', label: 'Tag', fallbackWidth: '11rem' },
   { key: 'actions', label: 'Actions', locked: true },
 ];
@@ -190,6 +190,8 @@ export function TestCaseTab({
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
   const cp = useColumnPreferences('testCases', TEST_CASE_COLUMNS);
+  const handleSortFieldChange = (field: string) => onSort({ sortField: field, sortOrder: sortOrder ?? 1 } as DataTableStateEvent);
+  const handleSortOrderChange = (order: 1 | -1) => onSort({ sortField, sortOrder: order } as DataTableStateEvent);
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -541,6 +543,13 @@ export function TestCaseTab({
               isVisible={cp.isVisible}
               setVisible={cp.setVisible}
               reset={cp.reset}
+              canReorder={!isMobile}
+              reorderColumn={cp.reorderColumn}
+              sortableColumns={cp.sortableColumns}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSortFieldChange={handleSortFieldChange}
+              onSortOrderChange={handleSortOrderChange}
             />
           )}
           resizeable={false}

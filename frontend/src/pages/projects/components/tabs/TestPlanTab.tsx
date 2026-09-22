@@ -28,11 +28,11 @@ const TEST_PLAN_STATUS_OPTIONS: { label: string; value: TestPlanStatus }[] = (
 
 const TEST_PLAN_COLUMNS: ColumnDef[] = [
   { key: 'sel', label: 'Select', locked: true },
-  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
-  { key: 'name', label: 'Name' },
-  { key: 'status', label: 'Status', fallbackWidth: '9rem' },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem', locked: true, sortField: 'code' },
+  { key: 'name', label: 'Name', locked: true, sortField: 'name' },
+  { key: 'status', label: 'Status', fallbackWidth: '9rem', sortField: 'status' },
   { key: 'lastRun', label: 'Last Run', fallbackWidth: '13rem' },
-  { key: 'updatedAt', label: 'Last Update', fallbackWidth: '11rem' },
+  { key: 'updatedAt', label: 'Last Update', fallbackWidth: '11rem', sortField: 'updatedAt' },
   { key: 'actions', label: 'Actions', locked: true },
 ];
 
@@ -120,6 +120,8 @@ export function TestPlanTab({
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
   const cp = useColumnPreferences('testPlans', TEST_PLAN_COLUMNS);
+  const handleSortFieldChange = (field: string) => onSort({ sortField: field, sortOrder: sortOrder ?? 1 } as DataTableStateEvent);
+  const handleSortOrderChange = (order: 1 | -1) => onSort({ sortField, sortOrder: order } as DataTableStateEvent);
 
   useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
@@ -349,6 +351,13 @@ export function TestPlanTab({
               isVisible={cp.isVisible}
               setVisible={cp.setVisible}
               reset={cp.reset}
+              canReorder={!isMobile}
+              reorderColumn={cp.reorderColumn}
+              sortableColumns={cp.sortableColumns}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSortFieldChange={handleSortFieldChange}
+              onSortOrderChange={handleSortOrderChange}
             />
           )}
           resizeable={false}

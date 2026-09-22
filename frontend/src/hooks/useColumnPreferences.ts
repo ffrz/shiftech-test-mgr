@@ -4,35 +4,43 @@ import type { ColumnProps } from 'primereact/column';
 
 export type ColumnDef = {
   /** Stable identity for this column — the Column's `field` or `columnKey`. Must match
-   * exactly what's passed to that <Column>, since resize/visibility are keyed on this
-   * rather than array position (position shifts once columns can be hidden, which would
-   * silently corrupt a position-keyed record). */
+   * exactly what's passed to that <Column>, since resize/visibility/order are all keyed
+   * on this rather than array position (position shifts once columns can be hidden or
+   * reordered, which would silently corrupt a position-keyed record). */
   key: string;
-  /** Label shown in the column picker checkbox list. */
+  /** Label shown in the column picker. */
   label: string;
   /** Design-time fallback width (e.g. '10rem'), or omit for a flex-fill column (the
    * "Title"/"Name" column, styled width:100% via the dt-title-fill class). */
   fallbackWidth?: string;
-  /** Locked columns (selection checkbox, actions) are always visible, excluded from the
-   * picker, and pinned to their original position — never hidden. */
+  /** Locked columns (selection checkbox, code, name/title, actions) are always visible,
+   * never reordered, and excluded from the picker entirely — not even as a disabled
+   * checkbox — since they're structural to the table, not optional content. */
   locked?: boolean;
+  /** Field passed to the table's onSort (usually same as `key`, but a column whose body
+   * is custom-rendered may sort by a different underlying field). Omit for columns that
+   * can't be sorted (actions, selection, etc). */
+  sortField?: string;
 };
 
 type Prefs = {
   /** Every column's on/off state, key -> visible. Absent key defaults to visible. */
   visible: Record<string, boolean>;
+  /** Left-to-right order of NON-locked column keys the user has customized. Locked
+   * columns stay wherever `columns` places them and are never part of this array. */
+  order: string[];
   /** Saved pixel widths, key -> width. */
   widths: Record<string, number>;
 };
 
-const EMPTY_PREFS: Prefs = { visible: {}, widths: {} };
+const EMPTY_PREFS: Prefs = { visible: {}, order: [], widths: {} };
 
 function load(key: string): Prefs {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return EMPTY_PREFS;
     const parsed = JSON.parse(raw);
-    return { visible: parsed.visible ?? {}, widths: parsed.widths ?? {} };
+    return { visible: parsed.visible ?? {}, order: parsed.order ?? [], widths: parsed.widths ?? {} };
   } catch {
     return EMPTY_PREFS;
   }
@@ -46,11 +54,11 @@ function save(key: string, prefs: Prefs) {
   }
 }
 
-// Single source of truth for a resizable table's column widths and visibility — unifies
-// what would otherwise be two separate concerns, because they interact: hiding a column
-// changes which columns need a width restored, so both have to be keyed and persisted
-// together to stay consistent, and a "reset to default" needs to touch both at once too.
-// Column order is fixed by the ColumnDef[] declaration order — not user-customizable.
+// Single source of truth for a resizable table's column widths, visibility, and order —
+// unifies what would otherwise be three separate concerns, because they interact:
+// hiding/reordering columns changes which key a saved width belongs to, so all three have
+// to be keyed and persisted together to stay consistent, and a "reset to default" needs
+// to touch all three at once too.
 //
 // Column width restoration on reload needs every visible column's width set explicitly
 // (not just the one a user last resized): PrimeReact's DataTable renders at width:100% of
@@ -59,16 +67,21 @@ function save(key: string, prefs: Prefs) {
 // whole row on reload, when there's no live drag to correct it. onColumnResizeEnd here
 // snapshots every rendered header cell's width whenever any one of them is resized.
 //
+// Reorder is desktop-only (mirrors the amanah-pos-dev Quasar reference this was ported
+// from): callers gate drag handles / the reorder UI behind their own `!isMobile` check
+// and simply don't call setOrder on mobile — the hook itself doesn't know about screen
+// size, it just persists whatever order it's given.
+//
 // Usage:
 //   const COLUMNS: ColumnDef[] = [
-//     { key: 'sel', locked: true },
-//     { key: 'code', label: 'Code', fallbackWidth: '7rem' },
-//     { key: 'title', label: 'Title' },              // flex-fill, no fallbackWidth
-//     { key: 'status', label: 'Status', fallbackWidth: '9rem' },
-//     { key: 'actions', locked: true },
+//     { key: 'sel', label: 'Select', locked: true },
+//     { key: 'code', label: 'Code', fallbackWidth: '7rem', locked: true },
+//     { key: 'title', label: 'Title', locked: true },   // flex-fill, no fallbackWidth
+//     { key: 'status', label: 'Status', fallbackWidth: '9rem', sortField: 'status' },
+//     { key: 'actions', label: 'Actions', locked: true },
 //   ];
 //   const cp = useColumnPreferences('issues', COLUMNS);
-//   <ColumnPickerButton {...cp} />
+//   <ColumnPickerButton {...cp} canReorder={!isMobile} sortField={sortField} sortOrder={sortOrder} onSort={onSort} />
 //   <DataTable tableStyle={cp.tableStyle} resizableColumns columnResizeMode="expand"
 //     onColumnResizeEnd={cp.onColumnResizeEnd} ...>
 //     {cp.arrange([
@@ -89,7 +102,19 @@ export function useColumnPreferences(storageKey: string, columns: ColumnDef[]) {
   }, [key]);
 
   const reorderable = useMemo(() => columns.filter((c) => !c.locked), [columns]);
-  const orderedKeys = useMemo(() => reorderable.map((c) => c.key), [reorderable]);
+
+  // The columns in their effective order: user-customized order first (only keys that
+  // still exist in `columns`, so a code change dropping/renaming a column can't leave a
+  // stale saved order pointing at nothing), then any newly-added columns appended at the
+  // end in their declared order — a column added to the code later doesn't get lost
+  // before/after existing customized order, it just shows up at the end until the user
+  // moves it.
+  const orderedKeys = useMemo(() => {
+    const known = new Set(reorderable.map((c) => c.key));
+    const fromSaved = prefs.order.filter((k) => known.has(k));
+    const missing = reorderable.filter((c) => !fromSaved.includes(c.key)).map((c) => c.key);
+    return [...fromSaved, ...missing];
+  }, [prefs.order, reorderable]);
 
   const isVisible = useCallback(
     (colKey: string) => {
@@ -109,6 +134,34 @@ export function useColumnPreferences(storageKey: string, columns: ColumnDef[]) {
       });
     },
     [key],
+  );
+
+  const setOrder = useCallback(
+    (newOrder: string[]) => {
+      setPrefs((prev) => {
+        const next = { ...prev, order: newOrder };
+        save(key, next);
+        return next;
+      });
+    },
+    [key],
+  );
+
+  // Moves `draggedKey` to just before `targetKey` among reorderable columns — the drag
+  // gesture in ColumnPickerButton reports both ends of the drop directly rather than an
+  // up/down step, since drag-and-drop can jump more than one position at once.
+  const reorderColumn = useCallback(
+    (draggedKey: string, targetKey: string) => {
+      if (draggedKey === targetKey) return;
+      const fromIdx = orderedKeys.indexOf(draggedKey);
+      const toIdx = orderedKeys.indexOf(targetKey);
+      if (fromIdx === -1 || toIdx === -1) return;
+      const next = [...orderedKeys];
+      next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, draggedKey);
+      setOrder(next);
+    },
+    [orderedKeys, setOrder],
   );
 
   const reset = useCallback(() => {
@@ -182,12 +235,12 @@ export function useColumnPreferences(storageKey: string, columns: ColumnDef[]) {
   // onColumnResizeEnd can recover column identity purely from the DOM (see there for why
   // that's necessary).
   //
-  // Locked columns (selection checkbox, actions) stay at whatever position they occupy in
-  // the INPUT list — arrange() never moves them. Every non-locked slot in the input list
-  // is filled, in order, from the user's customized sequence of visible non-locked keys
-  // (`orderedKeys` filtered to this table's actual non-locked, visible entries). This
-  // lets a locked column sit first, last, or in the middle of `entries` and keep that
-  // exact spot regardless of how the user reordered everything else.
+  // Locked columns (selection checkbox, code, title, actions) stay at whatever position
+  // they occupy in the INPUT list — arrange() never moves them. Every non-locked slot in
+  // the input list is filled, in order, from the user's customized sequence of visible
+  // non-locked keys (`orderedKeys` filtered to this table's actual non-locked, visible
+  // entries). This lets a locked column sit first, last, or in the middle of `entries`
+  // and keep that exact spot regardless of how the user reordered everything else.
   const arrange = useCallback(
     (entries: [string, React.ReactElement<ColumnProps>][]): React.ReactElement[] => {
       const byKey = new Map(entries);
@@ -216,10 +269,13 @@ export function useColumnPreferences(storageKey: string, columns: ColumnDef[]) {
   return {
     columns,
     reorderableColumns: reorderable,
+    sortableColumns: useMemo(() => columns.filter((c) => !!c.sortField), [columns]),
     orderedKeys,
     isVisible,
     setVisible,
     order: orderedKeys,
+    setOrder,
+    reorderColumn,
     reset,
     colWidth,
     onColumnResizeEnd,

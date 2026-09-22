@@ -26,13 +26,13 @@ const TEST_RUN_STATUS_OPTIONS: { label: string; value: TestRunStatus }[] = (
 
 const TEST_RUN_COLUMNS: ColumnDef[] = [
   { key: 'sel', label: 'Select', locked: true },
-  { key: 'code', label: 'Code', fallbackWidth: '7rem' },
-  { key: 'name', label: 'Name' },
-  { key: 'testPlanName', label: 'Test Plan', fallbackWidth: '12rem' },
-  { key: 'status', label: 'Status', fallbackWidth: '7rem' },
+  { key: 'code', label: 'Code', fallbackWidth: '7rem', locked: true, sortField: 'code' },
+  { key: 'name', label: 'Name', locked: true, sortField: 'name' },
+  { key: 'testPlanName', label: 'Test Plan', fallbackWidth: '12rem', sortField: 'testPlanName' },
+  { key: 'status', label: 'Status', fallbackWidth: '7rem', sortField: 'status' },
   { key: 'result', label: 'Result', fallbackWidth: '8rem' },
   { key: 'tester', label: 'Tester', fallbackWidth: '11rem' },
-  { key: 'completedAt', label: 'Completed', fallbackWidth: '11rem' },
+  { key: 'completedAt', label: 'Completed', fallbackWidth: '11rem', sortField: 'completedAt' },
   { key: 'actions', label: 'Actions', locked: true },
 ];
 
@@ -110,6 +110,8 @@ export function TestRunTab({
     deps: [isMobile, detailCollapsed, visible, filterVisible, selected.length],
   });
   const cp = useColumnPreferences('testRuns', TEST_RUN_COLUMNS);
+  const handleSortFieldChange = (field: string) => onSort({ sortField: field, sortOrder: sortOrder ?? 1 } as DataTableStateEvent);
+  const handleSortOrderChange = (order: 1 | -1) => onSort({ sortField, sortOrder: order } as DataTableStateEvent);
 
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -292,6 +294,13 @@ export function TestRunTab({
               isVisible={cp.isVisible}
               setVisible={cp.setVisible}
               reset={cp.reset}
+              canReorder={!isMobile}
+              reorderColumn={cp.reorderColumn}
+              sortableColumns={cp.sortableColumns}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSortFieldChange={handleSortFieldChange}
+              onSortOrderChange={handleSortOrderChange}
             />
           )}
           resizeable={false}

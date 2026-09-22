@@ -137,6 +137,8 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
             isVisible={cp.isVisible}
             setVisible={cp.setVisible}
             reset={cp.reset}
+            canReorder={!isMobile}
+            reorderColumn={cp.reorderColumn}
           />
         )}
         onVisibilityChange={setFilterVisible}
