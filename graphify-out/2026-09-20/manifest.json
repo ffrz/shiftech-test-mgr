@@ -20,7 +20,7 @@
     "semantic_hash": ""
   },
   "frontend/src/App.tsx": {
-    "mtime": 1786331267.8550262,
+    "mtime": 1789917257.1420255,
     "ast_hash": "0b52fcfc5ae0f68f693bc8b1f584dcbc",
     "semantic_hash": ""
   },
@@ -325,23 +325,23 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/IssueTab.tsx": {
-    "mtime": 1789915419.4247706,
-    "ast_hash": "d4d81f412550e240936def2c65fd3c78",
+    "mtime": 1789917006.9889865,
+    "ast_hash": "bb7ec4b8b6c7cc27c35c0fbfa52e6bbc",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/TestCaseTab.tsx": {
-    "mtime": 1789915412.5126586,
-    "ast_hash": "333d88fcb2fd50b7b29727b37ba5f903",
+    "mtime": 1789917066.9407396,
+    "ast_hash": "c56f7e28b0466b3fe129424356b34f0a",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/TestPlanTab.tsx": {
-    "mtime": 1789915405.9341269,
-    "ast_hash": "f939b7795ea2aa3e5bf772a20d6612aa",
+    "mtime": 1789917089.9204462,
+    "ast_hash": "aab0a9abe0b997163d0f2a3906ee6deb",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/TestRunTab.tsx": {
-    "mtime": 1789915399.2787995,
-    "ast_hash": "7cc622eca87410994ff95b704c826865",
+    "mtime": 1789917112.8472483,
+    "ast_hash": "cba0b50a206221cc4ef985b33ca8e1ab",
     "semantic_hash": ""
   },
   "frontend/src/pages/settings/SettingsPage.tsx": {
@@ -355,8 +355,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/test-cases/TestCasesPage.tsx": {
-    "mtime": 1789915392.926011,
-    "ast_hash": "2ff06428f7bb121f221ecc5a2c8fd16a",
+    "mtime": 1789917126.162192,
+    "ast_hash": "b57902116caa9006bed799b08837fa26",
     "semantic_hash": ""
   },
   "frontend/src/pages/test-plans/TestPlanDetailPage.tsx": {
@@ -365,8 +365,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/test-plans/TestPlansPage.tsx": {
-    "mtime": 1789915384.7051985,
-    "ast_hash": "de22f74f7cb5520055169dd565f23e41",
+    "mtime": 1789917186.6154423,
+    "ast_hash": "7f2839b5215fa085a7df0181d7e8e020",
     "semantic_hash": ""
   },
   "frontend/src/pages/test-runs/TestRunIssuesPage.tsx": {
@@ -1315,8 +1315,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/ActivityLogTab.tsx": {
-    "mtime": 1786449776.6330206,
-    "ast_hash": "40115652fbd7994f9961e642d00410bb",
+    "mtime": 1789917042.988027,
+    "ast_hash": "7d34d4750cc394ecc587e77c470ca0d5",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/DangerZoneTab.tsx": {
@@ -1360,13 +1360,13 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/test-plans/components/tabs/PlanTestCasesTab.tsx": {
-    "mtime": 1789915380.3250506,
-    "ast_hash": "048f64dc80e38d2e71c461c1e11c9fe0",
+    "mtime": 1789917152.1800232,
+    "ast_hash": "3e914a2c0ee8a000ac36e8432079a4cc",
     "semantic_hash": ""
   },
   "frontend/src/pages/test-plans/components/tabs/PlanTestRunsTab.tsx": {
-    "mtime": 1789915388.7577763,
-    "ast_hash": "a083d677c8a7515afcda8e7ad21edceb",
+    "mtime": 1789917170.4277997,
+    "ast_hash": "567c0deab7369e41dc149b2b697c4fb8",
     "semantic_hash": ""
   },
   "frontend/src/repositories/activityRepository.ts": {
@@ -4185,8 +4185,8 @@
     "semantic_hash": ""
   },
   "frontend/src/hooks/useResizableColumns.ts": {
-    "mtime": 1789914738.7080479,
-    "ast_hash": "6f00693a5567db200108781f12fee593",
+    "mtime": 1789916926.2428274,
+    "ast_hash": "adfc06510a2f300406ac8013cbb6121d",
     "semantic_hash": ""
   },
   "supabase/migrations/20260910000001_fix_project_roles_module_and_issue_permissions.sql": {
