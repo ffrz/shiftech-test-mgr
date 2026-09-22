@@ -660,6 +660,18 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
 .p-datatable.dt-resizable .p-datatable-thead>tr>th.dt-col-actions .p-column-resizer {
   display: none;
 }
+/* ColumnPickerButton sits in the actions header, which has no title/sort affordance of
+   its own — keep it visually flat (no pressed/focus ring) so it doesn't look like a
+   sortable header or an active toggle. */
+.p-datatable.dt-resizable .p-datatable-thead>tr>th.dt-col-actions .p-button.p-button-text {
+  box-shadow: none;
+}
+.p-datatable.dt-resizable .p-datatable-thead>tr>th.dt-col-actions .p-button.p-button-text:enabled:hover,
+.p-datatable.dt-resizable .p-datatable-thead>tr>th.dt-col-actions .p-button.p-button-text:enabled:active,
+.p-datatable.dt-resizable .p-datatable-thead>tr>th.dt-col-actions .p-button.p-button-text:focus {
+  background: transparent;
+  box-shadow: none;
+}
 
 /* ColumnPickerButton's overlay: a simple show/hide checkbox list, kept compact and
    narrow since it's a short utility list, not a form. */
