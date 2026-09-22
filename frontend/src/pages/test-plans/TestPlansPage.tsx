@@ -121,9 +121,10 @@ export function TestPlansPage() {
     </div>
   ), []);
 
-  const lastRunBody = useCallback((row: TestPlanRow) => (
-    <span className="text-sm white-space-nowrap">{formatLastRun(row.lastRun)}</span>
-  ), []);
+  const lastRunBody = useCallback((row: TestPlanRow) => {
+    const text = formatLastRun(row.lastRun);
+    return <span className="text-sm" title={text}>{text}</span>;
+  }, []);
 
   return (
     <div>
@@ -160,7 +161,7 @@ export function TestPlansPage() {
             ['code', <Column key="code" field="code" header="Code" sortable style={{ width: cp.colWidth('code', '7rem') }} className="dt-code-nowrap" headerClassName="dt-code-nowrap" />],
             ['name', <Column key="name" field="name" header="Name" sortable className="dt-title-fill" headerClassName="dt-title-fill" style={{ width: cp.colWidth('name') }} />],
             ['status', <Column key="status" field="status" header="Status" style={{ width: cp.colWidth('status', '9rem') }} body={(row: TestPlanRow) => <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />} />],
-            ['lastRun', <Column key="lastRun" columnKey="lastRun" header="Last Run" style={{ width: cp.colWidth('lastRun', '13rem') }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />],
+            ['lastRun', <Column key="lastRun" columnKey="lastRun" header="Last Run" style={{ width: cp.colWidth('lastRun', '13rem') }} body={lastRunBody} />],
             ['updatedAt', <Column key="updatedAt" field="updatedAt" header="Last Updated" style={{ width: cp.colWidth('updatedAt', '10rem') }} body={(row: TestPlanRow) => formatDate(row.updatedAt)} sortable />],
             ...(canEditContent ? [['actions', <Column
               key="actions"

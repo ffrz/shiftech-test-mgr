@@ -630,19 +630,6 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   display: block;
 }
 
-/* Opt a specific column out of the resizable-table ellipsis default when its content
-   must always render in full (e.g. "Last Run" — a compact one-line summary that should
-   push the column wider rather than truncate). */
-.p-datatable.dt-resizable .p-datatable-tbody>tr>td.dt-cell-no-ellipsis {
-  overflow: visible;
-  text-overflow: clip;
-  max-width: none;
-}
-.p-datatable.dt-resizable .p-datatable-tbody>tr>td.dt-cell-no-ellipsis>* {
-  overflow: visible;
-  text-overflow: clip;
-}
-
 /* Action column (row menu/buttons, see the `resizeable={false}` Column in every
    resizable table): must always render in full and never shrink, since it holds the
    only way to act on a row — exempt it from the ellipsis default above, and pin a

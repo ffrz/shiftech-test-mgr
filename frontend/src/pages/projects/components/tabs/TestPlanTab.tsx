@@ -218,9 +218,10 @@ export function TestPlanTab({
     </div>
   );
 
-  const lastRunBody = (row: TestPlanRow) => (
-    <span className="text-sm white-space-nowrap">{formatLastRun(row.lastRun ?? null)}</span>
-  );
+  const lastRunBody = (row: TestPlanRow) => {
+    const text = formatLastRun(row.lastRun ?? null);
+    return <span className="text-sm" title={text}>{text}</span>;
+  };
 
   return (
     <>
@@ -336,7 +337,7 @@ export function TestPlanTab({
             <Tag value={TEST_PLAN_STATUS_LABEL[row.status]} severity={TEST_PLAN_STATUS_SEVERITY[row.status]} />
           </div>;
         }} />],
-        ['lastRun', <Column key="lastRun" columnKey="lastRun" header="Last Run" hidden={isMobile} style={{ width: cp.colWidth('lastRun', '13rem'), whiteSpace: 'nowrap' }} bodyClassName="dt-cell-no-ellipsis" body={lastRunBody} />],
+        ['lastRun', <Column key="lastRun" columnKey="lastRun" header="Last Run" hidden={isMobile} style={{ width: cp.colWidth('lastRun', '13rem') }} body={lastRunBody} />],
         ['updatedAt', <Column key="updatedAt" field="updatedAt" header="Last Update" sortable hidden={isMobile} style={{ width: cp.colWidth('updatedAt', '11rem'), whiteSpace: 'nowrap' }} body={(row: TestPlanRow) => formatDateTime(row.updatedAt)} />],
         ['actions', <Column
           key="actions"
