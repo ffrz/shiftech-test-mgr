@@ -156,16 +156,6 @@ export function TestRunTab({
     <>
       <FilterToolbar
         visible={canRunTests}
-        secondaryActions={!isMobile && (
-          <ColumnPickerButton
-            reorderableColumns={cp.reorderableColumns}
-            order={cp.order}
-            isVisible={cp.isVisible}
-            setVisible={cp.setVisible}
-            setOrder={cp.setOrder}
-            reset={cp.reset}
-          />
-        )}
         primaryAction={<Button label="Create Test Run" icon="pi pi-plus" size="small" onClick={onCreate} />}
         onVisibilityChange={setFilterVisible}
       >
@@ -295,7 +285,15 @@ export function TestRunTab({
         ['actions', <Column
           key="actions"
           columnKey="actions"
-          header=""
+          header={(
+            <ColumnPickerButton
+              reorderableColumns={cp.reorderableColumns}
+              order={cp.order}
+              isVisible={cp.isVisible}
+              setVisible={cp.setVisible}
+              reset={cp.reset}
+            />
+          )}
           resizeable={false}
           className="dt-col-actions"
           headerClassName="dt-col-actions"

@@ -132,16 +132,6 @@ export function TestPlansPage() {
         title="Test Plans"
         actions={
           <div className="flex align-items-center gap-2">
-            {!isMobile && (
-              <ColumnPickerButton
-                reorderableColumns={cp.reorderableColumns}
-                order={cp.order}
-                isVisible={cp.isVisible}
-                setVisible={cp.setVisible}
-                setOrder={cp.setOrder}
-                reset={cp.reset}
-              />
-            )}
             <Dropdown
               value={projectId}
               options={projects.map((p) => ({ label: p.name, value: p.id }))}
@@ -175,7 +165,15 @@ export function TestPlansPage() {
             ...(canEditContent ? [['actions', <Column
               key="actions"
               columnKey="actions"
-              header=""
+              header={(
+                <ColumnPickerButton
+                  reorderableColumns={cp.reorderableColumns}
+                  order={cp.order}
+                  isVisible={cp.isVisible}
+                  setVisible={cp.setVisible}
+                  reset={cp.reset}
+                />
+              )}
               resizeable={false}
               className="dt-col-actions"
               headerClassName="dt-col-actions"

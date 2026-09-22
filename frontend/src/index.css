@@ -661,8 +661,8 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   display: none;
 }
 
-/* ColumnPickerButton's overlay: checkbox list with a drag handle per row for reorder.
-   Kept compact and narrow since it's a short utility list, not a form. */
+/* ColumnPickerButton's overlay: a simple show/hide checkbox list, kept compact and
+   narrow since it's a short utility list, not a form. */
 .column-picker-panel {
   width: 16rem;
 }
@@ -680,16 +680,6 @@ html.dark .p-button.p-button-secondary.p-button-outlined:not(:disabled):active {
   padding: 0.35rem 0.25rem;
   border-radius: 4px;
   cursor: default;
-}
-.column-picker-item-dragover {
-  background: var(--surface-100);
-  outline: 1px dashed var(--surface-300);
-}
-.column-picker-handle {
-  cursor: grab;
-  color: var(--text-color-secondary);
-  font-size: 0.85rem;
-  flex-shrink: 0;
 }
 .column-picker-label {
   cursor: pointer;

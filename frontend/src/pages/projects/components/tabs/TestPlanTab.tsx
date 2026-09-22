@@ -227,16 +227,6 @@ export function TestPlanTab({
       <Toast ref={undoToast} position="bottom-center" />
       <FilterToolbar
         visible={canEditContent}
-        secondaryActions={!isMobile && (
-          <ColumnPickerButton
-            reorderableColumns={cp.reorderableColumns}
-            order={cp.order}
-            isVisible={cp.isVisible}
-            setVisible={cp.setVisible}
-            setOrder={cp.setOrder}
-            reset={cp.reset}
-          />
-        )}
         primaryAction={<Button label="New Test Plan" icon="pi pi-plus" size="small" onClick={onCreate} />}
         onVisibilityChange={setFilterVisible}
       >
@@ -351,7 +341,15 @@ export function TestPlanTab({
         ['actions', <Column
           key="actions"
           columnKey="actions"
-          header=""
+          header={(
+            <ColumnPickerButton
+              reorderableColumns={cp.reorderableColumns}
+              order={cp.order}
+              isVisible={cp.isVisible}
+              setVisible={cp.setVisible}
+              reset={cp.reset}
+            />
+          )}
           resizeable={false}
           className="dt-col-actions"
           headerClassName="dt-col-actions"

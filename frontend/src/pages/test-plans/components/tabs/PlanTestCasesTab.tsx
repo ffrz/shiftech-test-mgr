@@ -147,16 +147,6 @@ export function PlanTestCasesTab({
         visible={canEditContent}
         filterVisible={filterVisible}
         onToggleFilterVisible={onToggleFilterVisible}
-        secondaryActions={!isMobile && (
-          <ColumnPickerButton
-            reorderableColumns={cp.reorderableColumns}
-            order={cp.order}
-            isVisible={cp.isVisible}
-            setVisible={cp.setVisible}
-            setOrder={cp.setOrder}
-            reset={cp.reset}
-          />
-        )}
         primaryAction={<Button label="Add Test Case" icon="pi pi-plus" size="small" onClick={onAddCase} />}
       >
         <div className="col-12 md:col-2 p-1">
@@ -305,7 +295,15 @@ export function PlanTestCasesTab({
         ...(canEditContent ? [['actions', <Column
           key="actions"
           columnKey="actions"
-          header=""
+          header={!isMobile && (
+            <ColumnPickerButton
+              reorderableColumns={cp.reorderableColumns}
+              order={cp.order}
+              isVisible={cp.isVisible}
+              setVisible={cp.setVisible}
+              reset={cp.reset}
+            />
+          )}
           resizeable={false}
           className="dt-col-actions"
           headerClassName="dt-col-actions"

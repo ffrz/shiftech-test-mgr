@@ -88,16 +88,6 @@ export function TestCasesPage() {
         title="Test Cases"
         actions={
           <div className="flex align-items-center gap-2">
-            {!isMobile && (
-              <ColumnPickerButton
-                reorderableColumns={cp.reorderableColumns}
-                order={cp.order}
-                isVisible={cp.isVisible}
-                setVisible={cp.setVisible}
-                setOrder={cp.setOrder}
-                reset={cp.reset}
-              />
-            )}
             <Dropdown
               value={projectId}
               options={projects.map((p) => ({ label: p.name, value: p.id }))}
@@ -140,7 +130,24 @@ export function TestCasesPage() {
           body={(row: TestCaseWithDetails) => <Tag value={TEST_CASE_STATUS_LABEL[row.status]} severity={TEST_CASE_STATUS_SEVERITY[row.status]} />}
           sortable
         />],
-        ['actions', <Column key="actions" columnKey="actions" header="" resizeable={false} className="dt-col-actions" headerClassName="dt-col-actions" style={{ width: '3.5rem', minWidth: '3.5rem' }} body={actionBodyTemplate} />],
+        ['actions', <Column
+          key="actions"
+          columnKey="actions"
+          header={(
+            <ColumnPickerButton
+              reorderableColumns={cp.reorderableColumns}
+              order={cp.order}
+              isVisible={cp.isVisible}
+              setVisible={cp.setVisible}
+              reset={cp.reset}
+            />
+          )}
+          resizeable={false}
+          className="dt-col-actions"
+          headerClassName="dt-col-actions"
+          style={{ width: '3.5rem', minWidth: '3.5rem' }}
+          body={actionBodyTemplate}
+        />],
         ])}
       </DataTable>
       </div>

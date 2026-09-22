@@ -4,9 +4,9 @@ import type { ColumnProps } from 'primereact/column';
 
 export type ColumnDef = {
   /** Stable identity for this column — the Column's `field` or `columnKey`. Must match
-   * exactly what's passed to that <Column>, since resize/order/visibility are all keyed
-   * on this rather than array position (position shifts once columns can be hidden or
-   * reordered, which would silently corrupt a position-keyed record). */
+   * exactly what's passed to that <Column>, since resize/visibility are keyed on this
+   * rather than array position (position shifts once columns can be hidden, which would
+   * silently corrupt a position-keyed record). */
   key: string;
   /** Label shown in the column picker checkbox list. */
   label: string;
@@ -14,28 +14,25 @@ export type ColumnDef = {
    * "Title"/"Name" column, styled width:100% via the dt-title-fill class). */
   fallbackWidth?: string;
   /** Locked columns (selection checkbox, actions) are always visible, excluded from the
-   * picker, and pinned to their original position — never reordered or hidden. */
+   * picker, and pinned to their original position — never hidden. */
   locked?: boolean;
 };
 
 type Prefs = {
   /** Every column's on/off state, key -> visible. Absent key defaults to visible. */
   visible: Record<string, boolean>;
-  /** Left-to-right order of NON-locked column keys the user has customized. Locked
-   * columns stay wherever `columns` places them and are never part of this array. */
-  order: string[];
   /** Saved pixel widths, key -> width. */
   widths: Record<string, number>;
 };
 
-const EMPTY_PREFS: Prefs = { visible: {}, order: [], widths: {} };
+const EMPTY_PREFS: Prefs = { visible: {}, widths: {} };
 
 function load(key: string): Prefs {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return EMPTY_PREFS;
     const parsed = JSON.parse(raw);
-    return { visible: parsed.visible ?? {}, order: parsed.order ?? [], widths: parsed.widths ?? {} };
+    return { visible: parsed.visible ?? {}, widths: parsed.widths ?? {} };
   } catch {
     return EMPTY_PREFS;
   }
@@ -49,11 +46,11 @@ function save(key: string, prefs: Prefs) {
   }
 }
 
-// Single source of truth for a resizable table's column widths, visibility, and order —
-// unifies what would otherwise be three separate concerns, because they interact:
-// hiding/reordering columns changes which key a saved width belongs to, so all three have
-// to be keyed and persisted together to stay consistent, and a "reset to default" needs
-// to touch all three at once too.
+// Single source of truth for a resizable table's column widths and visibility — unifies
+// what would otherwise be two separate concerns, because they interact: hiding a column
+// changes which columns need a width restored, so both have to be keyed and persisted
+// together to stay consistent, and a "reset to default" needs to touch both at once too.
+// Column order is fixed by the ColumnDef[] declaration order — not user-customizable.
 //
 // Column width restoration on reload needs every visible column's width set explicitly
 // (not just the one a user last resized): PrimeReact's DataTable renders at width:100% of
@@ -92,19 +89,7 @@ export function useColumnPreferences(storageKey: string, columns: ColumnDef[]) {
   }, [key]);
 
   const reorderable = useMemo(() => columns.filter((c) => !c.locked), [columns]);
-
-  // The columns in their effective order: user-customized order first (only keys that
-  // still exist in `columns`, so a code change dropping/renaming a column can't leave a
-  // stale saved order pointing at nothing), then any newly-added columns appended at the
-  // end in their declared order — a column added to the code later doesn't get lost
-  // before/after existing customized order, it just shows up at the end until the user
-  // moves it.
-  const orderedKeys = useMemo(() => {
-    const known = new Set(reorderable.map((c) => c.key));
-    const fromSaved = prefs.order.filter((k) => known.has(k));
-    const missing = reorderable.filter((c) => !fromSaved.includes(c.key)).map((c) => c.key);
-    return [...fromSaved, ...missing];
-  }, [prefs.order, reorderable]);
+  const orderedKeys = useMemo(() => reorderable.map((c) => c.key), [reorderable]);
 
   const isVisible = useCallback(
     (colKey: string) => {
@@ -124,30 +109,6 @@ export function useColumnPreferences(storageKey: string, columns: ColumnDef[]) {
       });
     },
     [key],
-  );
-
-  const setOrder = useCallback(
-    (newOrder: string[]) => {
-      setPrefs((prev) => {
-        const next = { ...prev, order: newOrder };
-        save(key, next);
-        return next;
-      });
-    },
-    [key],
-  );
-
-  const moveColumn = useCallback(
-    (colKey: string, direction: 'up' | 'down') => {
-      const idx = orderedKeys.indexOf(colKey);
-      if (idx === -1) return;
-      const swapWith = direction === 'up' ? idx - 1 : idx + 1;
-      if (swapWith < 0 || swapWith >= orderedKeys.length) return;
-      const next = [...orderedKeys];
-      [next[idx], next[swapWith]] = [next[swapWith], next[idx]];
-      setOrder(next);
-    },
-    [orderedKeys, setOrder],
   );
 
   const reset = useCallback(() => {
@@ -259,8 +220,6 @@ export function useColumnPreferences(storageKey: string, columns: ColumnDef[]) {
     isVisible,
     setVisible,
     order: orderedKeys,
-    setOrder,
-    moveColumn,
     reset,
     colWidth,
     onColumnResizeEnd,

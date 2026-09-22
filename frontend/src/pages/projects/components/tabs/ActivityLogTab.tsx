@@ -136,7 +136,6 @@ export function ActivityLogTab({ projectId, isMobile, visible, detailCollapsed }
             order={cp.order}
             isVisible={cp.isVisible}
             setVisible={cp.setVisible}
-            setOrder={cp.setOrder}
             reset={cp.reset}
           />
         )}
