@@ -1,25 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Chip } from 'primereact/chip';
-import { MultiSelect } from 'primereact/multiselect';
-import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { CharacterCount } from '../../components/ui/CharacterCount';
-import { Dropdown } from 'primereact/dropdown';
-import { FloatLabel } from 'primereact/floatlabel';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
 import { TestCaseDetailPageSkeleton } from './TestCaseDetailPageSkeleton';
+import { TestCaseDialog } from '../projects/components/dialogs/TestCaseDialog';
+import { ModuleDialog } from '../projects/components/dialogs/ModuleDialog';
+import { TagDialog } from '../projects/components/dialogs/TagDialog';
+import { TestRoleDialog } from '../projects/components/dialogs/TestRoleDialog';
 import { testCaseService } from '../../services/testCaseService';
 import { moduleService } from '../../services/moduleService';
 import { tagService } from '../../services/tagService';
+import { testRoleService } from '../../services/testRoleService';
 import { projectService } from '../../services/projectService';
 import { useProjectRole } from '../../hooks/useProjectRole';
 import { useProjectBreadcrumbItems } from '../../hooks/useProjectBreadcrumbItems';
@@ -27,7 +26,7 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { profileRepository } from '../../repositories/profileRepository';
 import { queryKeys } from '../../hooks/queryKeys';
-import type { TestCasePriority, TestCaseWithDetails } from '../../types/domain';
+import type { TestCase, TestCasePriority, TestCaseWithDetails } from '../../types/domain';
 import { RelativeTime } from '../../components/ui/RelativeTime';
 import { toastHelper } from '../../helpers/toast';
 import {
@@ -36,10 +35,6 @@ import {
   TEST_CASE_STATUS_LABEL,
   TEST_CASE_STATUS_SEVERITY,
 } from '../../helpers/statusLabels';
-
-const PRIORITY_OPTIONS: { label: string; value: TestCasePriority }[] = (
-  ['low', 'medium', 'high', 'critical'] as const
-).map((v) => ({ label: TEST_CASE_PRIORITY_LABEL[v], value: v }));
 
 interface TestCaseDetail extends TestCaseWithDetails {
   project: { id: string; name: string };
@@ -131,12 +126,17 @@ export function TestCaseDetailPage() {
     toastHelper.success('Link removed');
   }
 
+  const { data: testRoles = [] } = useQuery({
+    queryKey: queryKeys.testRoles(testCase?.project.id ?? ''),
+    queryFn: () => testRoleService.listByProject(testCase!.project.id),
+    enabled: !!testCase?.project.id,
+  });
+
   // --- Module quick-add (from Edit dialog) ---
   const [moduleDialogOpen, setModuleDialogOpen] = useState(false);
   const [moduleCode, setModuleCode] = useState('');
   const [moduleName, setModuleName] = useState('');
   const [moduleError, setModuleError] = useState<string | null>(null);
-  const moduleNameRef = useRef<HTMLInputElement>(null);
 
   function openCreateModuleDialog() {
     setModuleCode('');
@@ -163,7 +163,6 @@ export function TestCaseDetailPage() {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [tagError, setTagError] = useState<string | null>(null);
-  const tagNameRef = useRef<HTMLInputElement>(null);
 
   function openCreateTagDialog() {
     setNewTagName('');
@@ -185,41 +184,69 @@ export function TestCaseDetailPage() {
     }
   }
 
-  // --- Edit dialog ---
+  // --- Test Role quick-add (from Edit dialog) ---
+  const [testRoleDialogOpen, setTestRoleDialogOpen] = useState(false);
+  const [testRoleName, setTestRoleName] = useState('');
+  const [testRoleError, setTestRoleError] = useState<string | null>(null);
+
+  function openCreateTestRoleDialog() {
+    setTestRoleName('');
+    setTestRoleError(null);
+    setTestRoleDialogOpen(true);
+  }
+
+  async function handleSaveTestRole() {
+    if (!testCase) return;
+    setTestRoleError(null);
+    try {
+      const created = await testRoleService.create({ projectId: testCase.project.id, name: testRoleName });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.testRoles(testCase.project.id) });
+      setEditTargetRoleId(created.id);
+      setTestRoleDialogOpen(false);
+      toastHelper.success('Role created');
+    } catch (err) {
+      setTestRoleError(err instanceof Error ? err.message : 'Failed to save role');
+    }
+  }
+
+  // --- Edit dialog state ---
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editCode, setEditCode] = useState('');
   const [editModuleId, setEditModuleId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editObjective, setEditObjective] = useState('');
   const [editPreconditions, setEditPreconditions] = useState('');
+  const [editStepType, setEditStepType] = useState<TestCase['stepType']>('simple');
   const [editSteps, setEditSteps] = useState('');
   const [editExpectedResult, setEditExpectedResult] = useState('');
+  const [editDetailedSteps, setEditDetailedSteps] = useState<{ action: string; expectedResult: string }[]>([]);
   const [editPriority, setEditPriority] = useState<TestCasePriority>('medium');
+  const [editTargetRoleId, setEditTargetRoleId] = useState<string | null>(null);
   const [editNotes, setEditNotes] = useState('');
   const [editTags, setEditTags] = useState<string[]>([]);
   const [editError, setEditError] = useState<string | null>(null);
-  const editTitleRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (editError && editTitleRef.current) {
-      editTitleRef.current.focus();
-      editTitleRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    }
-  }, [editError]);
-
-  function openEditDialog() {
+  async function openEditDialog() {
     if (!testCase) return;
     setEditCode(testCase.code);
     setEditModuleId(testCase.moduleId);
     setEditTitle(testCase.title);
     setEditObjective(testCase.objective ?? '');
     setEditPreconditions(testCase.preconditions ?? '');
+    setEditStepType(testCase.stepType);
     setEditSteps(testCase.steps);
     setEditExpectedResult(testCase.expectedResult);
     setEditPriority(testCase.priority);
+    setEditTargetRoleId(testCase.targetRoleId);
     setEditNotes(testCase.notes ?? '');
     setEditTags(testCase.tags.map((t) => t.name));
     setEditError(null);
+    if (testCase.stepType === 'detailed') {
+      const steps = detailedSteps.length > 0 ? detailedSteps : await testCaseService.listSteps(testCase.id);
+      setEditDetailedSteps(steps.map((s) => ({ action: s.action, expectedResult: s.expectedResult ?? '' })));
+    } else {
+      setEditDetailedSteps([]);
+    }
     setEditDialogOpen(true);
   }
 
@@ -239,14 +266,17 @@ export function TestCaseDetailPage() {
           steps: editSteps,
           expectedResult: editExpectedResult,
           priority: editPriority,
+          targetRoleId: editTargetRoleId,
           notes: editNotes.trim() || null,
+          stepType: editStepType,
         },
         editTags,
-        undefined,
+        editStepType === 'detailed' ? editDetailedSteps : undefined,
         user?.id ?? null,
       );
       setEditDialogOpen(false);
       await reload();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.testCaseSteps(testCase.id) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.testCasesWithDetails(testCase.project.id) });
       toastHelper.success('Test case updated');
     } catch (err) {
@@ -505,181 +535,78 @@ export function TestCaseDetailPage() {
         </Card>
       </div>
 
-      {/* --- Edit Dialog --- */}
-      <Dialog header="Edit Test Case" visible={editDialogOpen} onHide={() => setEditDialogOpen(false)} style={{ width: '40rem' }}>
-        <div className="flex flex-column gap-2">
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <InputText id="edit-case-code" value={editCode} onChange={(e) => setEditCode(e.target.value)} className="w-14rem" />
-              <label htmlFor="edit-case-code">Code</label>
-            </FloatLabel>
-          </div>
+      {/* --- Edit Test Case Dialog (Shared TestCaseDialog) --- */}
+      <TestCaseDialog
+        visible={editDialogOpen}
+        editing={true}
+        code={editCode}
+        onCodeChange={setEditCode}
+        moduleId={editModuleId}
+        onModuleIdChange={setEditModuleId}
+        moduleOptions={moduleOptions}
+        onQuickAddModule={openCreateModuleDialog}
+        priority={editPriority}
+        onPriorityChange={setEditPriority}
+        targetRoleId={editTargetRoleId}
+        onTargetRoleIdChange={setEditTargetRoleId}
+        testRoleOptions={testRoles.map((r) => ({ label: r.name, value: r.id }))}
+        onQuickAddTestRole={openCreateTestRoleDialog}
+        title={editTitle}
+        onTitleChange={setEditTitle}
+        objective={editObjective}
+        onObjectiveChange={setEditObjective}
+        preconditions={editPreconditions}
+        onPreconditionsChange={setEditPreconditions}
+        stepType={editStepType}
+        onStepTypeChange={setEditStepType}
+        steps={editSteps}
+        onStepsChange={setEditSteps}
+        expectedResult={editExpectedResult}
+        onExpectedResultChange={setEditExpectedResult}
+        detailedSteps={editDetailedSteps}
+        onDetailedStepsChange={setEditDetailedSteps}
+        tags={editTags}
+        onTagsChange={setEditTags}
+        tagOptions={tags.map((t) => ({ label: t.name, value: t.name }))}
+        onQuickAddTag={openCreateTagDialog}
+        notes={editNotes}
+        onNotesChange={setEditNotes}
+        error={editError}
+        onHide={() => setEditDialogOpen(false)}
+        onSave={handleSaveEdit}
+      />
 
-          <div className="grid">
-            <div className="col-12 md:col-6 flex flex-column">
-              <div className="flex align-items-center gap-1">
-                <FloatLabel className="ifta-field flex-grow-1">
-                  <Dropdown
-                    id="edit-case-module"
-                    value={editModuleId}
-                    options={moduleOptions}
-                    onChange={(e) => setEditModuleId(e.value)}
-                    showClear
-                    className="w-full"
-                    virtualScrollerOptions={{ itemSize: 40 }}
-                  />
-                  <label htmlFor="edit-case-module">Module</label>
-                </FloatLabel>
-                <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="New Module" onClick={openCreateModuleDialog} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
-              </div>
-            </div>
-            <div className="col-12 md:col-6 flex flex-column">
-              <FloatLabel className="ifta-field">
-                <Dropdown
-                  id="edit-case-priority"
-                  value={editPriority}
-                  options={PRIORITY_OPTIONS}
-                  onChange={(e) => setEditPriority(e.value)}
-                  className="w-full"
-                />
-                <label htmlFor="edit-case-priority">Priority</label>
-              </FloatLabel>
-            </div>
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <FloatLabel className="ifta-field">
-              <InputText id="edit-case-title" ref={editTitleRef} value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className={editError ? 'p-invalid w-full' : 'w-full'} autoFocus />
-              <label htmlFor="edit-case-title" className={editError ? 'p-error' : ''}>Title</label>
-            </FloatLabel>
-          </div>
-
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <InputText id="edit-case-objective" value={editObjective} onChange={(e) => setEditObjective(e.target.value)} className="w-full" />
-              <label htmlFor="edit-case-objective">Objective (optional)</label>
-            </FloatLabel>
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <FloatLabel className="ifta-field">
-              <InputTextarea id="edit-case-preconditions" value={editPreconditions} onChange={(e) => setEditPreconditions(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
-              <label htmlFor="edit-case-preconditions">Preconditions</label>
-            </FloatLabel>
-            <CharacterCount value={editPreconditions} maxLength={1000} />
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <FloatLabel className="ifta-field">
-              <InputTextarea id="edit-case-steps" value={editSteps} onChange={(e) => setEditSteps(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
-              <label htmlFor="edit-case-steps">Test Steps</label>
-            </FloatLabel>
-            <CharacterCount value={editSteps} maxLength={1000} />
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <FloatLabel className="ifta-field">
-              <InputTextarea id="edit-case-expected" value={editExpectedResult} onChange={(e) => setEditExpectedResult(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
-              <label htmlFor="edit-case-expected">Expected Result</label>
-            </FloatLabel>
-            <CharacterCount value={editExpectedResult} maxLength={1000} />
-          </div>
-
-          <div className="flex flex-column">
-            <div className="flex align-items-center gap-1">
-              <FloatLabel className="ifta-field flex-grow-1">
-                <MultiSelect
-                  id="edit-case-tags"
-                  value={editTags}
-                  options={tags.map((t) => ({ label: t.name, value: t.name }))}
-                  onChange={(e) => setEditTags(e.value ?? [])}
-                  display="chip"
-                  filter
-                  className="w-full"
-                  virtualScrollerOptions={{ itemSize: 40 }}
-                />
-                <label htmlFor="edit-case-tags">Tags</label>
-              </FloatLabel>
-              <Button icon="pi pi-plus" type="button" text rounded size="small" aria-label="New Tag" onClick={openCreateTagDialog} style={{ width: '2rem', height: '2rem', flexShrink: 0 }} />
-            </div>
-          </div>
-
-          <div className="flex flex-column gap-1">
-            <FloatLabel className="ifta-field">
-              <InputTextarea id="edit-case-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={1} autoResize maxLength={1000} className="w-full" />
-              <label htmlFor="edit-case-notes">Notes (optional)</label>
-            </FloatLabel>
-            <CharacterCount value={editNotes} maxLength={1000} />
-          </div>
-
-          {editError && <small className="p-error">{editError}</small>}
-          <Button label="Save" size="small" onClick={handleSaveEdit} />
-        </div>
-      </Dialog>
-
-      {/* --- Module Quick-Add Dialog --- */}
-      <Dialog
-        header="New Module"
+      <ModuleDialog
         visible={moduleDialogOpen}
+        editing={false}
+        code={moduleCode}
+        onCodeChange={setModuleCode}
+        name={moduleName}
+        onNameChange={setModuleName}
+        error={moduleError}
         onHide={() => setModuleDialogOpen(false)}
-        onShow={() => moduleNameRef.current?.focus()}
-        style={{ width: '25rem' }}
-      >
-        <div className="flex flex-column gap-2">
-          {moduleError && <small className="p-error">{moduleError}</small>}
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <InputText id="module-code" value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} className="w-full" />
-              <label htmlFor="module-code">Code (automatic if empty)</label>
-            </FloatLabel>
-          </div>
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <InputText
-                id="module-name"
-                ref={moduleNameRef}
-                value={moduleName}
-                onChange={(e) => setModuleName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveModule();
-                }}
-                className="w-full"
-              />
-              <label htmlFor="module-name">Module Name (ex. Authentication, Dashboard)</label>
-            </FloatLabel>
-          </div>
-          <Button label="Save" size="small" onClick={handleSaveModule} />
-        </div>
-      </Dialog>
+        onSave={handleSaveModule}
+      />
 
-      {/* --- Tag Quick-Add Dialog --- */}
-      <Dialog
-        header="New Tag"
+      <TagDialog
         visible={tagDialogOpen}
+        editing={false}
+        name={newTagName}
+        onNameChange={setNewTagName}
+        error={tagError}
         onHide={() => setTagDialogOpen(false)}
-        onShow={() => tagNameRef.current?.focus()}
-        style={{ width: '25rem' }}
-      >
-        <div className="flex flex-column gap-2">
-          {tagError && <small className="p-error">{tagError}</small>}
-          <div className="flex flex-column">
-            <FloatLabel className="ifta-field">
-              <InputText
-                id="tag-name"
-                ref={tagNameRef}
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveTag();
-                }}
-                className="w-full"
-              />
-              <label htmlFor="tag-name">Tag Name (ex. Regression, Smoke, UI)</label>
-            </FloatLabel>
-          </div>
-          <Button label="Save" size="small" onClick={handleSaveTag} />
-        </div>
-      </Dialog>
+        onSave={handleSaveTag}
+      />
+
+      <TestRoleDialog
+        visible={testRoleDialogOpen}
+        editing={false}
+        name={testRoleName}
+        onNameChange={setTestRoleName}
+        error={testRoleError}
+        onHide={() => setTestRoleDialogOpen(false)}
+        onSave={handleSaveTestRole}
+      />
     </div>
   );
 }
