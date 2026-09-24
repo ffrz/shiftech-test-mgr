@@ -17,7 +17,7 @@ type EnrichedProject = Project & {
 
 export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate();
-  const { isAdmin } = useAuthContext();
+  const { isAdmin, user } = useAuthContext();
   const { projects } = useProjects({ status: 'active', sortField: 'name', sortDirection: 'asc' });
   const { isPinned, togglePin } = useProjectPins();
 
@@ -70,15 +70,20 @@ export function AppMenu({ onNavigate }: { onNavigate?: () => void }) {
 
         {visibleProjects.map((project) => (
           <li key={project.id} className="layout-submenu-item  top-project-items">
+            {(() => {
+              const ownerUsername = project.ownerId === user?.id ? null : (project as EnrichedProject)._ownerUsername;
+              return (
             <NavLink
               to={`/projects/${project.id}`}
               onClick={onNavigate}
               className={({ isActive }) => `layout-menuitem-link layout-submenu-link ${isActive ? 'active-route' : ''}`}
             >
-              <span className="layout-menuitem-text" title={(project as EnrichedProject)._ownerUsername ? `${(project as EnrichedProject)._ownerUsername} / ${project.name}` : project.name}>
-                <OwnerProjectLabel username={(project as EnrichedProject)._ownerUsername} name={project.name} maxOwnerLength={10} />
+              <span className="layout-menuitem-text" title={ownerUsername ? `${ownerUsername} / ${project.name}` : project.name}>
+                <OwnerProjectLabel username={ownerUsername} name={project.name} maxOwnerLength={10} />
               </span>
             </NavLink>
+              );
+            })()}
             <button
               type="button"
               className={`layout-submenu-pin ${isPinned(project.id) ? 'pinned' : ''}`}

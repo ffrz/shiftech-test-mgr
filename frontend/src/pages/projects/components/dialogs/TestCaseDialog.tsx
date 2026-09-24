@@ -108,6 +108,14 @@ export function TestCaseDialog({
     }
   }, [error]);
 
+  function moveDetailedStep(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= detailedSteps.length) return;
+    const next = [...detailedSteps];
+    [next[index], next[target]] = [next[target], next[index]];
+    onDetailedStepsChange(next);
+  }
+
   return (
     <Dialog header={editing ? 'Edit Test Case' : 'New Test Case'} visible={visible} onHide={onHide} style={{ width: '40rem' }} className="dialog-fullscreen-mobile">
       <div className="flex flex-column gap-2">
@@ -262,7 +270,11 @@ export function TestCaseDialog({
                     }
                   />
                 </div>
-                <Button icon="pi pi-times" text size="small" rounded className="btn-xs" onClick={() => onDetailedStepsChange(detailedSteps.filter((_, idx) => idx !== i))} />
+                <div className="flex flex-column gap-1">
+                  <Button icon="pi pi-chevron-up" text size="small" rounded className="btn-xs" aria-label={`Move step ${i + 1} up`} tooltip="Move up" tooltipOptions={{ position: 'left' }} disabled={i === 0} onClick={() => moveDetailedStep(i, -1)} />
+                  <Button icon="pi pi-chevron-down" text size="small" rounded className="btn-xs" aria-label={`Move step ${i + 1} down`} tooltip="Move down" tooltipOptions={{ position: 'left' }} disabled={i === detailedSteps.length - 1} onClick={() => moveDetailedStep(i, 1)} />
+                  <Button icon="pi pi-times" text size="small" rounded className="btn-xs" aria-label={`Remove step ${i + 1}`} tooltip="Remove" tooltipOptions={{ position: 'left' }} onClick={() => onDetailedStepsChange(detailedSteps.filter((_, idx) => idx !== i))} />
+                </div>
               </div>
             ))}
             <Button
