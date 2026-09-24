@@ -6,6 +6,14 @@ import SearchInput from '../../../../components/ui/SearchInput';
 import { BulkActionsBar } from '../../../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePaginator';
 import type { TestRole } from '../../../../types/domain';
+import { useColumnPreferences, type ColumnDef } from '../../../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../../../components/ui/ColumnPickerButton';
+
+const TEST_ROLE_COLUMNS: ColumnDef[] = [
+  { key: 'sel', label: 'Select', locked: true },
+  { key: 'name', label: 'Name', locked: true, sortField: 'name' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 type TestRolesTabProps = {
   testRoles: TestRole[];
@@ -38,6 +46,9 @@ export function TestRolesTab({
   onDelete,
   onBulkDelete,
 }: TestRolesTabProps) {
+  const cp = useColumnPreferences('projectTestRoles', TEST_ROLE_COLUMNS);
+  const handleSortFieldChange = (field: string) => onSort({ sortField: field, sortOrder } as DataTableSortEvent);
+  const handleSortOrderChange = (order: 1 | -1) => onSort({ sortField, sortOrder: order } as DataTableSortEvent);
   const mobileBody = (row: TestRole) => (
     <div className="flex flex-column gap-2 py-1">
       <div className="font-medium">{row.name}</div>
@@ -73,14 +84,13 @@ export function TestRolesTab({
         dataKey="id"
         selectionMode="checkbox"
       >
-        {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-        {isMobile
-          ? <Column header="Nama" body={mobileBody} />
-          : <Column field="name" header="Nama" sortable className="dt-title-fill" headerClassName="dt-title-fill" />
-        }
-        <Column
-          header=""
+        {cp.arrange([
+        ['sel', <Column key="sel" selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />],
+        ['name', <Column key="name" field="name" header="Name" sortable={!isMobile} className="dt-title-fill" headerClassName="dt-title-fill" body={isMobile ? mobileBody : undefined} />],
+        ['actions', <Column
+          key="actions"
           style={{ width: '3.5rem' }}
+          header={<ColumnPickerButton reorderableColumns={cp.reorderableColumns} order={cp.order} isVisible={cp.isVisible} setVisible={cp.setVisible} reset={cp.reset} canReorder={!isMobile} reorderColumn={cp.reorderColumn} sortableColumns={cp.sortableColumns} sortField={sortField} sortOrder={sortOrder} onSortFieldChange={handleSortFieldChange} onSortOrderChange={handleSortOrderChange} />}
           body={(row: TestRole) => (
             <RowActionsMenu
               items={[
@@ -89,7 +99,8 @@ export function TestRolesTab({
               ]}
             />
           )}
-        />
+        />],
+        ])}
       </DataTable>
     </>
   );

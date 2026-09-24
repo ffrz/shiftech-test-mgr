@@ -1,5 +1,6 @@
 import { Button } from 'primereact/button';
-import { DataTable } from 'primereact/datatable';
+import { useState } from 'react';
+import { DataTable, type DataTableSortEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
 import { Tag } from 'primereact/tag';
@@ -10,6 +11,17 @@ import { dataTablePaginatorProps } from '../../../../components/ui/dataTablePagi
 import { UserHoverCard } from '../../../../components/ui/UserHoverCard';
 import type { ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus } from '../../../../types/domain';
 import { PROJECT_MEMBER_ROLE_LABEL, PROJECT_MEMBER_ROLE_SEVERITY, PROJECT_MEMBER_STATUS_LABEL, PROJECT_MEMBER_STATUS_SEVERITY } from '../../../../helpers/statusLabels';
+import { useColumnPreferences, type ColumnDef } from '../../../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../../../components/ui/ColumnPickerButton';
+
+const MEMBER_COLUMNS: ColumnDef[] = [
+  { key: 'sel', label: 'Select', locked: true },
+  { key: 'username', label: 'Username', locked: true, sortField: 'profile.username' },
+  { key: 'name', label: 'Name', locked: true, sortField: 'profile.displayName' },
+  { key: 'status', label: 'Status', fallbackWidth: '9rem', sortField: 'status' },
+  { key: 'role', label: 'Role', fallbackWidth: '10rem', sortField: 'role' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 const MEMBER_ROLE_OPTIONS: { label: string; value: ProjectMemberRole }[] = [
   { label: PROJECT_MEMBER_ROLE_LABEL.member, value: 'member' },
@@ -59,6 +71,12 @@ export function MembersTab({
   onRemove,
   onBulkRemove,
 }: MembersTabProps) {
+  const cp = useColumnPreferences('projectMembers', MEMBER_COLUMNS);
+  const [sortField, setSortField] = useState('name');
+  const [sortOrder, setSortOrder] = useState<1 | -1>(1);
+  const onTableSort = (e: DataTableSortEvent) => { setSortField(String(e.sortField ?? 'name')); setSortOrder((e.sortOrder as 1 | -1) ?? 1); };
+  const handleSortFieldChange = (field: string) => onTableSort({ sortField: field, sortOrder } as DataTableSortEvent);
+  const handleSortOrderChange = (order: 1 | -1) => onTableSort({ sortField, sortOrder: order } as DataTableSortEvent);
   function isOwner(userId: string) { return userId === ownerId; }
 
   // The owner's membership is immutable — no role dropdown and no actions, so ownership
@@ -160,26 +178,28 @@ export function MembersTab({
         onSelectionChange={(e: any) => onSelectedChange(e.value as ProjectMemberWithProfile[])}
         dataKey="id"
         selectionMode="checkbox"
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onSort={onTableSort}
       >
-        {!isMobile && <Column selectionMode="multiple" style={{ width: '3rem' }} />}
-        {isMobile && <Column header="Member" body={mobileBody} />}
-        {!isMobile && <Column header="Username" body={(row: ProjectMemberWithProfile) => row.profile?.username ? (
+        {cp.arrange([
+        ['sel', <Column key="sel" selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />],
+        ['username', <Column key="username" columnKey="username" field="profile.username" sortable header="Username" hidden={isMobile} body={(row: ProjectMemberWithProfile) => row.profile?.username ? (
           <UserHoverCard userId={row.userId}>
             <span className="username-link">{row.profile.username}</span>
           </UserHoverCard>
-        ) : (row.email || '-')} />}
-        {!isMobile && <Column header="Name" body={(row: ProjectMemberWithProfile) => <span>{row.profile?.displayName ?? (row.email || '-')}</span>} />}
-        {!isMobile && (
-          <Column
-            header="Status"
+        ) : (row.email || '-')} />],
+        ['name', <Column key="name" columnKey="name" field="profile.displayName" sortable={!isMobile} header="Name" body={isMobile ? mobileBody : (row: ProjectMemberWithProfile) => <span>{row.profile?.displayName ?? (row.email || '-')}</span>} />],
+        ['status', <Column
+            columnKey="status" field="status" sortable header="Status"
+            hidden={isMobile || !cp.isVisible('status')}
             body={(row: ProjectMemberWithProfile) => (
               <Tag value={PROJECT_MEMBER_STATUS_LABEL[row.status]} severity={PROJECT_MEMBER_STATUS_SEVERITY[row.status]} />
             )}
-          />
-        )}
-        {!isMobile && (
-          <Column
-            header="Role"
+          />],
+        ['role', <Column
+            columnKey="role" field="role" sortable header="Role"
+            hidden={isMobile || !cp.isVisible('role')}
             body={(row: ProjectMemberWithProfile) => isOwner(row.userId)
               ? lockedOwnerBadge
               : row.role === 'manager'
@@ -192,11 +212,10 @@ export function MembersTab({
                     className="w-10rem"
                   />
                 )}
-          />
-        )}
-        {!isMobile && (
-          <Column
-            header=""
+          />],
+        ['actions', <Column
+            columnKey="actions"
+            header={<ColumnPickerButton reorderableColumns={cp.reorderableColumns} order={cp.order} isVisible={cp.isVisible} setVisible={cp.setVisible} reset={cp.reset} canReorder={!isMobile} reorderColumn={cp.reorderColumn} sortableColumns={cp.sortableColumns} sortField={sortField} sortOrder={sortOrder} onSortFieldChange={handleSortFieldChange} onSortOrderChange={handleSortOrderChange} />}
             style={{ width: '3.5rem' }}
             body={(row: ProjectMemberWithProfile) => (
               !isOwner(row.userId) ? (
@@ -210,8 +229,8 @@ export function MembersTab({
                 />
               ) : null
             )}
-          />
-        )}
+          />],
+        ])}
       </DataTable>
     </>
   );
