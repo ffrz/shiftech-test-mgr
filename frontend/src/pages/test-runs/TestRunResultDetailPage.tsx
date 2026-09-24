@@ -45,6 +45,7 @@ import type {
   TestRole,
   TestCasePriority,
   TestResultStatus,
+  TestResultStepStatus,
 } from '../../types/domain';
 import { toastHelper } from '../../helpers/toast';
 import {
@@ -216,12 +217,14 @@ export function TestRunResultDetailPage() {
   const [resultStatus, setResultStatus] = useState<TestResultStatus>('pass');
   const [resultTesterId, setResultTesterId] = useState<string | null>(null);
   const [resultNotes, setResultNotes] = useState('');
+  const [optimisticStepStatuses, setOptimisticStepStatuses] = useState<Record<string, TestResultStepStatus>>({});
 
   useEffect(() => {
     if (!activeResult) return;
     setResultStatus(activeResult.status);
     setResultTesterId(activeResult.testerId ?? currentProfile?.id ?? null);
     setResultNotes(activeResult.notes ?? '');
+    setOptimisticStepStatuses({});
     setRightPanelScrolled(false);
     if (isMobile) {
       window.scrollTo({ top: 0 });
@@ -230,6 +233,25 @@ export function TestRunResultDetailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultId]);
+
+  async function handleStepResult(stepId: string, status: TestResultStepStatus, actualResult: string | null, stepNumber: number) {
+    if (!activeResult) return;
+    const previous = activeResult.stepResults.find((step) => step.id === stepId)?.status ?? 'not_run';
+    setOptimisticStepStatuses((current) => ({ ...current, [stepId]: status }));
+    try {
+      await testRunService.recordStepResult(stepId, status, actualResult, {
+        projectId,
+        actorId: user?.id,
+        testRunId: runId ?? undefined,
+        testCaseCode: activeResult.testCase?.code ?? null,
+        stepNumber,
+      });
+      await reload();
+    } catch (err) {
+      setOptimisticStepStatuses((current) => ({ ...current, [stepId]: previous }));
+      toastHelper.errorFromCatch('Failed to save step result', err);
+    }
+  }
 
   async function handleSyncResult() {
     if (!runId || !activeResult) return;
@@ -776,29 +798,29 @@ export function TestRunResultDetailPage() {
                             <Button
                               icon="pi pi-check"
                               rounded
-                              text={sr.status !== 'pass'}
-                              outlined={sr.status !== 'pass'}
-                              severity={sr.status === 'pass' ? 'success' : 'secondary'}
-                              className={sr.status === 'pass' ? 'test-step-result-selected' : undefined}
+                              text={(optimisticStepStatuses[sr.id] ?? sr.status) !== 'pass'}
+                              outlined={(optimisticStepStatuses[sr.id] ?? sr.status) !== 'pass'}
+                              severity={(optimisticStepStatuses[sr.id] ?? sr.status) === 'pass' ? 'success' : 'secondary'}
+                              className={(optimisticStepStatuses[sr.id] ?? sr.status) === 'pass' ? 'test-step-result-selected' : undefined}
                               aria-label="Pass"
                               disabled={isCompleted}
                               onClick={async () => {
-                                await testRunService.recordStepResult(sr.id, sr.status === 'pass' ? 'not_run' : 'pass', sr.status === 'pass' ? null : sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
-                                await reload();
+                                const status = optimisticStepStatuses[sr.id] ?? sr.status;
+                                await handleStepResult(sr.id, status === 'pass' ? 'not_run' : 'pass', status === 'pass' ? null : sr.actualResult, sr.step.stepNumber);
                               }}
                             />
                             <Button
                               icon="pi pi-times"
                               rounded
-                              text={sr.status !== 'fail'}
-                              outlined={sr.status !== 'fail'}
-                              severity={sr.status === 'fail' ? 'danger' : 'secondary'}
-                              className={sr.status === 'fail' ? 'test-step-result-selected' : undefined}
+                              text={(optimisticStepStatuses[sr.id] ?? sr.status) !== 'fail'}
+                              outlined={(optimisticStepStatuses[sr.id] ?? sr.status) !== 'fail'}
+                              severity={(optimisticStepStatuses[sr.id] ?? sr.status) === 'fail' ? 'danger' : 'secondary'}
+                              className={(optimisticStepStatuses[sr.id] ?? sr.status) === 'fail' ? 'test-step-result-selected' : undefined}
                               aria-label="Fail"
                               disabled={isCompleted}
                               onClick={async () => {
-                                await testRunService.recordStepResult(sr.id, sr.status === 'fail' ? 'not_run' : 'fail', sr.status === 'fail' ? null : sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
-                                await reload();
+                                const status = optimisticStepStatuses[sr.id] ?? sr.status;
+                                await handleStepResult(sr.id, status === 'fail' ? 'not_run' : 'fail', status === 'fail' ? null : sr.actualResult, sr.step.stepNumber);
                               }}
                             />
                           </div>
