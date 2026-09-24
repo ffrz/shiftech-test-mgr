@@ -84,6 +84,11 @@ export function ModulesTab({
         onSelectionChange={(e: any) => onSelectedChange(e.value as Module[])}
         dataKey="id"
         selectionMode="checkbox"
+        resizableColumns={!isMobile}
+        columnResizeMode="expand"
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
+        className={isMobile ? undefined : 'dt-resizable'}
       >
         {cp.arrange([
         ['sel', <Column key="sel" selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />],

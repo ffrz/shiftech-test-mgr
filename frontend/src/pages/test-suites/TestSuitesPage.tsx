@@ -24,6 +24,8 @@ import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { formatDateTime } from '../../helpers/dateFormatter';
 import { TEST_SUITE_VISIBILITY_LABEL, TEST_SUITE_VISIBILITY_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
+import { useColumnPreferences, type ColumnDef } from '../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../components/ui/ColumnPickerButton';
 
 type OwnershipFilter = 'mine' | 'all';
 
@@ -31,6 +33,14 @@ type EnrichedTestSuite = TestSuite & {
   _authorUsername: string;
   _authorDisplayName: string;
 };
+
+const TEST_SUITE_COLUMNS: ColumnDef[] = [
+  { key: 'name', label: 'Name', locked: true, sortField: 'name' },
+  { key: 'description', label: 'Description', fallbackWidth: '14rem' },
+  { key: 'visibility', label: 'Visibility', fallbackWidth: '9rem', sortField: 'visibility' },
+  { key: 'updatedAt', label: 'Last Updated', fallbackWidth: '11rem', sortField: 'updatedAt' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 // User-owned reusable test case library — any user can create their own Test Suite
 // Template, keep it private, or publish it (unlisted/public) for others to browse and
@@ -43,6 +53,7 @@ export function TestSuitesPage() {
   const queryClient = useQueryClient();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+  const cp = useColumnPreferences('testSuitesPage', TEST_SUITE_COLUMNS);
 
   const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
 
@@ -272,38 +283,39 @@ export function TestSuitesPage() {
         size="small"
         onRowClick={(e) => navigate(`/test-suites/${(e.data as TestSuite).id}`)}
         rowHover
-        className="cursor-pointer"
+        className={isMobile ? 'cursor-pointer' : 'cursor-pointer dt-resizable'}
+        resizableColumns={!isMobile}
+        columnResizeMode="expand"
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
       >
-        {isMobile && <Column header="Test Suite" body={mobileBodyTemplate} />}
-        {!isMobile && (
-          <Column
+        {cp.arrange([
+        ['name', <Column
+            key="name"
             field="name"
-            header="Name"
-            sortable
-            body={(row: EnrichedTestSuite) => (
+            header={isMobile ? 'Test Suite' : 'Name'}
+            sortable={!isMobile}
+            hidden={false}
+            body={isMobile ? mobileBodyTemplate : (row: EnrichedTestSuite) => (
               <div className="flex flex-column">
-                <span>{row.name}</span>
-                <span className="text-xs text-color-secondary">
-                  by{' '}
-                  <UserHoverCard userId={row.ownerId}>
-                    <span className="username-link">{row._authorUsername}</span>
-                  </UserHoverCard>
-                </span>
+                <span>{row.name}</span><span className="text-xs text-color-secondary">by <UserHoverCard userId={row.ownerId}><span className="username-link">{row._authorUsername}</span></UserHoverCard></span>
               </div>
             )}
-          />
-        )}
-        {!isMobile && <Column field="description" header="Description" body={(row: EnrichedTestSuite) => row.description || ''} />}
-        {!isMobile && (
-          <Column
+          />],
+        ['description', <Column key="description" field="description" header="Description" hidden={isMobile || !cp.isVisible('description')} style={{ width: cp.colWidth('description', '14rem') }} body={(row: EnrichedTestSuite) => row.description || ''} />],
+        ['visibility', <Column
+            key="visibility"
             field="visibility"
             header="Visibility"
-            body={(row: EnrichedTestSuite) => <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} />}
-          />
-        )}
-        {!isMobile && <Column field="updatedAt" header="Last Updated" body={(row: EnrichedTestSuite) => formatDateTime(row.updatedAt)} sortable style={{ whiteSpace: 'nowrap' }} />}
-        <Column
-          header=""
+            hidden={isMobile || !cp.isVisible('visibility')}
+            body={(row: EnrichedTestSuite) => (
+              <Tag value={TEST_SUITE_VISIBILITY_LABEL[row.visibility]} severity={TEST_SUITE_VISIBILITY_SEVERITY[row.visibility]} />
+            )}
+          />],
+        ['updatedAt', <Column key="updatedAt" field="updatedAt" header="Last Updated" hidden={isMobile || !cp.isVisible('updatedAt')} body={(row: EnrichedTestSuite) => formatDateTime(row.updatedAt)} sortable style={{ width: cp.colWidth('updatedAt', '11rem'), whiteSpace: 'nowrap' }} />],
+        ['actions', <Column
+          key="actions"
+          header={<ColumnPickerButton reorderableColumns={cp.reorderableColumns} order={cp.order} isVisible={cp.isVisible} setVisible={cp.setVisible} reset={cp.reset} canReorder={!isMobile} reorderColumn={cp.reorderColumn} sortableColumns={cp.sortableColumns} sortField={sortField} sortOrder={sortOrder} onSortFieldChange={(field) => onSort({ sortField: field, sortOrder } as DataTableSortEvent)} onSortOrderChange={(order) => onSort({ sortField, sortOrder: order } as DataTableSortEvent)} />}
           style={{ width: '3.5rem' }}
           body={(row: EnrichedTestSuite) => (
             <RowActionsMenu
@@ -319,7 +331,8 @@ export function TestSuitesPage() {
               ]}
             />
           )}
-        />
+        />],
+        ])}
       </DataTable>
       </div>
 

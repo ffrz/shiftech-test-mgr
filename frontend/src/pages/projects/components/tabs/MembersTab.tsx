@@ -138,15 +138,6 @@ export function MembersTab({
       </p>
       <div className="flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div className="flex gap-2 flex-wrap">
-          <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/username/email..." />
-          <Dropdown
-            value={roleFilter}
-            options={[{ label: 'All Roles', value: '' as const }, ...MEMBER_ROLE_OPTIONS]}
-            onChange={(e) => onRoleFilterChange(e.value)}
-            className="w-10rem"
-            showClear={!!roleFilter}
-            placeholder="Role"
-          />
           <Dropdown
             value={statusFilter}
             options={[
@@ -160,6 +151,15 @@ export function MembersTab({
             showClear={!!statusFilter}
             placeholder="Status"
           />
+          <Dropdown
+            value={roleFilter}
+            options={[{ label: 'All Roles', value: '' as const }, ...MEMBER_ROLE_OPTIONS]}
+            onChange={(e) => onRoleFilterChange(e.value)}
+            className="w-10rem"
+            showClear={!!roleFilter}
+            placeholder="Role"
+          />
+          <SearchInput value={search} onChange={onSearchChange} placeholder="Search name/username/email..." />
         </div>
         <Button label="Invite Member" icon="pi pi-plus" size="small" onClick={onInvite} />
       </div>
@@ -181,6 +181,11 @@ export function MembersTab({
         sortField={sortField}
         sortOrder={sortOrder}
         onSort={onTableSort}
+        resizableColumns={!isMobile}
+        columnResizeMode="expand"
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
+        className={isMobile ? undefined : 'dt-resizable'}
       >
         {cp.arrange([
         ['sel', <Column key="sel" selectionMode="multiple" style={{ width: '3rem' }} hidden={isMobile} />],

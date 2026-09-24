@@ -25,11 +25,21 @@ import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator'
 import { useTableHeight } from '../../hooks/useTableHeight';
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_SEVERITY } from '../../helpers/statusLabels';
 import { toastHelper } from '../../helpers/toast';
+import { useColumnPreferences, type ColumnDef } from '../../hooks/useColumnPreferences';
+import { ColumnPickerButton } from '../../components/ui/ColumnPickerButton';
 
 type EnrichedProject = Project & {
   _ownerUsername: string;
   _ownerDisplayName: string;
 };
+
+const PROJECT_COLUMNS: ColumnDef[] = [
+  { key: 'name', label: 'Name', locked: true, sortField: 'name' },
+  { key: 'description', label: 'Description', fallbackWidth: '14rem' },
+  { key: 'status', label: 'Status', fallbackWidth: '9rem', sortField: 'status' },
+  { key: 'createdAt', label: 'Created', fallbackWidth: '10rem', sortField: 'createdAt' },
+  { key: 'actions', label: 'Actions', locked: true },
+];
 
 // Owner handles can run long (a custom username) — cap what's rendered with ellipsis
 // instead of letting it wrap or widen the column. CSS adds the ellipsis via .owner-username.
@@ -44,6 +54,7 @@ export function ProjectsPage() {
   const { user: currentUser } = useAuthContext();
   const { lt } = useScreenSize();
   const isMobile = lt.sm;
+  const cp = useColumnPreferences('projectsPage', PROJECT_COLUMNS);
 
   const { containerRef, tableHeight } = useTableHeight({ enabled: isMobile, deps: [isMobile] });
 
@@ -295,24 +306,26 @@ export function ProjectsPage() {
         emptyMessage="No projects yet"
         onRowClick={(e) => navigate(`/projects/${(e.data as Project).id}`)}
         rowHover
-        className="cursor-pointer"
+        className={isMobile ? 'cursor-pointer' : 'cursor-pointer dt-resizable'}
+        resizableColumns={!isMobile}
+        columnResizeMode="expand"
+        onColumnResizeEnd={cp.onColumnResizeEnd}
+        tableStyle={isMobile ? undefined : cp.tableStyle}
       >
-        {isMobile && <Column field="name" header="Project" body={mobileBody} />}
-        {!isMobile && <Column field="name" header="Name" sortable body={nameBody} style={{ width: '30%' }} />}
-        {!isMobile && <Column field="description" header="Description" style={{ minWidth: '12rem' }} />}
-        {!isMobile && (
-          <Column
+        {cp.arrange([
+        ['name', <Column key="name" field="name" header={isMobile ? 'Project' : 'Name'} sortable={!isMobile} body={isMobile ? mobileBody : nameBody} hidden={false} style={{ width: '30%' }} />],
+        ['description', <Column key="description" field="description" header="Description" hidden={isMobile || !cp.isVisible('description')} style={{ minWidth: '12rem', width: cp.colWidth('description', '14rem') }} />],
+        ['status', <Column
+            key="status"
             field="status"
             header="Status"
+            hidden={isMobile || !cp.isVisible('status')}
             body={(row: Project) => <Tag value={PROJECT_STATUS_LABEL[row.status]} severity={PROJECT_STATUS_SEVERITY[row.status]} />}
-          />
-        )}
-        {!isMobile && (
-          <Column field="createdAt" header="Created" body={(row: Project) => <span style={{ whiteSpace: 'nowrap' }}>{formatDate(row.createdAt)}</span>} sortable />
-        )}
-        {!isMobile && (
-          <Column
-            header=""
+          />],
+        ['createdAt', <Column key="createdAt" field="createdAt" header="Created" hidden={isMobile || !cp.isVisible('createdAt')} body={(row: Project) => <span style={{ whiteSpace: 'nowrap' }}>{formatDate(row.createdAt)}</span>} sortable style={{ width: cp.colWidth('createdAt', '10rem') }} />],
+        ['actions', <Column
+            key="actions"
+            header={<ColumnPickerButton reorderableColumns={cp.reorderableColumns} order={cp.order} isVisible={cp.isVisible} setVisible={cp.setVisible} reset={cp.reset} canReorder={!isMobile} reorderColumn={cp.reorderColumn} sortableColumns={cp.sortableColumns} sortField={sortField} sortOrder={sortOrder} onSortFieldChange={(field) => onSort({ sortField: field, sortOrder } as DataTableSortEvent)} onSortOrderChange={(order) => onSort({ sortField, sortOrder: order } as DataTableSortEvent)} />}
             style={{ width: '4rem' }}
             body={(row: Project) => (
               <div className="text-right">
@@ -327,8 +340,8 @@ export function ProjectsPage() {
                 />
               </div>
             )}
-          />
-        )}
+          />],
+        ])}
       </DataTable>
       </div>
 
