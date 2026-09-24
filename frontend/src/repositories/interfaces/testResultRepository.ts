@@ -7,5 +7,5 @@ export interface TestResultRepository {
   getSummaryByRunIds(runIds: string[]): Promise<Record<string, { total: number; pass: number; fail: number }>>;
   getDistinctTestersByRunIds(runIds: string[]): Promise<Record<string, { id: string; fullName: string | null }[]>>;
   recordResult(id: string, input: { status: TestResultStatus; testerId: string; notes: string | null }): Promise<TestResult>;
-  recordStepResult(testResultStepId: string, input: { status: 'pass' | 'fail'; actualResult: string | null }): Promise<TestResultStep>;
+  recordStepResult(testResultStepId: string, input: { status: 'pass' | 'fail' | 'not_run'; actualResult: string | null }): Promise<TestResultStep>;
 }

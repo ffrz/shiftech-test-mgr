@@ -173,8 +173,7 @@ export const testSuiteService = {
     if (!input.title.trim()) throw new Error('Test case title cannot be empty');
     const stepType = input.stepType ?? 'simple';
     if (stepType === 'simple') {
-      if (!input.steps.trim()) throw new Error('Test steps cannot be empty');
-      if (!input.expectedResult.trim()) throw new Error('Expected result cannot be empty');
+      // Simple cases may intentionally leave steps and expected result blank.
     } else if (!input.detailedSteps?.length) {
       throw new Error('A detailed test case must have at least one step');
     }

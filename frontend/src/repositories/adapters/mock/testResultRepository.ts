@@ -106,7 +106,7 @@ export function createMockTestResultRepository(seed: TestResultWithDetails[] = [
 
     async recordStepResult(
       testResultStepId: string,
-      input: { status: 'pass' | 'fail'; actualResult: string | null },
+      input: { status: 'pass' | 'fail' | 'not_run'; actualResult: string | null },
     ): Promise<TestResultStep> {
       for (const result of store.values()) {
         const idx = result.stepResults.findIndex((s) => s.id === testResultStepId);

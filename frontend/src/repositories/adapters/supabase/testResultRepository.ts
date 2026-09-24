@@ -202,7 +202,7 @@ export const testResultRepositoryAdapter: TestResultRepository = {
 
   async recordStepResult(
     testResultStepId: string,
-    input: { status: 'pass' | 'fail'; actualResult: string | null },
+    input: { status: 'pass' | 'fail' | 'not_run'; actualResult: string | null },
   ): Promise<TestResultStep> {
     const { data, error } = await supabase
       .from('test_result_steps')

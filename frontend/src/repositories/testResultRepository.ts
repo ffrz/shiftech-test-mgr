@@ -26,7 +26,7 @@ export const testResultRepository = {
     return testResultRepositoryAdapter.recordResult(id, input);
   },
 
-  recordStepResult(testResultStepId: string, input: { status: 'pass' | 'fail'; actualResult: string | null }) {
+  recordStepResult(testResultStepId: string, input: { status: 'pass' | 'fail' | 'not_run'; actualResult: string | null }) {
     return testResultRepositoryAdapter.recordStepResult(testResultStepId, input);
   },
 };

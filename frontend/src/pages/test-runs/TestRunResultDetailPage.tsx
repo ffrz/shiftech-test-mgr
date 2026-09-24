@@ -752,45 +752,6 @@ export function TestRunResultDetailPage() {
                   </Card>
                 )}
 
-                {canRunTests && (
-                  <Card title="Execution Result" className="mb-3">
-                    <div className="grid">
-                      <div className="col-12 md:col-6 flex flex-column">
-                        <FloatLabel className="ifta-field">
-                          <Dropdown
-                            id="result-status"
-                            value={resultStatus}
-                            options={RESULT_OPTIONS}
-                            onChange={(e) => {
-                              setResultStatus(e.value);
-                              saveResult({ status: e.value });
-                            }}
-                            className="w-full"
-                            disabled={isCompleted}
-                          />
-                          <label htmlFor="result-status">Status</label>
-                        </FloatLabel>
-                      </div>
-                      <div className="col-12 md:col-6 flex flex-column">
-                        <FloatLabel className="ifta-field">
-                          <Dropdown
-                            id="result-tester"
-                            value={resultTesterId}
-                            options={projectMembers.map((m) => ({ label: memberSelectLabel(m), value: m.userId }))}
-                            onChange={(e) => {
-                              setResultTesterId(e.value);
-                              saveResult({ testerId: e.value });
-                            }}
-                            className="w-full"
-                            disabled={isCompleted}
-                          />
-                          <label htmlFor="result-tester">Tester</label>
-                        </FloatLabel>
-                      </div>
-                    </div>
-                  </Card>
-                )}
-
                 {/* One consistent slot for "Test Steps" — simple test cases render as free
                     text, detailed ones render as a per-step checklist (each step also
                     carries its own expected result). */}
@@ -815,30 +776,53 @@ export function TestRunResultDetailPage() {
                             <Button
                               icon="pi pi-check"
                               rounded
-                              text
-                              severity={sr.status === 'pass' ? undefined : 'secondary'}
+                              text={sr.status !== 'pass'}
+                              outlined={sr.status !== 'pass'}
+                              severity={sr.status === 'pass' ? 'success' : 'secondary'}
+                              className={sr.status === 'pass' ? 'test-step-result-selected' : undefined}
                               aria-label="Pass"
                               disabled={isCompleted}
                               onClick={async () => {
-                                await testRunService.recordStepResult(sr.id, 'pass', sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
+                                await testRunService.recordStepResult(sr.id, sr.status === 'pass' ? 'not_run' : 'pass', sr.status === 'pass' ? null : sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
                                 await reload();
                               }}
                             />
                             <Button
                               icon="pi pi-times"
                               rounded
-                              text
-                              severity={sr.status === 'fail' ? undefined : 'secondary'}
+                              text={sr.status !== 'fail'}
+                              outlined={sr.status !== 'fail'}
+                              severity={sr.status === 'fail' ? 'danger' : 'secondary'}
+                              className={sr.status === 'fail' ? 'test-step-result-selected' : undefined}
                               aria-label="Fail"
                               disabled={isCompleted}
                               onClick={async () => {
-                                await testRunService.recordStepResult(sr.id, 'fail', sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
+                                await testRunService.recordStepResult(sr.id, sr.status === 'fail' ? 'not_run' : 'fail', sr.status === 'fail' ? null : sr.actualResult, { projectId, actorId: user?.id, testRunId: runId ?? undefined, testCaseCode: activeResult.testCase?.code ?? null, stepNumber: sr.step.stepNumber });
                                 await reload();
                               }}
                             />
                           </div>
                         </div>
                       ))}
+                    </div>
+                  </Card>
+                )}
+
+                {canRunTests && (
+                  <Card title="Execution Result" className="mb-3">
+                    <div className="grid">
+                      <div className="col-12 md:col-6 flex flex-column">
+                        <FloatLabel className="ifta-field">
+                          <Dropdown id="result-status" value={resultStatus} options={RESULT_OPTIONS} onChange={(e) => { setResultStatus(e.value); saveResult({ status: e.value }); }} className="w-full" disabled={isCompleted} />
+                          <label htmlFor="result-status">Status</label>
+                        </FloatLabel>
+                      </div>
+                      <div className="col-12 md:col-6 flex flex-column">
+                        <FloatLabel className="ifta-field">
+                          <Dropdown id="result-tester" value={resultTesterId} options={projectMembers.map((m) => ({ label: memberSelectLabel(m), value: m.userId }))} onChange={(e) => { setResultTesterId(e.value); saveResult({ testerId: e.value }); }} className="w-full" disabled={isCompleted} />
+                          <label htmlFor="result-tester">Tester</label>
+                        </FloatLabel>
+                      </div>
                     </div>
                   </Card>
                 )}

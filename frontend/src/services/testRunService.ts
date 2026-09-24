@@ -218,7 +218,7 @@ export const testRunService = {
 
   // Mirrors recordResult but for a single step of a 'detailed' test case — a simpler
   // pass/fail than the overall Test Result status.
-  async recordStepResult(testResultStepId: string, status: 'pass' | 'fail', actualResult: string | null, context?: { projectId?: string; actorId?: string; testRunId?: string; testCaseCode?: string | null; stepNumber?: number }) {
+  async recordStepResult(testResultStepId: string, status: 'pass' | 'fail' | 'not_run', actualResult: string | null, context?: { projectId?: string; actorId?: string; testRunId?: string; testCaseCode?: string | null; stepNumber?: number }) {
     const result = await testResultRepository.recordStepResult(testResultStepId, { status, actualResult });
     if (context?.actorId && context.projectId && context.testRunId) {
       await activityService.logEvent({
