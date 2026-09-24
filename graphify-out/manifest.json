@@ -375,8 +375,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/test-runs/TestRunResultDetailPage.tsx": {
-    "mtime": 1790238892.117604,
-    "ast_hash": "c3624fa4a4050c625084a67d90c49994",
+    "mtime": 1790239942.105838,
+    "ast_hash": "0a07aa8c162a5455002b8a2ed7aa86ea",
     "semantic_hash": ""
   },
   "frontend/src/pages/test-suites/TestSuiteDetailPage.tsx": {
