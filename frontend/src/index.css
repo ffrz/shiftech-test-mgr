@@ -2085,7 +2085,7 @@ h6,
    margin — kept as-is here since box height, not label height, changed). */
 .ifta-field label {
   left: 0.75rem;
-  transition-property: all;
+  transition-property: top, margin-top, font-size, color;
   transition-timing-function: ease;
 }
 
