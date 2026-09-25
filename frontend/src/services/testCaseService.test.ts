@@ -183,28 +183,19 @@ describe('testCaseService.create', () => {
     expect(testCaseRepository.create).not.toHaveBeenCalled();
   });
 
-  it('rejects a simple test case with empty steps', async () => {
-    await expect(
-      testCaseService.create({
-        projectId: 'proj-1',
-        moduleId: null,
-        title: 'Valid title',
-        steps: '',
-        expectedResult: 'result',
-      }),
-    ).rejects.toThrow('Test steps cannot be empty');
-  });
+  it('allows a simple test case with blank steps/expected result (lightweight checks)', async () => {
+    vi.mocked(testCaseRepository.create).mockResolvedValue(makeTestCase({ steps: '', expectedResult: '' }));
 
-  it('rejects a simple test case with empty expected result', async () => {
-    await expect(
-      testCaseService.create({
-        projectId: 'proj-1',
-        moduleId: null,
-        title: 'Valid title',
-        steps: 'step',
-        expectedResult: '',
-      }),
-    ).rejects.toThrow('Expected result cannot be empty');
+    const result = await testCaseService.create({
+      projectId: 'proj-1',
+      moduleId: null,
+      title: 'Valid title',
+      steps: '',
+      expectedResult: '',
+    });
+
+    expect(testCaseRepository.create).toHaveBeenCalled();
+    expect(result.id).toBe('tc-1');
   });
 
   it('rejects a detailed test case with no steps', async () => {

@@ -100,12 +100,27 @@ export function TestCaseDialog({
   onSave,
 }: TestCaseDialogProps) {
   const titleRef = useRef<HTMLInputElement>(null);
+  const generalErrorRef = useRef<HTMLDivElement>(null);
+
+  // The dialog only gets a single error string back (from a thrown validation Error or a
+  // raw Postgres/RLS error) — there's no structured "which field" info to key off of. The
+  // one case we CAN identify by message text is "title is empty/required", since that's
+  // the one client-side validation this dialog itself can trigger; everything else (steps
+  // validation, save failures, permission errors) isn't about the title field at all and
+  // must not be attributed to it. Anything not recognized as title-specific falls back to
+  // a general banner near Save, where the user's focus already is when they click it.
+  const isTitleError = !!error && /title/i.test(error);
+  const generalError = error && !isTitleError ? error : null;
 
   useEffect(() => {
-    if (error && titleRef.current) {
+    if (!error) return;
+    if (isTitleError && titleRef.current) {
       titleRef.current.focus();
       titleRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    } else if (generalError && generalErrorRef.current) {
+      generalErrorRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
 
   function moveDetailedStep(index: number, direction: -1 | 1) {
@@ -128,10 +143,10 @@ export function TestCaseDialog({
 
         <div className="flex flex-column gap-1">
           <FloatLabel className="ifta-field">
-            <InputText id="case-title" ref={titleRef} value={title} onChange={(e) => onTitleChange(e.target.value)} className={error ? 'p-invalid w-full' : 'w-full'} autoFocus />
-            <label htmlFor="case-title" className={error ? 'p-error' : ''}>Title</label>
+            <InputText id="case-title" ref={titleRef} value={title} onChange={(e) => onTitleChange(e.target.value)} className={isTitleError ? 'p-invalid w-full' : 'w-full'} autoFocus />
+            <label htmlFor="case-title" className={isTitleError ? 'p-error' : ''}>Title</label>
           </FloatLabel>
-          {error && <small className="p-error">{error}</small>}
+          {isTitleError && <small className="p-error">{error}</small>}
         </div>
 
         <div className="grid">
@@ -314,6 +329,11 @@ export function TestCaseDialog({
           <CharacterCount value={notes} maxLength={1000} />
         </div>
 
+        {generalError && (
+          <div ref={generalErrorRef} className="p-error text-sm" role="alert">
+            {generalError}
+          </div>
+        )}
         <Button label="Save" size="small" onClick={onSave} />
       </div>
     </Dialog>
