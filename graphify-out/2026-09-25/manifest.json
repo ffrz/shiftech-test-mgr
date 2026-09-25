@@ -285,8 +285,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/ProjectSettingsPage.tsx": {
-    "mtime": 1790346602.423371,
-    "ast_hash": "284acadc71e3e473d4a394b17e009fb6",
+    "mtime": 1790240374.2458053,
+    "ast_hash": "97765b5e4785ed9592bd0d499a19e5b4",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/ProjectsPage.tsx": {
@@ -320,8 +320,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/dialogs/TestCaseDialog.tsx": {
-    "mtime": 1790346602.4253757,
-    "ast_hash": "b12c13e4f52aacd429ea295f0d64677c",
+    "mtime": 1790240133.2873209,
+    "ast_hash": "ec17851506b18594fe98ca2a282c0f5d",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/IssueTab.tsx": {
@@ -885,8 +885,8 @@
     "semantic_hash": ""
   },
   "FEATURES.md": {
-    "mtime": 1790299958.3725884,
-    "ast_hash": "f31f4e9d0616d611e9448e44a8a61967",
+    "mtime": 1785560914.0956852,
+    "ast_hash": "0e16abffced153236cb6728b4c4ba0a8",
     "semantic_hash": ""
   },
   "README.md": {
@@ -925,9 +925,9 @@
     "semantic_hash": ""
   },
   "docs/TASKS.md": {
-    "mtime": 1790299939.9811077,
-    "ast_hash": "14506ed9837edae49bdb55c02374c2d4",
-    "semantic_hash": ""
+    "mtime": 1784961648.6058366,
+    "ast_hash": "670a64877bbf407560657625b3e588cc",
+    "semantic_hash": "670a64877bbf407560657625b3e588cc"
   },
   "docs/design-review-test-management-v2.md": {
     "mtime": 1784612827.5410264,
@@ -1330,18 +1330,18 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/ModulesTab.tsx": {
-    "mtime": 1790346602.52439,
-    "ast_hash": "a6b8de199c8ea9ac6f83752bab9b53f0",
+    "mtime": 1790240263.3113275,
+    "ast_hash": "fce684b6ae4e0ab0b4452eb62547b96c",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/TagsTab.tsx": {
-    "mtime": 1790346602.5945778,
-    "ast_hash": "a7b9cba577140b72119f741205b6d08f",
+    "mtime": 1790240263.318843,
+    "ast_hash": "0ce3f259db8f73d456d802406c6d8926",
     "semantic_hash": ""
   },
   "frontend/src/pages/projects/components/tabs/TestRolesTab.tsx": {
-    "mtime": 1790346602.6728425,
-    "ast_hash": "170421b7859e95b25531b2330c177117",
+    "mtime": 1790240263.3198555,
+    "ast_hash": "ed1786f5581a676263be26dd569b60ef",
     "semantic_hash": ""
   },
   "frontend/src/pages/test-plans/components/dialogs/AddCaseToPlanDialog.tsx": {
@@ -1580,8 +1580,8 @@
     "semantic_hash": ""
   },
   "frontend/src/services/testCaseService.test.ts": {
-    "mtime": 1790346602.676842,
-    "ast_hash": "d8c108a0040e04e697d1ca09342aee9f",
+    "mtime": 1785734446.9180994,
+    "ast_hash": "877987bb66d653124c91cfad101eac99",
     "semantic_hash": ""
   },
   "frontend/src/services/testRunService.test.ts": {
