@@ -28,6 +28,7 @@ type ModulesTabProps = {
   onSelectedChange: (value: Module[]) => void;
   onCreate: () => void;
   onEdit: (row: Module) => void;
+  onDuplicate: (row: Module) => void;
   onDelete: (row: Module) => void;
   onBulkDelete: () => void;
 };
@@ -44,6 +45,7 @@ export function ModulesTab({
   onSelectedChange,
   onCreate,
   onEdit,
+  onDuplicate,
   onDelete,
   onBulkDelete,
 }: ModulesTabProps) {
@@ -102,6 +104,7 @@ export function ModulesTab({
             <RowActionsMenu
               items={[
                 { label: 'Edit', icon: 'pi pi-pencil', command: () => onEdit(row) },
+                { label: 'Duplicate', icon: 'pi pi-copy', command: () => onDuplicate(row) },
                 { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => onDelete(row) },
               ]}
             />

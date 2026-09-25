@@ -27,6 +27,7 @@ type TagsTabProps = {
   onSelectedChange: (value: TagEntity[]) => void;
   onCreate: () => void;
   onEdit: (row: TagEntity) => void;
+  onDuplicate: (row: TagEntity) => void;
   onDelete: (row: TagEntity) => void;
   onBulkDelete: () => void;
 };
@@ -43,6 +44,7 @@ export function TagsTab({
   onSelectedChange,
   onCreate,
   onEdit,
+  onDuplicate,
   onDelete,
   onBulkDelete,
 }: TagsTabProps) {
@@ -99,6 +101,7 @@ export function TagsTab({
             <RowActionsMenu
               items={[
                 { label: 'Edit', icon: 'pi pi-pencil', command: () => onEdit(row) },
+                { label: 'Duplicate', icon: 'pi pi-copy', command: () => onDuplicate(row) },
                 { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => onDelete(row) },
               ]}
             />

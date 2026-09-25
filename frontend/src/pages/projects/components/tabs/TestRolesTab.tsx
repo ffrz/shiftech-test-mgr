@@ -27,6 +27,7 @@ type TestRolesTabProps = {
   onSelectedChange: (value: TestRole[]) => void;
   onCreate: () => void;
   onEdit: (row: TestRole) => void;
+  onDuplicate: (row: TestRole) => void;
   onDelete: (row: TestRole) => void;
   onBulkDelete: () => void;
 };
@@ -43,6 +44,7 @@ export function TestRolesTab({
   onSelectedChange,
   onCreate,
   onEdit,
+  onDuplicate,
   onDelete,
   onBulkDelete,
 }: TestRolesTabProps) {
@@ -100,6 +102,7 @@ export function TestRolesTab({
             <RowActionsMenu
               items={[
                 { label: 'Edit', icon: 'pi pi-pencil', command: () => onEdit(row) },
+                { label: 'Duplicate', icon: 'pi pi-copy', command: () => onDuplicate(row) },
                 { label: 'Delete', icon: 'pi pi-trash', className: 'p-error', command: () => onDelete(row) },
               ]}
             />

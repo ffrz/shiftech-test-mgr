@@ -138,6 +138,14 @@ export function ProjectSettingsPage() {
     setModuleDialogOpen(true);
   }
 
+  function openDuplicateModuleDialog(row: Module) {
+    setEditingModuleId(null);
+    setModuleCode('');
+    setModuleName(`${row.name} (Copy)`);
+    setModuleError(null);
+    setModuleDialogOpen(true);
+  }
+
   async function handleSaveModule() {
     if (!id) return;
     setModuleError(null);
@@ -219,6 +227,13 @@ export function ProjectSettingsPage() {
     setTagDialogOpen(true);
   }
 
+  function openDuplicateTagDialog(row: TagEntity) {
+    setEditingTagId(null);
+    setTagName(`${row.name} (Copy)`);
+    setTagError(null);
+    setTagDialogOpen(true);
+  }
+
   async function handleSaveTag() {
     if (!id) return;
     setTagError(null);
@@ -296,6 +311,13 @@ export function ProjectSettingsPage() {
   function openEditTestRoleDialog(row: TestRole) {
     setEditingTestRoleId(row.id);
     setTestRoleName(row.name);
+    setTestRoleError(null);
+    setTestRoleDialogOpen(true);
+  }
+
+  function openDuplicateTestRoleDialog(row: TestRole) {
+    setEditingTestRoleId(null);
+    setTestRoleName(`${row.name} (Copy)`);
     setTestRoleError(null);
     setTestRoleDialogOpen(true);
   }
@@ -568,6 +590,7 @@ export function ProjectSettingsPage() {
               onSelectedChange={setSelectedModules}
               onCreate={openCreateModuleDialog}
               onEdit={openEditModuleDialog}
+              onDuplicate={openDuplicateModuleDialog}
               onDelete={handleDeleteModule}
               onBulkDelete={handleBulkDeleteModules}
             />
@@ -589,6 +612,7 @@ export function ProjectSettingsPage() {
               onSelectedChange={setSelectedTags}
               onCreate={openCreateTagDialog}
               onEdit={openEditTagDialog}
+              onDuplicate={openDuplicateTagDialog}
               onDelete={handleDeleteTag}
               onBulkDelete={handleBulkDeleteTags}
             />
@@ -610,6 +634,7 @@ export function ProjectSettingsPage() {
               onSelectedChange={setSelectedTestRoles}
               onCreate={openCreateTestRoleDialog}
               onEdit={openEditTestRoleDialog}
+              onDuplicate={openDuplicateTestRoleDialog}
               onDelete={handleDeleteTestRole}
               onBulkDelete={handleBulkDeleteTestRoles}
             />
