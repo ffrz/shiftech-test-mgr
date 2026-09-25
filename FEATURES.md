@@ -11,7 +11,7 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] **Ownership + Visibility** (V2 Phase 3) — `owner_id`/`owner_type`, `visibility` (`private`/`unlisted`/`public`) diatur di `ProjectSettingsPage` tab Danger Zone
 - [x] `ProjectSettingsPage` — tab Members (invite/reinvite/remove) terpisah dari detail page
 - [x] Duplicate project (`projectDuplicateService`) — clone struktur (test plan/case/issue pilihan) tanpa riwayat run
-- [ ] Project selector global (dipakai lintas halaman)
+- [x] Project context lintas halaman — halaman global memakai pemilih project lokal; halaman detail memakai route project
 
 ## Kode Entity (Module, Test Case, Test Plan, Test Run, Issue)
 - [x] Auto-generate `MOD-####`/`TC-####`/`TP-####`/`TR-####`/`ISS-####` per project (trigger DB, race-safe)
@@ -42,7 +42,7 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] Field **Role Target** (E17) — teks bebas (mis. "Admin", "Manager") untuk RBAC testing; test case yang sama secara konsep diuji ulang manual per role (duplikasi manual, bukan sistem varian). Tampil di tabel, detail, dan Test Run Result Detail
 - [x] **Import dari Excel/CSV** (E17) — tombol di tab Test Cases, baca file CSV client-side (tanpa dependency `xlsx` karena vulnerability terbuka di npm — Excel/Sheets tetap bisa export CSV native), preview baris valid/invalid sebelum commit
 - [x] **Import CSV mendukung `step_type=detailed`** (2026-07-29) — kolom Steps format `Aksi | Expected;Aksi | Expected` diparse jadi step ternormalisasi (`test_case_steps`); tanpa karakter `|` tetap `simple` (backward compatible). Berlaku untuk import Test Case maupun import item Test Suite
-- [ ] Filter by priority/status di list
+- [x] Filter by priority/status di list project-detail (`TestCaseTab`); `TestCasesPage` lintas-project tetap read-only sederhana
 
 ## Test Suite Library (E17, renamed from "Test Case Template Library")
 - [x] Library global (bukan per-project) — `TestSuitesPage`/`TestSuiteDetailPage`, sidebar "Test Suite"
@@ -125,7 +125,7 @@ Ringkasan cepat status fitur per modul. Detail task-level ada di [`docs/TASKS.md
 - [x] **Supabase Realtime sync** (E14) — satu subscriber terpusat (`useRealtimeSync`, dipasang sekali di `AppLayout`) memetakan `postgres_changes` ke invalidation React Query, sehingga perubahan dari tab/user lain otomatis ter-refresh tanpa perlu refresh manual
 - [x] PrimeReact + PrimeFlex setup, dark/light/system theme toggle
 - [x] Restrukturisasi monorepo (`frontend/` + `backend/` disiapkan untuk migrasi PHP+SQLite)
-- [x] Unit test Service layer (Vitest, 2026-08-01) — co-located `*.test.ts` di `frontend/src/services/`, repository di-mock via `vi.mock()`; belum cover Repository/Hook/Component/E2E, lihat `docs/ARCHITECTURE.md` §7
+- [x] Unit test Service, Repository, Hook, dan komponen ringan (Vitest, 2026-08-02) — E2E dan coverage threshold CI masih terbuka, lihat `docs/ARCHITECTURE.md` §7
 - [x] Code coverage (`npm run test:coverage`, v8 provider, 2026-08-01) — di-scope ke `services/` saja supaya persentase representatif terhadap apa yang benar-benar ditest; report `text`+`html` (`frontend/coverage/`, gitignored), lihat `docs/ARCHITECTURE.md` §7.2
 - [x] Storage adapter interface (`StorageAdapter`) — implementasi awal `SupabaseStorageAdapter` (bucket private, signed URL), slot disiapkan untuk backend upload internal (E12)
 

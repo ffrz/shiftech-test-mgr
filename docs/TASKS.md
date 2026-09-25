@@ -27,8 +27,8 @@ Status: `done` · `in-progress` · `todo` · `blocked`
 | E02-T01 | Repository `projectRepository` (findAll, create)                        | done   |
 | E02-T02 | Service `projectService` (validasi nama)                                | done   |
 | E02-T03 | Halaman `ProjectsPage` (list + create dialog)                           | done   |
-| E02-T04 | Edit & delete project                                                   | todo   |
-| E02-T05 | Project selector/context global (dipakai TestPlansPage & TestCasesPage) | todo   |
+| E02-T04 | Edit & delete project                                                   | done   |
+| E02-T05 | Project selector/context global (dipakai TestPlansPage & TestCasesPage) | superseded — project dipilih pada halaman lintas-project dan konteks detail memakai route project |
 
 ## E03 — Modul Test Cases
 
@@ -39,7 +39,7 @@ Status: `done` · `in-progress` · `todo` · `blocked`
 | E03-T03 | Halaman `TestCasesPage` (list lintas project via dropdown, read-only — CRUD ada di tab Project Detail)                | done   |
 | E03-T04 | Form create/edit test case (Dialog) — Module, Objective, Preconditions, Steps, Expected Result, Priority, Tags, Notes | done   |
 | E03-T05 | Delete test case + konfirmasi                                                                                         | done   |
-| E03-T06 | Filter by priority/status                                                                                             | todo   |
+| E03-T06 | Filter by priority/status                                                                                             | done — tersedia di `TestCaseTab`; halaman lintas-project tetap read-only sederhana |
 
 ## E04 — Modul Test Plans
 
@@ -70,9 +70,9 @@ Status: `done` · `in-progress` · `todo` · `blocked`
 
 | ID      | Task                                     | Status |
 | ------- | ---------------------------------------- | ------ |
-| E05-T01 | Toast notification global (sukses/error) | todo   |
-| E05-T02 | Loading skeleton konsisten               | todo   |
-| E05-T04 | Vitest + Testing Library setup           | todo   |
+| E05-T01 | Toast notification global (sukses/error) | done   |
+| E05-T02 | Loading skeleton konsisten               | done   |
+| E05-T04 | Vitest + Testing Library setup           | done   |
 
 ## E06 — Auth & RBAC (Google Login + User Management)
 
@@ -84,13 +84,13 @@ Status: `done` · `in-progress` · `todo` · `blocked`
 | E06-T04 | Repository & service `profileRepository`/`profileService` (getOwnProfile, listAll, approve, reject, promote, demote) | done                              |
 | E06-T05 | `AuthProvider` (`hooks/useAuth.tsx`) — session + profile + role state, `signInWithGoogle`, `signOut`                 | done                              |
 | E06-T06 | Halaman `LoginPage` (tombol Sign in with Google)                                                                     | done                              |
-| E06-T07 | Halaman `PendingApprovalPage`                                                                                        | done                              |
-| E06-T08 | Route guard `ProtectedRoute` (redirect login/pending) & `AdminRoute`                                                 | done                              |
+| E06-T07 | Halaman `PendingApprovalPage`                                                                                        | superseded — approval gate dihapus pada V2 Phase 2 |
+| E06-T08 | Route guard `ProtectedRoute` (redirect login/pending) & `AdminRoute`                                                 | done — `ProtectedRoute` hanya cek login; tidak ada redirect pending |
 | E06-T09 | Halaman `UserManagementPage` (list user, approve, promote/demote)                                                    | done                              |
 | E06-T10 | Update `AppLayout` — avatar, nama user, tombol logout, menu User Management khusus admin                             | done                              |
 | E06-T11 | Konfigurasi Google OAuth provider di Supabase Dashboard (Client ID/Secret dari Google Cloud Console)                 | done (dikonfirmasi user)          |
 | E06-T12 | Set admin pertama manual via Supabase Table Editor setelah login pertama kali                                        | done (dikonfirmasi user)          |
-| E06-T13 | Halaman reject eksplisit / status "rejected" terpisah dari "pending" (jika diperlukan)                               | todo — lihat open question di PRD |
+| E06-T13 | Halaman reject eksplisit / status "rejected" terpisah dari "pending" (jika diperlukan)                               | superseded — approval gate dihapus pada V2 Phase 2 |
 | E06-T14 | Schema: `profiles.deleted_at` (soft delete) + RLS diperbarui (`supabase/schema_project_lifecycle.sql`)               | done                              |
 | E06-T15 | Repository/service: `softDelete`/`remove`, `revokeAccess`, `getById`                                                 | done                              |
 | E06-T16 | Halaman `UserDetailPage` (`/users/:id`)                                                                              | done                              |
@@ -117,8 +117,8 @@ riwayat eksekusi (Test Run/Result). Lihat `docs/PRD.md` §3 dan
 | E08-T11 | `TestRunDetailPage`: summary otomatis, catat hasil per test case (status/tester/notes), tombol selesaikan/buka kembali run                                                                                              | done   |
 | E08-T12 | `TestRunIssuesPage`: list issue per run, ubah status & assignee inline                                                                                                                                                  | done   |
 | E08-T13 | Routing `/test-runs/:id`, `/test-runs/:id/issues`                                                                                                                                                                       | done   |
-| E08-T14 | Halaman reject eksplisit / status "rejected" terpisah (jika diperlukan)                                                                                                                                                 | todo   |
-| E08-T15 | Attachment Issue (jika diperlukan — link URL atau upload file, lihat open question PRD)                                                                                                                                 | todo   |
+| E08-T14 | Halaman reject eksplisit / status "rejected" terpisah (jika diperlukan)                                                                                                                                                 | superseded — approval gate dihapus pada V2 Phase 2 |
+| E08-T15 | Attachment Issue (jika diperlukan — link URL atau upload file, lihat open question PRD)                                                                                                                                 | done — attachment private via storage adapter + UI |
 
 ## E09 — Restrukturisasi Monorepo (frontend/ + backend/)
 
