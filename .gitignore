@@ -46,3 +46,6 @@ backend/cmd.exe
 /opencode.json
 e2e/test-results/.last-run.json
 test-results/.last-run.json
+
+# graphify (generated, rebuildable via `graphify update .`)
+/graphify-out/
