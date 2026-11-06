@@ -11,6 +11,7 @@ import (
 )
 
 var issueUUIDPattern = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+var mentionPattern = regexp.MustCompile(`@([a-zA-Z0-9_]+)`)
 
 // IssueService wraps core.IssueRepository plus the auxiliary repositories
 // needed to assemble workflow-level context (issue.inspect / issue.can_close)
@@ -192,6 +193,62 @@ func (s *IssueService) Assign(ctx context.Context, id string, assignedTo *string
 	}
 
 	return current, nil
+}
+
+// AddComment appends an issue comment and sends best-effort mention
+// notifications using the same @username semantics as the frontend.
+func (s *IssueService) AddComment(ctx context.Context, projectID, issueRef, actorID, body string, parentCommentID *string) (*core.ActivityEntry, error) {
+	issue, err := s.Resolve(ctx, projectID, issueRef)
+	if err != nil {
+		return nil, err
+	}
+	body = strings.TrimSpace(body)
+	if body == "" {
+		return nil, errors.New("comment cannot be empty")
+	}
+	if parentCommentID != nil {
+		parent, err := s.activity.GetCommentForEntity(ctx, projectID, "issue", issue.ID, *parentCommentID)
+		if err != nil {
+			return nil, fmt.Errorf("resolve parent comment: %w", err)
+		}
+		if parent.ParentCommentID != nil {
+			return nil, errors.New("reply parent must be a top-level comment")
+		}
+	}
+	entry, err := s.activity.CreateComment(ctx, core.CreateActivityInput{
+		ProjectID: projectID, EntityType: "issue", EntityID: issue.ID,
+		ActorID: actorID, EventType: "comment", Payload: map[string]any{"body": body},
+		ParentCommentID: parentCommentID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create issue comment: %w", err)
+	}
+
+	actorName := s.actorDisplayName(ctx, actorID)
+	seen := map[string]struct{}{}
+	for _, match := range mentionPattern.FindAllStringSubmatch(body, -1) {
+		username := match[1]
+		key := strings.ToLower(username)
+		if _, exists := seen[key]; exists {
+			continue
+		}
+		seen[key] = struct{}{}
+		profile, err := s.profiles.GetByUsername(ctx, username)
+		if err != nil {
+			return nil, fmt.Errorf("resolve mentioned profile %q: %w", username, err)
+		}
+		if profile == nil || profile.ID == actorID {
+			continue
+		}
+		title := fmt.Sprintf("%s mentioned you in a comment", actorName)
+		if err := s.notifications.Create(ctx, core.CreateNotificationInput{
+			UserID: profile.ID, Type: "mention", Title: title, Body: &body,
+			ReferenceType: strPtr("issue"), ReferenceID: &issue.ID,
+		}); err != nil {
+			return nil, fmt.Errorf("notify mentioned profile %q: %w", username, err)
+		}
+	}
+	return entry, nil
 }
 
 func strPtr(s string) *string { return &s }

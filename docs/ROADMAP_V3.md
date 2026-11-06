@@ -256,16 +256,21 @@ per method dengan pasangan frontend-nya. Tandai gap sebagai salah satu dari:
 
 ---
 
-## Fase G5 — `ActivityService.addComment` (`todo`, opsional sampai ada bukti kebutuhan)
+## MCP agent execution closure (local done, isolated smoke pending)
 
-**Kenapa ditunda:** belum ada tool MCP/REST yang butuh menulis comment (beda dari
-system event). `addComment` juga bawa kompleksitas tambahan (`@mention` parsing +
-resolve username → profile + notifikasi ke yang di-mention) yang tidak dibutuhkan
-untuk menyelesaikan laporan awal (`issue.updateStatus` tidak tercatat).
+Jalur dogfooding agen kini wajib melalui MCP. `testplan.execution_context`
+menyediakan execution context lengkap, sedangkan `testresult.steps` dan `testresult.recordStep` menutup
+workflow detailed steps. `agent-testing/testify.mjs` sudah menjadi client MCP dan
+tidak lagi login/query Supabase langsung. Validasi lokal memakai fake repository;
+smoke test database ditunda sampai tersedia project Testify uji yang terisolasi.
 
-**Trigger untuk mulai fase ini:** ada tool baru (`testify.issue.comment` — sempat
-disebut sebagai item yang di-defer di `backend/TASKS.md` T4.1) yang butuh comment
-sungguhan, bukan cuma activity log system event.
+## Fase G5 — `ActivityService.addComment` (`done` — 2026-10-11)
+
+**Implementasi:** `testify.issue.comment` menulis comment ke `entity_activity`,
+mendukung reply melalui `parent_comment_id`, mengambil actor dari API token, dan
+mengirim notifikasi untuk mention `@username`. Issue selalu di-resolve dan dicek
+terhadap project scope sebelum write. Pengujian memakai fake repository; smoke
+Supabase menunggu project uji terisolasi.
 
 **Referensi:** `frontend/src/services/activityService.ts:24-65` (`addComment`).
 
@@ -544,7 +549,7 @@ G4 (done) ──→ R2 (done) ────────────────�
                                              │
                                              └─→ F4 (hapus Supabase)
 
-G5 (comment/mention) — independen, mulai kapan saja ada trigger nyata
+G5 (comment/mention, done) — independen
 ```
 
 **Status per 2026-08-05:** G1-G4, R3, R1, dan R2 semua ✅ done. F1 (flag infra

@@ -37,12 +37,13 @@ func main() {
 	// in its service — tool handlers only ever see Services, never Repos.
 	tokenRepo := postgres.NewTokenRepo(db)
 	issueRepo := postgres.NewIssueRepo(db)
+	testCaseRepo := postgres.NewTestCaseRepo(db)
 	testResultRepo := postgres.NewTestResultRepo(db)
 	activityRepo := postgres.NewActivityRepo(db)
 	services := tools.Services{
 		Project:    service.NewProjectService(postgres.NewProjectRepo(db)),
-		TestCase:   service.NewTestCaseService(postgres.NewTestCaseRepo(db), activityRepo),
-		TestPlan:   service.NewTestPlanService(postgres.NewTestPlanRepo(db), activityRepo),
+		TestCase:   service.NewTestCaseService(testCaseRepo, activityRepo),
+		TestPlan:   service.NewTestPlanService(postgres.NewTestPlanRepo(db), testCaseRepo, activityRepo),
 		TestRun:    service.NewTestRunService(postgres.NewTestRunRepo(db), testResultRepo, activityRepo),
 		TestResult: service.NewTestResultService(testResultRepo),
 		Issue: service.NewIssueService(issueRepo, service.IssueContextSources{

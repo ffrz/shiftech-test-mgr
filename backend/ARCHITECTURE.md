@@ -43,7 +43,7 @@ dibanding stdio, lihat `RUNNING.md`) dan REST API (nanti).
                       │  MCP stdio (cmd — dev/   │  │                        │
                       │  local client only)      │  │                        │
                       │  Auth: API token         │  │                        │
-                      │  (42 tools over 5 groups)│  │                        │
+                      │  (58 tools over 5 groups)│  │                        │
                       └──────────────────────────┘  └────────────────────────┘
 ```
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/shiftech/testify-platform/core"
@@ -16,6 +17,51 @@ import (
 type mockProjectRepo struct {
 	list func(ctx context.Context, filter core.ProjectFilter) ([]core.Project, error)
 	get  func(ctx context.Context, id string) (*core.Project, error)
+}
+
+func TestIssueService_AddComment_TrimsAndNotifiesUniqueMentions(t *testing.T) {
+	issueRepo := &mockIssueRepo{get: func(context.Context, string) (*core.Issue, error) {
+		return &core.Issue{ID: "123e4567-e89b-12d3-a456-426614174006", ProjectID: "p1", Title: "Bug"}, nil
+	}}
+	profiles := &mockProfileRepo{
+		getMany: func(context.Context, []string) (map[string]core.Profile, error) {
+			return map[string]core.Profile{"actor1": {ID: "actor1", Username: "author"}}, nil
+		},
+		getByUsername: func(_ context.Context, username string) (*core.Profile, error) {
+			switch strings.ToLower(username) {
+			case "alice":
+				return &core.Profile{ID: "alice-id", Username: "alice"}, nil
+			case "author":
+				return &core.Profile{ID: "actor1", Username: "author"}, nil
+			default:
+				return nil, nil
+			}
+		},
+	}
+	var created core.CreateActivityInput
+	activity := &mockActivityRepo{create: func(_ context.Context, input core.CreateActivityInput) error {
+		created = input
+		return nil
+	}}
+	var notifications []core.CreateNotificationInput
+	notificationRepo := &mockNotificationRepo{create: func(_ context.Context, input core.CreateNotificationInput) error {
+		notifications = append(notifications, input)
+		return nil
+	}}
+	s := NewIssueService(issueRepo, IssueContextSources{
+		Profiles: profiles, Activity: activity, Attachments: &mockAttachmentRepo{}, Notifications: notificationRepo,
+	})
+
+	entry, err := s.AddComment(context.Background(), "p1", "123e4567-e89b-12d3-a456-426614174006", "actor1", "  Hi @Alice @alice @author @missing  ", nil)
+	if err != nil {
+		t.Fatalf("AddComment: %v", err)
+	}
+	if entry.EventType != "comment" || created.Payload["body"] != "Hi @Alice @alice @author @missing" {
+		t.Fatalf("created comment = %+v", created)
+	}
+	if len(notifications) != 1 || notifications[0].UserID != "alice-id" || notifications[0].Type != "mention" {
+		t.Fatalf("notifications = %+v, want one mention for alice", notifications)
+	}
 }
 
 func (m *mockProjectRepo) List(ctx context.Context, filter core.ProjectFilter) ([]core.Project, error) {
@@ -179,7 +225,15 @@ func (m *mockIssueRepo) ListTagNames(ctx context.Context, issueID string) ([]str
 }
 
 type mockProfileRepo struct {
-	getMany func(ctx context.Context, ids []string) (map[string]core.Profile, error)
+	getMany       func(ctx context.Context, ids []string) (map[string]core.Profile, error)
+	getByUsername func(ctx context.Context, username string) (*core.Profile, error)
+}
+
+func (m *mockProfileRepo) GetByUsername(ctx context.Context, username string) (*core.Profile, error) {
+	if m.getByUsername != nil {
+		return m.getByUsername(ctx, username)
+	}
+	return nil, nil
 }
 
 func (m *mockProfileRepo) GetMany(ctx context.Context, ids []string) (map[string]core.Profile, error) {
@@ -190,8 +244,16 @@ func (m *mockProfileRepo) GetMany(ctx context.Context, ids []string) (map[string
 }
 
 type mockActivityRepo struct {
-	listForEntity func(ctx context.Context, projectID, entityType, entityID string, limit int) ([]core.ActivityEntry, error)
-	create        func(ctx context.Context, input core.CreateActivityInput) error
+	listForEntity       func(ctx context.Context, projectID, entityType, entityID string, limit int) ([]core.ActivityEntry, error)
+	getCommentForEntity func(ctx context.Context, projectID, entityType, entityID, commentID string) (*core.ActivityEntry, error)
+	create              func(ctx context.Context, input core.CreateActivityInput) error
+}
+
+func (m *mockActivityRepo) GetCommentForEntity(ctx context.Context, projectID, entityType, entityID, commentID string) (*core.ActivityEntry, error) {
+	if m.getCommentForEntity != nil {
+		return m.getCommentForEntity(ctx, projectID, entityType, entityID, commentID)
+	}
+	return &core.ActivityEntry{ID: commentID, EventType: "comment"}, nil
 }
 
 func (m *mockActivityRepo) ListForEntity(ctx context.Context, projectID, entityType, entityID string, limit int) ([]core.ActivityEntry, error) {
@@ -206,6 +268,15 @@ func (m *mockActivityRepo) Create(ctx context.Context, input core.CreateActivity
 		return m.create(ctx, input)
 	}
 	return nil
+}
+
+func (m *mockActivityRepo) CreateComment(ctx context.Context, input core.CreateActivityInput) (*core.ActivityEntry, error) {
+	if m.create != nil {
+		if err := m.create(ctx, input); err != nil {
+			return nil, err
+		}
+	}
+	return &core.ActivityEntry{ID: "comment-1", EventType: "comment", ActorID: input.ActorID, Payload: input.Payload, ParentCommentID: input.ParentCommentID}, nil
 }
 
 type mockAttachmentRepo struct {
@@ -242,6 +313,9 @@ func newTestIssueContextSources() IssueContextSources {
 type mockModuleRepo struct {
 	listByProject func(ctx context.Context, projectID string) ([]core.Module, error)
 	get           func(ctx context.Context, id string) (*core.Module, error)
+	create        func(ctx context.Context, projectID, name string, code *string) (*core.Module, error)
+	update        func(ctx context.Context, id, name, code string) (*core.Module, error)
+	delete        func(ctx context.Context, id string) error
 }
 
 func (m *mockModuleRepo) ListByProject(ctx context.Context, projectID string) ([]core.Module, error) {
@@ -250,10 +324,20 @@ func (m *mockModuleRepo) ListByProject(ctx context.Context, projectID string) ([
 func (m *mockModuleRepo) Get(ctx context.Context, id string) (*core.Module, error) {
 	return m.get(ctx, id)
 }
+func (m *mockModuleRepo) Create(ctx context.Context, projectID, name string, code *string) (*core.Module, error) {
+	return m.create(ctx, projectID, name, code)
+}
+func (m *mockModuleRepo) Update(ctx context.Context, id, name, code string) (*core.Module, error) {
+	return m.update(ctx, id, name, code)
+}
+func (m *mockModuleRepo) Delete(ctx context.Context, id string) error { return m.delete(ctx, id) }
 
 type mockTagRepo struct {
 	listByProject func(ctx context.Context, projectID string) ([]core.Tag, error)
 	get           func(ctx context.Context, id string) (*core.Tag, error)
+	findOrCreate  func(ctx context.Context, projectID, name string) (*core.Tag, error)
+	update        func(ctx context.Context, id, name string) (*core.Tag, error)
+	delete        func(ctx context.Context, id string) error
 }
 
 func (m *mockTagRepo) ListByProject(ctx context.Context, projectID string) ([]core.Tag, error) {
@@ -262,10 +346,20 @@ func (m *mockTagRepo) ListByProject(ctx context.Context, projectID string) ([]co
 func (m *mockTagRepo) Get(ctx context.Context, id string) (*core.Tag, error) {
 	return m.get(ctx, id)
 }
+func (m *mockTagRepo) FindOrCreate(ctx context.Context, projectID, name string) (*core.Tag, error) {
+	return m.findOrCreate(ctx, projectID, name)
+}
+func (m *mockTagRepo) Update(ctx context.Context, id, name string) (*core.Tag, error) {
+	return m.update(ctx, id, name)
+}
+func (m *mockTagRepo) Delete(ctx context.Context, id string) error { return m.delete(ctx, id) }
 
 type mockTestRoleRepo struct {
 	listByProject func(ctx context.Context, projectID string) ([]core.TestRole, error)
 	get           func(ctx context.Context, id string) (*core.TestRole, error)
+	create        func(ctx context.Context, projectID, name string) (*core.TestRole, error)
+	update        func(ctx context.Context, id, name string) (*core.TestRole, error)
+	delete        func(ctx context.Context, id string) error
 }
 
 func (m *mockTestRoleRepo) ListByProject(ctx context.Context, projectID string) ([]core.TestRole, error) {
@@ -274,10 +368,19 @@ func (m *mockTestRoleRepo) ListByProject(ctx context.Context, projectID string) 
 func (m *mockTestRoleRepo) Get(ctx context.Context, id string) (*core.TestRole, error) {
 	return m.get(ctx, id)
 }
+func (m *mockTestRoleRepo) Create(ctx context.Context, projectID, name string) (*core.TestRole, error) {
+	return m.create(ctx, projectID, name)
+}
+func (m *mockTestRoleRepo) Update(ctx context.Context, id, name string) (*core.TestRole, error) {
+	return m.update(ctx, id, name)
+}
+func (m *mockTestRoleRepo) Delete(ctx context.Context, id string) error { return m.delete(ctx, id) }
 
 type mockTestResultRepo struct {
-	list func(ctx context.Context, filter core.TestResultFilter) (*core.PageResult[core.TestResult], error)
-	get  func(ctx context.Context, id string) (*core.TestResult, error)
+	list       func(ctx context.Context, filter core.TestResultFilter) (*core.PageResult[core.TestResult], error)
+	get        func(ctx context.Context, id string) (*core.TestResult, error)
+	listSteps  func(ctx context.Context, projectID, runID string) ([]core.TestResultStep, error)
+	recordStep func(ctx context.Context, projectID, stepResultID string, input core.RecordStepResultInput) (*core.TestResultStep, error)
 }
 
 func (m *mockTestResultRepo) List(ctx context.Context, filter core.TestResultFilter) (*core.PageResult[core.TestResult], error) {
@@ -285,6 +388,20 @@ func (m *mockTestResultRepo) List(ctx context.Context, filter core.TestResultFil
 }
 func (m *mockTestResultRepo) Get(ctx context.Context, id string) (*core.TestResult, error) {
 	return m.get(ctx, id)
+}
+
+func (m *mockTestResultRepo) ListStepsForRun(ctx context.Context, projectID, runID string) ([]core.TestResultStep, error) {
+	if m.listSteps == nil {
+		return nil, nil
+	}
+	return m.listSteps(ctx, projectID, runID)
+}
+
+func (m *mockTestResultRepo) RecordStep(ctx context.Context, projectID, stepResultID string, input core.RecordStepResultInput) (*core.TestResultStep, error) {
+	if m.recordStep == nil {
+		return nil, errors.New("not used")
+	}
+	return m.recordStep(ctx, projectID, stepResultID, input)
 }
 
 // ---------------------------------------------------------------------------
@@ -471,7 +588,7 @@ func TestTestPlanServiceListGet(t *testing.T) {
 			return plan, nil
 		},
 	}
-	s := NewTestPlanService(m, &mockActivityRepo{})
+	s := NewTestPlanService(m, nil, &mockActivityRepo{})
 
 	res, err := s.List(context.Background(), core.TestPlanFilter{ProjectID: "p1"})
 	if err != nil {
@@ -487,6 +604,30 @@ func TestTestPlanServiceListGet(t *testing.T) {
 	}
 	if got != plan {
 		t.Errorf("Get = %+v, want %+v", got, plan)
+	}
+}
+
+func TestTestPlanServiceExecutionContextPreservesCaseOrderAndDetails(t *testing.T) {
+	planRepo := &mockTestPlanRepo{get: func(context.Context, string) (*core.TestPlan, error) {
+		return &core.TestPlan{ID: "plan1", ProjectID: "p1", CaseIDs: []string{"case2", "case1"}}, nil
+	}}
+	caseRepo := &mockTestCaseRepo{get: func(_ context.Context, id string) (*core.TestCase, error) {
+		return &core.TestCase{
+			ID: id, ProjectID: "p1", Title: id,
+			DetailedSteps: []core.TestCaseStep{{ID: id + "-step", StepNumber: 1, Action: "act"}},
+		}, nil
+	}}
+	s := NewTestPlanService(planRepo, caseRepo, &mockActivityRepo{})
+
+	got, err := s.ExecutionContext(context.Background(), "plan1")
+	if err != nil {
+		t.Fatalf("ExecutionContext: %v", err)
+	}
+	if len(got.Cases) != 2 || got.Cases[0].ID != "case2" || got.Cases[1].ID != "case1" {
+		t.Fatalf("Cases = %+v, want plan order case2,case1", got.Cases)
+	}
+	if len(got.Cases[0].DetailedSteps) != 1 {
+		t.Fatalf("DetailedSteps = %+v, want one full step", got.Cases[0].DetailedSteps)
 	}
 }
 
@@ -510,7 +651,7 @@ func TestTestPlanServiceCreateAddRemoveApprove(t *testing.T) {
 			return nil
 		},
 	}
-	s := NewTestPlanService(m, &mockActivityRepo{})
+	s := NewTestPlanService(m, nil, &mockActivityRepo{})
 
 	created, err := s.Create(context.Background(), core.CreateTestPlanInput{ProjectID: "p1", Name: "Sprint 1"})
 	if err != nil {
@@ -553,7 +694,7 @@ func TestTestPlanService_ChangeStatus_LogsActivityOnlyWhenChanged(t *testing.T) 
 		}
 		return nil
 	}}
-	s := NewTestPlanService(m, activity)
+	s := NewTestPlanService(m, nil, activity)
 
 	if err := s.ChangeStatus(context.Background(), "plan1", core.PlanActive, "actor1", "p1"); err != nil {
 		t.Fatalf("ChangeStatus: %v", err)
@@ -795,8 +936,8 @@ func TestIssueService_UpdateStatus_NotifiesPreviousAssignee(t *testing.T) {
 		updateStatus: func(ctx context.Context, id string, status core.IssueStatus) error { return nil },
 	}
 	aux := IssueContextSources{
-		Profiles: &mockProfileRepo{},
-		Activity: &mockActivityRepo{},
+		Profiles:    &mockProfileRepo{},
+		Activity:    &mockActivityRepo{},
 		Attachments: &mockAttachmentRepo{},
 		Notifications: &mockNotificationRepo{create: func(ctx context.Context, input core.CreateNotificationInput) error {
 			notifyCount++
@@ -955,6 +1096,41 @@ func TestTestRoleServicePassthrough(t *testing.T) {
 	}
 }
 
+func TestMasterDataServicesTrimAndValidateNames(t *testing.T) {
+	moduleRepo := &mockModuleRepo{create: func(_ context.Context, projectID, name string, code *string) (*core.Module, error) {
+		if projectID != "p1" || name != "Checkout" || code != nil {
+			t.Fatalf("module create = %q/%q/%v", projectID, name, code)
+		}
+		return &core.Module{Name: name}, nil
+	}}
+	if _, err := NewModuleService(moduleRepo).Create(context.Background(), "p1", "  Checkout  ", nil); err != nil {
+		t.Fatalf("Module.Create: %v", err)
+	}
+	if _, err := NewModuleService(moduleRepo).Create(context.Background(), "p1", "   ", nil); err == nil {
+		t.Fatal("Module.Create accepted blank name")
+	}
+
+	tagRepo := &mockTagRepo{findOrCreate: func(_ context.Context, projectID, name string) (*core.Tag, error) {
+		if projectID != "p1" || name != "smoke" {
+			t.Fatalf("tag create = %q/%q", projectID, name)
+		}
+		return &core.Tag{Name: name}, nil
+	}}
+	if _, err := NewTagService(tagRepo).Create(context.Background(), "p1", " smoke "); err != nil {
+		t.Fatalf("Tag.Create: %v", err)
+	}
+
+	roleRepo := &mockTestRoleRepo{create: func(_ context.Context, projectID, name string) (*core.TestRole, error) {
+		if projectID != "p1" || name != "Manager" {
+			t.Fatalf("role create = %q/%q", projectID, name)
+		}
+		return &core.TestRole{Name: name}, nil
+	}}
+	if _, err := NewTestRoleService(roleRepo).Create(context.Background(), "p1", " Manager "); err != nil {
+		t.Fatalf("TestRole.Create: %v", err)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // TestResultService
 // ---------------------------------------------------------------------------
@@ -993,5 +1169,32 @@ func TestTestResultServiceListPropagatesError(t *testing.T) {
 	s := NewTestResultService(m)
 	if _, err := s.List(context.Background(), core.TestResultFilter{}); !errors.Is(err, sentinel) {
 		t.Errorf("List error = %v, want sentinel", err)
+	}
+}
+
+func TestTestResultServiceStepOperationsPreserveProjectScope(t *testing.T) {
+	actual := "observed"
+	m := &mockTestResultRepo{
+		listSteps: func(_ context.Context, projectID, runID string) ([]core.TestResultStep, error) {
+			if projectID != "p1" || runID != "run1" {
+				t.Fatalf("ListStepsForRun scope = %s/%s", projectID, runID)
+			}
+			return []core.TestResultStep{{ID: "step1"}}, nil
+		},
+		recordStep: func(_ context.Context, projectID, stepID string, input core.RecordStepResultInput) (*core.TestResultStep, error) {
+			if projectID != "p1" || stepID != "step1" || input.Status != core.ResultStepFail {
+				t.Fatalf("RecordStep args = %s/%s/%+v", projectID, stepID, input)
+			}
+			return &core.TestResultStep{ID: stepID, Status: input.Status, ActualResult: input.ActualResult}, nil
+		},
+	}
+	s := NewTestResultService(m)
+	steps, err := s.ListStepsForRun(context.Background(), "p1", "run1")
+	if err != nil || len(steps) != 1 {
+		t.Fatalf("ListStepsForRun = %+v, %v", steps, err)
+	}
+	got, err := s.RecordStep(context.Background(), "p1", "step1", core.RecordStepResultInput{Status: core.ResultStepFail, ActualResult: &actual})
+	if err != nil || got.Status != core.ResultStepFail || got.ActualResult == nil || *got.ActualResult != actual {
+		t.Fatalf("RecordStep = %+v, %v", got, err)
 	}
 }

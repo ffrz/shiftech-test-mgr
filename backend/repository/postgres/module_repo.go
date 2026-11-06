@@ -38,6 +38,37 @@ func (r *ModuleRepo) Get(ctx context.Context, id string) (*core.Module, error) {
 	return &m, nil
 }
 
+func (r *ModuleRepo) Create(ctx context.Context, projectID, name string, code *string) (*core.Module, error) {
+	row := moduleRow{ID: newUUID(), ProjectID: projectID, Name: name, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	if code != nil {
+		row.Code = *code
+	}
+	if err := r.db.WithContext(ctx).Create(&row).Error; err != nil {
+		return nil, fmt.Errorf("module create: %w", err)
+	}
+	if err := r.db.WithContext(ctx).Where("id = ?", row.ID).First(&row).Error; err != nil {
+		return nil, fmt.Errorf("module create fetch: %w", err)
+	}
+	item := row.toDomain()
+	return &item, nil
+}
+
+func (r *ModuleRepo) Update(ctx context.Context, id, name, code string) (*core.Module, error) {
+	if err := r.db.WithContext(ctx).Model(&moduleRow{}).Where("id = ?", id).Updates(map[string]any{
+		"name": name, "code": code, "updated_at": time.Now(),
+	}).Error; err != nil {
+		return nil, fmt.Errorf("module update: %w", err)
+	}
+	return r.Get(ctx, id)
+}
+
+func (r *ModuleRepo) Delete(ctx context.Context, id string) error {
+	if err := r.db.WithContext(ctx).Delete(&moduleRow{}, "id = ?", id).Error; err != nil {
+		return fmt.Errorf("module delete: %w", err)
+	}
+	return nil
+}
+
 type moduleRow struct {
 	ID        string    `gorm:"column:id"`
 	ProjectID string    `gorm:"column:project_id"`

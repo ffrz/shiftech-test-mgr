@@ -165,13 +165,24 @@ func (m *writeMockIssueRepo) ListTagNames(ctx context.Context, issueID string) (
 	return nil, nil
 }
 
-type writeMockTestResultRepo struct{}
+type writeMockTestResultRepo struct {
+	recordStep func(ctx context.Context, projectID, stepResultID string, input core.RecordStepResultInput) (*core.TestResultStep, error)
+}
 
 func (m *writeMockTestResultRepo) List(ctx context.Context, filter core.TestResultFilter) (*core.PageResult[core.TestResult], error) {
 	return nil, errors.New("not used")
 }
 func (m *writeMockTestResultRepo) Get(ctx context.Context, id string) (*core.TestResult, error) {
 	return nil, errors.New("not used")
+}
+func (m *writeMockTestResultRepo) ListStepsForRun(ctx context.Context, projectID, runID string) ([]core.TestResultStep, error) {
+	return nil, errors.New("not used")
+}
+func (m *writeMockTestResultRepo) RecordStep(ctx context.Context, projectID, stepResultID string, input core.RecordStepResultInput) (*core.TestResultStep, error) {
+	if m.recordStep == nil {
+		return nil, errors.New("not used")
+	}
+	return m.recordStep(ctx, projectID, stepResultID, input)
 }
 
 type writeMockProfileRepo struct{}
@@ -180,14 +191,26 @@ func (m *writeMockProfileRepo) GetMany(ctx context.Context, ids []string) (map[s
 	return map[string]core.Profile{}, nil
 }
 
+func (m *writeMockProfileRepo) GetByUsername(ctx context.Context, username string) (*core.Profile, error) {
+	return nil, nil
+}
+
 type writeMockActivityRepo struct{}
 
 func (m *writeMockActivityRepo) ListForEntity(ctx context.Context, projectID, entityType, entityID string, limit int) ([]core.ActivityEntry, error) {
 	return nil, nil
 }
 
+func (m *writeMockActivityRepo) GetCommentForEntity(ctx context.Context, projectID, entityType, entityID, commentID string) (*core.ActivityEntry, error) {
+	return &core.ActivityEntry{ID: commentID, EventType: "comment"}, nil
+}
+
 func (m *writeMockActivityRepo) Create(ctx context.Context, input core.CreateActivityInput) error {
 	return nil
+}
+
+func (m *writeMockActivityRepo) CreateComment(ctx context.Context, input core.CreateActivityInput) (*core.ActivityEntry, error) {
+	return &core.ActivityEntry{ID: "comment-1", EventType: "comment", ActorID: input.ActorID, Payload: input.Payload, ParentCommentID: input.ParentCommentID}, nil
 }
 
 type writeMockNotificationRepo struct{}
@@ -242,7 +265,7 @@ func writeReg(session *auth.Session, tc *writeMockTestCaseRepo, tp *writeMockTes
 		reg.Services.TestCase = service.NewTestCaseService(tc, &writeMockActivityRepo{})
 	}
 	if tp != nil {
-		reg.Services.TestPlan = service.NewTestPlanService(tp, &writeMockActivityRepo{})
+		reg.Services.TestPlan = service.NewTestPlanService(tp, nil, &writeMockActivityRepo{})
 	}
 	if tr != nil {
 		reg.Services.TestRun = service.NewTestRunService(tr, &writeMockTestResultRepo{}, &writeMockActivityRepo{})
@@ -426,7 +449,7 @@ func TestWriteTools_ProjectRefInNestedObject(t *testing.T) {
 // testcase.createBulk — batch validation
 // ---------------------------------------------------------------------------
 
-func TestCreateTestCases_ReturnsReviewOnlyDraft(t *testing.T) {
+func TestCreateTestCases_ReturnsAppliedEnvelope(t *testing.T) {
 	created := 0
 	reg := writeReg(writeSession(allWriteScopes()...), &writeMockTestCaseRepo{
 		create: func(ctx context.Context, input core.CreateTestCaseInput) (*core.TestCase, error) {
@@ -453,8 +476,8 @@ func TestCreateTestCases_ReturnsReviewOnlyDraft(t *testing.T) {
 	if !ok {
 		t.Fatalf("StructuredContent = %T, want map", res.StructuredContent)
 	}
-	if env["status"] != "draft" || env["mode"] != "review_only" {
-		t.Errorf("envelope = %+v, want status=draft mode=review_only", env)
+	if env["status"] != "applied" || env["mode"] != "immediate" {
+		t.Errorf("envelope = %+v, want status=applied mode=immediate", env)
 	}
 }
 
@@ -553,6 +576,29 @@ func TestRecordTestResult_RejectsInvalidStatus(t *testing.T) {
 		"tester_id": testApprover,
 	}))
 	assertErrorResult(t, "invalid status", res, "status")
+}
+
+func TestRecordTestResultStep_AppliesScopedUpdate(t *testing.T) {
+	repo := &writeMockTestResultRepo{recordStep: func(_ context.Context, projectID, stepID string, input core.RecordStepResultInput) (*core.TestResultStep, error) {
+		if projectID != testProjectID || stepID != testResultID || input.Status != core.ResultStepFail {
+			t.Fatalf("RecordStep args = %s/%s/%+v", projectID, stepID, input)
+		}
+		return &core.TestResultStep{ID: stepID, Status: input.Status, ActualResult: input.ActualResult}, nil
+	}}
+	reg := &Registry{Session: writeSession(allWriteScopes()...)}
+	reg.Services.TestResult = service.NewTestResultService(repo)
+	w := &WriteTools{reg: reg}
+	res, _ := w.recordTestResultStep(context.Background(), call("testify.testresult.recordStep", map[string]any{
+		"step_result_id": testResultID,
+		"status":         "fail",
+		"actual_result":  "button stayed disabled",
+	}))
+	if res == nil || res.IsError {
+		t.Fatalf("recordTestResultStep result = %+v", res)
+	}
+	if !strings.Contains(resultText(t, res), "applied") {
+		t.Fatalf("result text = %q", resultText(t, res))
+	}
 }
 
 func TestRecordTestResult_ValidStatusPassesThrough(t *testing.T) {
@@ -1040,8 +1086,8 @@ func TestWriteToolsRegister(t *testing.T) {
 		t.Fatalf("Register: %v", err)
 	}
 	got := svr.ListTools()
-	if len(got) != 16 {
-		t.Fatalf("registered %d tools, want 16", len(got))
+	if len(got) != 27 {
+		t.Fatalf("registered %d tools, want 27", len(got))
 	}
 	for _, name := range writeToolNames(w) {
 		if _, ok := got[name]; !ok {
@@ -1056,6 +1102,15 @@ func writeToolNames(w *WriteTools) []string {
 		"testify.testcase.update",
 		"testify.testcase.duplicate",
 		"testify.testcase.archive",
+		"testify.module.create",
+		"testify.module.update",
+		"testify.module.delete",
+		"testify.tag.create",
+		"testify.tag.update",
+		"testify.tag.delete",
+		"testify.testrole.create",
+		"testify.testrole.update",
+		"testify.testrole.delete",
 		"testify.testplan.create",
 		"testify.testplan.addCases",
 		"testify.testplan.removeCases",
@@ -1063,11 +1118,13 @@ func writeToolNames(w *WriteTools) []string {
 		"testify.testplan.changeStatus",
 		"testify.testrun.create",
 		"testify.testrun.recordResult",
+		"testify.testresult.recordStep",
 		"testify.testrun.complete",
 		"testify.testrun.reopen",
 		"testify.issue.create",
 		"testify.issue.updateStatus",
 		"testify.issue.assign",
+		"testify.issue.comment",
 	}
 }
 
@@ -1075,9 +1132,9 @@ func writeToolNames(w *WriteTools) []string {
 // pure helpers
 // ---------------------------------------------------------------------------
 
-func TestReviewOnlyEnvelope(t *testing.T) {
-	env := reviewOnly(map[string]string{"id": "x"})
-	if env["status"] != "draft" || env["mode"] != "review_only" {
+func TestAppliedEnvelope(t *testing.T) {
+	env := applied(map[string]string{"id": "x"})
+	if env["status"] != "applied" || env["mode"] != "immediate" {
 		t.Errorf("envelope = %+v", env)
 	}
 	if _, ok := env["data"].(map[string]string); !ok {

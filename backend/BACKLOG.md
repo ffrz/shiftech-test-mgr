@@ -85,7 +85,7 @@ dipertahankan** saat porting, jangan disederhanakan jadi direct-write biasa.
 | `testify.testrun.recordResult` | hanya utk run `in_progress` |
 | `testify.testrun.complete` | manual only — jangan pernah infer otomatis dari semua result terisi |
 | `testify.issue.create` | wajib link ke `test_result_id` |
-| `testify.issue.comment` | |
+| `testify.issue.comment` | done; `entity_activity` + mention notification |
 | `testify.issue.updateStatus` | |
 | `testify.issue.detectDuplicate` | **butuh AI-gateway** — lihat Epic 9, bisa di-defer/stub dulu |
 

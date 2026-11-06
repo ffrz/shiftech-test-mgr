@@ -109,10 +109,13 @@ benar.
 
 ## Fase 4 — MCP Write Tools + Governance Middleware (P1)
 
-- [x] T4.1 — File baru `write_tools.go`, 13 write tool (BACKLOG Epic 3;
-      `issue.comment` dan `issue.detectDuplicate` di-defer — butuh migration
-      `issue_comments` / AI gateway). Semua write non-human-gate dibungkus
-      review-only draft `{status:"draft", mode:"review_only", data}`.
+- [x] T4.1 — File baru `write_tools.go`, lalu berkembang menjadi 27 write tool
+      termasuk `testify.testresult.recordStep` (BACKLOG Epic 3).
+      `issue.detectDuplicate` tetap di-defer karena butuh AI gateway.
+      `issue.comment` memakai tabel polymorphic `entity_activity` yang sudah ada.
+      Semua mutation melaporkan keadaan sebenarnya sebagai
+      `{status:"applied", mode:"immediate", data}` karena write sudah committed
+      sebelum response dibentuk; human-gate tetap berlaku pada aksi sensitif.
       `testplan.approve` menolak call tanpa literal `explicit_approval:true`
       + `approver_id`; `testrun.complete` manual-only.
 - [x] T4.2 — Governance middleware: rate-limit + audit wrapper di sekitar
@@ -209,6 +212,46 @@ berubah — sudah diperbaiki dengan mock `ProfileRepository`/`ActivityRepository
 `AttachmentRepository`/`TestResultRepository` baru).
 
 ---
+
+## Fase 5.6 — Agent-only-through-MCP execution path (local complete, isolated smoke pending)
+
+- [x] `testify.testplan.execution_context` mengembalikan execution context lengkap
+      dan berurutan tanpa mengubah kontrak lama `testify.testplan.get`.
+- [x] `testify.testresult.steps` membaca detailed step results beserta action dan
+      expected result.
+- [x] `testify.testresult.recordStep` mencatat `pass`/`fail`/`not_run` dengan
+      project scoping di repository.
+- [x] `testrun.recordResult` memakai profile pemilik API token sebagai tester;
+      agen tidak perlu mencari UUID profile lewat database.
+- [x] `agent-testing/testify.mjs` dipindahkan dari Supabase REST langsung menjadi
+      client MCP HTTP murni.
+- [x] Unit/tool tests memakai fake repository dan tidak menyentuh database.
+- [ ] Smoke test Streamable HTTP terhadap project Testify yang terisolasi. Jangan
+      memakai project/data existing; tunggu project dan API token uji khusus.
+
+**Kontrak deployment:** backend tetap menggunakan Supabase Postgres melalui
+`DATABASE_URL`; tidak ada PostgreSQL lokal dan tidak ada rencana memindahkan beban
+database ke VPS pada fase ini. Agen hanya menerima endpoint MCP dan API token,
+bukan kredensial Supabase.
+
+## Fase 5.7 — Project master data via MCP (local complete)
+
+- [x] Tool list/create/update/delete untuk Module, Tag, dan Test Role.
+- [x] Semua mutation memverifikasi project scope sebelum write.
+- [x] Service melakukan trim/validasi; repository tetap query + mapping saja.
+- [x] Unit/tool tests memakai fake repository dan tidak menyentuh Supabase.
+
+## Fase 5.8 — Issue comments and mentions via MCP (local complete)
+
+- [x] `testify.issue.comment` menerima UUID atau code issue, isi komentar, dan
+      optional `parent_comment_id` untuk reply satu tingkat.
+- [x] Actor selalu berasal dari pemilik API token, bukan input agen.
+- [x] Mention `@username` di-resolve dari profil publik dan menghasilkan
+      notifikasi `mention`; actor sendiri, username tidak dikenal, dan duplikat
+      dilewati.
+- [x] Menggunakan `entity_activity` yang sudah menjadi source of truth; tidak ada
+      tabel atau migrasi database baru.
+- [ ] Smoke test terhadap project Supabase uji terisolasi.
 
 ## Fase 6 — Requirement Tools + Artifact Storage (SKIPPED — 2026-08-03)
 

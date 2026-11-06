@@ -51,10 +51,11 @@ func main() {
 	})
 	issueHandler := &handler.IssueHandler{Service: issueService}
 
-	testCaseService := service.NewTestCaseService(postgres.NewTestCaseRepo(db), activityRepo)
+	testCaseRepo := postgres.NewTestCaseRepo(db)
+	testCaseService := service.NewTestCaseService(testCaseRepo, activityRepo)
 	testCaseHandler := &handler.TestCaseHandler{Service: testCaseService}
 
-	testPlanService := service.NewTestPlanService(postgres.NewTestPlanRepo(db), activityRepo)
+	testPlanService := service.NewTestPlanService(postgres.NewTestPlanRepo(db), testCaseRepo, activityRepo)
 	testPlanHandler := &handler.TestPlanHandler{Service: testPlanService}
 
 	testRunService := service.NewTestRunService(postgres.NewTestRunRepo(db), postgres.NewTestResultRepo(db), activityRepo)

@@ -70,6 +70,9 @@ type ProfileRepository interface {
 	// GetMany resolves a batch of profile UUIDs to their public display
 	// identities. Unknown IDs are skipped (not present in the result map).
 	GetMany(ctx context.Context, ids []string) (map[string]Profile, error)
+	// GetByUsername resolves a public username case-insensitively. A missing
+	// profile is returned as (nil, nil), so mentions can remain best-effort.
+	GetByUsername(ctx context.Context, username string) (*Profile, error)
 }
 
 // ActivityRepository reads and writes the entity_activity timeline (comments
@@ -79,8 +82,13 @@ type ActivityRepository interface {
 	// ListForEntity returns the activity timeline for one entity, newest
 	// first, excluding soft-deleted rows.
 	ListForEntity(ctx context.Context, projectID, entityType, entityID string, limit int) ([]ActivityEntry, error)
+	// GetCommentForEntity resolves one non-deleted comment within the exact
+	// project/entity boundary. It is used to validate reply parents.
+	GetCommentForEntity(ctx context.Context, projectID, entityType, entityID, commentID string) (*ActivityEntry, error)
 	// Create inserts one activity entry into entity_activity.
 	Create(ctx context.Context, input CreateActivityInput) error
+	// CreateComment inserts a comment and returns its generated timeline entry.
+	CreateComment(ctx context.Context, input CreateActivityInput) (*ActivityEntry, error)
 }
 
 // AttachmentRepository reads entity_attachments metadata (polymorphic across
@@ -101,21 +109,37 @@ type NotificationRepository interface {
 type ModuleRepository interface {
 	ListByProject(ctx context.Context, projectID string) ([]Module, error)
 	Get(ctx context.Context, id string) (*Module, error)
+	Create(ctx context.Context, projectID, name string, code *string) (*Module, error)
+	Update(ctx context.Context, id, name, code string) (*Module, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type TagRepository interface {
 	ListByProject(ctx context.Context, projectID string) ([]Tag, error)
 	Get(ctx context.Context, id string) (*Tag, error)
+	FindOrCreate(ctx context.Context, projectID, name string) (*Tag, error)
+	Update(ctx context.Context, id, name string) (*Tag, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type TestRoleRepository interface {
 	ListByProject(ctx context.Context, projectID string) ([]TestRole, error)
 	Get(ctx context.Context, id string) (*TestRole, error)
+	Create(ctx context.Context, projectID, name string) (*TestRole, error)
+	Update(ctx context.Context, id, name string) (*TestRole, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type TestResultRepository interface {
 	List(ctx context.Context, filter TestResultFilter) (*PageResult[TestResult], error)
 	Get(ctx context.Context, id string) (*TestResult, error)
+	ListStepsForRun(ctx context.Context, projectID, runID string) ([]TestResultStep, error)
+	RecordStep(ctx context.Context, projectID, stepResultID string, input RecordStepResultInput) (*TestResultStep, error)
+}
+
+type RecordStepResultInput struct {
+	Status       TestResultStepStatus
+	ActualResult *string
 }
 
 type TestResultFilter struct {

@@ -1,6 +1,33 @@
 package tools
 
-import "testing"
+import (
+	"context"
+	"encoding/json"
+	"strings"
+	"testing"
+
+	"github.com/shiftech/testify-platform/core"
+	"github.com/shiftech/testify-platform/service"
+)
+
+func TestGetTestPlanExecutionContextReturnsCasesAndSteps(t *testing.T) {
+	planRepo := &writeMockTestPlanRepo{get: func(context.Context, string) (*core.TestPlan, error) {
+		return &core.TestPlan{ID: testPlanID, ProjectID: testProjectID, CaseIDs: []string{testCaseID}}, nil
+	}}
+	caseRepo := &writeMockTestCaseRepo{get: func(context.Context, string) (*core.TestCase, error) {
+		return &core.TestCase{ID: testCaseID, ProjectID: testProjectID, Title: "Checkout", DetailedSteps: []core.TestCaseStep{{ID: testResultID, Action: "Pay"}}}, nil
+	}}
+	reg := &Registry{Session: writeSession(core.ScopeReadProject)}
+	reg.Services.TestPlan = service.NewTestPlanService(planRepo, caseRepo, &writeMockActivityRepo{})
+	res, _ := (&ReadTools{reg: reg}).getTestPlanExecutionContext(context.Background(), call("testify.testplan.execution_context", map[string]any{"testplan_id": testPlanID}))
+	if res == nil || res.IsError {
+		t.Fatalf("getTestPlan result = %+v", res)
+	}
+	payload, err := json.Marshal(res.StructuredContent)
+	if err != nil || !strings.Contains(string(payload), "Checkout") || !strings.Contains(string(payload), "Pay") {
+		t.Fatalf("execution context payload = %s, err=%v", payload, err)
+	}
+}
 
 func TestIsUUID(t *testing.T) {
 	valid := []string{

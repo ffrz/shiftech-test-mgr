@@ -58,6 +58,21 @@ func (t *ReadTools) Register(s ToolAdder) error {
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithString("testcase_id", mcp.Description("Test case UUID returned by testcase.search"), mcp.Required()),
 	), t.getTestCase)
+	s.AddTool(mcp.NewTool("testify.module.list",
+		mcp.WithDescription("List modules in the scoped project."),
+		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+	), t.listModules)
+	s.AddTool(mcp.NewTool("testify.tag.list",
+		mcp.WithDescription("List tags in the scoped project."),
+		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+	), t.listTags)
+	s.AddTool(mcp.NewTool("testify.testrole.list",
+		mcp.WithDescription("List application-under-test roles in the scoped project."),
+		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+	), t.listTestRoles)
 
 	// test plan
 	s.AddTool(mcp.NewTool("testify.testplan.list",
@@ -68,11 +83,17 @@ func (t *ReadTools) Register(s ToolAdder) error {
 		mcp.WithNumber("limit", mcp.Description("Page size, default 50 and maximum 100"), mcp.Min(1), mcp.Max(100)),
 	), t.listTestPlans)
 	s.AddTool(mcp.NewTool("testify.testplan.get",
-		mcp.WithDescription("Get a test plan and all test cases in its ordered scope."),
+		mcp.WithDescription("Get a test plan and its ordered test-case IDs."),
 		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithString("testplan_id", mcp.Description("Test plan UUID"), mcp.Required()),
 	), t.getTestPlan)
+	s.AddTool(mcp.NewTool("testify.testplan.execution_context",
+		mcp.WithDescription("Get a test plan plus every test case in plan order, including detailed steps and expected results. Use this to execute a plan without database access."),
+		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithString("testplan_id", mcp.Description("Test plan UUID"), mcp.Required()),
+	), t.getTestPlanExecutionContext)
 
 	// test run
 	s.AddTool(mcp.NewTool("testify.testrun.list",
@@ -108,6 +129,12 @@ func (t *ReadTools) Register(s ToolAdder) error {
 		mcp.WithString("cursor", mcp.Description("Opaque nextCursor from the previous response")),
 		mcp.WithNumber("limit", mcp.Description("Page size, default 50 and maximum 100"), mcp.Min(1), mcp.Max(100)),
 	), t.listTestResults)
+	s.AddTool(mcp.NewTool("testify.testresult.steps",
+		mcp.WithDescription("List detailed step-result rows for a test run, including each step action and expected result."),
+		mcp.WithReadOnlyHintAnnotation(true), mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithString("testrun_id", mcp.Description("Test run UUID"), mcp.Required()),
+	), t.listTestResultSteps)
 
 	// issue
 	s.AddTool(mcp.NewTool("testify.issue.search",
@@ -266,6 +293,42 @@ func (t *ReadTools) getTestCase(ctx context.Context, req mcp.CallToolRequest) (*
 		tc.Code, tc.Title, tc.Priority, tc.Status)), nil
 }
 
+func (t *ReadTools) listModules(ctx context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, err := t.reg.SessionFor(ctx)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	items, err := t.reg.Services.Module.ListByProject(ctx, session.ProjectID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultStructured(items, fmt.Sprintf("%d module(s) found", len(items))), nil
+}
+
+func (t *ReadTools) listTags(ctx context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, err := t.reg.SessionFor(ctx)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	items, err := t.reg.Services.Tag.ListByProject(ctx, session.ProjectID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultStructured(items, fmt.Sprintf("%d tag(s) found", len(items))), nil
+}
+
+func (t *ReadTools) listTestRoles(ctx context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, err := t.reg.SessionFor(ctx)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	items, err := t.reg.Services.TestRole.ListByProject(ctx, session.ProjectID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultStructured(items, fmt.Sprintf("%d test role(s) found", len(items))), nil
+}
+
 // ---------------------------------------------------------------------------
 // test plan
 // ---------------------------------------------------------------------------
@@ -308,6 +371,25 @@ func (t *ReadTools) getTestPlan(ctx context.Context, req mcp.CallToolRequest) (*
 		return mcp.NewToolResultError("test plan not found in the scoped project"), nil
 	}
 	return mcp.NewToolResultStructured(tp, "test plan found"), nil
+}
+
+func (t *ReadTools) getTestPlanExecutionContext(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, err := t.reg.SessionFor(ctx)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	testPlanID, err := req.RequireString("testplan_id")
+	if err != nil || !isUUID(testPlanID) {
+		return mcp.NewToolResultError("testplan_id must be a valid UUID"), nil
+	}
+	execution, err := t.reg.Services.TestPlan.ExecutionContext(ctx, testPlanID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	if execution.Plan.ProjectID != session.ProjectID {
+		return mcp.NewToolResultError("test plan not found in the scoped project"), nil
+	}
+	return mcp.NewToolResultStructured(execution, fmt.Sprintf("test plan found with %d executable case(s)", len(execution.Cases))), nil
 }
 
 // ---------------------------------------------------------------------------
@@ -430,6 +512,22 @@ func (t *ReadTools) listTestResults(ctx context.Context, req mcp.CallToolRequest
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	return mcp.NewToolResultStructured(result, fmt.Sprintf("%d test result(s) found", len(result.Items))), nil
+}
+
+func (t *ReadTools) listTestResultSteps(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	session, err := t.reg.SessionFor(ctx)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	runID, err := req.RequireString("testrun_id")
+	if err != nil || !isUUID(runID) {
+		return mcp.NewToolResultError("testrun_id must be a valid UUID"), nil
+	}
+	steps, err := t.reg.Services.TestResult.ListStepsForRun(ctx, session.ProjectID, runID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultStructured(steps, fmt.Sprintf("%d detailed result step(s) found", len(steps))), nil
 }
 
 // ---------------------------------------------------------------------------

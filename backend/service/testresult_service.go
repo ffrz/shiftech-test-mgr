@@ -22,3 +22,11 @@ func (s *TestResultService) List(ctx context.Context, filter core.TestResultFilt
 func (s *TestResultService) Get(ctx context.Context, id string) (*core.TestResult, error) {
 	return s.repo.Get(ctx, id)
 }
+
+func (s *TestResultService) ListStepsForRun(ctx context.Context, projectID, runID string) ([]core.TestResultStep, error) {
+	return s.repo.ListStepsForRun(ctx, projectID, runID)
+}
+
+func (s *TestResultService) RecordStep(ctx context.Context, projectID, stepResultID string, input core.RecordStepResultInput) (*core.TestResultStep, error) {
+	return s.repo.RecordStep(ctx, projectID, stepResultID, input)
+}

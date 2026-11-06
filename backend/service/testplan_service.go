@@ -10,15 +10,41 @@ import (
 // TestPlanService wraps core.TestPlanRepository. Business rules for TestPlan
 // (e.g. approval preconditions, case scope validation) belong here.
 type TestPlanService struct {
-	repo     core.TestPlanRepository
-	activity core.ActivityRepository
+	repo      core.TestPlanRepository
+	testCases core.TestCaseRepository
+	activity  core.ActivityRepository
 }
 
 // NewTestPlanService wires the repository plus the activity repository
 // needed to log status_change events on ChangeStatus (mirrors
 // frontend/src/services/testPlanService.ts changeStatus).
-func NewTestPlanService(repo core.TestPlanRepository, activity core.ActivityRepository) *TestPlanService {
-	return &TestPlanService{repo: repo, activity: activity}
+func NewTestPlanService(repo core.TestPlanRepository, testCases core.TestCaseRepository, activity core.ActivityRepository) *TestPlanService {
+	return &TestPlanService{repo: repo, testCases: testCases, activity: activity}
+}
+
+// ExecutionContext resolves every case in plan order, including detailed
+// steps. It is deliberately assembled in the domain service so every
+// transport exposes the same complete execution contract.
+func (s *TestPlanService) ExecutionContext(ctx context.Context, id string) (*core.TestPlanExecutionContext, error) {
+	plan, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if s.testCases == nil {
+		return nil, fmt.Errorf("test plan execution context is not configured")
+	}
+	cases := make([]core.TestCase, 0, len(plan.CaseIDs))
+	for _, caseID := range plan.CaseIDs {
+		testCase, err := s.testCases.Get(ctx, caseID)
+		if err != nil {
+			return nil, fmt.Errorf("load test case %s: %w", caseID, err)
+		}
+		if testCase.ProjectID != plan.ProjectID {
+			return nil, fmt.Errorf("test case %s does not belong to plan project", caseID)
+		}
+		cases = append(cases, *testCase)
+	}
+	return &core.TestPlanExecutionContext{Plan: *plan, Cases: cases}, nil
 }
 
 func (s *TestPlanService) List(ctx context.Context, filter core.TestPlanFilter) (*core.PageResult[core.TestPlan], error) {

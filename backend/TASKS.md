@@ -276,15 +276,13 @@ harus punya penolakan setara, tulis sebagai test case eksplisit
 (`TestApproveTestPlan_RejectsWithoutExplicitApproval` atau serupa).
 
 **Catatan implementasi:**
-- 13 tool terdaftar (bukan 12): createBulk/update/duplicate/archive test
-  case, create/addCases/removeCases/approve test plan,
-  create/recordResult/complete test run, create/updateStatus issue.
-- `issue.comment` dan `issue.detectDuplicate` di-defer dari Fase 4 —
-  `issue.comment` butuh migration tabel `issue_comments` yang belum ada,
-  `issue.detectDuplicate` butuh AI gateway (Fase 8). Ini sesuai catatan
-  `BACKLOG.md` Epic 3.
-- Semua write non-human-gate dibungkus `reviewOnly()` →
-  `{status:"draft", mode:"review_only", data}` setara `writeService.ts`.
+- 27 write tool terdaftar, termasuk project master data, detailed-step result,
+  lifecycle tambahan, assignment, dan issue comment.
+- `issue.detectDuplicate` di-defer dari Fase 4 karena butuh AI gateway.
+- `issue.comment` selesai lewat tabel `entity_activity` yang sudah ada; tidak
+  memerlukan tabel `issue_comments` terpisah.
+- Semua mutation melaporkan write yang benar-benar sudah diterapkan sebagai
+  `{status:"applied", mode:"immediate", data}`.
 - Human-gate: `approveTestPlan` menolak semua kecuali literal JSON `true`
   (`boolLiteral` menolak string `"true"`/number) + wajib `approver_id` UUID;
   `completeTestRun` manual-only (tidak pernah inferred).

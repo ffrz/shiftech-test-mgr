@@ -67,6 +67,12 @@ berlaku untuk koneksi `DATABASE_URL` langsung, hanya untuk PostgREST).
 
 ## Menjalankan MCP Server — dua mode, pilih sesuai kebutuhan
 
+Backend MCP tidak membutuhkan PostgreSQL lokal. `DATABASE_URL` menunjuk ke
+Supabase Postgres (pooler direkomendasikan untuk deployment). Proses di VPS hanya
+menjalankan binary Go; database tetap dikelola Supabase agar beban server ringan.
+Client/agen tidak pernah menerima `DATABASE_URL`, Supabase URL, anon key, atau
+service-role key—hanya URL MCP, API token Testify, dan project ID.
+
 MCP server pakai **API token**, bukan session login biasa (sama seperti
 Node di `NvlFr-testify` — satu API token selalu terikat ke satu project).
 Ada **dua entry point berbeda** untuk dua skenario pemakaian yang berbeda:

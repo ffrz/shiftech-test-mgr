@@ -49,6 +49,19 @@ func (r *ProfileRepo) GetMany(ctx context.Context, ids []string) (map[string]cor
 	return out, nil
 }
 
+func (r *ProfileRepo) GetByUsername(ctx context.Context, username string) (*core.Profile, error) {
+	var row profileRow
+	err := r.db.WithContext(ctx).Where("lower(username) = lower(?)", username).First(&row).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("profile get by username: %w", err)
+	}
+	profile := row.toDomain()
+	return &profile, nil
+}
+
 type profileRow struct {
 	ID          string  `gorm:"column:id"`
 	Username    string  `gorm:"column:username"`

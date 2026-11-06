@@ -38,6 +38,32 @@ func (r *TestRoleRepo) Get(ctx context.Context, id string) (*core.TestRole, erro
 	return &tr, nil
 }
 
+func (r *TestRoleRepo) Create(ctx context.Context, projectID, name string) (*core.TestRole, error) {
+	now := time.Now()
+	row := testRoleRow{ID: newUUID(), ProjectID: projectID, Name: name, CreatedAt: now, UpdatedAt: now}
+	if err := r.db.WithContext(ctx).Create(&row).Error; err != nil {
+		return nil, fmt.Errorf("testrole create: %w", err)
+	}
+	item := row.toDomain()
+	return &item, nil
+}
+
+func (r *TestRoleRepo) Update(ctx context.Context, id, name string) (*core.TestRole, error) {
+	if err := r.db.WithContext(ctx).Model(&testRoleRow{}).Where("id = ?", id).Updates(map[string]any{
+		"name": name, "updated_at": time.Now(),
+	}).Error; err != nil {
+		return nil, fmt.Errorf("testrole update: %w", err)
+	}
+	return r.Get(ctx, id)
+}
+
+func (r *TestRoleRepo) Delete(ctx context.Context, id string) error {
+	if err := r.db.WithContext(ctx).Delete(&testRoleRow{}, "id = ?", id).Error; err != nil {
+		return fmt.Errorf("testrole delete: %w", err)
+	}
+	return nil
+}
+
 type testRoleRow struct {
 	ID        string    `gorm:"column:id"`
 	ProjectID string    `gorm:"column:project_id"`

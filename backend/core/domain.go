@@ -149,6 +149,13 @@ type TestPlan struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+// TestPlanExecutionContext is the complete, ordered input an agent needs to
+// execute a plan without querying Supabase tables directly.
+type TestPlanExecutionContext struct {
+	Plan  TestPlan   `json:"plan"`
+	Cases []TestCase `json:"cases"`
+}
+
 type Tag struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
@@ -227,6 +234,27 @@ type TestResult struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+type TestResultStepStatus string
+
+const (
+	ResultStepPass   TestResultStepStatus = "pass"
+	ResultStepFail   TestResultStepStatus = "fail"
+	ResultStepNotRun TestResultStepStatus = "not_run"
+)
+
+// TestResultStep is one executable detailed step attached to a test result.
+// Step carries the immutable action/expectation needed by an agent at runtime.
+type TestResultStep struct {
+	ID             string               `json:"id"`
+	TestResultID   string               `json:"testResultId"`
+	TestCaseStepID string               `json:"testCaseStepId"`
+	Status         TestResultStepStatus `json:"status"`
+	ActualResult   *string              `json:"actualResult"`
+	Step           TestCaseStep         `json:"step"`
+	CreatedAt      time.Time            `json:"createdAt"`
+	UpdatedAt      time.Time            `json:"updatedAt"`
+}
+
 type RunSummary struct {
 	Pass    int `json:"pass"`
 	Fail    int `json:"fail"`
@@ -284,23 +312,23 @@ const (
 // stand alone (a feature request, a general finding) or be linked to any
 // number of TestResults via the issue_test_results junction.
 type Issue struct {
-	ID             string        `json:"id"`
-	Code           string        `json:"code"`
-	ProjectID      string        `json:"projectId"`
-	ModuleID       *string       `json:"moduleId"`
-	Type           IssueType     `json:"type"`
-	Title          string        `json:"title"`
-	Description    *string       `json:"description"`
-	ActualResult   *string       `json:"actualResult"`
-	ExpectedResult *string       `json:"expectedResult"`
-	Priority       IssuePriority `json:"priority"`
-	Status         IssueStatus   `json:"status"`
-	AssignedTo     *string       `json:"assignedTo"`
-	TargetRoleID   *string       `json:"targetRoleId"`
+	ID             string         `json:"id"`
+	Code           string         `json:"code"`
+	ProjectID      string         `json:"projectId"`
+	ModuleID       *string        `json:"moduleId"`
+	Type           IssueType      `json:"type"`
+	Title          string         `json:"title"`
+	Description    *string        `json:"description"`
+	ActualResult   *string        `json:"actualResult"`
+	ExpectedResult *string        `json:"expectedResult"`
+	Priority       IssuePriority  `json:"priority"`
+	Status         IssueStatus    `json:"status"`
+	AssignedTo     *string        `json:"assignedTo"`
+	TargetRoleID   *string        `json:"targetRoleId"`
 	ExternalLinks  []ExternalLink `json:"externalLinks"`
-	CreatedBy      *string       `json:"createdBy"`
-	CreatedAt      time.Time     `json:"createdAt"`
-	UpdatedAt      time.Time     `json:"updatedAt"`
+	CreatedBy      *string        `json:"createdBy"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
 }
 
 // ---------------------------------------------------------------------------
@@ -345,24 +373,25 @@ type IssueLink struct {
 // for an entity, with its actor resolved for display. ActorID is carried
 // internally for actor resolution and is omitted from serialized output.
 type ActivityEntry struct {
-	ID        string         `json:"id"`
-	EventType string         `json:"eventType"`
-	ActorID   string         `json:"-"`
-	Actor     *Profile       `json:"actor,omitempty"`
-	Payload   map[string]any `json:"payload"`
-	CreatedAt time.Time      `json:"createdAt"`
+	ID              string         `json:"id"`
+	EventType       string         `json:"eventType"`
+	ActorID         string         `json:"-"`
+	Actor           *Profile       `json:"actor,omitempty"`
+	Payload         map[string]any `json:"payload"`
+	ParentCommentID *string        `json:"parentCommentId,omitempty"`
+	CreatedAt       time.Time      `json:"createdAt"`
 }
 
 // CreateActivityInput carries the fields needed to insert one row into
-// entity_activity (a system event like a status transition). Comments use
-// a separate path through the frontend's security-definer RPC.
+// entity_activity (a system event or comment).
 type CreateActivityInput struct {
-	ProjectID  string
-	EntityType string
-	EntityID   string
-	ActorID    string
-	EventType  string
-	Payload    map[string]any
+	ProjectID       string
+	EntityType      string
+	EntityID        string
+	ActorID         string
+	EventType       string
+	Payload         map[string]any
+	ParentCommentID *string
 }
 
 // CreateNotificationInput mirrors the params of the create_notification
@@ -431,16 +460,16 @@ type RunDetail struct {
 type TokenScope string
 
 const (
-	ScopeReadProject    TokenScope = "read:project"
-	ScopeReadTestCase   TokenScope = "read:test-cases"
-	ScopeReadTestPlan   TokenScope = "read:test-plans"
-	ScopeReadTestRun    TokenScope = "read:test-runs"
-	ScopeReadIssue      TokenScope = "read:issues"
-	ScopeReadAutomation TokenScope = "read:automation"
-	ScopeWriteTestCase  TokenScope = "write:test-cases"
-	ScopeWriteTestPlan  TokenScope = "write:test-plans"
-	ScopeWriteTestRun   TokenScope = "write:test-runs"
-	ScopeWriteIssue     TokenScope = "write:issues"
+	ScopeReadProject     TokenScope = "read:project"
+	ScopeReadTestCase    TokenScope = "read:test-cases"
+	ScopeReadTestPlan    TokenScope = "read:test-plans"
+	ScopeReadTestRun     TokenScope = "read:test-runs"
+	ScopeReadIssue       TokenScope = "read:issues"
+	ScopeReadAutomation  TokenScope = "read:automation"
+	ScopeWriteTestCase   TokenScope = "write:test-cases"
+	ScopeWriteTestPlan   TokenScope = "write:test-plans"
+	ScopeWriteTestRun    TokenScope = "write:test-runs"
+	ScopeWriteIssue      TokenScope = "write:issues"
 	ScopeWriteAutomation TokenScope = "write:automation"
 )
 
@@ -473,12 +502,12 @@ type PageResult[T any] struct {
 // executes them against the app under test. Token hashes are never exposed in
 // domain payloads — only the prefix is shown.
 type AutomationRunner struct {
-	ID          string     `json:"id"`
-	ProjectID   string     `json:"projectId"`
-	Name        string     `json:"name"`
-	Labels      []string   `json:"labels"`
-	TokenPrefix string     `json:"tokenPrefix"`
-	Active      bool       `json:"active"`
+	ID          string   `json:"id"`
+	ProjectID   string   `json:"projectId"`
+	Name        string   `json:"name"`
+	Labels      []string `json:"labels"`
+	TokenPrefix string   `json:"tokenPrefix"`
+	Active      bool     `json:"active"`
 	// LastSeenAt is updated by every heartbeat/poll/report call.
 	LastSeenAt *time.Time `json:"lastSeenAt"`
 	// Status is computed on read: "online" when active and last_seen_at is
@@ -513,22 +542,22 @@ const (
 // AutomationJob is the unit of execution pulled by a runner. Its result lands
 // in the corresponding test_results row.
 type AutomationJob struct {
-	ID             string             `json:"id"`
-	ProjectID      string             `json:"projectId"`
-	TestRunID      string             `json:"testRunId"`
-	TestCaseID     string             `json:"testCaseId"`
-	ScriptRef      string             `json:"scriptRef"`
-	RequiredLabels []string           `json:"requiredLabels"`
+	ID             string              `json:"id"`
+	ProjectID      string              `json:"projectId"`
+	TestRunID      string              `json:"testRunId"`
+	TestCaseID     string              `json:"testCaseId"`
+	ScriptRef      string              `json:"scriptRef"`
+	RequiredLabels []string            `json:"requiredLabels"`
 	Status         AutomationJobStatus `json:"status"`
-	Attempt        int                `json:"attempt"`
-	MaxAttempts    int                `json:"maxAttempts"`
-	RunnerID       *string            `json:"runnerId"`
-	ErrorMessage   *string            `json:"errorMessage"`
-	QueuedAt       time.Time          `json:"queuedAt"`
-	StartedAt      *time.Time         `json:"startedAt"`
-	FinishedAt     *time.Time         `json:"finishedAt"`
-	CreatedAt      time.Time          `json:"createdAt"`
-	UpdatedAt      time.Time          `json:"updatedAt"`
+	Attempt        int                 `json:"attempt"`
+	MaxAttempts    int                 `json:"maxAttempts"`
+	RunnerID       *string             `json:"runnerId"`
+	ErrorMessage   *string             `json:"errorMessage"`
+	QueuedAt       time.Time           `json:"queuedAt"`
+	StartedAt      *time.Time          `json:"startedAt"`
+	FinishedAt     *time.Time          `json:"finishedAt"`
+	CreatedAt      time.Time           `json:"createdAt"`
+	UpdatedAt      time.Time           `json:"updatedAt"`
 }
 
 // AutomationEnqueueResult is returned by automation.enqueue.
@@ -567,24 +596,24 @@ type AnalysisProblematicResult struct {
 // AnalysisRunSummary summarizes one regression run. All metrics are computed
 // on demand — never cached.
 type AnalysisRunSummary struct {
-	Run                TestRun                       `json:"run"`
-	PassRate           float64                       `json:"passRate"`
-	FailureRate        float64                       `json:"failureRate"`
-	ProblematicResults []AnalysisProblematicResult   `json:"problematicResults"`
+	Run                TestRun                     `json:"run"`
+	PassRate           float64                     `json:"passRate"`
+	FailureRate        float64                     `json:"failureRate"`
+	ProblematicResults []AnalysisProblematicResult `json:"problematicResults"`
 }
 
 type FlakyCandidate struct {
-	TestCaseID      string           `json:"testCaseId"`
-	Code            string           `json:"code"`
-	Title           string           `json:"title"`
-	Priority        TestCasePriority `json:"priority"`
-	Executions      int64            `json:"executions"`
-	PassCount       int64            `json:"passCount"`
-	FailCount       int64            `json:"failCount"`
-	Transitions     int64            `json:"transitions"`
-	FlakinessScore  float64          `json:"flakinessScore"`
-	LatestStatus    string           `json:"latestStatus"`
-	LatestExecutedAt time.Time       `json:"latestExecutedAt"`
+	TestCaseID       string           `json:"testCaseId"`
+	Code             string           `json:"code"`
+	Title            string           `json:"title"`
+	Priority         TestCasePriority `json:"priority"`
+	Executions       int64            `json:"executions"`
+	PassCount        int64            `json:"passCount"`
+	FailCount        int64            `json:"failCount"`
+	Transitions      int64            `json:"transitions"`
+	FlakinessScore   float64          `json:"flakinessScore"`
+	LatestStatus     string           `json:"latestStatus"`
+	LatestExecutedAt time.Time        `json:"latestExecutedAt"`
 }
 
 type RetestSuggestion struct {
@@ -606,10 +635,10 @@ type RetestSuggestion struct {
 type RepositorySourceType string
 
 const (
-	RepoSourceLocalPath      RepositorySourceType = "local_path"
-	RepoSourceGithubPublic   RepositorySourceType = "github_public"
-	RepoSourceGithubPrivate  RepositorySourceType = "github_private"
-	RepoSourceGitURL         RepositorySourceType = "git_url"
+	RepoSourceLocalPath     RepositorySourceType = "local_path"
+	RepoSourceGithubPublic  RepositorySourceType = "github_public"
+	RepoSourceGithubPrivate RepositorySourceType = "github_private"
+	RepoSourceGitURL        RepositorySourceType = "git_url"
 )
 
 // ProjectRepositoryConfig is the scoped configuration of one project
@@ -635,11 +664,11 @@ type RepoFileChange struct {
 
 // RepoDiff is returned by repo.diff for regression selection.
 type RepoDiff struct {
-	Base      string          `json:"base"`
-	Head      string          `json:"head"`
+	Base      string           `json:"base"`
+	Head      string           `json:"head"`
 	Files     []RepoFileChange `json:"files"`
-	Patch     string          `json:"patch"`
-	Truncated bool            `json:"truncated"`
+	Patch     string           `json:"patch"`
+	Truncated bool             `json:"truncated"`
 }
 
 // RepoListFilesResult is returned by repo.list_files.
