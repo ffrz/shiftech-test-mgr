@@ -14,15 +14,18 @@ import { projectMemberService } from '../../services/projectMemberService';
 import { supabase } from '../../config/supabaseClient';
 import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectRole } from '../../hooks/useProjectRole';
+import { useApiTokens } from '../../hooks/useApiTokens';
 import { useScreenSize } from '../../hooks/useScreenSize';
 import { useTabQueryParam } from '../../hooks/useTabQueryParam';
-import type { Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus, ProjectVisibility } from '../../types/domain';
+import type { ApiToken, Project, Module, Tag as TagEntity, TestRole, Profile, ProjectMemberWithProfile, ProjectMemberRole, ProjectMemberStatus, ProjectVisibility } from '../../types/domain';
 import { CreateProjectDialog } from './components/CreateProjectDialog';
 import { ModulesTab } from './components/tabs/ModulesTab';
 import { ProjectSettingsPageSkeleton } from './components/ProjectSettingsPageSkeleton';
 import { TagsTab } from './components/tabs/TagsTab';
 import { TestRolesTab } from './components/tabs/TestRolesTab';
 import { MembersTab } from './components/tabs/MembersTab';
+import { AgentTokensTab } from './components/tabs/AgentTokensTab';
+import { MintAgentTokenDialog } from './components/dialogs/MintAgentTokenDialog';
 import { DangerZoneTab } from './components/tabs/DangerZoneTab';
 import { ModuleDialog } from './components/dialogs/ModuleDialog';
 import { TagDialog } from './components/dialogs/TagDialog';
@@ -48,7 +51,7 @@ export function ProjectSettingsPage() {
     'modules',
     'tags',
     'testRoles',
-    ...(isOwner ? ['members', 'agentTokens', 'automationRunners', 'dangerZone'] : []),
+    ...(isOwner ? ['members', 'agentTokens', 'dangerZone'] : []),
   ] as const;
   const [activeTabIndex, setActiveTabIndex] = useTabQueryParam(settingsTabNames, 0);
 
@@ -58,6 +61,8 @@ export function ProjectSettingsPage() {
   const [members, setMembers] = useState<ProjectMemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { tokens: apiTokens, mint: mintToken, revoke: revokeToken } = useApiTokens(id ?? '');
+  const [mintDialogOpen, setMintDialogOpen] = useState(false);
   const [projectVisibility, setProjectVisibility] = useState<ProjectVisibility>('private');
 
   async function loadAll(showLoading = true) {
@@ -477,6 +482,20 @@ export function ProjectSettingsPage() {
   }
 
   // --- Agent Tokens ---
+  function handleRevokeToken(row: ApiToken) {
+    confirmDialog({
+      message: `Revoke token "${row.name}"? Agents using it lose access immediately.`,
+      header: 'Revoke Agent Token',
+      icon: 'pi pi-exclamation-triangle',
+      acceptClassName: 'p-button-danger',
+      accept: async () => {
+        const ok = await revokeToken(row.id);
+        if (ok) toastHelper.success('Token revoked');
+        else toastHelper.error('Failed to revoke token');
+      },
+    });
+  }
+
   // Reachable only by managers (this whole page requires canManageSettings), so the
   // caller's role is always 'manager' — the SQL/service-side role cap still applies as
   // defense-in-depth, it just never restricts anyone from here in practice.
@@ -664,6 +683,17 @@ export function ProjectSettingsPage() {
           )}
 
           {isOwner && (
+            <TabPanel header="Agent Tokens">
+              <AgentTokensTab
+                tokens={apiTokens}
+                isMobile={isMobile}
+                onMint={() => setMintDialogOpen(true)}
+                onRevoke={handleRevokeToken}
+              />
+            </TabPanel>
+          )}
+
+          {isOwner && (
             <TabPanel header="Danger Zone">
               <DangerZoneTab
                 project={project}
@@ -678,6 +708,15 @@ export function ProjectSettingsPage() {
             </TabPanel>
           )}
         </TabView>
+        {project && (
+          <MintAgentTokenDialog
+            visible={mintDialogOpen}
+            projectId={project.id}
+            projectName={project.name}
+            onHide={() => setMintDialogOpen(false)}
+            onMint={(name, level) => mintToken(name, level, 'manager')}
+          />
+        )}
       </Card>
 
       <ModuleDialog
