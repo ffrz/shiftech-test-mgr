@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 	"strconv"
 
 	"github.com/joho/godotenv"
@@ -15,6 +16,7 @@ import (
 	"github.com/shiftech/testify-platform/service"
 	pgdriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
@@ -26,7 +28,7 @@ func main() {
 	if dsn == "" {
 		log.Fatal("DATABASE_URL is not set")
 	}
-	db, err := gorm.Open(pgdriver.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(pgdriver.Open(dsn), &gorm.Config{Logger: logger.New(log.New(os.Stderr, "", log.LstdFlags), logger.Config{SlowThreshold: time.Second, LogLevel: logger.Warn, ParameterizedQueries: true})})
 	if err != nil {
 		log.Fatalf("db connect: %v", err)
 	}

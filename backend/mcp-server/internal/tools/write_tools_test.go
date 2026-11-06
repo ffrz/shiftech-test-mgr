@@ -865,6 +865,39 @@ func TestCreateTestRun_WithPlan(t *testing.T) {
 	if got.ProjectID != testProjectID || got.Name != "Run A" || got.TestPlanID == nil || *got.TestPlanID != testPlanID {
 		t.Errorf("input = %+v", got)
 	}
+	if got.StartedBy == nil || *got.StartedBy != testApprover {
+		t.Errorf("StartedBy = %v, want token owner %s", got.StartedBy, testApprover)
+	}
+}
+
+// Regression: the response used to carry the pre-update row (status in_progress).
+func TestCompleteTestRun_ReturnsCompletedState(t *testing.T) {
+	completed := false
+	reg := writeReg(writeSession(allWriteScopes()...), nil, nil, &writeMockTestRunRepo{
+		get: func(ctx context.Context, id string) (*core.TestRun, error) {
+			status := core.RunInProgress
+			if completed {
+				status = core.RunCompleted
+			}
+			return &core.TestRun{ID: id, ProjectID: testProjectID, Status: status}, nil
+		},
+		complete: func(ctx context.Context, id string) error {
+			completed = true
+			return nil
+		},
+	}, nil)
+	w := &WriteTools{reg: reg}
+
+	res, _ := w.completeTestRun(context.Background(), call("testify.testrun.complete", map[string]any{
+		"testrun_id": testRunID,
+	}))
+	if res == nil || res.IsError {
+		t.Fatalf("expected success, got %+v", res)
+	}
+	tr, ok := res.StructuredContent.(*core.TestRun)
+	if !ok || tr.Status != core.RunCompleted {
+		t.Errorf("response = %+v, want status completed", res.StructuredContent)
+	}
 }
 
 func TestCreateTestRun_WithCases(t *testing.T) {

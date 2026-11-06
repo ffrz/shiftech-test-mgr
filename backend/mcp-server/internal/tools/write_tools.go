@@ -564,6 +564,10 @@ func (t *WriteTools) createTestRun(ctx context.Context, req mcp.CallToolRequest)
 	}
 
 	input := core.CreateTestRunInput{ProjectID: session.ProjectID, Name: name}
+	// The run's starter is always the API token owner, never agent-supplied input.
+	if starter := session.Identity.CreatedBy; starter != "" {
+		input.StartedBy = &starter
+	}
 	if raw := req.GetString("testplan_id", ""); raw != "" {
 		if !isUUID(raw) {
 			return mcp.NewToolResultError("testplan_id must be a valid UUID"), nil
@@ -642,6 +646,10 @@ func (t *WriteTools) completeTestRun(ctx context.Context, req mcp.CallToolReques
 	}
 	if err := t.reg.Services.TestRun.Complete(ctx, testRunID, session.Identity.CreatedBy, session.ProjectID); err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
+	}
+	// Re-read so the response reflects the completed state, not the pre-update row.
+	if updated, err := t.reg.Services.TestRun.Get(ctx, testRunID); err == nil {
+		tr = updated
 	}
 	return mcp.NewToolResultStructured(tr, "test run completed"), nil
 }

@@ -39,10 +39,10 @@ func (r *PostgresRepository) BeginToolCall(ctx context.Context, rawToken, projec
 }
 
 func (r *PostgresRepository) CompleteToolCall(ctx context.Context, rawToken, projectID, auditID, status string, latencyMs int) error {
-	err := r.db.WithContext(ctx).Raw(
+	err := r.db.WithContext(ctx).Exec(
 		`select mcp_complete_tool_call(?, ?, ?, ?, ?)`,
 		rawToken, projectID, auditID, status, latencyMs,
-	).Scan(nil).Error
+	).Error
 	if err != nil {
 		return fmt.Errorf("governance complete: %w", err)
 	}
