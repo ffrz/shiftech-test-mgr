@@ -49,3 +49,6 @@ test-results/.last-run.json
 
 # graphify (generated, rebuildable via `graphify update .`)
 /graphify-out/
+
+# Binary hasil build deploy-vps.sh
+backend/mcp-server-http-linux

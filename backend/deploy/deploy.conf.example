@@ -1,0 +1,7 @@
+# Copy ke deploy.conf.local (folder yang sama) dan isi. *.local di-gitignore.
+SERVER_HOST="203.0.113.10"
+SERVER_KEY="${HOME}/.ssh/shiftech_server1"
+INSTALL_DIR="/opt/testify-mcp"
+SERVICE="testify-mcp"
+HTTP_PORT="8093"
+PUBLIC_URL="https://testify-mcp.apps.shiftech.my.id/mcp"
