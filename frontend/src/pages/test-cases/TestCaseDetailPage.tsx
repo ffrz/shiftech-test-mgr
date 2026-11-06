@@ -8,6 +8,7 @@ import { Chip } from 'primereact/chip';
 import { InputText } from 'primereact/inputtext';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { MultilineText } from '../../components/ui/MultilineText';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
 import { TestCaseDetailPageSkeleton } from './TestCaseDetailPageSkeleton';
@@ -431,13 +432,13 @@ export function TestCaseDetailPage() {
 
         {testCase.objective && (
           <Card title="Objective" className="mb-3 detail-content-card">
-            <p className="m-0">{testCase.objective}</p>
+            <MultilineText value={testCase.objective} className="m-0 block" />
           </Card>
         )}
 
         {testCase.preconditions && (
           <Card title="Preconditions" className="mb-3 detail-content-card">
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.preconditions}</p>
+            <MultilineText value={testCase.preconditions} className="m-0 block" />
           </Card>
         )}
 
@@ -446,10 +447,10 @@ export function TestCaseDetailPage() {
             <ol className="m-0 pl-3 flex flex-column gap-2">
               {detailedSteps.map((step) => (
                 <li key={step.id}>
-                  <div style={{ whiteSpace: 'pre-wrap' }}>{step.action}</div>
+                  <MultilineText value={step.action} className="block" />
                   {step.expectedResult && (
-                    <div className="text-color-secondary text-sm mt-1" style={{ whiteSpace: 'pre-wrap' }}>
-                      Expected: {step.expectedResult}
+                    <div className="text-color-secondary text-sm mt-1">
+                      Expected: <MultilineText value={step.expectedResult} />
                     </div>
                   )}
                 </li>
@@ -459,18 +460,18 @@ export function TestCaseDetailPage() {
         ) : (
           <>
             <Card title="Test Steps" className="mb-3 detail-content-card">
-              <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.steps}</p>
+              <MultilineText value={testCase.steps} className="m-0 block" />
             </Card>
 
             <Card title="Expected Result" className="mb-3 detail-content-card">
-              <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.expectedResult}</p>
+              <MultilineText value={testCase.expectedResult} className="m-0 block" />
             </Card>
           </>
         )}
 
         {testCase.notes && (
           <Card title="Notes" className="mb-3 detail-content-card">
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{testCase.notes}</p>
+            <MultilineText value={testCase.notes} className="m-0 block" />
           </Card>
         )}
 

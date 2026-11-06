@@ -9,6 +9,7 @@ import type { DataTablePageEvent, DataTableStateEvent } from 'primereact/datatab
 import { TabView, TabPanel } from 'primereact/tabview';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { MultilineText } from '../../components/ui/MultilineText';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { ActivityLogTab } from './components/tabs/ActivityLogTab';
 import { ProjectDetailPageSkeleton } from './components/ProjectDetailPageSkeleton';
@@ -1070,7 +1071,7 @@ export function ProjectDetailPage() {
 
         {!effectiveDetailCollapsed && (
           <>
-            <p className="text-color-secondary text-sm mt-2 mb-0">{project.description || 'No description'}</p>
+            <MultilineText value={project.description || 'No description'} className="text-color-secondary text-sm mt-2 mb-0 block" />
 
             <div className="flex flex-column sm:flex-row sm:flex-wrap gap-2 sm:column-gap-4 sm:row-gap-1 mt-3 mb-3 text-xs">
               {projectOwnerProfile && project && (

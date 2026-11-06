@@ -7,6 +7,7 @@ import { Button } from 'primereact/button';
 import { testSuiteService } from '../../services/testSuiteService';
 import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { MultilineText } from '../../components/ui/MultilineText';
 import { TestSuiteItemDetailPageSkeleton } from './TestSuiteItemDetailPageSkeleton';
 import { TestSuiteItemDialog } from '../../components/dialogs/TestSuiteItemDialog';
 import { TEST_CASE_PRIORITY_LABEL, TEST_CASE_PRIORITY_SEVERITY } from '../../helpers/statusLabels';
@@ -107,13 +108,13 @@ export function TestSuiteItemDetailPage() {
 
         {item.objective && (
           <Card title="Objective" className="mb-3 detail-content-card">
-            <p className="m-0">{item.objective}</p>
+            <MultilineText value={item.objective} className="m-0 block" />
           </Card>
         )}
 
         {item.preconditions && (
           <Card title="Preconditions" className="mb-3 detail-content-card">
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{item.preconditions}</p>
+            <MultilineText value={item.preconditions} className="m-0 block" />
           </Card>
         )}
 
@@ -122,10 +123,10 @@ export function TestSuiteItemDetailPage() {
             <ol className="m-0 pl-3 flex flex-column gap-2">
               {detailedSteps.map((step) => (
                 <li key={step.id}>
-                  <div style={{ whiteSpace: 'pre-wrap' }}>{step.action}</div>
+                  <MultilineText value={step.action} className="block" />
                   {step.expectedResult && (
-                    <div className="text-color-secondary text-sm mt-1" style={{ whiteSpace: 'pre-wrap' }}>
-                      Expected: {step.expectedResult}
+                    <div className="text-color-secondary text-sm mt-1">
+                      Expected: <MultilineText value={step.expectedResult} />
                     </div>
                   )}
                 </li>
@@ -135,18 +136,18 @@ export function TestSuiteItemDetailPage() {
         ) : (
           <>
             <Card title="Test Steps" className="mb-3 detail-content-card">
-              <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{item.steps}</p>
+              <MultilineText value={item.steps} className="m-0 block" />
             </Card>
 
             <Card title="Expected Result" className="mb-3 detail-content-card">
-              <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{item.expectedResult}</p>
+              <MultilineText value={item.expectedResult} className="m-0 block" />
             </Card>
           </>
         )}
 
         {item.notes && (
           <Card title="Notes" className="mb-3 detail-content-card">
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{item.notes}</p>
+            <MultilineText value={item.notes} className="m-0 block" />
           </Card>
         )}
       </div>

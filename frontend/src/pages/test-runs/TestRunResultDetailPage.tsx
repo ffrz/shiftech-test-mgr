@@ -30,6 +30,7 @@ import { projectService } from '../../services/projectService';
 import { profileRepository } from '../../repositories/profileRepository';
 import { IssueEditor, type IssueFormData } from '../../components/issues/IssueEditor';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { MultilineText } from '../../components/ui/MultilineText';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { AttachmentPanel } from '../../components/ui/AttachmentPanel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
@@ -563,7 +564,7 @@ export function TestRunResultDetailPage() {
             {testRun?.notes && (
               <div className="mb-3 p-0 surface-100 border-round">
                 <div className="text-sm font-medium mb-1">Notes</div>
-                <div className="text-sm white-space-pre-line">{testRun.notes}</div>
+                <MultilineText value={testRun.notes} className="text-sm block" />
               </div>
             )}
 
@@ -758,19 +759,19 @@ export function TestRunResultDetailPage() {
 
                 {activeResult.testCaseObjective && (
                   <Card title="Objective" className="mb-3 detail-content-card">
-                    <p className="m-0">{activeResult.testCaseObjective}</p>
+                    <MultilineText value={activeResult.testCaseObjective} className="m-0 block" />
                   </Card>
                 )}
 
                 {activeResult.testCasePreconditions && (
                   <Card title="Preconditions" className="mb-3 detail-content-card">
-                    <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCasePreconditions}</p>
+                    <MultilineText value={activeResult.testCasePreconditions} className="m-0 block" />
                   </Card>
                 )}
 
                 {activeResult.testCaseNotes && (
                   <Card title="Case Notes" className="mb-3 detail-content-card">
-                    <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseNotes}</p>
+                    <MultilineText value={activeResult.testCaseNotes} className="m-0 block" />
                   </Card>
                 )}
 
@@ -779,7 +780,7 @@ export function TestRunResultDetailPage() {
                     carries its own expected result). */}
                 {activeResult.stepResults.length === 0 ? (
                   <Card title="Test Steps" className="mb-3 detail-content-card">
-                    <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseSteps}</p>
+                    <MultilineText value={activeResult.testCaseSteps} className="m-0 block" />
                   </Card>
                 ) : (
                   <Card title="Test Steps" className="mb-3 detail-content-card">
@@ -787,10 +788,10 @@ export function TestRunResultDetailPage() {
                       {activeResult.stepResults.map((sr) => (
                         <div key={sr.id} className="flex align-items-start gap-2 p-2 border-round surface-100">
                           <div className="text-sm flex-grow-1">
-                            <div>{sr.step.stepNumber}. {sr.step.action}</div>
+                            <div>{sr.step.stepNumber}. <MultilineText value={sr.step.action} /></div>
                             {sr.step.expectedResult && (
                               <div className="text-color-secondary mt-1">
-                                Expected: {sr.step.expectedResult}
+                                Expected: <MultilineText value={sr.step.expectedResult} />
                               </div>
                             )}
                           </div>
@@ -850,7 +851,7 @@ export function TestRunResultDetailPage() {
                 )}
 
                 <Card title="Expected Result" className="mb-3 detail-content-card">
-                  <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{activeResult.testCaseExpectedResult}</p>
+                  <MultilineText value={activeResult.testCaseExpectedResult} className="m-0 block" />
                 </Card>
 
                 {canRunTests && (
@@ -873,7 +874,7 @@ export function TestRunResultDetailPage() {
                     className="mb-3 detail-content-card"
                   >
                     {resultNotes ? (
-                      <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{resultNotes}</p>
+                      <MultilineText value={resultNotes} className="m-0 block" />
                     ) : (
                       <p className="m-0 text-color-secondary" style={{ fontStyle: 'italic' }}>No notes</p>
                     )}

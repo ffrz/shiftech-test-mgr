@@ -21,6 +21,7 @@ import { useAuthContext } from '../../hooks/useAuth';
 import { useProjectBreadcrumbItems } from '../../hooks/useProjectBreadcrumbItems';
 import { queryKeys } from '../../hooks/queryKeys';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { MultilineText } from '../../components/ui/MultilineText';
 import { ActivityPanel } from '../../components/ui/ActivityPanel';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { IssueDetailPageSkeleton } from './IssueDetailPageSkeleton';
@@ -469,19 +470,19 @@ export function IssueDetailPage() {
 
         {issue.description && (
           <Card title="Description" className="mb-3 detail-content-card">
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.description}</p>
+            <MultilineText value={issue.description} className="m-0 block" />
           </Card>
         )}
 
         {issue.actualResult && (
           <Card title="Actual Result" className="mb-3 detail-content-card">
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.actualResult}</p>
+            <MultilineText value={issue.actualResult} className="m-0 block" />
           </Card>
         )}
 
         {issue.expectedResult && (
           <Card title="Expected Result" className="mb-3 detail-content-card">
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{issue.expectedResult}</p>
+            <MultilineText value={issue.expectedResult} className="m-0 block" />
           </Card>
         )}
 

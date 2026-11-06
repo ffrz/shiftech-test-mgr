@@ -25,6 +25,7 @@ import { RowActionsMenu } from '../../components/ui/RowActionsMenu';
 import { BulkActionsBar } from '../../components/ui/BulkActionsBar';
 import { dataTablePaginatorProps } from '../../components/ui/dataTablePaginator';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
+import { MultilineText } from '../../components/ui/MultilineText';
 import { UserHoverCard } from '../../components/ui/UserHoverCard';
 import { useStoredState } from '../../hooks/useStoredState';
 import { TestSuiteDialog } from '../../components/dialogs/TestSuiteDialog';
@@ -447,7 +448,7 @@ export function TestSuiteDetailPage() {
         </div>
         {!effectiveDetailCollapsed && (
           <>
-            <p className="text-color-secondary text-sm mt-2 mb-0">{suite?.description || 'No description'}</p>
+            <MultilineText value={suite?.description || 'No description'} className="text-color-secondary text-sm mt-2 mb-0 block" />
             <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-0 text-xs">
               <span className="text-color-secondary">
                 <i className="pi pi-user mr-1" style={{ fontSize: '0.75rem' }} />

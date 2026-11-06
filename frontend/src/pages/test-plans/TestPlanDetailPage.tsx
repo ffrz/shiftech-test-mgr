@@ -35,6 +35,7 @@ import { AddCaseToPlanDialog } from './components/dialogs/AddCaseToPlanDialog';
 import { TestCaseDialog } from '../projects/components/dialogs/TestCaseDialog';
 import { StartTestRunDialog } from './components/dialogs/StartTestRunDialog';
 import { toastHelper } from '../../helpers/toast';
+import { MultilineText } from '../../components/ui/MultilineText';
 
 export function TestPlanDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -440,7 +441,7 @@ export function TestPlanDetailPage() {
               {testPlan && <Tag value={TEST_PLAN_STATUS_LABEL[testPlan.status]} severity={TEST_PLAN_STATUS_SEVERITY[testPlan.status]} />}
             </div>
             {testPlan.description && (
-              <p className="text-sm text-color-secondary mt-2 mb-0">{testPlan.description}</p>
+              <MultilineText value={testPlan.description} className="text-sm text-color-secondary mt-2 mb-0 block" />
             )}
 
             <div className="flex flex-wrap column-gap-4 row-gap-1 mt-3 mb-0 text-xs">
