@@ -32,7 +32,7 @@ function setupSteps(params: PromptParams): string {
 
   if (target === 'claude-code') {
     return `Register this as an MCP server using the Claude Code CLI:
-claude mcp add --scope local --transport http --header "Authorization: Bearer ${token}" --header "X-Testify-Project-Id: ${projectId}" testify ${serverUrl}
+claude mcp add --scope local --transport http testify ${serverUrl} --header "Authorization: Bearer ${token}" --header "X-Testify-Project-Id: ${projectId}"
 After that, the testify.* tools should be available to you directly — no further setup needed.`;
   }
 
